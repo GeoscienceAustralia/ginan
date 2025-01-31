@@ -28,12 +28,12 @@
 #include <boost/log/trivial.hpp>
 #include <boost/multi_array.hpp>
 
-#include "tide.h"
-#include "loading.h"
-#include "utils.h"
-#include "input_otl.h"
-#include "load_functions.h"
-#include "loadgrid.h"
+#include "loading/tide.h"
+#include "loading/loading.h"
+#include "loading/utils.h"
+#include "loading/input_otl.h"
+#include "loading/load_functions.h"
+#include "loading/loadgrid.h"
 
 using namespace std;
 using namespace boost::timer;

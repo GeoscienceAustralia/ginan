@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "attitude.hpp"
-#include "satStat.hpp"
-#include "common.hpp"
-#include "cache.hpp"
-#include "gTime.hpp"
-#include "ppp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/attitude.hpp"
+#include "common/satStat.hpp"
+#include "common/common.hpp"
+#include "common/cache.hpp"
+#include "common/gTime.hpp"
+#include "pea/ppp.hpp"
 
 /** Solution of user mode processing functinos
 */

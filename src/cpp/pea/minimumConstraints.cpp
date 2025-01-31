@@ -6,18 +6,18 @@
 
 using std::vector;
 
-#include "minimumConstraints.hpp"
-#include "eigenIncluder.hpp"
-#include "algebraTrace.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "mongoWrite.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "sinex.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "pea/minimumConstraints.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/algebraTrace.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 void minSiteData(
 	Trace&			trace,

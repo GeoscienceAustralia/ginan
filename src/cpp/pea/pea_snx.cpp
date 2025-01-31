@@ -6,15 +6,15 @@
 
 using boost::algorithm::to_lower_copy;
 
-#include "eigenIncluder.hpp"
-#include "inputsOutputs.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "sinex.hpp"
-#include "slr.hpp"
+#include "common/eigenIncluder.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/sinex.hpp"
+#include "slr/slr.hpp"
 
 void getStationsFromSinex(
 	map<string, Receiver>&	receiverMap,

@@ -9,12 +9,12 @@
 #include <sstream>
 #include <string>
 
-#include "observations.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "slr.hpp"
+#include "common/observations.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "slr/slr.hpp"
 
 using std::ifstream;
 using std::ofstream;

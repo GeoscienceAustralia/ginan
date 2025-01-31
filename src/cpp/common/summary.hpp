@@ -5,7 +5,7 @@
 
 using std::map;
 
-#include "trace.hpp"
+#include "common/trace.hpp"
 
 struct ReceiverMap;
 

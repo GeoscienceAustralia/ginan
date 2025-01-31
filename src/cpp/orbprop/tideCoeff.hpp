@@ -7,7 +7,7 @@
 using std::string;
 using std::vector;
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 struct TidalWave
 {

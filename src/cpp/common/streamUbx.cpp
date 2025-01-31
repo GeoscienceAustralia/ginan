@@ -1,8 +1,8 @@
 
 #include <map>
 
-#include "packetStatistics.hpp"
-#include "streamUbx.hpp"
+#include "common/packetStatistics.hpp"
+#include "common/streamUbx.hpp"
 
 
 #define CLEAN_UP_AND_RETURN_ON_FAILURE	\

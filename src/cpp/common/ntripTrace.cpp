@@ -15,9 +15,9 @@ using std::chrono::system_clock;
 using std::chrono::time_point;
 using std::string;
 
-#include "ntripTrace.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
+#include "common/ntripTrace.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
 
 void NetworkStatistics::onErrorStatistics(
 	const boost::system::error_code& 	err,

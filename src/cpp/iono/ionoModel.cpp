@@ -7,12 +7,12 @@
 using std::string;
 using std::map;
 
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "enums.h"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/enums.h"
 
 
 /* Global parameters */

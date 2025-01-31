@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 #include <iostream>
 #include <string>

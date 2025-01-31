@@ -7,7 +7,7 @@
 
 namespace sinks = boost::log::sinks;
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 struct ErrorExit : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {

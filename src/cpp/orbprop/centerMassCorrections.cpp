@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "centerMassCorrections.hpp"
+#include "orbprop/centerMassCorrections.hpp"
 
 CenterMassCorrections cmc;
 

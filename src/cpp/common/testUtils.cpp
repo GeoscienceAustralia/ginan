@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <math.h>
 
-#include "testUtils.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
+#include "common/testUtils.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
 
 
 void ErrorExit::consume(
@@ -51,13 +51,13 @@ void exitOnErrors()
 size_t bucket = 0;
 #include <malloc.h>
 
-#include "streamParser.hpp"
-#include "streamNtrip.hpp"
-#include "navigation.hpp"
-#include "streamRtcm.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "biases.hpp"
+#include "common/streamParser.hpp"
+#include "common/streamNtrip.hpp"
+#include "common/navigation.hpp"
+#include "common/streamRtcm.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/biases.hpp"
 
 
 static void* plumber_hook(size_t size, const void* caller);

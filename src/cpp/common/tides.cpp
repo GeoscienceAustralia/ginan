@@ -22,19 +22,19 @@
 using boost::algorithm::to_lower_copy;
 using std::ifstream;
 
-#include "coordinates.hpp"
-#include "ephPrecise.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "receiver.hpp"
-#include "planets.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "tides.hpp"
-#include "trace.hpp"
-#include "erp.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "3rdparty/iers2010/iers2010.hpp"
+#include "common/receiver.hpp"
+#include "orbprop/planets.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/tides.hpp"
+#include "common/trace.hpp"
+#include "common/erp.hpp"
 
 using iers2010::hisp::ntin;
 

@@ -6,12 +6,12 @@
 using std::pair;
 
 
-#include "eigenIncluder.hpp"
-#include "algebraTrace.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "acsQC.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/acsQC.hpp"
+#include "common/trace.hpp"
 
 [[deprecated]]
 double *mat(int n, int m)

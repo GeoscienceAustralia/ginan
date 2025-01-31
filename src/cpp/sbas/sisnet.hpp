@@ -8,8 +8,8 @@
 using std::string;
 using std::vector;
 
-#include "streamSerial.hpp"
-#include "tcpSocket.hpp"
+#include "common/streamSerial.hpp"
+#include "common/tcpSocket.hpp"
 
 
 #include <mutex>

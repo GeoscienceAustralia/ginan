@@ -2,12 +2,12 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "customDecoder.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/customDecoder.hpp"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 map<string, map<GTime, Vector3d,	std::greater<GTime>>>	CustomDecoder::gyroDataMaps;

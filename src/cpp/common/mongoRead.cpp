@@ -5,11 +5,11 @@
 
 using std::deque;
 
-#include "streamRtcm.hpp"
-#include "ephemeris.hpp"
-#include "acsConfig.hpp"
-#include "mongoRead.hpp"
-#include "common.hpp"
+#include "common/streamRtcm.hpp"
+#include "common/ephemeris.hpp"
+#include "common/acsConfig.hpp"
+#include "common/mongoRead.hpp"
+#include "common/common.hpp"
 
 short int			currentSSRIod = 0;	//todo aaron, sketchy global?
 map<SatSys, int>	lastBrdcIode;

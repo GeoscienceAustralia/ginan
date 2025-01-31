@@ -1,13 +1,13 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "observations.hpp"
-#include "linearCombo.hpp"
-#include "navigation.hpp"
-#include "satStat.hpp"
-#include "debug.hpp"
-#include "acsQC.hpp"
-#include "trace.hpp"
+#include "common/observations.hpp"
+#include "common/linearCombo.hpp"
+#include "common/navigation.hpp"
+#include "common/satStat.hpp"
+#include "common/debug.hpp"
+#include "common/acsQC.hpp"
+#include "common/trace.hpp"
 
 
 /** Create combinations between specific observation values

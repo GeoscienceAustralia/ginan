@@ -1,8 +1,8 @@
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
 
 #define IONO_OUT_THRESHOLD		120
 #define DEFAULT_STEC_POLY_ACC	0.5

@@ -10,13 +10,13 @@
 using std::vector;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "acsConfig.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
-#include "erp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/acsConfig.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
+#include "common/erp.hpp"
 
 using namespace boost::numeric::odeint;
 

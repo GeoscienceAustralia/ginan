@@ -1,10 +1,10 @@
 
-#include "coordinates.hpp"
-#include "tropModels.hpp"
-#include "navigation.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
+#include "orbprop/coordinates.hpp"
+#include "trop/tropModels.hpp"
+#include "common/navigation.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
 
 
 #define DEFAULT_LAT_INTERVAL 2.5

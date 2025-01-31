@@ -14,21 +14,21 @@ using std::map;
 #include <boost/log/trivial.hpp>
 
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "constants.hpp"
-#include "mongoRead.hpp"
-#include "ephemeris.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "planets.hpp"
-#include "common.hpp"
-#include "biases.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/constants.hpp"
+#include "common/mongoRead.hpp"
+#include "common/ephemeris.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "orbprop/planets.hpp"
+#include "common/common.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 #define NMAX		10				/* order of polynomial interpolation */
 #define MAXDTE		900.0			/* max time difference to ephem time (s) */

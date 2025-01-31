@@ -11,11 +11,11 @@ using std::chrono::time_point;
 
 using bsoncxx::builder::basic::kvp;
 
-#include "ntripBroadcast.hpp"
-#include "mongoRead.hpp"
-#include "otherSSR.hpp"
-#include "fileLog.hpp"
-#include "gTime.hpp"
+#include "common/ntripBroadcast.hpp"
+#include "common/mongoRead.hpp"
+#include "other_ssr/otherSSR.hpp"
+#include "common/fileLog.hpp"
+#include "common/gTime.hpp"
 
 
 NtripBroadcaster ntripBroadcaster;

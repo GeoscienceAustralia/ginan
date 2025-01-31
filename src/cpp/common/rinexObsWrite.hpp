@@ -11,7 +11,7 @@
 
 using std::string;
 
-#include "observations.hpp"
+#include "common/observations.hpp"
 
 struct Receiver;
 

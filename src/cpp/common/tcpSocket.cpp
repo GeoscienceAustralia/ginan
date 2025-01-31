@@ -12,9 +12,9 @@
 #include <chrono>
 
 
-#include "streamNtrip.hpp"
-#include "tcpSocket.hpp"
-#include "acsConfig.hpp"
+#include "common/streamNtrip.hpp"
+#include "common/tcpSocket.hpp"
+#include "common/acsConfig.hpp"
 
 
 using std::chrono::system_clock;

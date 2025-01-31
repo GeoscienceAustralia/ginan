@@ -7,21 +7,21 @@
 #include <random>
 
 
-#include "minimumConstraints.hpp"
-#include "eigenIncluder.hpp"
-#include "rtsSmoothing.hpp"
-#include "observations.hpp"
-#include "algebraTrace.hpp"
-#include "linearCombo.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "debug.hpp"
-#include "sinex.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "pea/minimumConstraints.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/rtsSmoothing.hpp"
+#include "common/observations.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/linearCombo.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/debug.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 std::random_device					randoDev;
 std::mt19937						randoGen(randoDev());
@@ -269,7 +269,7 @@ void minimumTest(
 }
 
 #if 0
-#include "sinex.hpp"
+#include "common/sinex.hpp"
 #if 0
 void outputMeas(
 			Trace&		trace,   	///< Trace to output to
@@ -361,8 +361,8 @@ void testOutlierDetection()
 #endif
 
 
-#include "acsConfig.hpp"
-#include "mongoWrite.hpp"
+#include "common/acsConfig.hpp"
+#include "common/mongoWrite.hpp"
 
 void rtsBump()
 {
@@ -459,18 +459,18 @@ void rtsBump()
 
 
 
-#include "streamSerial.hpp"
-#include "streamFile.hpp"
-#include "streamRtcm.hpp"
-#include "streamObs.hpp"
-#include "streamUbx.hpp"
+#include "common/streamSerial.hpp"
+#include "common/streamFile.hpp"
+#include "common/streamRtcm.hpp"
+#include "common/streamObs.hpp"
+#include "common/streamUbx.hpp"
 
 #endif
 
-#include "mongoWrite.hpp"
+#include "common/mongoWrite.hpp"
 
 
-//#include "orbitProp.hpp"
+//#include "orbprop/orbitProp.hpp"
 //extern map<string, OrbitPropagator>	orbitPropagatorMap;
 
 /** Compare the orbital states created by pseudo-linear state transitions with the original values.
@@ -765,8 +765,8 @@ void debugTime()
 	std::cout << "UtcTime to GTime:   " << gTimeU. bigTime << " " << gTimeU .to_string(1) << "\n";
 }
 
-#include "coordinates.hpp"
-#include "iers2010.hpp"
+#include "orbprop/coordinates.hpp"
+#include "3rdparty/iers2010/iers2010.hpp"
 
 const GTime j2000TT		= GEpoch{2000, E_Month::JAN, 1,		11,	58,	55.816	+ GPS_SUB_UTC_2000};	// defined in utc 11:58:55.816
 void rotationTest()
@@ -819,8 +819,8 @@ void longDoubleTest()
 	std::cout << "\n" << "This system uses " << sizeof(a) * 8 << " bits for long doubles. (Hopefully that number is 128...)" << "\n";
 }
 
-#include "rtcmEncoder.hpp"
-#include "ssr.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/ssr.hpp"
 /*
 void debugSSR(GTime t0, GTime targetTime, E_Sys sys, SsrOutMap& ssrOutMap)
 {
@@ -980,13 +980,13 @@ void reflector()
 //
 // }
 
-#include "streamParser.hpp"
-#include "streamFile.hpp"
-#include "rinex.hpp"
-#include "coordinates.hpp"
-#include "erp.hpp"
+#include "common/streamParser.hpp"
+#include "common/streamFile.hpp"
+#include "common/rinex.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/erp.hpp"
 
-#include "geomagField.hpp"
+#include "iono/geomagField.hpp"
 
 void debugIGRF()
 {
@@ -1112,8 +1112,8 @@ void debugIGRF()
 	}
 }
 
-#include "attitude.hpp"
-#include "planets.hpp"
+#include "common/attitude.hpp"
+#include "orbprop/planets.hpp"
 
 void debugAttitude()
 {
@@ -1231,7 +1231,7 @@ void debugErp()
 }
 
 #include <fstream>
-#include "tides.hpp"
+#include "common/tides.hpp"
 
 using iers2010::hisp::ntin;
 
@@ -1945,7 +1945,7 @@ void infiniteTest()
 }
 
 #include <iostream>
-#include "ubxDecoder.hpp"
+#include "common/ubxDecoder.hpp"
 
 void getAccData()
 {
@@ -1984,7 +1984,7 @@ void getAccData()
 	}
 }
 
-#include "orbitProp.hpp"
+#include "orbprop/orbitProp.hpp"
 
 void perEpochPropTest(
 	GTime time)

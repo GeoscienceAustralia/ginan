@@ -11,11 +11,11 @@ using std::vector;
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "coordinates.hpp"
-#include "tideCoeff.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "sofa.h"
+#include "orbprop/coordinates.hpp"
+#include "orbprop/tideCoeff.hpp"
+#include "common/constants.hpp"
+#include "orbprop/iers2010.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 Tide oceanTide;
 Tide atmosphericTide;

@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "satSys.hpp"
-#include "common.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/satSys.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
 
 extern double	FIXED_AMB_VAR;
 extern bool 	AR_VERBO;

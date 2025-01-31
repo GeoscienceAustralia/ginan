@@ -5,13 +5,13 @@
 #include <fstream>
 
 
-#include "eigenIncluder.hpp"
-#include "navigation.hpp"
-#include "orbexWrite.hpp"
-#include "ephemeris.hpp"
-#include "acsConfig.hpp"
-#include "enums.h"
-#include "ppp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/navigation.hpp"
+#include "common/orbexWrite.hpp"
+#include "common/ephemeris.hpp"
+#include "common/acsConfig.hpp"
+#include "common/enums.h"
+#include "pea/ppp.hpp"
 
 #define ORBEX_VER	0.09
 #define NO_PV_STD	99999.9

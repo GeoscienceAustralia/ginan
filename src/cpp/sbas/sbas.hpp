@@ -5,9 +5,9 @@
 
 using std::mutex;
 
-#include "constants.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
+#include "common/constants.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
 
 struct SBASMessage
 {

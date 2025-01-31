@@ -3,10 +3,10 @@
 
 #include <functional>
 
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "biases.hpp"
-#include "enums.h"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/biases.hpp"
+#include "common/enums.h"
 
 /** Convert observation code string to enum code
 */

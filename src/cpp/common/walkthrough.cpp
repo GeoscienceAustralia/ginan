@@ -1,10 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "algebra.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "ppp.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "pea/ppp.hpp"
 
 #include <iostream>
 #include <random>

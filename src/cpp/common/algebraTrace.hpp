@@ -24,7 +24,7 @@ using std::map;
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "enums.h"
+#include "common/enums.h"
 
 #include "architectureDocs.hpp"
 

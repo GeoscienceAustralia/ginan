@@ -22,8 +22,8 @@ using std::vector;
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
-#include "streamSerial.hpp"
-#include "ntripTrace.hpp"
+#include "common/streamSerial.hpp"
+#include "common/ntripTrace.hpp"
 
 
 /* Interface to be used for NTRIP version 2, streams for downloading messages.

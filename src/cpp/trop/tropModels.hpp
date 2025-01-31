@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 #include <string>
 

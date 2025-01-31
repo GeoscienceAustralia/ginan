@@ -19,16 +19,16 @@ FileType RNX__()
 
 using std::string;
 
-#include "rinexNavWrite.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "biases.hpp"
-#include "gTime.hpp"
-#include "rinex.hpp"
-#include "trace.hpp"
-#include "enum.h"
+#include "common/rinexNavWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
+#include "common/rinex.hpp"
+#include "common/trace.hpp"
+#include "3rdparty/enum.h"
 
 #define MAXPOSHEAD  1024            	///< max head line position
 #define MINFREQ_GLO -7              	///< min frequency number glonass

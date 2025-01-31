@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include "streamParser.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "enums.h"
+#include "common/streamParser.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/enums.h"
 
 
 

@@ -5,7 +5,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 #include <unordered_map>
 #include <filesystem>
@@ -28,9 +28,9 @@ using std::array;
 using std::map;
 using std::set;
 
-#include "satSys.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/satSys.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 
 #define PI          3.141592653589793238462643383279502884197169399375105820974

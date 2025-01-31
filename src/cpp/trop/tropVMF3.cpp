@@ -5,7 +5,7 @@
 
 using std::ifstream;
 
-#include "tropModels.hpp"
+#include "trop/tropModels.hpp"
 
 /** vmf3 grid file contents
  */

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
@@ -24,10 +24,10 @@ using std::hash;
 using std::pair;
 using std::map;
 
-#include "acsConfig.hpp"
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/acsConfig.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 
 //forward declaration

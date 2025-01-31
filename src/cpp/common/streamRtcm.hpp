@@ -4,11 +4,11 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-#include "streamParser.hpp"
-#include "rtcmDecoder.hpp"
-#include "streamObs.hpp"
-#include "constants.hpp"
-#include "otherSSR.hpp"
+#include "common/streamParser.hpp"
+#include "common/rtcmDecoder.hpp"
+#include "common/streamObs.hpp"
+#include "common/constants.hpp"
+#include "other_ssr/otherSSR.hpp"
 
 
 #define CLEAN_UP_AND_RETURN_ON_FAILURE	\

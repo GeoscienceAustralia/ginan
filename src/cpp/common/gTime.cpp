@@ -9,11 +9,11 @@
 
 using std::ostream;
 
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 const GTime j2000TT		= GEpoch{2000, E_Month::JAN, 1,		11,	58,	55.816	+ GPS_SUB_UTC_2000};	// defined in utc 11:58:55.816

@@ -3,13 +3,13 @@
 
 using std::pair;
 
-#include "rtcmDecoder.hpp"
-#include "navigation.hpp"
-#include "otherSSR.hpp"
-#include "biases.hpp"
-#include "gTime.hpp"
-#include "enums.h"
-#include "ssr.hpp"
+#include "common/rtcmDecoder.hpp"
+#include "common/navigation.hpp"
+#include "other_ssr/otherSSR.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
+#include "common/ssr.hpp"
 
 #define IGSSSRTRCLVL 4
 

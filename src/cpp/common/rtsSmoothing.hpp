@@ -7,7 +7,7 @@
 using std::map;
 using std::string;
 
-#include "algebra.hpp"
+#include "common/algebra.hpp"
 
 struct ReceiverMap;
 

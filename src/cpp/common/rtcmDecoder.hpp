@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include "packetStatistics.hpp"
-#include "observations.hpp"
-#include "rtcmEncoder.hpp"
-#include "rtcmTrace.hpp"
-#include "streamObs.hpp"
-#include "acsConfig.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/packetStatistics.hpp"
+#include "common/observations.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/rtcmTrace.hpp"
+#include "common/streamObs.hpp"
+#include "common/acsConfig.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 struct SignalInfo
 {

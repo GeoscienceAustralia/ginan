@@ -6,7 +6,7 @@
 using std::string;
 using std::map;
 
-#include "rinexObsWrite.hpp"
+#include "common/rinexObsWrite.hpp"
 
 struct GTime;
 class E_Source;

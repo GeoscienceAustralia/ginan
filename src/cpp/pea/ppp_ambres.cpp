@@ -13,13 +13,13 @@
 #include <iostream>
 #include <math.h>
 
-#include "eigenIncluder.hpp"
-#include "GNSSambres.hpp"
-#include "acsConfig.hpp"
-#include "algebra.hpp"
-#include "biases.hpp"
-#include "common.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/acsConfig.hpp"
+#include "common/algebra.hpp"
+#include "common/biases.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
 
 static bool filterError = false;
 

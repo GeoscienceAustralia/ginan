@@ -1,6 +1,6 @@
-#include "tropModels.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
+#include "trop/tropModels.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
 
 #define ERR_SAAS	0.3			///< saastamoinen model error std (m)
 

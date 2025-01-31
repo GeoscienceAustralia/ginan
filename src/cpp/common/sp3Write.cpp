@@ -5,20 +5,20 @@
 #include <fstream>
 
 
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
-#include "coordinates.hpp"
-#include "GNSSambres.hpp"
-#include "navigation.hpp"
-#include "ephemeris.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "mongoRead.hpp"
-#include "sp3Write.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "enums.h"
-#include "erp.hpp"
+#include "common/rinexObsWrite.hpp"
+#include "common/rinexClkWrite.hpp"
+#include "orbprop/coordinates.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/navigation.hpp"
+#include "common/ephemeris.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/mongoRead.hpp"
+#include "common/sp3Write.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/enums.h"
+#include "common/erp.hpp"
 
 /* macro defintions */
 #define             VERSION             3.00

@@ -6,9 +6,9 @@
 
 using std::string;
 
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 //forward declarations
 struct Navigation;

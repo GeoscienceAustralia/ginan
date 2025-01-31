@@ -10,12 +10,12 @@ using std::string;
 using std::vector;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "azElMapData.hpp"
-#include "satStat.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/azElMapData.hpp"
+#include "common/satStat.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 struct PhaseCenterData : AzElMapData<double>
 {

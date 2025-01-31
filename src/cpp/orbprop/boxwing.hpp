@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 struct OrbitOptions;
 

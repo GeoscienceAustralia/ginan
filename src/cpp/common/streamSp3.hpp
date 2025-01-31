@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "streamObs.hpp"
-#include "ephemeris.hpp"
+#include "common/streamObs.hpp"
+#include "common/ephemeris.hpp"
 
 struct Sp3Parser : Parser, ObsLister
 {

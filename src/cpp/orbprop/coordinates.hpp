@@ -5,15 +5,15 @@
 
 using std::array;
 
-#include "centerMassCorrections.hpp"
-#include "eigenIncluder.hpp"
-#include "constants.hpp"
-#include "attitude.hpp"
-#include "iers2010.hpp"
-#include "gTime.hpp"
-#include "erp.hpp"
-#include "sofam.h"
-#include "sofa.h"
+#include "orbprop/centerMassCorrections.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/constants.hpp"
+#include "common/attitude.hpp"
+#include "orbprop/iers2010.hpp"
+#include "common/gTime.hpp"
+#include "common/erp.hpp"
+#include "3rdparty/sofa/src/sofam.h"
+#include "3rdparty/sofa/src/sofa.h"
 
 
 struct Sofa

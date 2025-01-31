@@ -5,7 +5,7 @@
 
 using std::string;
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 /** Structure for variable and function related to the static gravity field
  * @todo time variable static gravity field

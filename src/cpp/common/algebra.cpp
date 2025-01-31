@@ -43,16 +43,16 @@ using std::pair;
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/math/distributions/normal.hpp>
 
-#include "interactiveTerminal.hpp"
-#include "eigenIncluder.hpp"
-#include "algebraTrace.hpp"
-#include "mongoWrite.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "mongo.hpp"
-#include "trace.hpp"
+#include "common/interactiveTerminal.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/mongo.hpp"
+#include "common/trace.hpp"
 
 // #pragma GCC optimize ("O0")
 

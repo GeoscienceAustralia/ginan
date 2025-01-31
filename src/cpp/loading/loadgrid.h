@@ -9,7 +9,7 @@
 
 #include <string>
 #include <boost/multi_array.hpp>
-#include "boost_ma_type.h"
+#include "loading/boost_ma_type.h"
 
 /**
  * Implementation of the class  to manage the tides.

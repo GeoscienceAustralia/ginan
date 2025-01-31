@@ -9,11 +9,11 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "eigenIncluder.hpp"
-#include "streamObs.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/streamObs.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 using std::getline;
 using std::ifstream;

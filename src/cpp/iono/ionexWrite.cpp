@@ -3,12 +3,12 @@
 // #pragma GCC optimize ("O0")
 
 
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "satStat.hpp"
-#include "algebra.hpp"
-#include "satSys.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/satStat.hpp"
+#include "common/algebra.hpp"
+#include "common/satSys.hpp"
 
 #define IONEX_NEXP		-1
 #define SINGL_LAY_ERR	0.3

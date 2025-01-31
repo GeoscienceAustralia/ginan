@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "oceanPoleTide.hpp"
+#include "orbprop/oceanPoleTide.hpp"
 
 OceanPoleTide oceanPoleTide;
 

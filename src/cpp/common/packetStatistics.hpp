@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "trace.hpp"
+#include "common/trace.hpp"
 
 struct PacketStatistics
 {

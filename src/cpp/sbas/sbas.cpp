@@ -1,8 +1,8 @@
 
-#include "inputsOutputs.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
-#include "sbas.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
+#include "sbas/sbas.hpp"
 
 using std::lock_guard;
 

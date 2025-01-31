@@ -14,17 +14,17 @@ using std::string;
 using std::map;
 using std::set;
 
-#include "azElMapData.hpp"
-#include "ephemeris.hpp"
-#include "attitude.hpp"
-#include "antenna.hpp"
-#include "orbits.hpp"
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
-#include "ssr.hpp"
-#include "erp.hpp"
+#include "common/azElMapData.hpp"
+#include "common/ephemeris.hpp"
+#include "common/attitude.hpp"
+#include "common/antenna.hpp"
+#include "common/orbits.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
+#include "common/ssr.hpp"
+#include "common/erp.hpp"
 
 #define MAXDTE      900.0           /* max time difference to ephem time (s) */
 

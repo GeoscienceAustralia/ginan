@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "navigation.hpp"
+#include "common/navigation.hpp"
 
-#include "streamObs.hpp"
+#include "common/streamObs.hpp"
 
-#include "rinex.hpp"
+#include "common/rinex.hpp"
 
 
 struct RinexParser : Parser, ObsLister

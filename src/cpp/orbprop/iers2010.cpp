@@ -12,14 +12,14 @@
 #include <cmath>
 #include <omp.h>
 
-#include "acceleration.hpp"
-#include "coordinates.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "planets.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "sofa.h"
+#include "orbprop/acceleration.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/constants.hpp"
+#include "orbprop/iers2010.hpp"
+#include "orbprop/planets.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 HfOceanEop hfEop;
 

@@ -5,10 +5,10 @@
 
 using std::map;
 
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 
 struct S_LC

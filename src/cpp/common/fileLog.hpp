@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "acsConfig.hpp"
-#include "gTime.hpp"
+#include "common/acsConfig.hpp"
+#include "common/gTime.hpp"
 
 #include <boost/log/sinks/basic_sink_backend.hpp>
 

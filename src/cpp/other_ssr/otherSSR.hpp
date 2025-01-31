@@ -8,8 +8,8 @@
 using std::vector;
 using std::map;
 
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 struct SSRUra;
 struct SSRAtm;

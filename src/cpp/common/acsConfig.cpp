@@ -90,13 +90,13 @@ using std::map;
 
 #include <yaml-cpp/yaml.h>
 
-#include "interactiveTerminal.hpp"
-#include "peaCommitStrings.hpp"
-#include "inputsOutputs.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "compare.hpp"
-#include "debug.hpp"
+#include "common/interactiveTerminal.hpp"
+#include "pea/peaCommitStrings.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/compare.hpp"
+#include "common/debug.hpp"
 
 
 ACSConfig acsConfig = {};

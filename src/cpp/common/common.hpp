@@ -11,10 +11,10 @@
 #define SWAP(x,y)   do {double tmp_; tmp_=x; x=y; y=tmp_;} while (0)
 #define SGN(x)      ((x)<=0.0?-1.0:1.0)
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
-#include "erp.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
+#include "common/erp.hpp"
+#include "common/enums.h"
 
 using std::multimap;
 using std::vector;

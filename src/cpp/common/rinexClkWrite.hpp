@@ -9,7 +9,7 @@ using std::vector;
 using std::string;
 using std::map;
 
-#include "enums.h"
+#include "common/enums.h"
 
 struct GTime;
 struct ReceiverMap;

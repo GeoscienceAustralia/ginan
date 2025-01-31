@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 
-#include "enums.h"
+#include "common/enums.h"
 
 using std::shared_ptr;
 using std::string;

@@ -5,7 +5,7 @@
 
 using std::string;
 
-#include "rinexClkWrite.hpp"
+#include "common/rinexClkWrite.hpp"
 
 struct GTime;
 class E_Source;

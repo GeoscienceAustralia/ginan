@@ -1,8 +1,8 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "sinexParser.hpp"
-#include "receiver.hpp"
+#include "common/sinexParser.hpp"
+#include "common/receiver.hpp"
 
 #include <string>
 

@@ -11,19 +11,19 @@ using std::map;
 
 #include <boost/log/trivial.hpp>
 
-#include "interactiveTerminal.hpp"
+#include "common/interactiveTerminal.hpp"
 #include "architectureDocs.hpp"
-#include "eigenIncluder.hpp"
-#include "inputsOutputs.hpp"
-#include "algebraTrace.hpp"
-#include "rtsSmoothing.hpp"
-#include "mongoWrite.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "metaData.hpp"
-#include "algebra.hpp"
+#include "common/eigenIncluder.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/rtsSmoothing.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/metaData.hpp"
+#include "common/algebra.hpp"
 
 // #pragma GCC optimize ("O0")
 

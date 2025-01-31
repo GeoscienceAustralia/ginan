@@ -1,7 +1,7 @@
-#include "acsConfig.hpp"
-#include "common.hpp"
-#include "sisnet.hpp"
-#include "sbas.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
+#include "sbas/sisnet.hpp"
+#include "sbas/sbas.hpp"
 
 #include <mutex>
 

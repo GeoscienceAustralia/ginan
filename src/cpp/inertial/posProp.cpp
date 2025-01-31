@@ -9,12 +9,12 @@
 using std::deque;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "acceleration.hpp"
-#include "coordinates.hpp"
-#include "ubxDecoder.hpp"
-#include "posProp.hpp"
-#include "planets.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/acceleration.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/ubxDecoder.hpp"
+#include "inertial/posProp.hpp"
+#include "orbprop/planets.hpp"
 
 void propLinear(
 	double 			dt,

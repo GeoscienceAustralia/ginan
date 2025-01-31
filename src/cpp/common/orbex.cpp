@@ -19,11 +19,11 @@ using std::ofstream;
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "eigenIncluder.hpp"
-#include "navigation.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/navigation.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 /** Satellite code to satellite system

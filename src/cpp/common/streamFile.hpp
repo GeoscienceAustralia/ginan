@@ -10,7 +10,7 @@ using std::make_unique;
 using std::unique_ptr;
 using std::string;
 
-#include "streamParser.hpp"
+#include "common/streamParser.hpp"
 
 
 struct FileState : std::ifstream

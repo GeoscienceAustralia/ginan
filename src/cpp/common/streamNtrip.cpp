@@ -7,8 +7,8 @@ using std::lock_guard;
 using std::mutex;
 
 
-#include "streamNtrip.hpp"
-#include "trace.hpp"
+#include "common/streamNtrip.hpp"
+#include "common/trace.hpp"
 
 void TcpSocket::getData()
 {

@@ -7,14 +7,14 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "planets.hpp"
-#include "common.hpp"
-#include "tides.hpp"
-#include "sinex.hpp"
-#include "enums.h"
-#include "slr.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "orbprop/planets.hpp"
+#include "common/common.hpp"
+#include "common/tides.hpp"
+#include "common/sinex.hpp"
+#include "common/enums.h"
+#include "slr/slr.hpp"
 
 using namespace boost::algorithm;
 

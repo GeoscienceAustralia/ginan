@@ -9,10 +9,10 @@
 using std::vector;
 using std::map;
 
-#include "icdDecoder.hpp"
-#include "streamObs.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/icdDecoder.hpp"
+#include "common/streamObs.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 extern map<int,				E_Sys>		ubxSysMap;
 extern map<E_Sys, map<int,	E_ObsCode>>	ubxSysObsCodeMap;

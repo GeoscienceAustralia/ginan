@@ -12,20 +12,20 @@ ParallelArchitecture SLR_Mesaurements__()
 
 }
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "tropModels.hpp"
-#include "acsConfig.hpp"
-#include "orbitProp.hpp"
-#include "receiver.hpp"
-#include "antenna.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "biases.hpp"
-#include "gTime.hpp"
-#include "tides.hpp"
-#include "ppp.hpp"
-#include "slr.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "trop/tropModels.hpp"
+#include "common/acsConfig.hpp"
+#include "orbprop/orbitProp.hpp"
+#include "common/receiver.hpp"
+#include "common/antenna.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
+#include "common/tides.hpp"
+#include "pea/ppp.hpp"
+#include "slr/slr.hpp"
 
 #include <functional>
 

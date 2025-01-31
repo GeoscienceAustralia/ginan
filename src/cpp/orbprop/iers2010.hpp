@@ -5,8 +5,8 @@
 
 using std::vector;
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
 
 struct FundamentalArgs : Array6d
 {

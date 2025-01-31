@@ -5,7 +5,7 @@
  *
  */
 
-#include "loadgrid.h"
+#include "loading/loadgrid.h"
 #include <iostream>
 #include <netcdf>
 #include <boost/math/interpolators/cardinal_cubic_b_spline.hpp>

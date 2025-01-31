@@ -8,7 +8,7 @@ public:                                      	\
 
 #define BETTER_ENUMS_MACRO_FILE "enum_macros.h"	//BETTER_ENUM Extended
 #include <cstdint>
-#include "enum.h"	//BETTER_ENUM
+#include "3rdparty/enum.h"	//BETTER_ENUM
 
 typedef enum
 {

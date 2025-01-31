@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <string>
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/enums.h"
 
 void updateLamMap(
 	const	GTime&	time,

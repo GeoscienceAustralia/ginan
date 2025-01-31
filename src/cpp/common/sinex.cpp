@@ -19,13 +19,13 @@ FileType SNX__()
 
 #include <boost/log/trivial.hpp>
 
-#include "eigenIncluder.hpp"
-#include "navigation.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "sinex.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/navigation.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
 
 using std::getline;
 using std::ifstream;

@@ -5,14 +5,14 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "rinexNavWrite.hpp"
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
-#include "rinex.hpp"
-#include "trace.hpp"
+#include "common/rinexNavWrite.hpp"
+#include "common/rinexObsWrite.hpp"
+#include "common/rinexClkWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
+#include "common/rinex.hpp"
+#include "common/trace.hpp"
 
 
 

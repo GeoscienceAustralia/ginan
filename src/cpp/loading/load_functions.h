@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "tide.h"
-#include "input_otl.h"
-#include "loading.h"
+#include "loading/tide.h"
+#include "loading/input_otl.h"
+#include "loading/loading.h"
 
 void load_1_point(tide *tide_info, otl_input *input, loading load,  int idx);
 void write_BLQ(otl_input *input);

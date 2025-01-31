@@ -9,11 +9,11 @@
 *-----------------------------------------------------------------------------*/
 #include <boost/log/trivial.hpp>
 
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "biases.hpp"
-#include "common.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/biases.hpp"
+#include "common/common.hpp"
 
 /* get index
  */

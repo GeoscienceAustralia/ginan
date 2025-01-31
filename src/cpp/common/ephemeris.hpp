@@ -2,13 +2,13 @@
 #pragma once
 
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "constants.hpp"
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/constants.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 
 #include <iostream>

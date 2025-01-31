@@ -6,14 +6,14 @@
 
 using std::lock_guard;
 
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "jpl_eph.hpp"
-#include "planets.hpp"
-#include "enums.h"
-#include "erp.hpp"
-#include "sofa.h"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "3rdparty/jpl/jpl_eph.hpp"
+#include "orbprop/planets.hpp"
+#include "common/enums.h"
+#include "common/erp.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 
 std::mutex jplEphMutex;

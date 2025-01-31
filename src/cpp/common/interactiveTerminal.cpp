@@ -1,7 +1,7 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "interactiveTerminal.hpp"
+#include "common/interactiveTerminal.hpp"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>

@@ -7,8 +7,8 @@
 using std::string;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
 
 /** Structure for variables related to the International Geomagnetic Reference Field
 * 13th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13

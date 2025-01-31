@@ -4,22 +4,22 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "minimumConstraints.hpp"
+#include "pea/minimumConstraints.hpp"
 #include "architectureDocs.hpp"
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "tropModels.hpp"
-#include "ionoModel.hpp"
-#include "constants.hpp"
-#include "orbitProp.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "sinex.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "trop/tropModels.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/constants.hpp"
+#include "orbprop/orbitProp.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/sinex.hpp"
 
 
 #define PIVOT_MEAS_VARIANCE 	SQR(1E-5)

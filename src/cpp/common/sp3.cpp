@@ -17,13 +17,13 @@ using std::string;
 
 #include <boost/log/trivial.hpp>
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
-#include "navigation.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/navigation.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 /** satellite code to satellite system

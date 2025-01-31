@@ -2,8 +2,8 @@
 #pragma once
 
 
-#include "eigenIncluder.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/trace.hpp"
 
 VectorEci keplers2Inertial(
 			Trace&		trace,

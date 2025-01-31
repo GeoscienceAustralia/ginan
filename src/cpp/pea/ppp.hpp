@@ -7,7 +7,7 @@ using std::map;
 
 
 
-#include "algebra.hpp"
+#include "common/algebra.hpp"
 
 struct PhaseCenterData;
 struct FrameSwapper;

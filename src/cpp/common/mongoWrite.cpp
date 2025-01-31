@@ -2,19 +2,19 @@
 // #pragma GCC optimize ("O0")
 
 
-#include "observations.hpp"
-#include "rtcmEncoder.hpp"
-#include "coordinates.hpp"
-#include "mongoWrite.hpp"
-#include "GNSSambres.hpp"
-#include "orbitProp.hpp"
-#include "rtcmTrace.hpp"
-#include "acsConfig.hpp"
-#include "ionoModel.hpp"
-#include "satStat.hpp"
-#include "biases.hpp"
-#include "common.hpp"
-#include "mongo.hpp"
+#include "common/observations.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/mongoWrite.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "orbprop/orbitProp.hpp"
+#include "common/rtcmTrace.hpp"
+#include "common/acsConfig.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/satStat.hpp"
+#include "common/biases.hpp"
+#include "common/common.hpp"
+#include "common/mongo.hpp"
 
 
 #include <bsoncxx/builder/basic/document.hpp>

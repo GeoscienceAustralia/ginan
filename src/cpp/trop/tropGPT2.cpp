@@ -8,7 +8,7 @@ using std::ifstream;
 using std::array;
 
 
-#include "tropModels.hpp"
+#include "trop/tropModels.hpp"
 
 struct GPTVals
 {

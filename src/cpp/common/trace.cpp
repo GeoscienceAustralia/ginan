@@ -15,17 +15,17 @@ using std::unordered_map;
 #include <boost/iostreams/stream.hpp>
 #include <boost/format.hpp>
 
-#include "interactiveTerminal.hpp"
-#include "peaCommitStrings.hpp"
-#include "inputsOutputs.hpp"
-#include "observations.hpp"
-#include "mongoWrite.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/interactiveTerminal.hpp"
+#include "pea/peaCommitStrings.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/observations.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 boost::iostreams::stream<boost::iostreams::null_sink> nullStream((boost::iostreams::null_sink()));
 

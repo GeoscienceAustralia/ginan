@@ -17,11 +17,11 @@ using std::vector;
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "acceleration.hpp"
-#include "coordinates.hpp"
-#include "geomagField.hpp"
-#include "constants.hpp"
-#include "common.hpp"
+#include "orbprop/acceleration.hpp"
+#include "orbprop/coordinates.hpp"
+#include "iono/geomagField.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
 
 map<short int, GeomagMainField>	igrfMFMap;	///< igrfMFMap[year]
 GeomagSecularVariation			igrfSV;

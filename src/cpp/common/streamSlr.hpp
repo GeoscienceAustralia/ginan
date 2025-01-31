@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "streamObs.hpp"
-#include "slr.hpp"
+#include "common/streamObs.hpp"
+#include "slr/slr.hpp"
 
 /** Interface for slr streams
 */

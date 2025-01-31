@@ -4,11 +4,11 @@
 #include <boost/log/trivial.hpp>
 #include <iostream>
 
-#include "common.hpp"
-#include "eigenIncluder.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "boxwing.hpp"
+#include "common/common.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "orbprop/boxwing.hpp"
 
 Vector3d getNormal(
 		const Vector3d &eD,

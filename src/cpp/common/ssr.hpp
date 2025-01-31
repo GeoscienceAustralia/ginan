@@ -3,9 +3,9 @@
 
 #include <set>
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 // #include "gMap.hpp"
 
 #define SSR_UNAVAILABLE		-9999

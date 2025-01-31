@@ -1,5 +1,5 @@
 
-#include "acsConfig.hpp"
+#include "common/acsConfig.hpp"
 
 
 map<string, string> ACSConfig::docs =

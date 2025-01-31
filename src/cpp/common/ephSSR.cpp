@@ -1,10 +1,10 @@
 
-#include "eigenIncluder.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "ephemeris.hpp"
-#include "gTime.hpp"
-#include "ssr.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/ephemeris.hpp"
+#include "common/gTime.hpp"
+#include "common/ssr.hpp"
 
 
 #define DEFURASSR		0.03				///< default accurary of ssr corr (m)

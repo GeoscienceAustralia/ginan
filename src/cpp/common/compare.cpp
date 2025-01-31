@@ -7,17 +7,17 @@
 using std::string;
 using std::vector;
 
-#include "minimumConstraints.hpp"
-#include "eigenIncluder.hpp"
-#include "inputsOutputs.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephemeris.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "attitude.hpp"
-#include "trace.hpp"
-#include "rinex.hpp"
+#include "pea/minimumConstraints.hpp"
+#include "common/eigenIncluder.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephemeris.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/attitude.hpp"
+#include "common/trace.hpp"
+#include "common/rinex.hpp"
 
 struct TraceDummy
 {

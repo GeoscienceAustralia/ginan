@@ -9,14 +9,14 @@ FileType UBX__()
 
 }
 
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "ubxDecoder.hpp"
-#include "icdDecoder.hpp"
-#include "streamUbx.hpp"
-#include "constants.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/ubxDecoder.hpp"
+#include "common/icdDecoder.hpp"
+#include "common/streamUbx.hpp"
+#include "common/constants.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 map<int, E_Sys>	ubxSysMap =

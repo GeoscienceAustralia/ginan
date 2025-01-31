@@ -14,15 +14,15 @@ FileType SSR__()
 
 }
 
-#include "rtcmEncoder.hpp"
-#include "rtcmDecoder.hpp"
-#include "streamRtcm.hpp"
-#include "mongoWrite.hpp"
-#include "acsConfig.hpp"
-#include "otherSSR.hpp"
-#include "biases.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/rtcmEncoder.hpp"
+#include "common/rtcmDecoder.hpp"
+#include "common/streamRtcm.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/acsConfig.hpp"
+#include "other_ssr/otherSSR.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 double			RtcmDecoder::rtcmDeltaTime = 0;
 

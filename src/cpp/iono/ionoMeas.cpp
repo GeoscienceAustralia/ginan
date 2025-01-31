@@ -1,17 +1,17 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "ionModels.hpp"
-#include "receiver.hpp"
-#include "satStat.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/ionModels.hpp"
+#include "common/receiver.hpp"
+#include "common/satStat.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 #define PHASE_BIAS_STD 0.05
 bool ionoConfigured = false;

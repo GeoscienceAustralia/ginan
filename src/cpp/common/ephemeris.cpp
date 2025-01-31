@@ -1,21 +1,21 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "mongoRead.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "ephemeris.hpp"
-#include "algebra.hpp"
-#include "orbits.hpp"
-#include "satSys.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "enums.h"
-#include "ssr.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/mongoRead.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/ephemeris.hpp"
+#include "common/algebra.hpp"
+#include "common/orbits.hpp"
+#include "common/satSys.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
+#include "common/ssr.hpp"
 
 /** URA SSR by variance
 */

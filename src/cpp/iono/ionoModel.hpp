@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "biases.hpp"
-#include "gTime.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
 
 #define STEC2DELAY  4.48397972589608
 

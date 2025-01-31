@@ -5,10 +5,10 @@
 
 using std::set;
 
-#include "satSys.hpp"
-#include "mongo.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
+#include "common/satSys.hpp"
+#include "common/mongo.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
 
 
 struct MongoOptions;

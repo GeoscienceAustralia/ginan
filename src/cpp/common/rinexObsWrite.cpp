@@ -13,14 +13,14 @@ using std::pair;
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
-#include "observations.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "trace.hpp"
+#include "common/rinexObsWrite.hpp"
+#include "common/rinexClkWrite.hpp"
+#include "common/observations.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
 
 struct RinexOutput
 {

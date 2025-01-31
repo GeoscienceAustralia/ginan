@@ -17,7 +17,7 @@ using std::vector;
 namespace B_io		= boost::iostreams;
 
 
-#include "streamParser.hpp"
+#include "common/streamParser.hpp"
 
 
 

@@ -23,13 +23,13 @@ Database Mongo_Database__()
 
 
 
-#include "inputsOutputs.hpp"
-#include "observations.hpp"
-#include "rtcmEncoder.hpp"
-#include "acsConfig.hpp"
-#include "satStat.hpp"
-#include "common.hpp"
-#include "mongo.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/observations.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/acsConfig.hpp"
+#include "common/satStat.hpp"
+#include "common/common.hpp"
+#include "common/mongo.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "rtcmEncoder.hpp"
-#include "mongo.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/mongo.hpp"
 
 struct SSRMeta;
 

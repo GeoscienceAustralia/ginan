@@ -10,10 +10,10 @@ FileType BSX__()
 
 #include <functional>
 
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "biases.hpp"
-#include "enums.h"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/biases.hpp"
+#include "common/enums.h"
 
 
 BiasMap biasMaps;		///< Multi dimensional map, as biasMaps[measType][id][code1][code2][time]

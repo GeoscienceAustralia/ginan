@@ -1,11 +1,11 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "GNSSambres.hpp"
-#include "constants.hpp"
-#include "ionoModel.hpp"
-#include "biases.hpp"
-#include "ppp.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/constants.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/biases.hpp"
+#include "pea/ppp.hpp"
 
 map<KFKey, map<int, BiasEntry>> sinexBiases_out;
 long int	bottomOfFile = 0;

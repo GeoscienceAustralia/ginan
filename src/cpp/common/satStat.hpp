@@ -5,12 +5,12 @@
 
 using std::map;
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
-#include "linearCombo.hpp"
-#include "common.hpp"
-#include "acsQC.hpp"
-#include "enums.h"
+#include "common/linearCombo.hpp"
+#include "common/common.hpp"
+#include "common/acsQC.hpp"
+#include "common/enums.h"
 
 /** Object containing persistent status parameters of individual signals
 */

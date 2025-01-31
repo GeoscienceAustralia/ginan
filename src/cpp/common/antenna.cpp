@@ -16,14 +16,14 @@ FileType ATX__()
 
 using std::ifstream;
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "antenna.hpp"
-#include "common.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/antenna.hpp"
+#include "common/common.hpp"
+#include "common/enums.h"
 
 
 map<E_FType, double> roughFrequency =

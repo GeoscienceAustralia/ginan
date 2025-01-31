@@ -172,31 +172,11 @@ add_executable(pea
 )
 
 target_include_directories(pea PUBLIC
-		3rdparty
-		3rdparty/egm96
-		3rdparty/iers2010
-		3rdparty/sofa/src
-		3rdparty/jpl
-		3rdparty/mqtt_cpp/
-		3rdparty/slr
-		3rdparty/nrlmsise
+
 
 		configurator
 		../Architecture/
-
-		ambres
-		slr
-		common
-		iono
-		trop
-		inertial
-		orbprop
-		pea
-		peaUploader
-		rtklib
-		other_ssr
-		sbas
-
+        ${CMAKE_CURRENT_SOURCE_DIR}
 		${EIGEN3_INCLUDE_DIRS}
 		${LAPACK_INCLUDE_DIRS}
 		${OPENBLAS_INCLUDE_DIRS}
@@ -245,13 +225,12 @@ add_executable(interpolate_loading
 		)
 
 target_include_directories(otl PUBLIC
-		common
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${YAML_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
+        ${NETCDF_INCLUDES}
+        ${NETCDF_INCLUDES_CXX}
+        )
 
 target_include_directories(make_otl_blq PUBLIC
 		loading
@@ -337,5 +316,3 @@ add_dependencies(peas
 					docs
 					)
 endif()
-
-

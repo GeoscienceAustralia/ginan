@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "streamSerial.hpp"
+#include "common/streamSerial.hpp"
 
 void SerialStream::openStream()
 {

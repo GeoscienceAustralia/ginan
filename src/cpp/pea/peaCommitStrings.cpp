@@ -1,6 +1,6 @@
 
-#include "peaCommitStrings.hpp"
-#include "peaCommitVersion.h"
+#include "pea/peaCommitStrings.hpp"
+#include "pea/peaCommitVersion.h"
 
 #include <fstream>
 

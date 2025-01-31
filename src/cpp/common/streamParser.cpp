@@ -3,7 +3,7 @@
 
 #include <map>
 
-#include "streamParser.hpp"
+#include "common/streamParser.hpp"
 
 
 multimap<string, StreamParserPtr>					streamParserMultimap;

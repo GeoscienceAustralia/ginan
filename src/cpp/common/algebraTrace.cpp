@@ -7,12 +7,12 @@
 using std::map;
 
 #include "architectureDocs.hpp"
-#include "eigenIncluder.hpp"
-#include "algebraTrace.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>

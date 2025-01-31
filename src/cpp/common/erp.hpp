@@ -9,7 +9,7 @@ using std::string;
 using std::vector;
 using std::map;
 
-#include "common.hpp"
+#include "common/common.hpp"
 
 
 constexpr char eopComments[][16] = {"XP (MAS)", "YP (MAS)", "UT1(MTS)"};

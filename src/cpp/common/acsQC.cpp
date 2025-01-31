@@ -4,17 +4,17 @@
 #include <iostream>
 #include <vector>
 
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "satStat.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "acsQC.hpp"
-#include "trace.hpp"
-#include "lambda.h"
-#include "enums.h"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/satStat.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/acsQC.hpp"
+#include "common/trace.hpp"
+#include "rtklib/lambda.h"
+#include "common/enums.h"
 
 #define		THRES_MW_JUMP		10.0
 #define     PDEGAP  			60.0

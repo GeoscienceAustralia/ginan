@@ -3,15 +3,15 @@
 // #pragma GCC optimize ("O0")
 
 
-#include "coordinates.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "attitude.hpp"
-#include "planets.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "erp.hpp"
-#include "sofa.h"
+#include "orbprop/coordinates.hpp"
+#include "common/constants.hpp"
+#include "orbprop/iers2010.hpp"
+#include "common/attitude.hpp"
+#include "orbprop/planets.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/erp.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
@@ -296,4 +296,3 @@ Matrix3d ecef2rac(
 
 	return Rt;
 }
-

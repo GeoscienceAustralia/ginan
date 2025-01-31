@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "streamSerial.hpp"
-#include "tcpSocket.hpp"
+#include "common/streamSerial.hpp"
+#include "common/tcpSocket.hpp"
 
 
 #include <mutex>

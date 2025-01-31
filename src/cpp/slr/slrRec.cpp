@@ -1,15 +1,15 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "tropModels.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "slr.hpp"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "trop/tropModels.hpp"
+#include "common/constants.hpp"
+#include "3rdparty/iers2010/iers2010.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "slr/slr.hpp"
 
 map<string, vector<string>>						slrObsFiles;
 map<string, map<GTime, shared_ptr<LObs>>>		slrSiteObsMap;

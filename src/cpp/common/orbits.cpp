@@ -14,20 +14,20 @@ using std::chrono::time_point;
 using std::string;
 
 
-#include "peaCommitStrings.hpp"
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "orbitProp.hpp"
-#include "algebra.hpp"
-#include "orbits.hpp"
-#include "satSys.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "pea/peaCommitStrings.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "orbprop/orbitProp.hpp"
+#include "common/algebra.hpp"
+#include "common/orbits.hpp"
+#include "common/satSys.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 
 #define RTOL_KEPLER			1E-14		///< relative tolerance for Kepler equation

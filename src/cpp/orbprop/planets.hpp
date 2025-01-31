@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "constants.hpp"
-#include "gTime.hpp"
-#include "enums.h"
-#include "erp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/constants.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
+#include "common/erp.hpp"
 
 /**         
 *   If nutations are wanted, set ntarg = 14.                      

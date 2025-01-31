@@ -1,10 +1,10 @@
 
-#include "rtcmEncoder.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "otherSSR.hpp"
-#include "satSys.hpp"
-#include "ssr.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "other_ssr/otherSSR.hpp"
+#include "common/satSys.hpp"
+#include "common/ssr.hpp"
 
 map<SatSys,SSRClk>	last_clock;
 

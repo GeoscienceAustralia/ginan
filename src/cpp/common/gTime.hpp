@@ -9,7 +9,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "enums.h"
+#include "common/enums.h"
 
 using std::ostream;
 using std::string;

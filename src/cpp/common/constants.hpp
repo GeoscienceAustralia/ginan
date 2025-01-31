@@ -5,7 +5,7 @@
 
 using std::map;
 
-#include "enums.h"
+#include "common/enums.h"
 
 #include <boost/bimap.hpp>
 

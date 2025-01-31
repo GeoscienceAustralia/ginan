@@ -1,6 +1,6 @@
 
-#include "receiver.hpp"
-#include "sinex.hpp"
+#include "common/receiver.hpp"
+#include "common/sinex.hpp"
 
 SinexSiteId				dummySiteid;
 SinexReceiver			dummyReceiver;

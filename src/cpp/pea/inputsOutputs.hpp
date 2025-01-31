@@ -9,7 +9,7 @@
 using std::string;
 using std::vector;
 
-#include "trace.hpp"
+#include "common/trace.hpp"
 
 struct ReceiverMap;
 struct Network;

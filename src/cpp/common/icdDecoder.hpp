@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "rtcmDecoder.hpp"
-#include "ephemeris.hpp"
+#include "common/rtcmDecoder.hpp"
+#include "common/ephemeris.hpp"
 
 
 signed int gpsBitSFromWord(

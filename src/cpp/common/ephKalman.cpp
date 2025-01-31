@@ -2,12 +2,12 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "algebra.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/algebra.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
 
 
 bool satClkKalman(

@@ -14,12 +14,12 @@ using std::string;
 using std::list;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "algebra.hpp"
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "enums.h"
-#include "crd.h"
+#include "common/eigenIncluder.hpp"
+#include "common/algebra.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
+#include "3rdparty/slr/crd.h"
 
 
 

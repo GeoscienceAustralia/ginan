@@ -5,9 +5,9 @@
 
 using std::string;
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 struct Navigation;

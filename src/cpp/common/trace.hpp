@@ -30,7 +30,7 @@ extern boost::iostreams::stream< boost::iostreams::null_sink> nullStream;
 
 using Trace = std::ostream;
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 struct ConsoleLog : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {

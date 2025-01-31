@@ -3,10 +3,10 @@
 
 #include <bsoncxx/json.hpp>
 
-#include "rtcmTrace.hpp"
-#include "ephemeris.hpp"
-#include "common.hpp"
-#include "ssr.hpp"
+#include "common/rtcmTrace.hpp"
+#include "common/ephemeris.hpp"
+#include "common/common.hpp"
+#include "common/ssr.hpp"
 
 using bsoncxx::builder::basic::kvp;
 

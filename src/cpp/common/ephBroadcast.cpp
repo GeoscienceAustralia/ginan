@@ -1,10 +1,10 @@
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
 
 
 #define STD_BRDCCLK		30.0				///< error of broadcast clock (m)

@@ -10,7 +10,7 @@ using std::vector;
 using std::map;
 
 
-#include "enums.h"
+#include "common/enums.h"
 
 #define RAW_SBAS_PRN_OFFSET	119
 #define RAW_QZSS_PRN_OFFSET	192

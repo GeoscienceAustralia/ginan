@@ -4,13 +4,13 @@
 
 #include <mutex>
 
-#include "streamNtrip.hpp"
-#include "rtcmEncoder.hpp"
-#include "ntripTrace.hpp"
-#include "navigation.hpp"
-#include "tcpSocket.hpp"
-#include "acsConfig.hpp"
-#include "enums.h"
+#include "common/streamNtrip.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/ntripTrace.hpp"
+#include "common/navigation.hpp"
+#include "common/tcpSocket.hpp"
+#include "common/acsConfig.hpp"
+#include "common/enums.h"
 
 
 struct NtripUploader : NtripResponder, RtcmEncoder

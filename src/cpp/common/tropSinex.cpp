@@ -1,17 +1,17 @@
 #include <boost/log/trivial.hpp>
 
-#include "eigenIncluder.hpp"
-#include "inputsOutputs.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "tropModels.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
-#include "sinex.hpp"
-#include "EGM96.h"
+#include "common/eigenIncluder.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "trop/tropModels.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
+#include "common/sinex.hpp"
+#include "3rdparty/egm96/EGM96.h"
 
 using std::ofstream;
 

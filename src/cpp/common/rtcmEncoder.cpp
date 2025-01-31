@@ -3,11 +3,11 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "rtcmEncoder.hpp"
-#include "navigation.hpp"
-#include "ephemeris.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/navigation.hpp"
+#include "common/ephemeris.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
 
 /** Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE
 */

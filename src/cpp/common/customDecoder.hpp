@@ -9,9 +9,9 @@
 using std::vector;
 using std::map;
 
-#include "streamObs.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/streamObs.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 struct CustomDecoder : ObsLister
 {

@@ -8,21 +8,21 @@
 
 using std::map;
 
-#include "inputsOutputs.hpp"
-#include "rinexNavWrite.hpp"
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
-#include "ephPrecise.hpp"
-#include "GNSSambres.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "ephemeris.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "sinex.hpp"
-#include "rinex.hpp"
-#include "enums.h"
+#include "pea/inputsOutputs.hpp"
+#include "common/rinexNavWrite.hpp"
+#include "common/rinexObsWrite.hpp"
+#include "common/rinexClkWrite.hpp"
+#include "common/ephPrecise.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/ephemeris.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/sinex.hpp"
+#include "common/rinex.hpp"
+#include "common/enums.h"
 
 /* macro defintions */
 #define             VERSION             3.00

@@ -1,7 +1,7 @@
 
-#include "rtcmDecoder.hpp"
-#include "ionoModel.hpp"
-#include "otherSSR.hpp"
+#include "common/rtcmDecoder.hpp"
+#include "iono/ionoModel.hpp"
+#include "other_ssr/otherSSR.hpp"
 
 #define CMPSSRTRCLVL 2
 

@@ -1,10 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "interactiveTerminal.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "summary.hpp"
+#include "common/interactiveTerminal.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/summary.hpp"
 
 void outputStatistics(
 	Trace&				trace,

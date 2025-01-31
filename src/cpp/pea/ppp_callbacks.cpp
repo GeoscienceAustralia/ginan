@@ -7,12 +7,12 @@
 
 using std::ostringstream;
 
-#include "interactiveTerminal.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "satStat.hpp"
-#include "algebra.hpp"
-#include "ppp.hpp"
+#include "common/interactiveTerminal.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/satStat.hpp"
+#include "common/algebra.hpp"
+#include "pea/ppp.hpp"
 
 /** Deweight worst measurement
  */

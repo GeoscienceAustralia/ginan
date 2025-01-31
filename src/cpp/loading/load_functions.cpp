@@ -5,18 +5,18 @@
  *
  */
 
-#include "load_functions.h"
+#include "loading/load_functions.h"
 
 #include <boost/multi_array.hpp>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 
-#include "loading.h"
-#include "tide.h"
-#include "input_otl.h"
-#include "boost_ma_type.h"
-#include "utils.h"
+#include "loading/loading.h"
+#include "loading/tide.h"
+#include "loading/input_otl.h"
+#include "loading/boost_ma_type.h"
+#include "loading/utils.h"
 
 /** Compute the loading of a single point
  */

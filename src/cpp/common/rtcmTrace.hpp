@@ -11,8 +11,8 @@ using std::string;
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <bsoncxx/builder/basic/document.hpp>
 
-#include "satSys.hpp"
-#include "gTime.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
 
 struct Sig;
 struct Eph;

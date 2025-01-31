@@ -10,13 +10,13 @@ FileType GPX__()
 
 #include <boost/log/trivial.hpp>
 
-#include "coordinates.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 #include <string>
 #include <map>

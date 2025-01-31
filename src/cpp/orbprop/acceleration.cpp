@@ -1,7 +1,7 @@
 
-#include "acceleration.hpp"
-#include "constants.hpp"
-#include "common.hpp"
+#include "orbprop/acceleration.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
 
 
 #include <boost/log/core.hpp>

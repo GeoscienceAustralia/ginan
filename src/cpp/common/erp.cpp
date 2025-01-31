@@ -12,15 +12,15 @@ using std::chrono::system_clock;
 using std::stringstream;
 using std::string;
 
-#include "peaCommitStrings.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "erp.hpp"
+#include "pea/peaCommitStrings.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/erp.hpp"
 
 #define NMAX	3			/* order of polynomial interpolation */
 

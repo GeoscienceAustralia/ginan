@@ -18,17 +18,17 @@ Architecture Preprocessing__()
 	DOCS_REFERENCE(SPP__);
 }
 
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "GNSSambres.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "satStat.hpp"
-#include "trace.hpp"
-#include "sinex.hpp"
-#include "acsQC.hpp"
-#include "ppp.hpp"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/satStat.hpp"
+#include "common/trace.hpp"
+#include "common/sinex.hpp"
+#include "common/acsQC.hpp"
+#include "pea/ppp.hpp"
 
 
 void outputObservations(

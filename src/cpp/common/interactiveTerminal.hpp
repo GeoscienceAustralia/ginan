@@ -7,9 +7,9 @@
 #include <mutex>
 #include <map>
 
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 using std::ostringstream;
 using std::lock_guard;
