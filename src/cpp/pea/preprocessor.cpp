@@ -253,7 +253,7 @@ void preprocessor(
 		obs.satStat_ptr->lc_new = {};
 	}
 	obs2lcs		(trace,	obsList);
-
+    obsVariances	(obsList);
 	detectslips	(trace,	obsList);
 
 	recordSlips(rec);

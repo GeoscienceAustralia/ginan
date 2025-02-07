@@ -31,7 +31,7 @@ We are actively developing Ginan to have the following capabilities and features
 * Model Ocean Tide Loading (OTL) displacements.
 
 The software consists of three main components:
-* Network Parameter Estimation Algorithm (PEA), and
+* Network Parameter Estimation Algorithm (PEA), which now incorporates Precise Orbit Determination (formerly a separate 'POD' component)
 * Various scripts for combination and analysis of solutions
 
 ## Using Ginan with an AppImage

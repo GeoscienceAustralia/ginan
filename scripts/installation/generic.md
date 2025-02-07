@@ -55,7 +55,7 @@ sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 51
 ***
 ## Building additional dependencies
 
-Depending on the user's installation choice: install PEA-only, POD-only or all software packages, a set of additional dependencies that need to be built may change. Below, we explain building all the additional dependencies:
+Depending on the user's installation choice: install PEA-only, or all software packages, a set of additional dependencies that need to be built may change. Below, we explain building all the additional dependencies:
 
 Note that many `make` commands here have the option `-j 2` applied, this will enable parallel compilation and may speed up installation time. The number of threads can be increased by changing the number, such as `-j 8`, but be aware that each new thread may require up to 2GB of memory.
 

@@ -184,7 +184,7 @@ def generate_product_filename(
     file_ext: str,
     shift: int = 0,
     long_filename: bool = False,
-    AC: str = "IGS",
+    analysis_center: str = "IGS",
     timespan: timedelta = timedelta(days=1),
     solution_type: str = "ULT",
     sampling_rate: str = "15M",
@@ -204,10 +204,10 @@ def generate_product_filename(
 
     if long_filename:
         if content_type == None:
-            content_type = generate_content_type(file_ext, analysis_center=AC)
+            content_type = generate_content_type(file_ext, analysis_center=analysis_center)
         product_filename = (
             generate_long_filename(
-                analysis_center=AC,
+                analysis_center=analysis_center,
                 content_type=content_type,
                 format_type=file_ext,
                 start_epoch=reference_start,
@@ -309,7 +309,7 @@ def download_product_from_cddis(
         reference_start,
         file_ext,
         long_filename=long_filename,
-        AC=analysis_center,
+        analysis_center=analysis_center,
         timespan=timespan,
         solution_type=solution_type,
         sampling_rate=sampling_rate,
@@ -329,7 +329,7 @@ def download_product_from_cddis(
                 file_ext,
                 shift=-6,
                 long_filename=long_filename,
-                AC=analysis_center,
+                analysis_center=analysis_center,
                 timespan=timespan,
                 solution_type=solution_type,
                 sampling_rate=sampling_rate,
@@ -355,7 +355,7 @@ def download_product_from_cddis(
                     file_ext,
                     shift=24,  # Shift at the start of the loop - speeds up total download time
                     long_filename=long_filename,
-                    AC=analysis_center,
+                    analysis_center=analysis_center,
                     timespan=timespan,
                     solution_type=solution_type,
                     sampling_rate=sampling_rate,
@@ -885,7 +885,7 @@ def search_for_most_recent_file(
         reference_start=pointer_date.as_datetime,
         file_ext=file_type,
         long_filename=long_filename,
-        AC=analysis_center,
+        analysis_center=analysis_center,
         timespan=timespan,
         solution_type=solution_type,
         sampling_rate=sampling_rate,
@@ -905,7 +905,7 @@ def search_for_most_recent_file(
             reference_start=pointer_date.as_datetime,
             file_ext=file_type,
             long_filename=long_filename,
-            AC=analysis_center,
+            analysis_center=analysis_center,
             timespan=timespan,
             solution_type=solution_type,
             sampling_rate=sampling_rate,
