@@ -115,7 +115,7 @@ struct IERS2010
 		const	Matrix3d&	U,
 		const	Matrix3d&	dU);
 
-	static void meanPole(
+	static void secularPole(
 		const MjDateTT&	mjd,
 		double&			xpv,
 		double&			ypv);

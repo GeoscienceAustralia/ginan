@@ -113,7 +113,7 @@ void OrbitIntegrator::computeCommon(
                 {
                     double xpv;
                     double ypv;
-                    IERS2010::meanPole(time, xpv, ypv);
+                    IERS2010::secularPole(time, xpv, ypv);
 
                     double m1 = +(erpv.xp / AS2R - xpv / 1000);
                     double m2 = -(erpv.yp / AS2R - ypv / 1000);

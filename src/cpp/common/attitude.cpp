@@ -49,6 +49,9 @@ using std::vector;
 void testEclipse(
 	ObsList&	obsList)
 {
+	if (obsList.empty())
+		return;
+
 	/* unit vector of sun direction (ecef) */
 	VectorEcef rsun;
 	planetPosEcef(obsList.front()->time, E_ThirdBody::SUN, rsun);

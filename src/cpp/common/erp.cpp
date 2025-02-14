@@ -602,7 +602,7 @@ void readErp(
 				&&(line[57]		== 'I'	|| line[57]		== 'P'))	readIersFinal		(line, erpMap);
 		else if	(  line.size()	== 218)								readIers20C04		(line, erpMap);
 		else if	(  line.size()	== 155)								readIers14C04		(line, erpMap);
-		else if	(  line.size()	<= 127	&& line.size()	>= 106)		readIgsErp			(line, erpMap);
+		else if	(  line.size()	<= 146	&& line.size()	>= 106)		readIgsErp			(line, erpMap);
 		else if	(  line.size()	<=  79)								readIersBulletinA	(line, erpMap);
 	}
 

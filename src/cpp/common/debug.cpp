@@ -1742,8 +1742,8 @@ void debugTideSolidPole()
 
 		ERPValues erpv = getErp(nav.erp, time);
 		MjDateUt1 mjdUt1(time, erpv.ut1Utc);
-
-		VectorEnu denu = tideSolidPole(std::cout, mjdUt1, pos, erpv);
+        MjDateTT mjdTT(time);
+		VectorEnu denu = tideSolidPole(std::cout, mjdTT, pos, erpv);
 		double diff = denu.u() - dispRef(2);
 
 		std::cout	<< std::setprecision( 7)	<< std::fixed
@@ -1838,8 +1838,9 @@ void debugTideOceanPole()
 		ERPValues erpv = getErp(nav.erp, time);
 		// MjDateUt1 mjdUt1(time, erpv.ut1Utc);
 		MjDateUt1 mjdUt1(time, 0);
+		MjDateTT mjdTT(time);
 
-		VectorEnu denu = tideOceanPole(std::cout, mjdUt1, pos, erpv);
+		VectorEnu denu = tideOceanPole(std::cout, mjdTT, pos, erpv);
 		VectorEnu diff = denu - denuRef;
 
 		std::cout	<< std::setprecision( 7)	<< std::fixed

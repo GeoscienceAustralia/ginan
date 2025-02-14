@@ -396,7 +396,7 @@ void IERS2010::poleSolidEarthTide(
 {
 	double xpv;
 	double ypv;
-	meanPole(mjd, xpv, ypv);
+	secularPole(mjd, xpv, ypv);
 
 	double m1 = +(xp / AS2R - xpv / 1000);
 	double m2 = -(yp / AS2R - ypv / 1000);
@@ -414,7 +414,7 @@ void IERS2010::poleOceanTide(
 {
 	double xpv;
 	double ypv;
-	meanPole(mjd, xpv, ypv);
+	secularPole(mjd, xpv, ypv);
 
 	double m1 = +(xp / AS2R - xpv / 1000);
 	double m2 = -(yp / AS2R - ypv / 1000);
@@ -423,7 +423,7 @@ void IERS2010::poleOceanTide(
 }
 
 
-void IERS2010::meanPole(
+void IERS2010::secularPole(
 	const MjDateTT&	mjd,
 	double&			xpv,
 	double&			ypv)

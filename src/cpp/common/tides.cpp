@@ -30,6 +30,7 @@ using std::ifstream;
 #include "3rdparty/iers2010/iers2010.hpp"
 #include "common/receiver.hpp"
 #include "orbprop/planets.hpp"
+#include "orbprop/iers2010.hpp"
 #include "common/algebra.hpp"
 #include "common/common.hpp"
 #include "common/tides.hpp"
@@ -648,47 +649,14 @@ VectorEnu tideAtmosLoad(
 	return denu;
 }
 
-/** IERS mean pole
-* See ref [2.2] eq.21
-* Eugene: This function will be gone in the future as IERS2010::meanPole() does the same thing
-*/
-void iersMeanPole(
-	MjDateUt1	mjdUt1,				///< UT1 time in MJD
-	double&		xp_bar,				///< Mean pole xp (mas)
-	double&		yp_bar)				///< Mean pole yp (mas)
-{
-	double y	= mjdUt1.to_j2000() / 365.25;
 
-	//* Note: The cubic + linear mean pole model is obsolete, and a secular polar motion is adopted as recommended by IERS Conventions (2010) Working Version 1.3.0
-	if (0)
-	{
-		double y2	= y * y;
-		double y3	= y * y * y;
-
-		if (y < 3653.0 / 365.25)
-		{
-			/* until 2010.0 */
-			xp_bar =  55.974	+ 1.8243 * y	+ 0.18413 * y2	+ 0.007024 * y3;	// (mas)
-			yp_bar = 346.346	+ 1.7896 * y	- 0.10729 * y2	- 0.000908 * y3;
-		}
-		else
-		{
-			/* after 2010.0 */
-			xp_bar =  23.513	+ 7.6141 * y;	// (mas)
-			yp_bar = 358.891	- 0.6287 * y;
-		}
-	}
-
-	xp_bar =  55.0	+ 1.677 * y;
-	yp_bar = 320.5	- 3.460 * y;
-}
 
 /** Displacement by solid Earth pole tide
 * See ref [1] 7.1.4
 */
 VectorEnu tideSolidPole(
 	Trace&				trace,		///< Trace to output to
-	MjDateUt1			mjdUt1,		///< UT1 time in MJD
+	MjDateTT			mjdTT,		///< TT time in MJD
 	const VectorPos&	pos,		///< Geodetic position of station {lat,lon} (rad)
 	ERPValues&			erpv)		///< ERP values
 {
@@ -697,7 +665,7 @@ VectorEnu tideSolidPole(
 	// IERS mean pole (mas)
 	double xp_bar;
 	double yp_bar;
-	iersMeanPole(mjdUt1, xp_bar, yp_bar);
+	IERS2010::secularPole(mjdTT, xp_bar, yp_bar);
 
 	// ref [1] eq.7.24
 	double m1 = + erpv.xp / AS2R	- xp_bar * 1E-3;	// (arcsec)
@@ -722,7 +690,7 @@ VectorEnu tideSolidPole(
 */
 VectorEnu tideOceanPole(
 	Trace&				trace,		///< Trace to output to
-	MjDateUt1			mjdUt1,		///< UT1 time in MJD
+	MjDateTT			mjdTT,		///< UT1 time in MJD
 	const VectorPos&	pos,		///< Geodetic position of station {lat,lon} (rad)
 	ERPValues&			erpv)		///< ERP values
 {
@@ -790,7 +758,7 @@ VectorEnu tideOceanPole(
 	// IERS mean pole (mas)
 	double xp_bar;
 	double yp_bar;
-	iersMeanPole(mjdUt1, xp_bar, yp_bar);
+	IERS2010::secularPole(mjdTT, xp_bar, yp_bar);
 
 	// ref [1] eq.7.24
 	double m1 = + erpv.xp / AS2R	- xp_bar * 1E-3;	// (arcsec)
@@ -831,8 +799,8 @@ void tideDisp(
 
 	ERPValues erpv = getErp(nav.erp, time);
 
+    MjDateTT mjdTT(time);
 	MjDateUt1 mjdUt1(time, erpv.ut1Utc);
-
 	if (recPos.isZero())
 		return;
 
@@ -859,8 +827,8 @@ void tideDisp(
 	if (recOpts.tideModels.solid)		{																				solid	= tideSolidEarthDehant(trace, time, rSun, rMoon, recPos);	}
 	if (recOpts.tideModels.otl)			{	VectorEnu	denu	= tideOceanLoadHardisp	(trace, time,	otlMap);		otl		= (Vector3d) enu2ecef(pos, denu);							}
 	if (recOpts.tideModels.atl)			{	VectorEnu	denu	= tideAtmosLoad			(trace, mjdUt1,	atlMap);		atl		= (Vector3d) enu2ecef(pos, denu);							}
-	if (recOpts.tideModels.spole)		{	VectorEnu	denu	= tideSolidPole			(trace, mjdUt1, pos, erpv);		spole	= (Vector3d) enu2ecef(pos, denu);							}
-	if (recOpts.tideModels.opole)		{	VectorEnu	denu	= tideOceanPole			(trace, mjdUt1, pos, erpv);		opole	= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.spole)		{	VectorEnu	denu	= tideSolidPole			(trace, mjdTT, pos, erpv);		spole	= (Vector3d) enu2ecef(pos, denu);							}
+	if (recOpts.tideModels.opole)		{	VectorEnu	denu	= tideOceanPole			(trace, mjdTT, pos, erpv);		opole	= (Vector3d) enu2ecef(pos, denu);							}
 
 	tracepdeex(lv, trace, "\n%s   SOLID       %14.6f %14.6f %14.6f", timeStr.c_str(), solid	[0], solid	[1], solid	[2]);
 	tracepdeex(lv, trace, "\n%s   OCEAN       %14.6f %14.6f %14.6f", timeStr.c_str(), otl	[0], otl	[1], otl	[2]);

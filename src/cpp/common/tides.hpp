@@ -99,13 +99,13 @@ VectorEnu tideAtmosLoad(
 
 VectorEnu tideSolidPole(
 	Trace&				trace,
-	MjDateUt1			mjdUt1,
+	MjDateTT			mjdTT,
 	const VectorPos&	pos,
 	ERPValues&			erpv);
 
 VectorEnu tideOceanPole(
 	Trace&				trace,
-	MjDateUt1			mjdUt1,
+	MjDateTT			mjdTT,
 	const VectorPos&	pos,
 	ERPValues&			erpv);
 
@@ -119,5 +119,3 @@ void tideDisp(
 	Vector3d&	alt,
 	Vector3d&	spole,
 	Vector3d&	opole);
-
-

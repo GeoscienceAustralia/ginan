@@ -227,7 +227,6 @@ void mainOncePerEpochPerStation(
 	rec.antAzimuth		= recOpts.antenna_azimuth;
 
 	recAtt(rec, tsync, recOpts.attitudeModel.sources);
-
 	testEclipse(rec.obsList);
 
 	if (acsConfig.output_rinex_obs)
@@ -399,6 +398,12 @@ void mainOncePerEpoch(
 	if (acsConfig.process_ppp)
 	{
 		ppp(pppTrace, receiverMap, pppNet.kfState, remoteState);
+
+		for (auto& [Sat, satNav] : nav.satNavMap)
+		{
+			//prevent the memoised orbital positions being used in per epoch post processing and outputs
+			satNav.satPos0.posTime = GTime::noTime();
+		}
 	}
 
 	perEpochPostProcessingAndOutputs(pppTrace, time, ionNet, receiverMap, pppNet.kfState, emptyEpoch);
@@ -940,8 +945,6 @@ int main(
 
 					//record as dead and erase
 					streamDOAMap[stream.sourceString] = true;
-
-					receiverMap[id].obsList.clear();
 
 					iter = streamParserMultimap.erase(iter);
 
