@@ -215,10 +215,10 @@ void writePOS(
 	KFState&	kfState,
 	Receiver&	rec)
 {
-	std::ofstream output(filename, std::fstream::in | std::fstream::out);
-	if (!output)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening POS file '" << filename << "'";
+	std::ofstream output(filename, std::fstream::out | std::fstream::app);
+    if (!output.is_open())
+    	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening POS file '" << filename ;
 		return;
 	}
 

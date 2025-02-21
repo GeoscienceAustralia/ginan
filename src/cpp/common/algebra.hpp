@@ -666,7 +666,8 @@ struct KFState : KFState_
 	const;
 
 	KFState getSubState(
-		vector<KF>)
+		vector<KF>	types,
+		KFMeas*		meas_ptr = nullptr)
 	const;
 
 	vector<KFKey> decomposedStateKeys(

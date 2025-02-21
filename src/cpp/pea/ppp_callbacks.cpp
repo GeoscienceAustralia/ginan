@@ -181,7 +181,7 @@ bool incrementPhaseSignalError(
 		phaseRejectCount++;
 		metaDataMap[metaData] = nullptr;
 
-		trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[measIndex].Sat.id() << " to " << phaseRejectCount;
+		trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[measIndex] << " to " << phaseRejectCount;
 	}
 
 	return true;
@@ -210,7 +210,7 @@ bool incrementReceiverErrors(
 	//increment counters,
 	receiverErrorCount++;
 
-	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[measIndex] << " to " << receiverErrorCount;
+	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[measIndex].str << " to " << receiverErrorCount;
 
 	return true;
 }
@@ -243,9 +243,11 @@ bool incrementSatelliteErrors(
 	unsigned int&	satelliteErrorCount		= *satelliteErrorCount_ptr;
 	unsigned int&	satelliteErrorEpochs	= *satelliteErrorEpochs_ptr;
 
+	string id	= kfMeas.obsKeys[measIndex].Sat.id();
+
 	satelliteErrorCount++;
 
-	trace << "\n" << "Incrementing satelliteErrorCount on " << kfMeas.obsKeys[measIndex] << " to " << satelliteErrorCount;
+	trace << "\n" << "Incrementing satelliteErrorCount on " << id << " to " << satelliteErrorCount;
 
 	if (satelliteErrorCount < acsConfig.errorAccumulation.satellite_error_count_threshold)
 	{
@@ -259,10 +261,7 @@ bool incrementSatelliteErrors(
 		return true;
 	}
 
-	KFKey kfKey;
-	kfKey.Sat	= kfMeas.obsKeys[measIndex].Sat;
-
-	trace << "\n" << "Satellite relaxed due to high satellite error counts: " << kfKey;
+	trace << "\n" << "Satellite relaxed due to high satellite error counts: " << id;
 
 	satelliteGlitchReaction(rejectDetails);
 
@@ -376,6 +375,13 @@ bool satelliteGlitchReaction(
 	auto& trace		= rejectDetails.trace;
 	auto& kfKey		= rejectDetails.kfKey;
 	auto& kfState	= rejectDetails.kfState;
+
+	if	( kfKey.type != KF::NONE
+		&&kfKey.type != KF::ORBIT
+		&&kfKey.type != KF::SAT_CLOCK)
+	{
+		return true;
+	}
 
 	trace << "\n" << "Bad satellite state detected " << kfKey;
 

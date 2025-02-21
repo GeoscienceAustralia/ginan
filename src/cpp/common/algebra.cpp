@@ -2135,7 +2135,8 @@ const
 }
 
 KFState KFState::getSubState(
-	vector<KF>	types)
+	vector<KF>	types,
+	KFMeas*		meas_ptr)
 const
 {
 	if (std::find(types.begin(), types.end(), +KF::ALL) != types.end())
@@ -2166,13 +2167,12 @@ const
 	subState.dx		= dx(indices);
 	subState.P		= P	(indices, indices);
 
-	// for (auto& [kfKey,	thing] : stateTransitionMap)
-	// for (auto& [other,	entry] : thing)					try	{	subState.kfIndexMap.at(kfKey);
-	// 															subState.kfIndexMap.at(other);		subState.stateTransitionMap	[kfKey][other]	= entry;	}	catch (...){}
-	// for (auto& [kfKey,	entry] : gaussMarkovTauMap)		try	{	subState.kfIndexMap.at(kfKey);		subState.gaussMarkovTauMap	[kfKey]			= entry;	}	catch (...){}
-	// for (auto& [kfKey,	entry] : gaussMarkovMuMap)		try	{	subState.kfIndexMap.at(kfKey);		subState.gaussMarkovMuMap	[kfKey]			= entry;	}	catch (...){}
-	// for (auto& [kfKey,	entry] : procNoiseMap)			try	{	subState.kfIndexMap.at(kfKey);		subState.procNoiseMap		[kfKey]			= entry;	}	catch (...){}
-	// for (auto& [kfKey,	entry] : exponentialNoiseMap)	try	{	subState.kfIndexMap.at(kfKey);		subState.exponentialNoiseMap[kfKey]			= entry;	}	catch (...){}
+	if (meas_ptr)
+	{
+		auto& meas = *meas_ptr;
+
+		meas.H = meas.H(all, indices);
+	}
 
 	return subState;
 }

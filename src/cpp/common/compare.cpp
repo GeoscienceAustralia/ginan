@@ -36,9 +36,6 @@ void compareClocks(
 }
 
 
-map<GTime, map<string, Peph>> pephMapMap0;
-map<GTime, map<string, Peph>> pephMapMap1;
-
 void compareOrbits(
 	vector<string> files)
 {
@@ -71,17 +68,29 @@ void compareOrbits(
 		<< "\n";
 
 		//invert maps
-		pephMapMap0.clear();
-		pephMapMap1.clear();
+		map<GTime, map<string, Peph>> pephMapMap0;
+		map<GTime, map<string, Peph>> pephMapMap1;
 
 		for (auto& [id,		pephMap]	: navVec[0].pephMap)
 		for (auto& [time,	peph]		: pephMap)
 		{
+			auto satOpts = acsConfig.getSatOpts(peph.Sat);
+			if (satOpts.exclude)
+			{
+				continue;
+			}
+
 			pephMapMap0[time][id] = peph;
 		}
 		for (auto& [id,		pephMap]	: navVec[i].pephMap)
 		for (auto& [time,	peph]		: pephMap)
 		{
+			auto satOpts = acsConfig.getSatOpts(peph.Sat);
+			if (satOpts.exclude)
+			{
+				continue;
+			}
+
 			pephMapMap1[time][id] = peph;
 		}
 
@@ -89,6 +98,13 @@ void compareOrbits(
 		MinconStatistics minconStatistics1;
 		map<KFKey, vector<double>>	transformStatisticsMap;
 
+		KFState kfStateTransform;
+
+		int iterations;
+		if (acsConfig.minconOpts.once_per_epoch)	iterations = 1;
+		else										iterations = 2;
+
+		for (int iteration = 1; iteration <= iterations; iteration++)
 		for (auto& [time, pephMap0] : pephMapMap0)
 		{
 			auto it = pephMapMap1.find(time);
@@ -99,6 +115,12 @@ void compareOrbits(
 			}
 
 			auto& [dummy, pephMap1] = *it;
+
+			if (acsConfig.minconOpts.once_per_epoch)
+			{
+				//reset for each epoch
+				kfStateTransform = KFState();
+			}
 
 			KFState kfState;
 
@@ -157,24 +179,45 @@ void compareOrbits(
 
 			if (acsConfig.process_minimum_constraints)
 			{
-				KFState kfStateTransform;
+				bool				estimate			= true;
+				MinconStatistics*	totalStatistics_ptr	= &minconStatistics1;
+
+				if	( iterations	== 2
+					&&iteration		== 2)
+				{
+					//dont reestimate the transform the second time around
+					estimate = false;
+				}
+
+				if	( iterations	== 2
+					&&iteration		== 1)
+				{
+					//dont add statistics the first time around
+					totalStatistics_ptr = nullptr;
+				}
 
 				MinconStatistics minconStatistics0;
 
-				mincon(trace, kfState, &minconStatistics0, &minconStatistics1, false, &kfStateTransform);
+				mincon(trace, kfState, &minconStatistics0, totalStatistics_ptr, false, &kfStateTransform, estimate, !estimate);
 
-				outputMinconStatistics(trace, minconStatistics0, "/" + time.to_string());
-
-				for (auto& [kfKey, index] : kfStateTransform.kfIndexMap)
+				if	( iterations	== 1
+					||iteration		== 2)
 				{
-					if (kfKey.type == KF::ONE)
+					//only chance, or second time around, output statistics
+
+					outputMinconStatistics(trace, minconStatistics0, "/" + time.to_string());
+
+					for (auto& [kfKey, index] : kfStateTransform.kfIndexMap)
 					{
-						continue;
+						if (kfKey.type == KF::ONE)
+						{
+							continue;
+						}
+
+						double val = kfStateTransform.x(index);
+
+						transformStatisticsMap[kfKey].push_back(val);
 					}
-
-					double val = kfStateTransform.x(index);
-
-					transformStatisticsMap[kfKey].push_back(val);
 				}
 			}
 		}

@@ -1,9 +1,9 @@
 
 #include "pea/peaCommitStrings.hpp"
 #include "pea/peaCommitVersion.h"
+#include "pea/peaLibVersion.h"
 
 #include <fstream>
-
 
 string ginanCommitHash		(){	return GINAN_COMMIT_HASH;		}
 string ginanCommitVersion	(){	return GINAN_COMMIT_VERSION;	}

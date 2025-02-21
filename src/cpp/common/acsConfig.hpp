@@ -1229,6 +1229,11 @@ struct MinimumConstraintOptions : FilterOptions
 	KalmanModel		rotation;
 	KalmanModel		translation;
 
+	KalmanModel		delay_rate;
+	KalmanModel		scale_rate;
+	KalmanModel		rotation_rate;
+	KalmanModel		translation_rate;
+
 	bool			once_per_epoch			= false;
 	bool			full_vcv				= false;
 	bool			constrain_orbits		= true;

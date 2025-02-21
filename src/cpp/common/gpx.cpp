@@ -207,7 +207,7 @@ void writeGPX(
 	Receiver&	rec)
 {
 	std::ofstream output(filename, std::fstream::in | std::fstream::out);
-	if (!output)
+    if (!output.is_open())
 	{
 		BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening GPX file '" << filename << "'\n";
 		return;

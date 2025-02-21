@@ -184,7 +184,9 @@ void mincon(
 	MinconStatistics*	minconStatistics_ptr0,
 	MinconStatistics*	minconStatistics_ptr1,
 	bool				commentSinex,
-	KFState*			kfStateTransform_ptr)
+	KFState*			kfStateTransform_ptr,
+	bool				estimateTransform,
+	bool				outputPrePost)
 {
 	// Reference: Estimating regional deformation from a combination of space and terrestrial geodetic data - Appendix E
 	// Perform LSQ/Kalman filter to determine transformation state
@@ -205,20 +207,32 @@ void mincon(
 	//Determine transformation state
 	KFState kfStateTrans;
 
-	kfStateTrans.FilterOptions::operator=(acsConfig.minconOpts);
-	kfStateTrans.id							= "MINIMUM";
-	kfStateTrans.output_residuals			= acsConfig.output_residuals;
-	kfStateTrans.outputMongoMeasurements	= acsConfig.mongoOpts.output_measurements;
+	if (kfStateTransform_ptr)
+	{
+		kfStateTrans = *kfStateTransform_ptr;
+	}
 
-	kfStateTrans.measRejectCallbacks.push_back(deweightStationMeas);
+	if (kfStateTrans.id != "MINIMUM")
+	{
+		kfStateTrans.FilterOptions::operator=(acsConfig.minconOpts);
+		kfStateTrans.id							= "MINIMUM";
+		kfStateTrans.output_residuals			= acsConfig.output_residuals;
+		kfStateTrans.outputMongoMeasurements	= acsConfig.mongoOpts.output_measurements;
+
+		kfStateTrans.measRejectCallbacks.push_back(deweightStationMeas);
+	}
 
 	KFMeasEntryList	measList;
 	KFMeasEntryList	measListCulled;
 
-	InitialState xlateInit = initialStateFromConfig(acsConfig.minconOpts.translation);
-	InitialState rtateInit = initialStateFromConfig(acsConfig.minconOpts.rotation);
-	InitialState scaleInit = initialStateFromConfig(acsConfig.minconOpts.scale);
-	InitialState delayInit = initialStateFromConfig(acsConfig.minconOpts.delay);
+	InitialState xlateInit		= initialStateFromConfig(acsConfig.minconOpts.translation);
+	InitialState rtateInit		= initialStateFromConfig(acsConfig.minconOpts.rotation);
+	InitialState scaleInit		= initialStateFromConfig(acsConfig.minconOpts.scale);
+	InitialState delayInit		= initialStateFromConfig(acsConfig.minconOpts.delay);
+	InitialState xlateRateInit	= initialStateFromConfig(acsConfig.minconOpts.translation_rate);
+	InitialState rtateRateInit	= initialStateFromConfig(acsConfig.minconOpts.rotation_rate);
+	InitialState scaleRateInit	= initialStateFromConfig(acsConfig.minconOpts.scale_rate);
+	InitialState delayRateInit	= initialStateFromConfig(acsConfig.minconOpts.delay_rate);
 
 	MatrixXd R = kfStateStations.P;
 
@@ -393,6 +407,20 @@ void mincon(
 			R.block(index, index, 3, 3) = noise;
 		}
 
+		auto addRate = [&](
+			const InitialState& rateInit,
+			const KFKey&		key)
+		{
+			if (rateInit.estimate == false)
+				return;
+
+			KFKey rateKey = key;
+			rateKey.type	+= KF::XFORM_XLATE_RATE - KF::XFORM_XLATE;
+			rateKey.comment	+= "/DAY";
+
+			kfStateTrans.setKFTransRate(key, rateKey,	1/S_IN_DAY,	rateInit);
+		};
+
 		for (short xyz = 0; xyz < 3; xyz++)
 		{
 			KFKey obsKey;
@@ -404,26 +432,26 @@ void mincon(
 
 			if (xlateInit.estimate)
 			{
-				meas.addDsgnEntry({KF::XFORM_XLATE, {}, "", 0,	"M"		},	dRdX(xyz),				xlateInit);
-				meas.addDsgnEntry({KF::XFORM_XLATE, {}, "", 1,	"M"		},	dRdY(xyz),				xlateInit);
-				meas.addDsgnEntry({KF::XFORM_XLATE, {}, "", 2,	"M"		},	dRdZ(xyz),				xlateInit);
+				{KFKey key{KF::XFORM_XLATE, {}, "", 0,	"M"		};	meas.addDsgnEntry(key,	dRdX(xyz),				xlateInit);		addRate(xlateRateInit, key);	}
+				{KFKey key{KF::XFORM_XLATE, {}, "", 1,	"M"		};	meas.addDsgnEntry(key,	dRdY(xyz),				xlateInit);		addRate(xlateRateInit, key);	}
+				{KFKey key{KF::XFORM_XLATE, {}, "", 2,	"M"		};	meas.addDsgnEntry(key,	dRdZ(xyz),				xlateInit);		addRate(xlateRateInit, key);	}
 			}
 
 			if (rtateInit.estimate)
 			{
-				meas.addDsgnEntry({KF::XFORM_RTATE,	{}, "", 0,	"MAS"	},	dRdThetaX(xyz) * MAS2R,	rtateInit);
-				meas.addDsgnEntry({KF::XFORM_RTATE,	{}, "", 1,	"MAS"	},	dRdThetaY(xyz) * MAS2R,	rtateInit);
-				meas.addDsgnEntry({KF::XFORM_RTATE,	{}, "", 2,	"MAS"	},	dRdThetaZ(xyz) * MAS2R,	rtateInit);
+				{KFKey key{KF::XFORM_RTATE,	{}, "", 0,	"MAS"	};	meas.addDsgnEntry(key,	dRdThetaX(xyz) * MAS2R,	rtateInit);		addRate(rtateRateInit, key);	}
+				{KFKey key{KF::XFORM_RTATE,	{}, "", 1,	"MAS"	};	meas.addDsgnEntry(key,	dRdThetaY(xyz) * MAS2R,	rtateInit);		addRate(rtateRateInit, key);	}
+				{KFKey key{KF::XFORM_RTATE,	{}, "", 2,	"MAS"	};	meas.addDsgnEntry(key,	dRdThetaZ(xyz) * MAS2R,	rtateInit);		addRate(rtateRateInit, key);	}
 			}
 
 			if (scaleInit.estimate)
 			{
-				meas.addDsgnEntry({KF::XFORM_SCALE, {}, "", 0,	"PPB"	},	aprioriPos(xyz) * 1e-9,	scaleInit);
+				{KFKey key{KF::XFORM_SCALE, {}, "", 0,	"PPB"	};	meas.addDsgnEntry(key,	aprioriPos(xyz) * 1e-9,	scaleInit);		addRate(scaleRateInit, key);	}
 			}
 
 			if (delayInit.estimate)
 			{
-				meas.addDsgnEntry({KF::XFORM_DELAY, {}, "", 0,	"S"		},	dRdT(xyz),				delayInit);
+				{KFKey key{KF::XFORM_DELAY, {}, "", 0,	"S"		};	meas.addDsgnEntry(key,	dRdT(xyz),				delayInit);		addRate(delayRateInit, key);	}
 			}
 
 			double innov = deltaR(xyz);
@@ -463,31 +491,44 @@ void mincon(
 		metaDataMap["otherNoiseMatrix_ptr"] = &combinedMeas.R;
 	}
 
-	if (kfStateTrans.lsqRequired)
+	if (estimateTransform)
 	{
-		trace << "\n" << "------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << "\n";
-		kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &kfStateTrans.dx);
-		kfStateTrans.dx = VectorXd::Zero(kfStateTrans.x.rows());
-		kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM_LSQ");
+		if (kfStateTrans.lsqRequired)
+		{
+			kfStateTrans.lsqRequired = false;
+
+			trace <<  "\n------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
+
+			kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &kfStateTrans.dx);
+
+			kfStateTrans.dx = VectorXd::Zero(kfStateTrans.x.rows());
+
+			kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM_LSQ");
+		}
+
+	trace << "\n------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
+
+		// kfStateTrans.suffix = "/MINCON_TRANSFORM";
+
+		kfStateTrans.filterKalman(trace, combinedMeasCulled);
+
+		kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM");
+
+		if (kfStateTransform_ptr)
+		{
+			*kfStateTransform_ptr = kfStateTrans;
+		}
+
+		mongoStates(kfStateTrans,
+					{
+						.suffix		= "_MINCON_TRANSFORM",
+						.instances	= acsConfig.mongoOpts.output_states,
+						.queue		= acsConfig.mongoOpts.queue_outputs
+					});
 	}
 
-	trace << "\n" << "------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------" << "\n";
-
-	kfStateTrans.filterKalman(trace, combinedMeasCulled, "/MINCON_TRANSFORM");
-
-	kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM");
-
-	if (kfStateTransform_ptr)
-	{
-		*kfStateTransform_ptr = kfStateTrans;
-	}
-
-	mongoStates(kfStateTrans,
-				{
-					.suffix		= "/MINCON_TRANSFORM",
-					.instances	= acsConfig.mongoOpts.output_states,
-					.queue		= acsConfig.mongoOpts.queue_outputs
-				});
+	//remove any rates before continuing
+	kfStateTrans = kfStateTrans.getSubState({KF::ONE, KF::XFORM_RTATE, KF::XFORM_XLATE, KF::XFORM_DELAY, KF::XFORM_SCALE}, &combinedMeas);
 
 	KFState oldStateStations = kfStateStations;
 
@@ -570,7 +611,6 @@ void mincon(
 			//generalised inverse (Ref:E.3)
 			MatrixXd T = combinedMeas.H.bottomRightCorner(numStates, numXform);
 			MatrixXd W	= MatrixXd::Zero(numStates, numStates);
-			// 	std::cout << "\n" << "R" << "\n" << combinedMeasCulled.R<< "\n";
 
 			switch (acsConfig.minconOpts.application_mode)
 			{
@@ -698,12 +738,14 @@ void mincon(
 		}
 	}
 
+	if (outputPrePost)
 	if (hasStations)
 	{
 		minSiteData	(trace, oldStateStations,	" Pre Constraint",	usedMap);
 		minSiteData	(trace, kfStateStations,	" Post Constraint",	usedMap);
 	}
 
+	if (outputPrePost)
 	if (hasSatellites)
 	{
 		minOrbitData(trace, oldStateStations,	" Pre Constraint",	usedMap, frameSwapper);

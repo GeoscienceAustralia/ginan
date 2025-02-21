@@ -171,6 +171,8 @@ add_executable(pea
 		sbas/sbas.cpp
 )
 
+add_dependencies(pea updateGit)
+
 target_include_directories(pea PUBLIC
 
 

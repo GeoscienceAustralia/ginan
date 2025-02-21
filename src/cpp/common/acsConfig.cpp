@@ -3831,16 +3831,21 @@ bool ACSConfig::parse(
 
                 tryGetFromYaml(process_minimum_constraints, minimum_constraints, { "0! enable" }, "Transform states by minimal constraints to selected receiver coordinates");
 
-                tryGetKalmanFromYaml(minconOpts.delay, minimum_constraints, "1! delay", "Estimation and application of clock delay adjustment");
-                tryGetKalmanFromYaml(minconOpts.scale, minimum_constraints, "1! scale", "Estimation and application of scaling factor");
-                tryGetKalmanFromYaml(minconOpts.rotation, minimum_constraints, "1! rotation", "Estimation and application of angular offsets");
-                tryGetKalmanFromYaml(minconOpts.translation, minimum_constraints, "1! translation", "Estimation and application of CoG offsets");
+				tryGetKalmanFromYaml(minconOpts.delay,				minimum_constraints,	"1! delay",						"Estimation and application of clock delay adjustment");
+				tryGetKalmanFromYaml(minconOpts.scale,				minimum_constraints,	"1! scale",						"Estimation and application of scaling factor");
+				tryGetKalmanFromYaml(minconOpts.rotation,			minimum_constraints,	"1! rotation",					"Estimation and application of angular offsets");
+				tryGetKalmanFromYaml(minconOpts.translation,		minimum_constraints,	"1! translation",				"Estimation and application of CoG offsets");
 
-                tryGetFromYaml(minconOpts.once_per_epoch, minimum_constraints, { "2@ once_per_epoch" }, "Perform minimum constraints on a temporary filter and output results once per epoch");
-                tryGetFromYaml(minconOpts.full_vcv, minimum_constraints, { "2@ full_vcv" }, "! experimental ! Use full VCV for measurement noise in minimum constraints filter");
-                tryGetFromYaml(minconOpts.constrain_orbits, minimum_constraints, { "2@ constrain_orbits" }, "Enforce rigid transformations of orbital states");
-                tryGetEnumOpt(minconOpts.application_mode, minimum_constraints, { "2@ application_mode" }, "Method of transforming positions ");
-                tryGetFromYaml(minconOpts.transform_unweighted, minimum_constraints, { "2@ transform_unweighted" }, "Add design entries for transformation of positions without weighting");
+				tryGetKalmanFromYaml(minconOpts.delay_rate,			minimum_constraints,	"1! delay_rate",				"Estimation and application of clock delay adjustment rate");
+				tryGetKalmanFromYaml(minconOpts.scale_rate,			minimum_constraints,	"1! scale_rate",				"Estimation and application of scaling factor rate");
+				tryGetKalmanFromYaml(minconOpts.rotation_rate,		minimum_constraints,	"1! rotation_rate",				"Estimation and application of angular offsets rate");
+				tryGetKalmanFromYaml(minconOpts.translation_rate,	minimum_constraints,	"1! translation_rate",			"Estimation and application of CoG offsets rate");
+
+				tryGetFromYaml(minconOpts.once_per_epoch,			minimum_constraints,	{"2@ once_per_epoch"		},	"Perform minimum constraints on a temporary filter and output results once per epoch");
+				tryGetFromYaml(minconOpts.full_vcv,					minimum_constraints,	{"2@ full_vcv"				},	"! experimental ! Use full VCV for measurement noise in minimum constraints filter");
+				tryGetFromYaml(minconOpts.constrain_orbits,			minimum_constraints,	{"2@ constrain_orbits"		},	"Enforce rigid transformations of orbital states");
+				tryGetEnumOpt( minconOpts.application_mode,			minimum_constraints,	{"2@ application_mode"		},	"Method of transforming positions ");
+				tryGetFromYaml(minconOpts.transform_unweighted,		minimum_constraints,	{"2@ transform_unweighted"	},	"Add design entries for transformation of positions without weighting");
 
                 getFilterOptions(minimum_constraints, minconOpts);
             }

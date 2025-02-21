@@ -449,7 +449,7 @@ E_Solution estpos(
 			double r = geodist(rSat, rRec, satStat.e);
 			int debuglvl = 2;
 
-			// psudorange with code bias correction
+			// pseudorange with code bias correction
 			double range;
 			double vMeas;
 			double vBias;
@@ -742,6 +742,7 @@ bool raim(
 		}
 	};
 
+	//backup original satStats
 	backupSatStats(satStatBak, true);
 
 	for (auto& testObs : only<GObs>(obsList))
@@ -751,8 +752,7 @@ bool raim(
 			continue;
 		}
 
-		map<SatSys, SatStat> satStatBak;
-
+		//restore original satStats before each test
 		backupSatStats(satStatBak, false);
 
 		ObsList testList;
@@ -820,6 +820,7 @@ bool raim(
 			origObs.sppCodeResidual	= testObs.sppCodeResidual;
 		}
 
+		//store 'best' satStats for later use
 		backupSatStats(satStatBest, true);
 
 		sol					= sol_e;
@@ -831,6 +832,7 @@ bool raim(
 
 	if ((int) exSat)
 	{
+		//update satStats (AzEl and line-of-sight unit vector) w/ best SPP solution
 		backupSatStats(satStatBest, false);
 
 		tracepdeex(3, trace, "\n%s: %s excluded by RAIM", obsList.front()->time.to_string().c_str(), exSat.id().c_str());
