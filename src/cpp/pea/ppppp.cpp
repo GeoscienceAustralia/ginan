@@ -852,7 +852,7 @@ void updateAvgClocks(
 	GTime			time,			///< Time
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
-	if (acsConfig.minimise_sat_clock_offsets == false)
+	if (acsConfig.minimise_sat_clock_offsets.enable == false)
 	{
 		return;
 	}
@@ -864,21 +864,45 @@ void updateAvgClocks(
 			continue;
 		}
 
-		SatPos satPos;
-		satPos.Sat			= key.Sat;
-		satPos.satNav_ptr	= &nav.satNavMap[key.Sat];
+		auto& Sat = key.Sat;
+		SatPos satPosBrdc;
+		SatPos satPosKf;
+		satPosBrdc.Sat	= Sat;
+		satPosKf.Sat	= Sat;
 
-		bool pass = satClkBroadcast(trace, time, time, satPos, nav);
+		bool pass = satClkBroadcast(trace, time, time, satPosBrdc, nav);
 		if (pass == false)
 		{
 			continue;
 		}
 
-		auto& satOpts = acsConfig.getSatOpts(key.Sat);
+		pass = satClkKalman(trace, time, satPosKf, &kfState);
+		if (pass == false)
+		{
+			continue;
+		}
+
+		double satClkBrdc	= satPosBrdc.satClk * CLIGHT;
+		double satClkKf		= satPosKf	.satClk * CLIGHT;
+		double satClkDiff	= satClkBrdc - satClkKf;
+
+		//Exclude satellite clock from alignment if diff between estimated and broadcast satellite clock offsets > 10 m
+		if (abs(satClkDiff) > acsConfig.minimise_sat_clock_offsets.max_offset)
+		{
+			trace	<< "\nLarge clock diff > " << acsConfig.minimise_sat_clock_offsets.max_offset << " (m), excluding satellite from braodcast clock alignment:"
+					<< "\tSat: "				<< Sat.id()
+					<< "\tBrdc sat clock (m): "	<< satClkBrdc
+					<< "\tKf sat clock (m): "	<< satClkKf
+					<< "\tDiff: "				<< satClkDiff;
+
+			continue;
+		}
+
+		auto& satOpts = acsConfig.getSatOpts(Sat);
 
 		InitialState init = initialStateFromConfig(satOpts.clk);
 
-		init.mu = satPos.satClk * CLIGHT;
+		init.mu = satClkBrdc;
 
 		//update the mu value
 		kfState.addKFState(key, init);
@@ -1554,7 +1578,3 @@ void ppp(
 		}
 	}
 }
-
-
-
-

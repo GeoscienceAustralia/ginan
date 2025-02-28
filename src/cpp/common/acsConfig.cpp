@@ -3620,9 +3620,14 @@ bool ACSConfig::parse(
 				tryGetFromYaml	(fixed_phase_bias_var,						general, {"@ fixed_phase_bias_var"				}, "Variance of phase bias to be considered fixed/binded");
 				tryGetFromYaml	(adjust_rec_clocks_by_spp,					general, {"@ adjust_rec_clocks_by_spp"			}, "Adjust receiver clocks by spp values to minimise prefit residuals");
 				tryGetFromYaml	(adjust_clocks_for_jumps_only,				general, {"@ adjust_clocks_for_jumps_only"		}, "Round clock adjustments from SPP to half milliseconds");
-				tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"		}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
+				// tryGetFromYaml	(minimise_sat_clock_offsets,				general, {"@ minimise_sat_clock_offsets"		}, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
 				tryGetFromYaml	(minimise_sat_orbit_offsets,				general, {"@ minimise_sat_orbit_offsets"		}, "Apply gauss-markov mu values to satellite orbits to minimise offsets with respect to broadcast values");
 				tryGetFromYaml	(minimise_ionosphere_offsets,				general, {"@ minimise_ionosphere_offsets"		}, "Apply gauss-markov mu values to stec values to minimise offsets with respect to klobuchar values");
+
+                auto clock_offset = stringsToYamlObject(general, { "@ minimise_sat_clock_offsets" }, "Apply gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
+				tryGetFromYaml	(minimise_sat_clock_offsets.enable,				clock_offset, {"@ enable"		}, "Enable gauss-markov mu values to satellite clocks to minimise offsets with respect to broadcast values");
+				tryGetFromYaml	(minimise_sat_clock_offsets.max_offset,				clock_offset, {"@ max_offset"		}, "Maximum satellite clock offset (meters) used in broadcast alignment");
+
 
                 for (int i = E_Sys::GPS; i < E_Sys::SUPPORTED; i++)
                 {

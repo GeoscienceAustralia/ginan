@@ -553,7 +553,12 @@ struct GlobalOptions
 
 	bool	adjust_rec_clocks_by_spp		= true;
 	bool	adjust_clocks_for_jumps_only	= false;
-	bool	minimise_sat_clock_offsets		= false;
+	// bool	minimise_sat_clock_offsets		= false;
+    struct {
+        bool    enable = false;
+        double  max_offset = 10;
+    } minimise_sat_clock_offsets;
+
 	bool	minimise_sat_orbit_offsets		= false;
 	bool	minimise_ionosphere_offsets		= false;
 
@@ -1467,4 +1472,3 @@ void dumpConfig(
 	Trace& trace);
 
 extern ACSConfig acsConfig;		///< Global variable housing all options to be used throughout the software
-

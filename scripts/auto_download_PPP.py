@@ -1200,11 +1200,15 @@ def auto_download(
                 timespan=timedelta(days=1),
                 if_file_present=if_file_present,
             )
-        except FileNotFoundError:
-            logging.info(f"Received an error ({FileNotFoundError}) while try to download - date too recent.")
+        except ftplib.all_errors as e:
+            logging.info(f"Received an error ({e}) while try to download - date too recent.")
             logging.info(f"Downloading most recent SNX file available.")
             download_most_recent_cddis_file(
-                download_dir=target_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
+                download_dir=target_dir,
+                pointer_date=start_gpsdate,
+                file_type="SNX",
+                long_filename=long_filename,
+                if_file_present=if_file_present,
             )
     if sp3:
         download_product_from_cddis(
