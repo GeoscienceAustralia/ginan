@@ -100,6 +100,21 @@ bool ionoModel(
 void outputApriori(
 	ReceiverMap& receiverMap);
 
+void updateAprioriRecPos(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverOptions&	recOpts,
+	bool&				sppUsed,
+	KFState*			remote_ptr	= nullptr);
+
+void updateAprioriRecClk(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverOptions&	recOpts,
+	GTime&				time,
+	KFState&			kfState,
+	KFState*			remote_ptr	= nullptr);
+
 void selectAprioriSource(
 	Trace&		trace,
 	Receiver&	rec,

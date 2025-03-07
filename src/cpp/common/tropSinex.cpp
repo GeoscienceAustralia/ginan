@@ -12,7 +12,7 @@
 #include "common/gTime.hpp"
 #include "common/sinex.hpp"
 #include "3rdparty/egm96/EGM96.h"
-
+#include "pea/peaCommitStrings.hpp"
 using std::ofstream;
 
 
@@ -118,67 +118,106 @@ void writeTropSiteId(
 
 	writeAsComments(out, theSinex.blockComments[block.blockName]);
 
-	for (auto& [id, ssi] : theSinex.mapsiteids)
+    for (auto& [id, entry] : theSinex.tropSiteCoordMapMap)
 	{
 		if	( markerName != "MIX"
 			&&id != markerName)
 		{
 			continue;
 		}
-		if (ssi.used == false)
-			continue;
+        auto ssi_it = theSinex.mapsiteids.find(id);
+        if (ssi_it != theSinex.mapsiteids.end() && ssi_it->second.sitecode == id)
+        {
+            auto & ssi = ssi_it->second;
+            if (ssi.used == false)
+                continue;
 
-		// Retrieve rec pos
-		VectorPos pos;
-		pos.lat()	= ssi.lat_deg	+ ssi.lat_min / 60.0	+ ssi.lat_sec / 60.0 / 60.0;
-		pos.lon()	= ssi.lon_deg	+ ssi.lon_min / 60.0	+ ssi.lon_sec / 60.0 / 60.0;
-		pos.hgt()	= ssi.height;
+            // Retrieve rec pos
+            VectorPos pos;
+            pos.lat()	= ssi.lat_deg	+ ssi.lat_min / 60.0	+ ssi.lat_sec / 60.0 / 60.0;
+            pos.lon()	= ssi.lon_deg	+ ssi.lon_min / 60.0	+ ssi.lon_sec / 60.0 / 60.0;
+            pos.hgt()	= ssi.height;
 
-		Vector3d rRec;
-		auto it = theSinex.tropSiteCoordMapMap.find(id);
-		if (it != theSinex.tropSiteCoordMapMap.end())
-		{
-			rRec = theSinex.tropSiteCoordMapMap[id];
-		}
-		else
-		{
-			rRec = pos2ecef(pos);
-		}
+            Vector3d rRec;
+            rRec = entry;
 
-		// Calc ant offset (ECEF)
-		SinexRecData	stationSinex;
+            // Calc ant offset (ECEF)
+            SinexRecData	stationSinex;
 
-		auto result = getRecSnx(id, theSinex.solutionenddate, stationSinex);
+            auto result = getRecSnx(id, theSinex.solutionenddate, stationSinex);
 
-		if (result.failureSiteId)			continue;	// Receiver not found in sinex file
-		if (result.failureEstimate)			continue;	// Position not found in sinex file		//todo aaron, remove this, use other function
+            if (result.failureSiteId)			continue;	// Receiver not found in sinex file
+            if (result.failureEstimate)			continue;	// Position not found in sinex file		//todo aaron, remove this, use other function
 
-		VectorEnu&	antdel	= stationSinex.ecc_ptr->ecc;
-		Vector3d	dr1		= enu2ecef(pos, antdel);
+            VectorEnu&	antdel	= stationSinex.ecc_ptr->ecc;
+            Vector3d	dr1		= enu2ecef(pos, antdel);
 
-		// Calc ant pos (ECEF), convert to lat/lon/ht
-		rRec += dr1;
-		pos = ecef2pos(rRec);
-		double lat	= pos.latDeg();
-		double lon	= pos.lonDeg();
-		double hgt	= pos.hgt();
+            // Calc ant pos (ECEF), convert to lat/lon/ht
+            rRec += dr1;
+            pos = ecef2pos(rRec);
+            double lat	= pos.latDeg();
+            double lon	= pos.lonDeg();
+            double hgt	= pos.hgt();
 
-		while (lon < 0)
-			lon += 360;
+            while (lon < 0)
+                lon += 360;
 
-		double offset = egm96_compute_altitude_offset(lat, lon);
+            double offset = egm96_compute_altitude_offset(lat, lon);
 
-		tracepdeex(0, out, " %-9s %2s %9s %c %22s %10.6lf %10.6lf %9.3lf %9.3lf\n",
-					ssi.sitecode,
-					ssi.ptcode,
-					ssi.domes,
-					ssi.typecode,
-					ssi.desc,
-					lon,
-					lat,
-					hgt,
-					hgt - offset);
-	}
+            tracepdeex(0, out, " %-9s %2s %9s %c %22s %10.6lf %10.6lf %9.3lf %9.3lf\n",
+                        ssi.sitecode,
+                        ssi.ptcode,
+                        ssi.domes,
+                        ssi.typecode,
+                        ssi.desc,
+                        lon,
+                        lat,
+                        hgt,
+                        hgt - offset);
+        }
+        else
+        {
+            auto rec = acsConfig.getRecOpts(id);
+            string domes_number = rec.domes_number.empty() ? "----" : rec.domes_number;
+            string site_description = rec.site_description.empty() ? "----" : rec.site_description;
+            Vector3d rRec;
+            auto it = theSinex.tropSiteCoordMapMap.find(id);
+            if (it != theSinex.tropSiteCoordMapMap.end())
+            {
+                rRec = theSinex.tropSiteCoordMapMap[id];
+            }
+            else
+            {
+                rRec = rec.apriori_pos;
+            }
+            VectorEnu	antdel	= rec.eccentricityModel.eccentricity;
+            VectorPos pos = ecef2pos(rRec);
+            Vector3d	dr1		= enu2ecef(pos, antdel);
+
+            // Calc ant pos (ECEF), convert to lat/lon/ht
+            rRec += dr1;
+            pos = ecef2pos(rRec);
+            double lat	= pos.latDeg();
+            double lon	= pos.lonDeg();
+            double hgt	= pos.hgt();
+
+            while (lon < 0)
+                lon += 360;
+
+            double offset = egm96_compute_altitude_offset(lat, lon);
+            tracepdeex(0, out, " %-9s %2s %-9s %c %-22s %10.6lf %10.6lf %9.3lf %9.3lf\n",
+            id,
+            "A",
+            domes_number,
+            'P',
+            site_description,
+            lon,
+            lat,
+            hgt,
+            hgt - offset);
+        }
+    }
+    // exit(0);
 }
 
 /** Write SITE/RECEIVER block
@@ -191,38 +230,63 @@ void writeTropSiteRec(
 
 	writeAsComments(out, theSinex.blockComments[block.blockName]);
 
-	for (auto& [id, timemap] : theSinex.mapreceivers)
-	for (auto it = timemap.rbegin(); it != timemap.rend(); it++)
+    for (auto& [id, entry] : theSinex.tropSiteCoordMapMap)
 	{
-		auto& [time, receiver] = *it;
-
 		if	( markerName != "MIX"
 			&&id != markerName)
 		{
 			continue;
 		}
+        auto timemap_ = theSinex.mapreceivers.find(id);
+        if (timemap_ != theSinex.mapreceivers.end())
+        {
+            auto & timeMap = timemap_->second;
+            for (auto it = timeMap.rbegin(); it != timeMap.rend(); it++)
+            {
+                auto& [time, receiver] = *it;
 
-		if (receiver.used == false)
-			continue;
+                if (receiver.used == false)
+                    continue;
 
-		if (receiver.sn.	empty())	receiver.sn		= "-----";
-		if (receiver.firm.	empty())	receiver.firm	= "-----";
+                if (receiver.sn.	empty())	receiver.sn		= "-----";
+                if (receiver.firm.	empty())	receiver.firm	= "-----";
 
-		tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %20s %-20s %s\n",
-					receiver.sitecode	.c_str(),
-					receiver.ptcode		.c_str(),
-					receiver.solnid		.c_str(),
-					receiver.typecode,
-					receiver.start[0],
-					receiver.start[1],
-					receiver.start[2],
-					receiver.end[0],
-					receiver.end[1],
-					receiver.end[2],
-					receiver.type	.c_str(),
-					receiver.sn		.c_str(),
-					receiver.firm	.c_str());
-	}
+                tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %20s %-20s %s\n",
+                            receiver.sitecode	.c_str(),
+                            receiver.ptcode		.c_str(),
+                            receiver.solnid		.c_str(),
+                            receiver.typecode,
+                            receiver.start[0],
+                            receiver.start[1],
+                            receiver.start[2],
+                            receiver.end[0],
+                            receiver.end[1],
+                            receiver.end[2],
+                            receiver.type	.c_str(),
+                            receiver.sn		.c_str(),
+                            receiver.firm	.c_str());
+            }
+        }
+        else
+        {
+            auto rec = acsConfig.getRecOpts(id);
+            tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %-20s %-20s %s\n",
+            id,
+            "A",
+            "----",
+            "P",
+            theSinex.solutionstartdate[0],
+            theSinex.solutionstartdate[1],
+            theSinex.solutionstartdate[2],
+            theSinex.solutionenddate[0],
+            theSinex.solutionenddate[1],
+            theSinex.solutionenddate[2],
+            rec.receiver_type.c_str(),
+            "-----",
+            "-----"
+            );
+        }
+    }
 }
 
 /** Set antenna calibration model data for SITE/ANTENNA block
@@ -256,20 +320,24 @@ void writeTropSiteAnt(
 
 	writeAsComments(out, theSinex.blockComments[block.blockName]);
 
-	for (auto& [id, antmap]	: theSinex.mapantennas)
-	for (auto it = antmap.rbegin(); it != antmap.rend(); it++)
+  for (auto& [id, entry] : theSinex.tropSiteCoordMapMap)
 	{
-		auto& [time, ant] = *it;
-
 		if	( markerName != "MIX"
 			&&id != markerName)
 		{
 			continue;
 		}
-		if (ant.used == false)
-			continue;
+        auto timeMap_it = theSinex.mapantennas.find(id);
+        if (timeMap_it != theSinex.mapantennas.end())
+        {
+            auto & timeMap = timeMap_it->second;
+            for (auto it = timeMap.rbegin(); it != timeMap.rend(); it++)
+            {
+                auto& [time, ant] = *it;
 
-		tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %20s %-20s %-10s\n",
+                if (ant.used == false)
+                    continue;
+		        tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %20s %-20s %-10s\n",
 					ant.sitecode,
 					ant.ptcode,
 					ant.solnnum,
@@ -283,7 +351,32 @@ void writeTropSiteAnt(
 					ant.type,
 					ant.sn,
 					ant.calibModel);
-	}
+            }
+        }
+        else
+        {
+            auto rec = acsConfig.getRecOpts(id);
+            auto ecc = rec.antenna_type;
+            string sn = "-----";
+            string calib = "-----";
+		    tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %20s %-20s %-10s\n",
+            id,
+            "A",
+            "----",
+            "P",
+            theSinex.solutionstartdate[0],
+            theSinex.solutionstartdate[1],
+            theSinex.solutionstartdate[2],
+            theSinex.solutionenddate[0],
+            theSinex.solutionenddate[1],
+            theSinex.solutionenddate[2],
+            rec.antenna_type,
+            sn,
+            calib
+            );
+
+        }
+    }
 }
 
 /** Write SITE/ECCENTRICITY block
@@ -296,35 +389,64 @@ void writeTropSiteEcc(
 
 	writeAsComments(out, theSinex.blockComments[block.blockName]);
 
-	for (auto& [id, setMap] : theSinex.mapeccentricities)
-	for (auto it = setMap.rbegin(); it != setMap.rend(); it++)
+    for (auto& [id, entry] : theSinex.tropSiteCoordMapMap)
 	{
-		auto& [time, set] = *it;
-
 		if	( markerName != "MIX"
 			&&id != markerName)
 		{
 			continue;
 		}
-		if (set.used == false)
-			continue;
+        auto timeMap_it = theSinex.mapeccentricities.find(id);
+        if (timeMap_it != theSinex.mapeccentricities.end())
+        {
+            auto & timeMap = timeMap_it->second;
+            for (auto it = timeMap.rbegin(); it != timeMap.rend(); it++)
+            {
+                auto& [time, set] = *it;
 
-		tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %3s %8.4lf %8.4lf %8.4lf\n",
-					set.sitecode,
-					set.ptcode,
-					set.solnnum,
-					set.typecode,
-					set.start[0],
-					set.start[1],
-					set.start[2],
-					set.end[0],
-					set.end[1],
-					set.end[2],
-					set.rs,
-					set.ecc[2],
-					set.ecc[1],
-					set.ecc[0]);
-	}
+                if (set.used == false)
+                    continue;
+
+                tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %3s %8.4lf %8.4lf %8.4lf\n",
+                            set.sitecode,
+                            set.ptcode,
+                            set.solnnum,
+                            set.typecode,
+                            set.start[0],
+                            set.start[1],
+                            set.start[2],
+                            set.end[0],
+                            set.end[1],
+                            set.end[2],
+                            set.rs,
+                            set.ecc[2],
+                            set.ecc[1],
+                            set.ecc[0]);
+            }
+        }
+        else
+        {
+            auto rec = acsConfig.getRecOpts(id);
+            auto ecc = rec.eccentricityModel.eccentricity;
+            tracepdeex(0, out, " %-9s %2s %4s %c %04d:%03d:%05d %04d:%03d:%05d %3s %8.4lf %8.4lf %8.4lf\n",
+            id,
+            "A",
+            "----",
+            "P",
+            theSinex.solutionstartdate[0],
+            theSinex.solutionstartdate[1],
+            theSinex.solutionstartdate[2],
+            theSinex.solutionenddate[0],
+            theSinex.solutionenddate[1],
+            theSinex.solutionenddate[2],
+            "UNE",
+            ecc[2],
+            ecc[1],
+            ecc[0]
+            );
+
+        }
+    }
 }
 
 /** Write SITE/COORDINATES block
@@ -398,7 +520,6 @@ void setTropSolFromFilter(
 		{
 			continue;
 		}
-
 		string type;
 		if		(key.type == KF::TROP)							type = "TRO"; //zenith
 		else if	(key.type == KF::TROP_GRAD && key.num == 0)		type = "TGN"; //N gradient
@@ -408,6 +529,11 @@ void setTropSolFromFilter(
 		string typeTot	= type + "TOT";
 
 		string id = theSinex.mapsiteids[key.str].sitecode;
+        if (id.empty())
+        {
+            id = key.str;
+        }
+
 
 		double x	= 0;
 		double var	= 0;
@@ -602,7 +728,7 @@ void outputTropSinex(
 {
 	theSinex.markerName = markerName.substr(0,4);
 	sinexCheckAddGaReference(	acsConfig.trop_sinex_sol_type,
-								acsConfig.analysis_software_version,
+								ginanCommitVersion(),
 								true);
 
 	KFState sinexSubstate = mergeFilters({&kfState}, {KF::ONE, KF::REC_POS, KF::REC_POS_RATE, KF::TROP, KF::TROP_GRAD});

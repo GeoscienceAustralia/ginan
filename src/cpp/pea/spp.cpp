@@ -870,9 +870,14 @@ void spp(
 			continue;
 		}
 
-		auto& satOpts = acsConfig.getSatOpts(obs.Sat);
+        if	( obs.ephPosValid == false
+            ||obs.ephClkValid == false
+			||acsConfig.preprocOpts.preprocess_all_data == true)	//KALMAN or REMOTE is not available, or SSR is not updated when preprocessing all data
+		{
+			auto& satOpts = acsConfig.getSatOpts(obs.Sat);
 
-		satPosClk(trace, obs.time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, kfState_ptr, remote_ptr, E_OffsetType::APC);
+			satPosClk(trace, obs.time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, kfState_ptr, remote_ptr, E_OffsetType::APC);
+		}
 	}
 
 	tracepdeex(3,trace,	"\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string().c_str(), obsList.size());

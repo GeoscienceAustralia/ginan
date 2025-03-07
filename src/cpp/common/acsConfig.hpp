@@ -1160,6 +1160,8 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
 	Vector3d			apriori_pos					= Vector3d::Zero();
 	string				antenna_type				;
 	string				receiver_type				;
+    string                domes_number	;
+    string                site_description;
 	string				sat_id						;
 	double				elevation_mask_deg			= 10;
 	E_Sys				receiver_reference_system	= E_Sys::NONE;
@@ -1169,6 +1171,7 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
 		bool				enable			= true;
 		Vector3d			eccentricity	= Vector3d::Zero();
 	} eccentricityModel;
+
 
 	struct
 	{

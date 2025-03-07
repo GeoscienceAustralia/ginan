@@ -15,6 +15,7 @@ using boost::algorithm::to_lower_copy;
 #include "common/gTime.hpp"
 #include "common/sinex.hpp"
 #include "slr/slr.hpp"
+#include "pea/peaCommitStrings.hpp"
 
 void getStationsFromSinex(
 	map<string, Receiver>&	receiverMap,
@@ -32,7 +33,7 @@ void sinexPostProcessing(
 	theSinex.acknowledgements.	clear();
 	theSinex.inputHistory.		clear();
 
-	sinexCheckAddGaReference("PPP Solution", "2.1", false);
+	sinexCheckAddGaReference("PPP Solution", ginanCommitVersion(), false);
 
 	// add in the files used to create the solution
 	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinexAddFiles(acsConfig.analysis_agency, time, ubxinput,			"UBX");			}

@@ -140,10 +140,13 @@ void mainOncePerEpochPerStation(
 
 	sinexPerEpochPerStation(trace, tsync, rec);
 
-	preprocessor(trace, rec, true);
+	preprocessor(trace, rec, true, &net.kfState, &remoteState);
 
-	//recalculate variances now that elevations are known due to satellite postions calculation above
-	obsVariances(rec.obsList);
+	if (acsConfig.process_preprocessor == false)
+	{
+		//Update observation variances if not calculated in preprocessor
+		obsVariances(rec.obsList);
+	}
 
 	if (acsConfig.process_spp)
 	{

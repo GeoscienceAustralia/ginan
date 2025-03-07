@@ -7,7 +7,7 @@
 #include "common/gTime.hpp"
 
 
-#define STD_BRDCCLK		30.0				///< error of broadcast clock (m)
+#define STD_BRDCCLK		1.5					///< error of broadcast clock (m)
 
 #define J2_GLO			1.0826257E-3		///< 2nd zonal harmonic of geopot   ref [2]
 

@@ -73,6 +73,8 @@ bool satClkKalman(
 
 	satPos.satClkVel	= vel;
 
+	satPos.satClkVar	= 0;	// todo Eugene: get actual variances from filter
+
 	return anyFound;
 }
 
@@ -145,6 +147,8 @@ bool satPosKalman(
 			satPos.rSatEciDt = propagateFull	(trace, t0, dt, rSat0, vSat0, satPos);
 		}
 	}
+
+	satPos.posVar	= 0;	// todo Eugene: get actual variances from filter
 
 	return true;
 }

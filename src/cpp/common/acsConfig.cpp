@@ -1816,6 +1816,9 @@ ReceiverOptions& ReceiverOptions::operator+=(
     initIfNeeded(*this, rhs, apriori_pos);
     initIfNeeded(*this, rhs, antenna_type);
     initIfNeeded(*this, rhs, receiver_type);
+    initIfNeeded(*this, rhs, domes_number);
+    initIfNeeded(*this, rhs, site_description);
+
     initIfNeeded(*this, rhs, sat_id);
     initIfNeeded(*this, rhs, elevation_mask_deg);
     initIfNeeded(*this, rhs, receiver_reference_system);
@@ -2253,6 +2256,10 @@ void getOptionsFromYaml(
     } {
         auto& thing = recOpts.receiver_type;	setInited(recOpts, thing, tryGetFromYaml(thing, recNode, { "4@ receiver_type" }, "Type of gnss receiver hardware"));
     } {
+        auto& thing = recOpts.domes_number;	setInited(recOpts, thing,    tryGetFromYaml(thing, recNode, { "4@ domes_number",				"" }, "Domes number for the receiver"));
+    } {
+        auto& thing = recOpts.site_description;	setInited(recOpts, thing, tryGetFromYaml(thing, recNode, { "4@ site_description",				"" }, "description  of the receiver"));
+    } {
         auto& thing = recOpts.sat_id;	setInited(recOpts, thing, tryGetFromYaml(thing, recNode, { "4@ sat_id" }, "Id for receivers that are also satellites"));
     } {
         auto& thing = recOpts.elevation_mask_deg;	setInited(recOpts, thing, tryGetFromYaml(thing, recNode, { "0! elevation_mask" }, "Minimum elevation for satellites to be processed"));
@@ -2272,8 +2279,9 @@ void getOptionsFromYaml(
         auto& thing = recOpts.eccentricityModel.enable;	setInited(recOpts, thing, tryGetFromYaml(thing, modelsNode, { "@ eccentricity",				"enable" }, "Enable antenna eccentrities"));
     } {
         auto& thing = eccentricity;								tryGetFromYaml(thing, modelsNode, { "@ eccentricity",				"offset" }, "Antenna offset in ENU frame");
+    }
 
-    } {
+    {
         auto& thing = recOpts.tropModel.enable;	setInited(recOpts, thing, tryGetFromYaml(thing, modelsNode, { "@ troposphere",				"enable" }, "Model tropospheric delays"));
     } {
         auto& thing = recOpts.tropModel.models;	setInited(recOpts, thing, tryGetEnumVec(thing, modelsNode, { "@ troposphere",				"models" }, "List of models to use for troposphere"));

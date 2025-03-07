@@ -295,8 +295,14 @@ inline static void pppRecClocks(COMMON_PPP_ARGS)
 
 inline static void pppSatClocks(COMMON_PPP_ARGS)
 {
-    double satClk_m = obs.satClk * CLIGHT;
-    double satClkVar = 0;
+    // Don't obliterate obs.satClk in satclk below, we still need the old one for next signal/phase
+    SatPos satPos0 = obs;
+
+    // Use nominal epoch for satellite clock initialisation
+	satclk(trace, tsync, tsync, satPos0, satOpts.clockModel.sources, nav, &kfState, &remoteKF);
+
+    double satClk_m     = satPos0.satClk * CLIGHT;
+    double satClkVar    = 0;
 
     KFKey kfKey;
     kfKey.type = KF::SAT_CLOCK;
@@ -335,7 +341,7 @@ inline static void pppSatClocks(COMMON_PPP_ARGS)
         satClk_m += init.x;
 
         measEntry.addDsgnEntry(kfKey, -1, init);
-        measEntry.addDsgnEntry(kfKey, -obs.satVel.dot(satStat.e) / CLIGHT, init);
+        measEntry.addDsgnEntry(kfKey, -obs.satVel.dot(satStat.e) / CLIGHT, init);   // Changes in satellite position or geometric distance calculation due to adjustment of satellite clock offset
 
         InitialState rateInit = initialStateFromConfig(satOpts.clk_rate, i);
 
@@ -350,7 +356,7 @@ inline static void pppSatClocks(COMMON_PPP_ARGS)
 
     measEntry.addNoiseEntry(kfKey, 1, satClkVar);
 
-    measEntry.componentsMap[E_Component::SAT_CLOCK] = { -satClk_m, "- Cdt_s", satClkVar };
+    measEntry.componentsMap[E_Component::SAT_CLOCK] = { -obs.satClk * CLIGHT, "- Cdt_s", satClkVar };   // Account for changes within time of fight due to clock rate in residual calculation
 }
 
 inline static void pppRecAntDelta(COMMON_PPP_ARGS)
@@ -1869,10 +1875,10 @@ void receiverUducGnss(
                     if (initialStateFromConfig(satOpts.orbit).estimate
                         && obs.rSatEci0.isZero())
                     {
-                        //dont obliterate obs.rSat in satpos below, we still need the old one for next signal/phase
+                        // Don't obliterate obs.rSat in satpos below, we still need the old one for next signal/phase
                         SatPos satPos0 = obs;
 
-                        //use this to avoid adding the dt component of position
+                        // Use this to avoid adding the dt component of position
                         satpos(trace, tsync, tsync, satPos0, satOpts.posModel.sources, E_OffsetType::COM, nav, &kfState, &remoteKF);
 
                         obs.rSatEci0 = frameSwapper(satPos0.rSatCom, &satPos0.satVel, &obs.vSatEci0);

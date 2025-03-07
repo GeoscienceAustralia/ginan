@@ -19,6 +19,7 @@ Architecture Preprocessing__()
 }
 
 #include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
 #include "common/navigation.hpp"
 #include "ambres/GNSSambres.hpp"
 #include "common/acsConfig.hpp"
@@ -163,7 +164,9 @@ void recordSlips(
 void preprocessor(
 	Trace&		trace,
 	Receiver&	rec,
-	bool		realEpoch)
+	bool		realEpoch,
+	KFState*	kfState_ptr,	///< Optional pointer to filter to take ephemerides from
+	KFState*	remote_ptr)		///< Optional pointer to filter to take ephemerides from
 {
 	DOCS_REFERENCE(Preprocessing__);
 
@@ -176,7 +179,7 @@ void preprocessor(
 
 	auto jsonTrace	= getTraceFile(rec, true);
 
-	acsConfig.getRecOpts(rec.id);
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
 
 	auto& obsList = rec.obsList;
 
@@ -192,11 +195,19 @@ void preprocessor(
 	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;		//todo aaron this should be the epoch_tolerance?
 	else										tol = 0.5;
 
+	GTime time = obsList.front()->time;
 	if	(  acsConfig.start_epoch.is_not_a_date_time() == false
-		&& obsList.front()->time < (GTime) start_time - tol)
+		&& time < (GTime) start_time - tol)
 	{
 		return;
 	}
+
+	getRecSnx(rec.id, time, rec.snx);
+
+	bool dummy;
+	updateAprioriRecPos(trace, rec, recOpts, dummy, remote_ptr);
+
+	VectorPos pos = ecef2pos(rec.aprioriPos);
 
 	//prepare and connect navigation objects to the observations
 	for (auto& obs : only<GObs>(obsList))
@@ -219,24 +230,28 @@ void preprocessor(
 			continue;
 		}
 
-		auto& satNav = nav.satNavMap[obs.Sat];
+		auto& satNav	= nav.satNavMap[obs.Sat];
+		auto& satStat	= rec.satStatMap[obs.Sat];
 
 		obs.rec_ptr		= &rec;
 		obs.satNav_ptr	= &satNav;
-		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
+		obs.satStat_ptr = &satStat;
 
 		updateLamMap(obs.time, obs);
-	}
 
-	for (auto& obs : only<LObs>(obsList))
-	{
-		if (acsConfig.process_sys[obs.Sat.sys] == false)
+		satPosClk(trace, obs.time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, kfState_ptr, remote_ptr, E_OffsetType::APC);
+
+		Vector3d rSat = obs.rSatApc;
+		if (rSat.isZero())
 		{
+			obs.failureRSat = true;
+
 			continue;
 		}
 
-		obs.satNav_ptr	= &nav.satNavMap[obs.Sat];
-		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
+		double r = geodist(rSat, rec.aprioriPos, satStat.e);
+
+		satazel(pos, satStat.e, satStat);
 	}
 
 	clearSlips(obsList);
@@ -253,7 +268,7 @@ void preprocessor(
 		obs.satStat_ptr->lc_new = {};
 	}
 	obs2lcs		(trace,	obsList);
-    obsVariances	(obsList);
+	obsVariances(		obsList);
 	detectslips	(trace,	obsList);
 
 	recordSlips(rec);

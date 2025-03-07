@@ -114,8 +114,6 @@ void outputApriori(
 			if (brdcPass)
 			{
 				brdcState.addKFState(kfKey, {.x = CLIGHT * satPos.satClk});
-
-				satPos.rSatEci0 = frameSwapper(satPos.rSatApc);
 			}
 		}
 
@@ -328,20 +326,13 @@ void selectAprioriSource(
 	updateSatAtts(satPos0);
 }
 
-
-
-void selectAprioriSource(
-	Trace&		trace,
-	Receiver&	rec,
-	GTime&		time,
-	bool&		sppUsed,
-	KFState&	kfState,
-	KFState*	remote_ptr)
+void updateAprioriRecPos(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverOptions&	recOpts,
+	bool&				sppUsed,
+	KFState*			remote_ptr)
 {
-	sppUsed = false;
-
-	auto& recOpts = acsConfig.getRecOpts(rec.id);
-
 	E_Source foundSource = E_Source::NONE;
 	for (auto source : recOpts.posModel.sources)
 	{
@@ -401,6 +392,11 @@ void selectAprioriSource(
 			}
 			case E_Source::SPP:
 			{
+				if (rec.sol.sppRRec.isZero())
+				{
+					continue;
+				}
+
 				rec.aprioriTime 	= rec.sol.sppTime;
 				rec.aprioriPos		= rec.sol.sppRRec;
 
@@ -440,9 +436,17 @@ void selectAprioriSource(
 				rec.aprioriPos.x(),
 				rec.aprioriPos.y(),
 				rec.aprioriPos.z());
+}
 
-	foundSource = E_Source::NONE;
-
+void updateAprioriRecClk(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverOptions&	recOpts,
+	GTime&				time,
+	KFState&			kfState,
+	KFState*			remote_ptr)
+{
+	E_Source foundSource = E_Source::NONE;
 	for (auto source : recOpts.clockModel.sources)
 	{
 		switch (source)
@@ -488,6 +492,12 @@ void selectAprioriSource(
 			}
 			case E_Source::SPP:
 			{
+				if	( rec.sol.dtRec_m.find(E_Sys::GPS) == rec.sol.dtRec_m.end()
+					||rec.sol.dtRec_m[E_Sys::GPS] == 0)
+				{
+					continue;
+				}
+
 				rec.aprioriClk		= rec.sol.dtRec_m[E_Sys::GPS];
 				rec.aprioriClkVar	= SQR(30);
 
@@ -517,6 +527,22 @@ void selectAprioriSource(
 	tracepdeex(4, trace, "\nUsing %s as source for receiver apriori clock: %f",
 				foundSource._to_string(),
 				rec.aprioriClk);
+}
+
+void selectAprioriSource(
+	Trace&		trace,
+	Receiver&	rec,
+	GTime&		time,
+	bool&		sppUsed,
+	KFState&	kfState,
+	KFState*	remote_ptr)
+{
+	sppUsed = false;
+
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
+
+	updateAprioriRecPos(trace, rec, recOpts, sppUsed, remote_ptr);
+	updateAprioriRecClk(trace, rec, recOpts, time, kfState, remote_ptr);
 
 	if (recOpts.apriori_sigma_enu.empty() == false)
 	{
@@ -546,13 +572,17 @@ void selectAprioriSource(
 		rec.aprioriVar		= rec.snx.var.asDiagonal();
 	}
 
+	if (rec.sol.sppRRec.norm() < 0.001)
+	{
+		return;
+	}
+
 	Vector3d delta	= rec.aprioriPos
 					- rec.sol.sppRRec;
 
 	double distance = delta.norm();
 
-	if	( distance > 20
-		&&rec.sol.sppRRec.norm() > 0)
+	if (distance > 20)
 	{
 		BOOST_LOG_TRIVIAL(warning)
 		<< "Warning: Apriori for " << rec.id << " is " << distance << "m from SPP estimate";
