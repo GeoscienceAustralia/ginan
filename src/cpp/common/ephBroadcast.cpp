@@ -463,7 +463,7 @@ bool satClkBroadcast(
 
 	if (eph_ptr == nullptr)
 	{
-		tracepdeex(2, trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string().c_str());
+		tracepdeex(2, trace, "\nCould not find Broadcast Ephemeris for sat: %s, %s", Sat.id().c_str(), teph.to_string().c_str());
 		return false;
 	}
 
@@ -516,7 +516,7 @@ bool satPosBroadcast(
 
 	if (eph_ptr == nullptr)
 	{
-		tracepdeex(2, trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string().c_str());
+		tracepdeex(2, trace, "\nCould not find Broadcast Ephemeris for sat: %s, %s", Sat.id().c_str(), teph.to_string().c_str());
 		return false;
 	}
 

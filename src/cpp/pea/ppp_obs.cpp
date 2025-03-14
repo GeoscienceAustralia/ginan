@@ -1692,6 +1692,7 @@ void receiverUducGnss(
                         measEntry.metaDataMap["satelliteErrorCount"] = &satNav.satelliteErrorCount;
                         measEntry.metaDataMap["satelliteErrorEpochs"] = &satNav.satelliteErrorEpochs;
                         measEntry.metaDataMap["receiverErrorCount"] = &rec.receiverErrorCount;
+                        measEntry.metaDataMap["receiverErrorEpochs"] = &rec.receiverErrorEpochs;
                         measEntry.metaDataMap["lastIonTime"] = &satStat.lastIonTime;
                     }
 

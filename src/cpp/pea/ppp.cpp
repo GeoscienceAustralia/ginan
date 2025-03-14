@@ -604,7 +604,7 @@ void addRejectDetails(
 	const	string&					reason,
 			vector<ArbitraryKVP>	details)
 {
-	tracepdeex(0, trace, "\n%s\t%s-%s\t%s",
+	tracepdeex(0, trace, "\n%s\t%-24s\t- %7s\t%s",
 				time.to_string().c_str(),
 				action.c_str(),
 				reason.c_str(),
@@ -773,8 +773,19 @@ void removeBadSatellites(
 
 	for (auto& [Sat, satNav] : nav.satNavMap)
 	{
-		if (satNav.satelliteErrorCount >= acsConfig.errorAccumulation.satellite_error_count_threshold)	satNav.satelliteErrorEpochs++;
-		else																							satNav.satelliteErrorEpochs = 0;
+		if (satNav.satelliteErrorCount >= acsConfig.errorAccumulation.satellite_error_count_threshold)
+		{
+			satNav.satelliteErrorEpochs++;
+
+			char idStr[100];
+			snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", Sat.id().c_str(), "", "");
+
+			trace << "\n" << kfState.time << "\tIncrementing satelliteErrorEpochs on\t" << idStr << "\tto " << satNav.satelliteErrorEpochs;
+		}
+		else
+		{
+			satNav.satelliteErrorEpochs = 0;
+		}
 
 		satNav.satelliteErrorCount	= 0;
 
@@ -784,6 +795,18 @@ void removeBadSatellites(
 		}
 
 		satNav.satelliteErrorEpochs	= 0;
+
+		for (auto [key, index] : kfState.kfIndexMap)
+		if	( key.Sat == Sat
+			&&key.str.empty())	// Eugene: consider if remove other states
+		{
+			kfState.removeState(key);
+
+			trace << "\n" << "State removed due to high satellite error counts: " << key;
+			// trace << "\n" << "Satellite relaxed due to high satellite error counts: " << Sat.id();
+		}
+
+		kfState.statisticsMap["Sat error resets"]++;
 	}
 }
 
@@ -800,8 +823,19 @@ void removeBadReceivers(
 
 	for (auto& [id, rec] : receiverMap)
 	{
-		if (rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)		rec.receiverErrorEpochs++;
-		else																							rec.receiverErrorEpochs = 0;
+		if (rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)
+		{
+			rec.receiverErrorEpochs++;
+
+			char idStr[100];
+			snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", id.c_str(), "", "");
+
+			trace << "\n" << kfState.time << "\tIncrementing receiverErrorEpochs  on\t" << idStr << "\tto " << rec.receiverErrorEpochs;
+		}
+		else
+		{
+			rec.receiverErrorEpochs = 0;
+		}
 
 		rec.receiverErrorCount	= 0;
 
@@ -815,9 +849,9 @@ void removeBadReceivers(
 		for (auto [key, index] : kfState.kfIndexMap)
 		if (key.str == rec.id)
 		{
-			trace << "\n" << "State removed due to high receiver error counts: " << key;
-
 			kfState.removeState(key);
+
+			trace << "\n" << "State removed due to high receiver error counts: " << key;
 		}
 
 		kfState.statisticsMap["Rec error resets"]++;
@@ -849,9 +883,11 @@ void removeBadIonospheres(
 			auto& satStat	= rec.satStatMap[key.Sat];
 
 			if	( satStat.lastIonTime						!=	GTime::noTime()
-				&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)
+				&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)	// Eugene: don't think this ever works
 			{
 				kfState.removeState(key);
+
+				trace << "\n" << "State removed due to long ionosphere signal outage: " << key;
 			}
 		}
 	}

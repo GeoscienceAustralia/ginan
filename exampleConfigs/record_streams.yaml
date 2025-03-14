@@ -67,8 +67,8 @@ processing_options:
     epoch_control:
         # max_epochs:                 60
         epoch_interval:             1
-        wait_next_epoch:            1
-        max_rec_latency:            0
+        # wait_next_epoch:            1
+        max_rec_latency:            1
         require_obs:                false
         sleep_milliseconds:         1
 

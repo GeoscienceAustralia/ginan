@@ -20,8 +20,8 @@ bool deweightMeas(
 	RejectCallbackDetails	rejectDetails)
 {
 	auto& trace			= rejectDetails.trace;
-	auto& kfMeas		= rejectDetails.kfMeas;
 	auto& kfState		= rejectDetails.kfState;
+	auto& kfMeas		= rejectDetails.kfMeas;
 	auto& measIndex		= rejectDetails.measIndex;
 	auto& postFit		= rejectDetails.postFit;
 
@@ -78,8 +78,8 @@ bool deweightMeas(
 bool pseudoMeasTest(
 	RejectCallbackDetails	rejectDetails)
 {
-	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& kfState	= rejectDetails.kfState;
+	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& measIndex	= rejectDetails.measIndex;
 
 	if (kfMeas.metaDataMaps[measIndex]["pseudoObs"] == (void*) false)
@@ -87,12 +87,12 @@ bool pseudoMeasTest(
 		return true;
 	}
 
-	for (auto& [key, state] : kfState.kfIndexMap)
+	for (auto& [key, state] : kfState.kfIndexMap)	// Eugene: no need to iterate all states as satelliteGlitchReaction() itself will do this?
 	{
 		if	( kfMeas.H(measIndex, state)
 			&&key.type == KF::ORBIT)
 		{
-			satelliteGlitchReaction(rejectDetails);
+			satelliteGlitchReaction(rejectDetails);	// Eugene: this will reset satllite clocks as well?
 		}
 	}
 
@@ -105,8 +105,8 @@ bool deweightStationMeas(
 	RejectCallbackDetails	rejectDetails)
 {
 	auto& trace		= rejectDetails.trace;
-	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& kfState	= rejectDetails.kfState;
+	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& measIndex	= rejectDetails.measIndex;
 	auto& postFit	= rejectDetails.postFit;
 
@@ -158,6 +158,7 @@ bool incrementPhaseSignalError(
 	RejectCallbackDetails	rejectDetails)
 {
 	auto& trace		= rejectDetails.trace;
+	auto& kfState	= rejectDetails.kfState;
 	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& measIndex	= rejectDetails.measIndex;
 
@@ -177,11 +178,11 @@ bool incrementPhaseSignalError(
 
 		unsigned int&	phaseRejectCount	= *phaseRejectCount_ptr;
 
-		//increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
+		// Increment counter, and clear the pointer so it cant be reset to zero in subsequent operations (because this is a failure)
 		phaseRejectCount++;
 		metaDataMap[metaData] = nullptr;
 
-		trace << "\n" << "Incrementing phaseRejectCount on " << kfMeas.obsKeys[measIndex] << " to " << phaseRejectCount;
+		trace << "\n" << kfState.time << "\tIncrementing phaseRejectCount     on\t" << kfMeas.obsKeys[measIndex] << "\tto " << phaseRejectCount;
 	}
 
 	return true;
@@ -193,12 +194,20 @@ bool incrementReceiverErrors(
 	RejectCallbackDetails	rejectDetails)
 {
 	auto& trace		= rejectDetails.trace;
+	auto& kfState	= rejectDetails.kfState;
 	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& measIndex	= rejectDetails.measIndex;
 
+	if (acsConfig.errorAccumulation.enable == false)
+	{
+		return true;
+	}
+
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
-	unsigned int* receiverErrorCount_ptr	= (unsigned int*) metaDataMap["receiverErrorCount"];
+	string metaData = "receiverErrorCount";
+
+	unsigned int* receiverErrorCount_ptr	= (unsigned int*) metaDataMap[metaData];
 
 	if (receiverErrorCount_ptr	== nullptr)
 	{
@@ -207,67 +216,57 @@ bool incrementReceiverErrors(
 
 	unsigned int&	receiverErrorCount	= *receiverErrorCount_ptr;
 
-	//increment counters,
+	// Increment counter, and clear the pointer so it wont increment again at current epoch
 	receiverErrorCount++;
+	metaDataMap[metaData] = nullptr;
 
-	trace << "\n" << "Incrementing receiverErrorCount on " << kfMeas.obsKeys[measIndex].str << " to " << receiverErrorCount;
+	char idStr[100];
+	snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", "", kfMeas.obsKeys[measIndex].str.c_str(), "");
+
+	trace << "\n" << kfState.time << "\tIncrementing receiverErrorCount   on\t" << idStr << "\tto " << receiverErrorCount;
 
 	return true;
 }
+
 /** Count all errors on satellite
  */
 bool incrementSatelliteErrors(
 	RejectCallbackDetails	rejectDetails)
 {
+	auto& trace		= rejectDetails.trace;
+	auto& kfState	= rejectDetails.kfState;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfKey		= rejectDetails.kfKey;
+	auto& measIndex	= rejectDetails.measIndex;
+
 	if (acsConfig.errorAccumulation.enable == false)
 	{
 		return true;
 	}
 
-	auto& trace		= rejectDetails.trace;
-	auto& kfMeas	= rejectDetails.kfMeas;
-	auto& kfState	= rejectDetails.kfState;
-	auto& measIndex	= rejectDetails.measIndex;
-
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
-	unsigned int* satelliteErrorCount_ptr	= (unsigned int*) metaDataMap["satelliteErrorCount"];
-	unsigned int* satelliteErrorEpochs_ptr	= (unsigned int*) metaDataMap["satelliteErrorEpochs"];
+	string metaData = "satelliteErrorCount";
 
-	if	( satelliteErrorCount_ptr	== nullptr
-		||satelliteErrorEpochs_ptr	== nullptr)
+	unsigned int* satelliteErrorCount_ptr	= (unsigned int*) metaDataMap[metaData];
+
+	if	( satelliteErrorCount_ptr	== nullptr)
 	{
 		return true;
 	}
 
 	unsigned int&	satelliteErrorCount		= *satelliteErrorCount_ptr;
-	unsigned int&	satelliteErrorEpochs	= *satelliteErrorEpochs_ptr;
 
-	string id	= kfMeas.obsKeys[measIndex].Sat.id();
-
+	// Increment counter, and clear the pointer so it wont increment again at current epoch
 	satelliteErrorCount++;
+	metaDataMap[metaData] = nullptr;
 
-	trace << "\n" << "Incrementing satelliteErrorCount on " << id << " to " << satelliteErrorCount;
+	char idStr[100];
+	snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", kfMeas.obsKeys[measIndex].Sat.id().c_str(), "", "");
 
-	if (satelliteErrorCount < acsConfig.errorAccumulation.satellite_error_count_threshold)
-	{
-		return true;
-	}
+	trace << "\n" << kfState.time << "\tIncrementing satelliteErrorCount  on\t" << idStr << "\tto " << satelliteErrorCount;
 
-	satelliteErrorEpochs++;
-
-	if (satelliteErrorEpochs < acsConfig.errorAccumulation.satellite_error_epochs_threshold)
-	{
-		return true;
-	}
-
-	trace << "\n" << "Satellite relaxed due to high satellite error counts: " << id;
-
-	satelliteGlitchReaction(rejectDetails);
-
-	kfState.statisticsMap["Sat error resets"]++;
-
-	return false;
+	return true;
 }
 
 bool resetPhaseSignalError(
@@ -325,9 +324,9 @@ bool rejectByState(
 	RejectCallbackDetails	rejectDetails)
 {
 	auto& trace		= rejectDetails.trace;
-	auto& kfKey		= rejectDetails.kfKey;
-	auto& kfMeas	= rejectDetails.kfMeas;
 	auto& kfState	= rejectDetails.kfState;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfKey		= rejectDetails.kfKey;
 
 	if (acsConfig.stateErrors.enable == false)
 	{
@@ -367,14 +366,9 @@ bool rejectByState(
 bool satelliteGlitchReaction(
 	RejectCallbackDetails	rejectDetails)
 {
-	if (acsConfig.satelliteErrors.enable == false)
-	{
-		return true;
-	}
-
 	auto& trace		= rejectDetails.trace;
-	auto& kfKey		= rejectDetails.kfKey;
 	auto& kfState	= rejectDetails.kfState;
+	auto& kfKey		= rejectDetails.kfKey;
 
 	if	( kfKey.type != KF::NONE
 		&&kfKey.type != KF::ORBIT
@@ -383,7 +377,15 @@ bool satelliteGlitchReaction(
 		return true;
 	}
 
-	trace << "\n" << "Bad satellite state detected " << kfKey;
+	if (acsConfig.satelliteErrors.enable == false)
+	{
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Bad satellite detected but `satellite_errors` not enabled";
+
+		return true;
+	}
+
+	if (kfKey.type != KF::NONE)		trace << "\n" << "Bad satellite orbit or clock detected " << kfKey;
+	else							trace << "\n" << "Bad satellite detected " << kfKey.Sat.id();
 
 	kfState.statisticsMap["Satellite state reject"]++;
 
@@ -463,14 +465,14 @@ bool satelliteGlitchReaction(
 
 		if (index >= 0)
 		{
-			trace << "\n - Pre-transition state sigma: " << kfState.P(index, index);
+			trace << "\n - Pre-transition state sigma for " << kfKey << ": " << kfState.P(index, index);
 		}
 
 		kfState.manualStateTransition(trace, kfState.time, F, Q);
 
 		if (index >= 0)
 		{
-			trace << "\n - Post-transition state sigma: " << kfState.P(index, index);
+			trace << "\n - Post-transition state sigma for " << kfKey << ": " << kfState.P(index, index);
 		}
 
 		return false;

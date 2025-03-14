@@ -1362,9 +1362,9 @@ void updateFilter(
 	ReceiverMap&	receiverMap,	///< List of receivers containing observations for this epoch
 	KFState&		kfState)		///< Kalman filter object containing the network state parameters
 {
+	removeBadSatellites	(trace, kfState);
 	removeBadReceivers	(trace, kfState, receiverMap);
 	removeBadAmbiguities(trace, kfState, receiverMap);
-	removeBadSatellites	(trace, kfState);
 	removeBadIonospheres(trace, kfState);
 
 	updateNukeFilter	(trace,							kfState);

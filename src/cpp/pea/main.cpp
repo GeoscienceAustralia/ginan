@@ -656,10 +656,10 @@ int main(
 		pppNet.kfState.output_residuals			= acsConfig.output_residuals;
 		pppNet.kfState.outputMongoMeasurements	= acsConfig.mongoOpts.output_measurements;
 
-		pppNet.kfState.measRejectCallbacks	.push_back(incrementReceiverErrors);
-		pppNet.kfState.measRejectCallbacks	.push_back(incrementSatelliteErrors);
 		pppNet.kfState.measRejectCallbacks	.push_back(deweightMeas);
 		pppNet.kfState.measRejectCallbacks	.push_back(incrementPhaseSignalError);
+		pppNet.kfState.measRejectCallbacks	.push_back(incrementSatelliteErrors);
+		pppNet.kfState.measRejectCallbacks	.push_back(incrementReceiverErrors);
 		pppNet.kfState.measRejectCallbacks	.push_back(pseudoMeasTest);
 
 		pppNet.kfState.stateRejectCallbacks	.push_back(satelliteGlitchReaction);	//this goes before reject by state
@@ -839,6 +839,7 @@ int main(
 
 				auto trace		= getTraceFile(rec);
 
+				trace		<< "\n";
 				trace		<< "\n" << "------=============== Epoch " << epoch	<< " =============-----------" << "\n";
 				trace		<< "\n" << "------=============== Time  " << tsync	<< " =============-----------" << "\n";
 			}
@@ -846,6 +847,7 @@ int main(
 			{
 				auto pppTrace	= getTraceFile(pppNet);
 
+				pppTrace	<< "\n";
 				pppTrace	<< "\n" << "------=============== Epoch " << epoch	<< " =============-----------" << "\n";
 				pppTrace	<< "\n" << "------=============== Time  " << tsync	<< " =============-----------" << "\n";
 			}
