@@ -686,9 +686,11 @@ struct PppOptions : FilterOptions
 	bool			receiver_chunking		= false;
 	int				chunk_size				= 0;
 
-	bool			nuke_enable				= false;
-	int				nuke_interval			= 86400;
-	vector<KF>		nuke_states				= {KF::ALL};
+	/// @todo: rename to reset_states_
+	bool			filter_reset_enable		= false;
+	int				reset_interval			= 0;
+    vector<double>  reset_epochs		    = {};
+	vector<KF>		reset_states			= {KF::ALL};
 };
 
 struct SppOptions : FilterOptions
@@ -1106,8 +1108,8 @@ struct OrbitOptions
 	struct
 	{
 		bool	enable			= false;
-		int		interval		= 1;
-
+		int		interval		= 0;
+        vector<double> epochs   ={};
 		double	pos_proc_noise	= 10;
 		double	vel_proc_noise	= 5;
 	} pseudoPulses;

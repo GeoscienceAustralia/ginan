@@ -1247,6 +1247,33 @@ void chunkFilter(
 	}
 }
 
+
+bool isIntervalReset(double epoch, double prev_epoch, double reset_interval) {
+    bool reset_epoch = std::fmod(epoch, reset_interval) == 0;
+    bool prev_epoch_reset = std::fmod(prev_epoch, reset_interval) == 0;
+    bool reset_between_epochs = int(prev_epoch / reset_interval) < int(epoch / reset_interval);
+    return reset_epoch || (!prev_epoch_reset && reset_between_epochs);
+}
+
+bool isSpecificTimeReset(double epoch, double prev_epoch, const std::vector<double>& resetTimes) {
+    double seconds_in_day = 86400; // Number of seconds in a day
+    double epoch_mod = std::fmod(epoch, seconds_in_day);
+    double prev_epoch_mod = std::fmod(prev_epoch, seconds_in_day);
+
+    for (double resetTime : resetTimes) {
+        bool reset_epoch = epoch_mod ==  resetTime;
+        bool prev_epoch_reset = prev_epoch_mod == resetTime;
+        bool reset_between_epochs = (prev_epoch_mod < resetTime && epoch_mod > resetTime) ||
+        (prev_epoch_mod > epoch_mod && (resetTime == 0 || resetTime == seconds_in_day));
+
+        if (reset_epoch || reset_between_epochs) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void updatePseudoPulses(
 	Trace&			trace,
 	KFState&		kfState)
@@ -1261,63 +1288,63 @@ void updatePseudoPulses(
 		}
 
 		auto& satOpts = acsConfig.getSatOpts(key.Sat);
-
 		if	( satOpts.pseudoPulses.enable	== false
-			||satOpts.pseudoPulses.interval	== 0)
+			||(satOpts.pseudoPulses.interval == 0 && satOpts.pseudoPulses.epochs.empty()))
 		{
 			continue;
 		}
 
-		auto& nextEpoch = nextEpochMap[key];
+        double yds[3];
+        time2yds(tsync, yds, E_TimeSys::GPST);
+        double sod = yds[2];
+        double prev_epoch = sod - acsConfig.epoch_interval;
+        bool resetEpochInterval = isIntervalReset(sod, prev_epoch, satOpts.pseudoPulses.interval);
+        bool resetEpochSpecific = isSpecificTimeReset(sod, prev_epoch, satOpts.pseudoPulses.epochs);
 
-		if (epoch < nextEpoch)
-		{
-			continue;
-		}
-
-		double epochsPerInterval = satOpts.pseudoPulses.interval / acsConfig.epoch_interval;
-
-		if (nextEpoch == 0)
-		{
-			nextEpoch = epochsPerInterval + 1;
-		}
-
-		while (epoch >= nextEpoch)
-		{
-			nextEpoch += satOpts.pseudoPulses.interval / acsConfig.epoch_interval;
-		}
-
+        if (!resetEpochInterval && !resetEpochSpecific)
+        {
+            return;
+        }
 		if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.pos_proc_noise)});
 		else				kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.vel_proc_noise)});
 	}
 }
 
-void updateNukeFilter(
+
+
+void resetFilterbyConfig(
 	Trace&		trace,
 	KFState&	kfState)
 {
-	if	( acsConfig.pppOpts.nuke_enable		== false
-		||acsConfig.pppOpts.nuke_interval	== 0)
+	if	( acsConfig.pppOpts.filter_reset_enable		== false
+		||(acsConfig.pppOpts.reset_interval	== 0 && acsConfig.pppOpts.reset_epochs.empty()))
 	{
 		return;
 	}
 
-	static double epochsPerInterval	= acsConfig.pppOpts.nuke_interval / acsConfig.epoch_interval;
-	static double nukeEpoch			= epochsPerInterval + 1;
+    if (epoch  == 0 )
+    {
+        // No need to reset as it is the first epoch.
+        return;
+    }
 
-	if (epoch < nukeEpoch)
-	{
-		return;
-	}
+    double yds[3];
+    time2yds(tsync, yds, E_TimeSys::GPST);
+    double sod = yds[2];
+    double prev_epoch = sod - acsConfig.epoch_interval;
+    bool resetEpochInterval = isIntervalReset(sod, prev_epoch, acsConfig.pppOpts.reset_interval);
+    bool resetEpochSpecific = isSpecificTimeReset(sod, prev_epoch, acsConfig.pppOpts.reset_epochs);
 
-	while (epoch >= nukeEpoch)
-	{
-		nukeEpoch += epochsPerInterval;
-	}
+    if (!resetEpochInterval && !resetEpochSpecific)
+    {
+        return;
+    }
 
-	auto& nuke_states = acsConfig.pppOpts.nuke_states;
+    // here will be a message to mongo about the reset (waiting on another PR to go in)
 
-	bool foundAll = (std::find(nuke_states.begin(), nuke_states.end(), +KF::ALL) != nuke_states.end());
+	auto& reset_states = acsConfig.pppOpts.reset_states;
+
+	bool foundAll = (std::find(reset_states.begin(), reset_states.end(), +KF::ALL) != reset_states.end());
 
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
@@ -1327,9 +1354,9 @@ void updateNukeFilter(
 		}
 
 		if	( foundAll
-			||std::find(nuke_states.begin(), nuke_states.end(), key.type) != nuke_states.end())
+			||std::find(reset_states.begin(), reset_states.end(), key.type) != reset_states.end())
 		{
-			trace << "\n" << "State removed due to nuclear config: " << key;
+			trace << "\n" << "State removed due to reset config: " << key;
 			kfState.removeState(key);
 		}
 	}
@@ -1366,13 +1393,13 @@ void updateFilter(
 	removeBadReceivers	(trace, kfState, receiverMap);
 	removeBadAmbiguities(trace, kfState, receiverMap);
 	removeBadIonospheres(trace, kfState);
-
-	updateNukeFilter	(trace,							kfState);
+	resetFilterbyConfig	(trace,							kfState);
 	updateRecClocks		(trace, receiverMap,			kfState);
 	updateAvgClocks		(trace, 				tsync,	kfState);
 	updateAvgOrbits		(trace, 				tsync,	kfState);
 	updateAvgIonosphere	(trace,					tsync,	kfState);
 	updatePseudoPulses	(trace,							kfState);
+    // exit(0);
 }
 
 void perRecMeasurements(

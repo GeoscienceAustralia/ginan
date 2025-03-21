@@ -1761,6 +1761,7 @@ OrbitOptions& OrbitOptions::operator+=(
 
     initIfNeeded(*this, rhs, pseudoPulses.enable);
     initIfNeeded(*this, rhs, pseudoPulses.interval);
+    initIfNeeded(*this, rhs, pseudoPulses.epochs);
     initIfNeeded(*this, rhs, pseudoPulses.pos_proc_noise);
     initIfNeeded(*this, rhs, pseudoPulses.vel_proc_noise);
 
@@ -2062,6 +2063,9 @@ void getOptionsFromYaml(
         auto& thing = orbOpts.pseudoPulses.enable;	setInited(orbOpts, thing, tryGetFromYaml(thing, pseudo_pulses, { "@ enable" }, "Enable applying process noise impulses to orbits upon state errors"));
     } {
         auto& thing = orbOpts.pseudoPulses.interval;	setInited(orbOpts, thing, tryGetFromYaml(thing, pseudo_pulses, { "@ interval" }, "Interval between applying pseudo pulses"));
+    } {
+    } {
+        auto& thing = orbOpts.pseudoPulses.epochs;	setInited(orbOpts, thing, tryGetFromYaml(thing, pseudo_pulses, { "@ epochs" }, "epochs where pseudo pulses are applied [second of day since midnight GPST]"));
     } {
         auto& thing = orbOpts.pseudoPulses.pos_proc_noise;	setInited(orbOpts, thing, tryGetFromYaml(thing, pseudo_pulses, { "@ pos_process_noise" }, "Sigma to add to orbital position states"));
     } {
@@ -3874,9 +3878,11 @@ bool ACSConfig::parse(
                 tryGetFromYaml(pppOpts.receiver_chunking, ppp_filter, { "@ chunking", "@ by_receiver" }, "Split large filter and measurement matrices blockwise by receiver ID to improve processing speed");
                 tryGetFromYaml(pppOpts.satellite_chunking, ppp_filter, { "@ chunking", "@ by_satellite" }, "Split large filter and measurement matrices blockwise by satellite ID to improve processing speed");
 
-                tryGetFromYaml(pppOpts.nuke_enable, ppp_filter, { "@ periodic_reset", "@ enable" }, "Enable periodic reset of filter states");
-                tryGetFromYaml(pppOpts.nuke_interval, ppp_filter, { "@ periodic_reset", "@ interval" }, "Interval between reset of filter states");
-                tryGetEnumVec(pppOpts.nuke_states, ppp_filter, { "@ periodic_reset", "@ states" }, "States to remove for periodic reset");
+                tryGetFromYaml(pppOpts.filter_reset_enable, ppp_filter, { "@ periodic_reset", "@ enable" }, "Enable periodic reset of filter states");
+                tryGetFromYaml(pppOpts.reset_interval, ppp_filter, { "@ periodic_reset", "@ interval" }, "Interval between reset of filter states");
+                tryGetFromYaml(pppOpts.reset_epochs, ppp_filter, { "@ periodic_reset", "@ times" }, "Time to reset filter states in seconds of day [GPST]");
+
+                tryGetEnumVec(pppOpts.reset_states, ppp_filter, { "@ periodic_reset", "@ states" }, "States to remove for periodic reset");
 
                 // 				ionospheric_component
                 {
