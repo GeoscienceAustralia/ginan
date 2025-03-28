@@ -89,7 +89,7 @@ def generate_plots(data, form):
                         x_hover_template = "%{x}<br>"
                     else:
                         _y = _data.data[_yaxis][_data.subset]
-                    if np.sum(~np.isnan(_y)) == 0:
+                    if isinstance(_y[0], float) and np.sum(~np.isnan(_y)) == 0:
                         continue
                     legend = _data.id
                     legend["yaxis"] = _yaxis

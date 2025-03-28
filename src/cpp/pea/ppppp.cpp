@@ -1256,16 +1256,15 @@ bool isIntervalReset(double epoch, double prev_epoch, double reset_interval) {
 }
 
 bool isSpecificTimeReset(double epoch, double prev_epoch, const std::vector<double>& resetTimes) {
-    double seconds_in_day = 86400; // Number of seconds in a day
+    double seconds_in_day = 86400; \
     double epoch_mod = std::fmod(epoch, seconds_in_day);
     double prev_epoch_mod = std::fmod(prev_epoch, seconds_in_day);
-
     for (double resetTime : resetTimes) {
-        bool reset_epoch = epoch_mod ==  resetTime;
-        bool prev_epoch_reset = prev_epoch_mod == resetTime;
-        bool reset_between_epochs = (prev_epoch_mod < resetTime && epoch_mod > resetTime) ||
-        (prev_epoch_mod > epoch_mod && (resetTime == 0 || resetTime == seconds_in_day));
-
+        double reset_mod = std::fmod(resetTime, seconds_in_day);
+        bool reset_epoch = epoch_mod ==  reset_mod;
+        bool prev_epoch_reset = prev_epoch_mod == reset_mod;
+        bool reset_between_epochs = (prev_epoch_mod < reset_mod && epoch_mod > reset_mod) ||
+        (prev_epoch_mod > epoch_mod && reset_mod == 0 );
         if (reset_epoch || reset_between_epochs) {
             return true;
         }
