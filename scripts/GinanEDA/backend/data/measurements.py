@@ -210,7 +210,7 @@ class Measurements:
             raise ValueError(f"differencing Apples with oranges: {diffs}")
         self_keys = set(self.data.keys())
         other_keys = set(other.data.keys())
-        common_keys = set(self._yaxis) if self._yaxis else self_keys & other_keys
+        common_keys = set(self._yaxis) if self._yaxis else self_keys.intersection(other_keys)
         missing_keys_self = self_keys - common_keys
         missing_keys_other = other_keys - common_keys
         print(f"Common keys: {common_keys}")
@@ -520,7 +520,7 @@ class MeasurementArray:
                 if _data.id["sat"] == _other.id["sat"] and _data.id["site"] == _other.id["site"]:
                     common_time = np.union1d(_data.epoch, _other.epoch)
                     data = {}
-                    for key in set(_data.data) | set(_other.data):
+                    for key in set(_data.data).union(set(_other.data)):
                         data[key] = np.full_like(common_time, np.nan, dtype="float64")
                     for name, val in _data.data.items():
                         mask = ~np.isnan(val)
