@@ -30,15 +30,20 @@
 
 ## Ginan user stories
 
-> [![](images/AIMSThumb.png) A demonstration showing Ginan on air and sea drones at AIMS Reefworks. August 2023.](resources/GinanAIMSCaseStudy.pdf)
 
-> [![](images/Locate23_S_McClusky_frontpage101X57.jpg) Open-source Precise Point Positioning (PPP) with Ginan v2 - Simon McClusky, from Locate 23, 11 May 2023.](resources/Locate23_S_McClusky_final.pdf)
+> [![](images/ginan-csiro-case-study.png) Report on using Ginan to measure the water level of Googong dam. <br>Partners: CSIRO, FroniterSI<br>August 2024](https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/149667)
 
-> [![](images/McClusky202301FrontPage101X57.jpg) Australian perspectives on the use of GNSS for tsunami warning - Simon McClusky, Adrienne Moseley, Phil Cummins, Shin-Chan Han, John Dawson, from February 2023.](resources/TourDelIGS5_04_McClusky.pdf)
+> [![](images/ginan-bom-case-study.png) Report on the results of taking "Ginan-in-a-box" to the edge of space on a weather balloon. <br>Partners: Bureau of Metereology, FroniterSI<br>June 2024](https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/149656)
 
-> [![](images/TamDaoIonoPaperFrontPage101X57.jpg) Modelling of Ionospheric Corrections for High Accuracy GNSS Positioning using the GINAN toolkit - Tam Dao, from December 2022.](resources/TamDaoIonosphere.pdf)
+> [![](images/AIMSThumb.png) Report on a demonstration showing Ginan on air and sea drones at AIMS Reefworks. <br>Partners: Australian Institute of Marine Science, FrontierSI<br>August 2023](https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/148622)
 
-> [![](images/IonosphereFrontPage101X69.jpg) Using Ginan to analyse the ionosphere from December 2022.](resources/GinanIonosphere20221218v05.pdf)
+> [![](images/Locate23_S_McClusky_frontpage101X57.jpg) Open-source Precise Point Positioning (PPP) with Ginan v2 - Simon McClusky, from Locate 23<br>11 May 2023](resources/Locate23_S_McClusky_final.pdf)
+
+> [![](images/McClusky202301FrontPage101X57.jpg) Australian perspectives on the use of GNSS for tsunami warning - Simon McClusky, Adrienne Moseley, Phil Cummins, Shin-Chan Han, John Dawson, <br>Partners: University of Newcastle<br>February 2023](resources/TourDelIGS5_04_McClusky.pdf)
+
+> [![](images/TamDaoIonoPaperFrontPage101X57.jpg) Modelling of Ionospheric Corrections for High Accuracy GNSS Positioning using the GINAN toolkit - Tam Dao, Ken Harima, Brett Carter, Julie Currie, Simon McClusky, Rupert Brown, Eldar Rubinov, John Barassi, Suelynn Choy <br>Partners: RMIT, FrontierSI<br>December 2022](resources/TamDaoIonosphere.pdf)
+
+> [![](images/IonosphereFrontPage101X69.jpg) Using Ginan to analyse the ionosphere <br>December 2022](resources/GinanIonosphere20221218v05.pdf)
 
 
 ***

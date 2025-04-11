@@ -2,10 +2,10 @@
 #pragma once
 
 
-#include "packetStatistics.hpp"
-#include "streamParser.hpp"
-#include "ubxDecoder.hpp"
-#include "streamObs.hpp"
+#include "common/packetStatistics.hpp"
+#include "common/streamParser.hpp"
+#include "common/ubxDecoder.hpp"
+#include "common/streamObs.hpp"
 
 #define UBX_PREAMBLE1 0xB5
 #define UBX_PREAMBLE2 0x62

@@ -1,10 +1,10 @@
 
-#include "coordinates.hpp"
-#include "tropModels.hpp"
-#include "navigation.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
+#include "orbprop/coordinates.hpp"
+#include "trop/tropModels.hpp"
+#include "common/navigation.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
 
 
 #define DEFAULT_LAT_INTERVAL 2.5
@@ -89,7 +89,7 @@ bool configAtmosRegion_File()
 				regMaps[regID].gridLatDeg.clear();
 				regMaps[regID].gridLonDeg.clear();
 				nind=0;
-				// std::cout << "    Configuring SSRATM:  Region " << regID << std::endl;
+				// std::cout << "    Configuring SSRATM:  Region " << regID << "\n";
 				continue;
 			}
 
@@ -104,7 +104,7 @@ bool configAtmosRegion_File()
 				strncpy(tmp,buff   , 5); tmp[ 5] = '\0';		gridType = atoi(tmp);
 				strncpy(tmp,buff+20, 5); tmp[ 5] = '\0';		int tropGrid = atoi(tmp);
 				strncpy(tmp,buff+40, 5); tmp[ 5] = '\0';		int ionoGrid = atoi(tmp);
-				// std::cout << "    Configuring SSRATM:  Gridtype " << gridType << std::endl;
+				// std::cout << "    Configuring SSRATM:  Gridtype " << gridType << "\n";
 
 				regMaps[regID].gridType = gridType;
 				regMaps[regID].ionoGrid = (ionoGrid==1)?true:false;
@@ -251,7 +251,7 @@ bool configAtmosRegions(
 	if (regionId < 0)
 		return false;
 
-	trace << std::endl << "SSR Atmosphere Region #" << regionId << ": ";
+	trace << "\n" << "SSR Atmosphere Region #" << regionId << ": ";
 
 	if	(  acsConfig.ssrOpts.grid_type	< 0
 		&& acsConfig.ssrOpts.npoly_trop	< 0
@@ -260,7 +260,7 @@ bool configAtmosRegions(
 		return false;
 	}
 
-	trace << "gridtype: " << acsConfig.ssrOpts.grid_type << "; TropPoly: " << acsConfig.ssrOpts.npoly_trop << "; IonoPoly: " << acsConfig.ssrOpts.npoly_iono << std::endl;
+	trace << "gridtype: " << acsConfig.ssrOpts.grid_type << "; TropPoly: " << acsConfig.ssrOpts.npoly_trop << "; IonoPoly: " << acsConfig.ssrOpts.npoly_iono << "\n";
 
 	bool coordFromRec = false;
 	if	(  acsConfig.ssrOpts.grid_type == 0
@@ -301,11 +301,11 @@ bool configAtmosRegions(
 	int ngrid = 0;
 	if (coordFromRec)
 	{
-		for (auto& [id,rec] : receiverMap)
+		for (auto& [id, rec] : receiverMap)
 		{
 			VectorEcef&	snxPos		= rec.snx.pos;
 
-			auto& recOpts = acsConfig.getRecOpts(rec.id);
+			auto& recOpts = acsConfig.getRecOpts(id);
 
 			if (recOpts.apriori_pos.isZero() == false)
 				snxPos	= recOpts.apriori_pos;

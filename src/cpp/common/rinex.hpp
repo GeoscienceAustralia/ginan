@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "enums.h"
+#include "common/enums.h"
 
 struct RinexStation;
 struct Navigation;

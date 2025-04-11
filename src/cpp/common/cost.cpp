@@ -1,16 +1,26 @@
 
+// #pragma GCC optimize ("O0")
+
+#include "architectureDocs.hpp"
+
+FileType COST__()
+{
+
+}
+
 #include <fstream>
 
 #include <boost/algorithm/string.hpp>
 
-#include "coordinates.hpp"
-#include "tropModels.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "trace.hpp"
-#include "cost.hpp"
-#include "EGM96.h"
-#include "ppp.hpp"
+#include "orbprop/coordinates.hpp"
+#include "trop/tropModels.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
+#include "common/cost.hpp"
+#include "3rdparty/egm96/EGM96.h"
+#include "pea/ppp.hpp"
 
 
 static map<string, map<E_FilePos, int>>	filePosMap;

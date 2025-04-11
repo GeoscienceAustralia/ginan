@@ -217,6 +217,7 @@ void function(
 * For structs or classes, use `CamelCase` with capital start
 * For member variables, use `camelCase` with lowercase start
 * For config parameters, use `lowercase_with_underscores`
+* For architectural documentation, use `__Camel_Case_With_Extra_Underscores__`
 * Use suffixes (`_ptr`, `_arr`, `Map`, `List` etc.) to describe the type of container for complex types.
 * Be sure to provide default values for member variables.
 * Use hierarchical objects where applicable.
@@ -257,27 +258,6 @@ if (acsConfig.some_parameter)
 * Do not append `.0` to integer valued doubles unless they are required.
 * Never use `free()`, `malloc()`, or `new` unless it cannot be avoided.
 * Threads create synchronisation issues; they should not be used unless manual synchronisation is never required.
-
-## Testing
-
-* Use `TestStack` objects at top of each function that requires automatic unit testing.
-* Use `TestStack` objects with descriptive strings in loops that wrap functions that require automatic unit testing.
-
-```
-void function()
-{
-    TestStack ts(__FUNCTION__);
-
-    //...
-
-    for (auto& obs : obsList)
-    {
-        TestStack ts(obs.Sat.id());
-
-        //...
-    }
-}
-```
 
 ## Documentation
 

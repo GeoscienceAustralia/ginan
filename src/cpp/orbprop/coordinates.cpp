@@ -3,15 +3,15 @@
 // #pragma GCC optimize ("O0")
 
 
-#include "coordinates.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "attitude.hpp"
-#include "planets.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "erp.hpp"
-#include "sofa.h"
+#include "orbprop/coordinates.hpp"
+#include "common/constants.hpp"
+#include "orbprop/iers2010.hpp"
+#include "common/attitude.hpp"
+#include "orbprop/planets.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/erp.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
@@ -22,12 +22,40 @@
 #include <iostream>
 #include <string>
 
+
+array<FrameSwapper, 2> FrameSwapper::cacheArr;
+
+FrameSwapper::FrameSwapper(
+			GTime		time,
+	const	ERPValues&	erpv)
+:	time0	{time},
+	erpv	{erpv}
+{
+	for (auto& cache : cacheArr)
+	{
+		if	( time0	== cache.time0
+			&&erpv	== cache.erpv)
+		{
+			*this = cache;
+			return;
+		}
+	}
+
+	eci2ecef(time, erpv, i2t_mat, &di2t_mat);
+
+	if (cmc.initialized)
+	{
+		Array6d dood_arr = IERS2010::doodson(time, 0); //Will need to add erpval.ut1Utc later
+
+		translation = cmc.estimate(dood_arr);
+	}
+}
+
 void eci2ecef(
 	GTime				time,			///< Current time
 	const ERPValues&	erpVal,			///< Structure containing the erp values
 	Matrix3d&			U,				///< Matrix3d containing the rotation matrix
-	Matrix3d*			dU_ptr,			///< Matrix3d containing the time derivative of the rotation matrix
-	XFormData*			xFormData_ptr)	///< Optional output of computed values
+	Matrix3d*			dU_ptr)			///< Matrix3d containing the time derivative of the rotation matrix
 {
 	double xp		= erpVal.xp;
 	double yp		= erpVal.yp;
@@ -97,21 +125,6 @@ void eci2ecef(
 		Matrix3d matdTheta = omega * matS * theta; // matrix [1/s]
 
 		*dU_ptr = RPOM * matdTheta * RC2I;
-	}
-
-	if (xFormData_ptr)
-	{
-		auto& xFormData = *xFormData_ptr;
-
-		xFormData.xp_pm		= xp_pm;
-		xFormData.yp_pm		= yp_pm;
-		xFormData.ut1_pm	= ut1_pm;
-		xFormData.lod_pm	= lod_pm;
-		xFormData.xp_o		= xp_o;
-		xFormData.yp_o		= yp_o;
-		xFormData.ut1_o		= ut1_o;
-		xFormData.sp		= sp;
-		xFormData.era		= era;
 	}
 }
 
@@ -195,7 +208,7 @@ VectorEnu ecef2enu(
 	VectorEnu enu = (Vector3d) (E * ecef);
 
 	return enu;
-// 	std::cout << "e\n" << e.transpose() << std::endl;
+// 	std::cout << "e\n" << e.transpose() << "\n";
 }
 
 /** transform local tangental coordinate vector to ecef
@@ -210,7 +223,7 @@ VectorEcef enu2ecef(
 	VectorEcef ecef = (Vector3d)(E.transpose() * enu);
 
 	return ecef;
-// 	std::cout << "E\n" << E << std::endl;
+// 	std::cout << "E\n" << E << "\n";
 }
 
 /** transform vector in body frame to ecef
@@ -262,7 +275,7 @@ Vector3d ecef2body(
 			dEdQ.col(i) = ((qCopy * ecef) - body) / delta;
 		}
 
-// 		std::cout << std::endl << dEdQ << std::endl;
+// 		std::cout << "\n" << dEdQ << "\n";
 	}
 	return body;
 }
@@ -283,4 +296,3 @@ Matrix3d ecef2rac(
 
 	return Rt;
 }
-

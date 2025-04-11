@@ -5,7 +5,7 @@
 
 using std::map;
 
-#include "trace.hpp"
+#include "common/trace.hpp"
 
 struct ReceiverMap;
 
@@ -15,5 +15,5 @@ void outputStatistics(
 	map<string, int>&		statisticsMapSum);
 
 void outputSummaries(
-	Trace&		trace,	
+	Trace&		trace,
 	ReceiverMap&	receiverMap);

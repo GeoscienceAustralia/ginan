@@ -1,15 +1,14 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "attitude.hpp"
-#include "satStat.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "cache.hpp"
-#include "gTime.hpp"
-#include "ppp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/attitude.hpp"
+#include "common/satStat.hpp"
+#include "common/common.hpp"
+#include "common/cache.hpp"
+#include "common/gTime.hpp"
+#include "pea/ppp.hpp"
 
 /** Solution of user mode processing functinos
 */
@@ -22,7 +21,7 @@ struct Solution
 	E_Solution			status;									///< solution status
 	int					numMeas			= 0;					///< number of valid satellites
 	KFState				sppState;								///< SPP filter object
-	double				dop[4];									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
+	Dops				dops;									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
 	VectorEcef			sppRRec;								///< Position vector from spp
 };
 
@@ -54,22 +53,6 @@ struct ReceiverLogs
 	int		receiverErrorCount	= 0;
 };
 
-
-/** Structure of ocean/atmospheric tide loading displacements in amplitude and phase
-*/
-struct TidalDisplacement
-{
-	VectorEnu	amplitude;
-	VectorEnu	phase;
-};
-
-/** Map of ocean/atmospheric tide loading displacements
-*/
-struct TideMap : map<E_TidalConstituent, TidalDisplacement>
-{
-
-};
-
 struct Rtk
 {
 	Solution					sol;								///< RTK solution
@@ -77,24 +60,26 @@ struct Rtk
 	string						receiverType;
 	string						antennaId;
 	map<SatSys, SatStat>		satStatMap;
-	TideMap						otlDisplacement;					///< ocean tide loading parameters
-	TideMap						atlDisplacement;					///< atmospheric tide loading parameters
 	VectorEnu					antDelta;							///< antenna delta {rov_e,rov_n,rov_u}
 	AttStatus					attStatus;
 };
 
+struct SinexSiteId;
+struct SinexReceiver;
+struct SinexAntenna;
+struct SinexSiteEcc;
 
-extern Sinex_siteid_t				dummySiteid;
-extern Sinex_receiver_t				dummyReceiver;
-extern Sinex_antenna_t				dummyAntenna;
-extern Sinex_site_ecc_t				dummySite_ecc;
+extern SinexSiteId			dummySiteid;
+extern SinexReceiver		dummyReceiver;
+extern SinexAntenna			dummyAntenna;
+extern SinexSiteEcc			dummySiteEcc;
 
 struct SinexRecData
 {
-	Sinex_siteid_t*				id_ptr		= &dummySiteid;
-	Sinex_receiver_t*			rec_ptr		= &dummyReceiver;
-	Sinex_antenna_t*			ant_ptr		= &dummyAntenna;
-	Sinex_site_ecc_t*			ecc_ptr		= &dummySite_ecc;
+	SinexSiteId*			id_ptr		= &dummySiteid;
+	SinexReceiver*			rec_ptr		= &dummyReceiver;
+	SinexAntenna*			ant_ptr		= &dummyAntenna;
+	SinexSiteEcc*			ecc_ptr		= &dummySiteEcc;
 
 	UYds		start;
 	UYds		stop = UYds(-1,-1,-1);
@@ -110,18 +95,21 @@ struct SinexRecData
 */
 struct Receiver : ReceiverLogs, Rtk
 {
-	bool				invalid	= false;
+	bool				isPseudoRec	= false;
+	bool				invalid		= false;
 	SinexRecData		snx;						///< Antenna information
 
 	map<string, string>					metaDataMap;
+
 	ObsList								obsList;					///< Observations available for this station at this epoch
 	string								id;							///< Unique name for this station (4 characters)
+	string								source;						///< Source of most recently synchronised data
 
 	bool		primaryApriori	= false;
 	UYds		aprioriTime;
 	double		aprioriClk		= 0;
 	double		aprioriClkVar	= 0;
-	Vector3d	aprioriPos		= Vector3d::Zero();		///< station position (ecef) (m)
+	Vector3d	aprioriPos		= Vector3d::Zero();		///< receiver position (ecef) (m)
 	Matrix3d	aprioriVar		= Matrix3d::Zero();
 	Vector3d	minconApriori	= Vector3d::Zero();
 
@@ -137,13 +125,27 @@ struct Receiver : ReceiverLogs, Rtk
 
 	map<SatSys, GTime> savedSlips;
 
-	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>> pppTideCache;
+	union
+	{
+		const unsigned int failure = 0;
+		struct
+		{
+			unsigned failureSinex			: 1;
+			unsigned failureAprioriPos		: 1;
+			unsigned failureEccentricity	: 1;
+			unsigned failureAntenna			: 1;
+		};
+	};
+	Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>>	pppTideCache;
+	Cache<tuple<Vector3d>>											pppEopCache;
 };
 
 struct ReceiverMap : map<string, Receiver>
 {
 
 };
+
+extern ReceiverMap	receiverMap;
 
 struct Network
 {

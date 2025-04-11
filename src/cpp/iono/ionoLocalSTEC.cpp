@@ -1,8 +1,8 @@
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
 
 #define IONO_OUT_THRESHOLD		120
 #define DEFAULT_STEC_POLY_ACC	0.5
@@ -121,7 +121,7 @@ int configIonModelLocal_(
 	acsConfig.ionModelOpts.estimate_sat_dcb	= false;
 	acsConfig.ionModelOpts.layer_heights.clear();
 	acsConfig.ionModelOpts.layer_heights.push_back(0);
-	
+
 	// tracepdeex(2,trace, "\nIONO_BASIS ind reg sat type ind");
 	// for (auto [j, basis] : localBasisVec)
 	// 	tracepdeex(2,trace, "\nIONO_BASIS %3d %2d %s %s %3d ", j, basis.regionID, basis.Sat.id().c_str(), (basis.type==+E_BasisType::POLYNOMIAL)?"poly":"grid", basis.index);
@@ -230,7 +230,7 @@ double ionCoefLocal(
 
 			tracepdeex (4, trace, "\nGridded basis: %.4f, %.4f", atmReg.gridLatDeg[basis.index], atmReg.gridLonDeg[basis.index]);
 
-			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaorn use bilinear interpolation function?
+			return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);		//todo aaron use bilinear interpolation function?
 		}
 		default:
 		{
@@ -287,7 +287,7 @@ void ionOutputLocal(
 					case 5: 	fact = lonFact*lonFact/3;	break;
 					default:	var  = 1e6;					break;
 				}
-				
+
 				if (var > 100*SQR(acsConfig.ssrOpts.max_stec_sigma))
 				{
 					stecRecord.poly[basis.index] = -9999;
@@ -299,7 +299,7 @@ void ionOutputLocal(
 					if (stecRecord.sigma < 1e6)
 						stecRecord.sigma = acsConfig.ssrOpts.max_stec_sigma;
 				}
-				
+
 				break;
 			}
 			case E_BasisType::GRIDPOINT:

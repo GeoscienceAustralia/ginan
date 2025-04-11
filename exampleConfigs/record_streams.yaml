@@ -4,7 +4,8 @@ inputs:
 
     inputs_root: ./products/
 
-    atx_files:  [ igs20.atx                   ] # required
+    atx_files:
+    - igs20.atx
 
     snx_files:
     # - tables/igs_satellite_metadata.snx
@@ -16,12 +17,22 @@ inputs:
         - ALIC00AUS0
 
     satellite_data:
-        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/" 
+        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
         rtcm_inputs:
             ssr_antenna_offset: APC
             rtcm_inputs:
             - BCEP00BKG0
             - SSRA00CNE0
+
+receiver_options:
+    ALIC:
+        receiver_type: "SEPT POLARX5" # (string)
+        antenna_type: "LEIAR25.R3      NONE" # (string)
+        apriori_position: [-4052052.8638, 4212835.9618, -2545104.4038] # [floats]
+        models:
+            eccentricity:
+                enable: true
+                offset: [0.0000, 0.0000, 0.0015] # [floats]
 
 outputs:
 
@@ -56,8 +67,8 @@ processing_options:
     epoch_control:
         # max_epochs:                 60
         epoch_interval:             1
-        wait_next_epoch:            1
-        wait_all_receivers:         0
+        # wait_next_epoch:            1
+        max_rec_latency:            1
         require_obs:                false
         sleep_milliseconds:         1
 

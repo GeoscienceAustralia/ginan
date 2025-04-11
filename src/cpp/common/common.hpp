@@ -11,10 +11,10 @@
 #define SWAP(x,y)   do {double tmp_; tmp_=x; x=y; y=tmp_;} while (0)
 #define SGN(x)      ((x)<=0.0?-1.0:1.0)
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
-#include "erp.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
+#include "common/erp.hpp"
+#include "common/enums.h"
 
 using std::multimap;
 using std::vector;
@@ -55,14 +55,23 @@ double sagnac(
 	Vector3d	vel = Vector3d::Zero());
 
 
-double satazel(
+void satazel(
 	const	VectorPos&	pos,
 	const	VectorEcef&	e,
 			AzEl&		azel);
 
 unsigned int crc24q (const unsigned char *buff, int len);
 
-void dops(int ns, const double *azel, double elmin, double *dop);
+struct Dops
+{
+	double gdop = 0;
+	double pdop = 0;
+	double hdop = 0;
+	double vdop = 0;
+};
+
+Dops dopCalc(
+	const	vector<AzEl>&	azels);
 
 bool satFreqs(
 	E_Sys		sys,
@@ -75,12 +84,9 @@ double svaToSisa(int sva);
 int uraToSva(double ura);
 double svaToUra(int sva);
 
-void replaceTimes(
-	string&						str,		///< String to replace macros within
-	boost::posix_time::ptime	time_time);	///< Time to use for replacements
-
-void updatenav(
-	SatPos&	obs);
+void updateLamMap(
+	const	GTime&	time,
+			SatPos&	obs);
 
 
 
@@ -231,6 +237,7 @@ struct Typer
 
 
 /** Use only a subset of a vector that can be cast to a desired type
+ * \private
  */
 template<
 	typename OUT,

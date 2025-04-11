@@ -6,12 +6,13 @@
 
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "algebraTrace.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
+#include "architectureDocs.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -20,8 +21,25 @@ using std::map;
 #include <boost/serialization/string.hpp>
 #include <boost/log/trivial.hpp>
 
-map<short int, string> idStringMap;
-map<string, short int> stringIdMap;
+
+/** Save complex variables to files.
+ *
+ * This allows for complex variables including full filter states to be stored to file.
+ *
+ * When binary archives are written, first some metadata about the next segment of data is stored.
+ * An enumerated variable type is written, so that a variable of that type may be prepared later for reading the data into.
+ *
+ * After the binary data, an entry with the position of the metadata block for that data is written.
+ * This allows for the file to be read in reverse order, seeking backward from the length metadata to the type metadata, before reading the subsequent actual data.
+ * This is of fundamental importance for RTS_Smoothing__(), and the primary use-case of the binary archive in Ginan.
+ *
+ * The binary archive is also used as storage for debugging functions such as mincon_only, but without the necessity for reverse reading
+ */
+Architecture Binary_Archive__()
+{
+
+}
+
 
 /** Returns the type of object that is located at the specified position in a file
 */
@@ -70,26 +88,26 @@ void tryPrepareFilterPointers(
 	KFState&		kfState,
 	ReceiverMap&	receiverMap)
 {
-	map<KFKey, short> replacementKFIndexMap;
+	map<KFKey, int> replacementKFIndexMap;
 	for (auto& [key, index] : kfState.kfIndexMap)
 	{
 		KFKey kfKey = key;
-		
+
 		if (kfKey.type == +KF::REC_POS)
 		{
 			//make sure all rec pos are associated with receivers
 			receiverMap[kfKey.str].id = kfKey.str;
 		}
 
-		if	(  kfKey.rec_ptr == nullptr
-			&& kfKey.str.empty() == false)
+		if	(  kfKey.rec_ptr		== nullptr
+			&& kfKey.str.empty()	== false)
 		{
 			auto it = receiverMap.find(kfKey.str);
 			if (it != receiverMap.end())
 			{
-				auto& [id, station]	= *it;
+				auto& [id, rec]	= *it;
 
-				kfKey.rec_ptr = &station;
+				kfKey.rec_ptr = &rec;
 			}
 		}
 

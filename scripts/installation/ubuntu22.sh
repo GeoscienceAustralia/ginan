@@ -65,6 +65,7 @@ $sudo_cmd apt-get install --no-install-recommends --yes \
     libopenblas-dev \
     libmongoc-1.0-0 \
     libmongoc-dev \
+    libncurses5-dev \
     python3-pip \
 
 

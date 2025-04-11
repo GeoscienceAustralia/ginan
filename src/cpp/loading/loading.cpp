@@ -5,7 +5,7 @@
  *
  */
 
-#include "loading.h"
+#include "loading/loading.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>

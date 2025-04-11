@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 
 //forward declaration
@@ -35,9 +35,27 @@ struct OceanPoleGrid
 	vector<OceanPoleCoeff>	grid		= {};	///< grid map of ocean pole load tide coefficients
 };
 
+/** Structure of ocean/atmospheric tide loading displacements in amplitude and phase
+*/
+struct TidalDisplacement
+{
+	VectorEnu	amplitude;
+	VectorEnu	phase;
+};
+
+/** Map of ocean/atmospheric tide loading displacements
+*/
+struct TideMap : map<E_TidalConstituent, TidalDisplacement>
+{
+
+};
+
+extern map<string, TideMap>	otlDisplacementMap;					///< ocean tide loading parameters
+extern map<string, TideMap>	atlDisplacementMap;					///< atmospheric tide loading parameters
+
+
 bool readBlq(
 	string			file,
-	Receiver&		rec,
 	E_LoadingType	type);
 
 bool readOceanPoleCoeff(
@@ -81,26 +99,23 @@ VectorEnu tideAtmosLoad(
 
 VectorEnu tideSolidPole(
 	Trace&				trace,
-	MjDateUt1			mjdUt1,
+	MjDateTT			mjdTT,
 	const VectorPos&	pos,
 	ERPValues&			erpv);
 
 VectorEnu tideOceanPole(
 	Trace&				trace,
-	MjDateUt1			mjdUt1,
+	MjDateTT			mjdTT,
 	const VectorPos&	pos,
 	ERPValues&			erpv);
 
 void tideDisp(
-	Trace&			trace,
-	GTime			time,
-	Receiver&		rec,
-	Vector3d&		recPos,
-	Vector3d&		dr,
-	Vector3d*		solid_ptr	= nullptr,
-	Vector3d*		olt_ptr		= nullptr,
-	Vector3d*		alt_ptr		= nullptr,
-	Vector3d*		spole_ptr	= nullptr,
-	Vector3d*		opole_ptr	= nullptr);
-
-
+	Trace&		trace,
+	GTime		time,
+	string		id,
+	Vector3d&	recPos,
+	Vector3d&	solid,
+	Vector3d&	olt,
+	Vector3d&	alt,
+	Vector3d&	spole,
+	Vector3d&	opole);

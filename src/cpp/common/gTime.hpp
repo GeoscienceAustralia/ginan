@@ -9,7 +9,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "enums.h"
+#include "common/enums.h"
 
 using std::ostream;
 using std::string;
@@ -204,7 +204,12 @@ struct Duration
 */
 struct GTime
 {
-	long double bigTime = 0;
+	mutable int			cacheN		=  0;
+	mutable	long double	cacheTime	= -1;
+	mutable string		cacheString;
+
+	long double	bigTime = 0;
+
 
 	/** Uninitialised time for comparisons
 	*/
@@ -227,6 +232,10 @@ struct GTime
 		GTime	nearTime);
 
 	string to_string(int n = 2) const;
+
+	string to_ISOstring(int n = 2) const;
+
+	double to_decYear() const;
 
 	bool operator ==	(const GTime& t2) const
 	{
@@ -457,12 +466,22 @@ struct UtcTime
 		return time;
 	}
 
-	string to_string(int n) const
+	string to_string(int n = 2) const
+	{
+		GTime gTime;
+		gTime.bigTime	= this->bigTime;
+		string str = gTime.to_string(n);
+		str += "Z";
+		str[10]='T';
+		return str;
+	}
+
+	string to_ISOstring(int n = 2) const
 	{
 		GTime gTime;
 		gTime.bigTime	= this->bigTime;
 
-		return gTime.to_string(n);
+		return gTime.to_ISOstring(n)+'Z';
 	}
 
 	UtcTime()
@@ -599,7 +618,7 @@ struct UYds : array<double, 3>
 		while (sod < 0)					{	sod += secondsInDay;		doy--;	}
 
 		while (doy > 366)				{	doy -= 365;					year++;	}
-		while (doy < 1)					{	doy += 365;					year--;	}	//todo aaron, ew
+		while (doy < 1)					{	doy += 365;					year--;	}
 
 		return *this;
 	}

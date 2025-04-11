@@ -1,7 +1,7 @@
 
-#include "acceleration.hpp"
-#include "constants.hpp"
-#include "common.hpp"
+#include "orbprop/acceleration.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
 
 
 #include <boost/log/core.hpp>
@@ -22,7 +22,7 @@ Legendre::Legendre(
 	init();
 }
 
-void Legendre::setNmax( 
+void Legendre::setNmax(
 	int n)
 {
 	nmax = n;
@@ -58,7 +58,7 @@ void Legendre::calculate(double x)
 
 	dPnm(1, 0) = 1 / u * (x * Pnm(1, 0) - sqrt(3) * Pnm(0, 0));
 	dPnm(1, 1) = x / u * Pnm(1, 1);
-	
+
 	for (int n = 2; n < nmax + 1; n++)
 	{
 		for (int m = 0; m < n; m++)
@@ -74,17 +74,17 @@ void Legendre::calculate(double x)
 /** Central force acceleration
  */
 Vector3d accelCentralForce(
-	const	Vector3d	observer, 		///< position of the oberserver 
+	const	Vector3d	observer, 		///< position of the oberserver
 	const	double		GM,				///< value of GM of the acting force
 			Matrix3d*	dAdPos_ptr)		///< Optional pointer to differential matrix
 {
 	Vector3d acc = -1 * GM * observer.normalized() / observer.squaredNorm();
-	
+
 	if (dAdPos_ptr)
-	{	
+	{
 		*dAdPos_ptr += GM / pow(observer.norm(), 5) * (3 * observer * observer.transpose() - Matrix3d::Identity() * observer.squaredNorm());
 	}
-	
+
 	return acc;
 }
 
@@ -99,7 +99,7 @@ Vector3d accelSourcePoint(
 	Vector3d relativePosition = planet - sat;
 	Vector3d acc_sat 	= accelCentralForce(relativePosition,	GM, dAdPos_ptr);
 	Vector3d acc_e 		= accelCentralForce(planet,				GM, dAdPos_ptr);
-	
+
 	return  acc_e - acc_sat;
 }
 
@@ -107,22 +107,22 @@ Vector3d accelSourcePoint(
  *  ref: GOCE standards GO-TN-HPF-GS-0111
  */
 Vector3d accelJ2(
-	const	double		C20, 			///< Value of the C20 
-	const	Matrix3d	eci2ecf,  		///< Rotation inertial to terestrila 
-			Vector3d	bodyPos,		///< Position of the planets 
+	const	double		C20, 			///< Value of the C20
+	const	Matrix3d	eci2ecf,  		///< Rotation inertial to terestrila
+			Vector3d	bodyPos,		///< Position of the planets
 			double		GM)				///< Value of GM constant of the body in question
 {
 	Vector3d pos_ecef = eci2ecf * bodyPos;
-	
+
 	double dist = pos_ecef.norm();
 	double term = (GM / pow(dist, 3)) * SQR(RE_WGS84 / dist);
-	
+
 	Vector3d vec = Vector3d::Zero();
 	vec.head(2)	= term * (5 * SQR(pos_ecef.z()/dist) - 1) * pos_ecef.head(2);
 	vec.z()		= term * (5 * SQR(pos_ecef.z()/dist) - 3) * pos_ecef.z();
 
 	Vector3d accJ2 = -1 * ( (3 * sqrt(5)) / 2) * C20 * vec;
-	
+
 	return accJ2;
 }
 
@@ -133,32 +133,32 @@ Vector3d accelSPH(
 	const Vector3d	r,			///< Vector of the position of the satelite (ECEF)
 	const MatrixXd	C, 			///< Matrix of the "C" spherical harmonic coefficient
 	const MatrixXd	S,			///< Matrix of the "S" spherical harmonic coefficient
-	const int		max_deg, 	///< Maximum degree use for the summation of the harmonics	//todo aaron, limit this to max found in file/struct
-	const double	GM)			///< Value of GM constant of the body in question. 
+	const int		maxDeg, 	///< Maximum degree use for the summation of the harmonics	//todo aaron, limit this to max found in file/struct
+	const double	GM)			///< Value of GM constant of the body in question.
 {
 	double R		= r.norm();
 	double sin_lat	= r.z() / R; // Is Cos colat too.
-	
+
 	double Rxy		= sqrt(SQR(r.x()) + SQR(r.y()));
 	double cos_lon	= r.x() / Rxy;
 	double sin_lon	= r.y() / Rxy;
 
-	VectorXd cosphi(max_deg+1);
-	VectorXd sinphi(max_deg+1);
+	VectorXd cosphi(maxDeg+1);
+	VectorXd sinphi(maxDeg+1);
 
 	cosphi(0) = 1;
 	sinphi(0) = 0;
 
 	cosphi(1) = cos_lon;
 	sinphi(1) = sin_lon;
-	
-	for (int i = 2; i <= max_deg; i++)
+
+	for (int i = 2; i <= maxDeg; i++)
 	{
 		cosphi(i) =  cosphi(i-1) * cos_lon - sinphi(i-1) * sin_lon;
 		sinphi(i) =  sinphi(i-1) * cos_lon + cosphi(i-1) * sin_lon;
 	}
-	
-	Legendre leg(max_deg);
+
+	Legendre leg(maxDeg);
 	leg.calculate(sin_lat);
 
 	double dVr		= 0;
@@ -166,13 +166,13 @@ Vector3d accelSPH(
 	double dVlambda	= 0;
 
 	double const_Radius = RE_GLO / R;
-	for (int i = 2; i <= max_deg; i++)
+	for (int i = 2; i <= maxDeg; i++)
 	{
-		const_Radius *= RE_GLO/R; /** (Re/R)**n : we start from deg 2 this formulation works. */ 
+		const_Radius *= RE_GLO/R; /** (Re/R)**n : we start from deg 2 this formulation works. */
 		double dVr_n		= 0;
 		double dVtheta_n	= 0;
 		double dVlambda_n	= 0;
-		
+
 		for (int j = 0; j <= i; j++)
 		{
 			dVr_n		+=		leg.Pnm(i,j)  * (C(i,j) * cosphi(j) + S(i,j) * sinphi(j));
@@ -183,8 +183,8 @@ Vector3d accelSPH(
 		dVtheta 	+= 				const_Radius * dVtheta_n;
 		dVlambda 	+= 				const_Radius * dVlambda_n;
 	}
-	
-	//step 2, scale by GM/r; GM/r2 for dVr. 
+
+	//step 2, scale by GM/r; GM/r2 for dVr.
 
 	double constant = GM / R;
 	dVtheta		*= constant;
@@ -192,7 +192,7 @@ Vector3d accelSPH(
 	dVr			*= GM / SQR(R);
 
 	// step3, project in cartesian
-	
+
 	Vector3d acc;
 	acc.x() = dVr * r.x() / R + dVtheta * r.z() / 	SQR(R) * r.x() / Rxy - dVlambda * r.y() / SQR(Rxy);
 	acc.y() = dVr * r.y() / R + dVtheta * r.z() / 	SQR(R) * r.y() / Rxy + dVlambda * r.x() / SQR(Rxy);

@@ -1,8 +1,8 @@
 
 #include <map>
 
-#include "packetStatistics.hpp"
-#include "streamCustom.hpp"
+#include "common/packetStatistics.hpp"
+#include "common/streamCustom.hpp"
 
 
 #define CLEAN_UP_AND_RETURN_ON_FAILURE	\
@@ -18,7 +18,7 @@
 void CustomParser::parse(
 	std::istream& inputStream)
 {
-// 		std::cout << "Parsing ubx" << std::endl;
+// 		std::cout << "Parsing ubx" << "\n";
 
 	while (inputStream)
 	{

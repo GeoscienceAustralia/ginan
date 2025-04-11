@@ -14,12 +14,12 @@ using std::string;
 using std::list;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "algebra.hpp"
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "enums.h"
-#include "crd.h"
+#include "common/eigenIncluder.hpp"
+#include "common/algebra.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
+#include "3rdparty/slr/crd.h"
 
 
 
@@ -29,10 +29,39 @@ struct PObs;
 struct FObs;
 struct LObs;
 
-struct Observation
+struct ObsMeta
 {
-	GTime	 	time	= {};       		///> Receiver sampling time (GPST)
-	string 		mount	= "";				///< ID of the receiver that generated the observation
+	ObsMeta() : exclude(0)
+	{
+
+	}
+
+	union
+	{
+		const unsigned int exclude = 0;
+		struct
+		{
+			unsigned excludeElevation		: 1;
+			unsigned excludeEclipse			: 1;
+			unsigned excludeSystem			: 1;
+			unsigned excludeOutlier			: 1;
+			unsigned excludeBadSPP			: 1;
+			unsigned excludeConfig			: 1;
+			unsigned excludeSVH				: 1;
+			unsigned excludeBadRange		: 1;
+			unsigned excludeDataHandling	: 1;
+			unsigned excludeCom				: 1;
+			unsigned excludeBadFlags		: 1;
+			unsigned excludeAlert			: 1;
+		};
+	};
+};
+
+struct Observation : ObsMeta
+{
+	GTime	 	time	= {};       ///< Receiver sampling time (GPST)
+	string 		mount;				///< ID of the receiver that generated the observation
+	double		ephVar	= 0;
 
 	virtual ~Observation() = default;
 
@@ -123,8 +152,8 @@ struct IonoObs
 };
 
 //forward declarations for pointers below
-struct SatStat;
 struct SatNav;
+struct SatStat;
 struct Receiver;
 
 
@@ -134,33 +163,12 @@ struct Receiver;
 **/
 struct GObsMeta : IonoObs
 {
-	GObsMeta() : exclude(0)
-	{
-
-	}
-
 	Receiver*	rec_ptr			= nullptr;
 
 	double 		sppCodeResidual	= 0;				///< Residuals of code
 	double		tropSlant		= 0;				///< Troposphere slant delay
 	double		tropSlantVar	= 0;				///< Troposphere slant delay variance
 
-
-	union
-	{
-		const unsigned int exclude = 0;
-		struct
-		{
-			unsigned excludeElevation		: 1;
-			unsigned excludeEclipse			: 1;
-			unsigned excludeSystem			: 1;
-			unsigned excludeOutlier			: 1;
-			unsigned excludeBadSPP			: 1;
-			unsigned excludeConfig			: 1;
-			unsigned excludeSVH				: 1;
-			unsigned excludeBadRange		: 1;
-		};
-	};
 };
 
 /** Satellite position data - for determining and storing satellite positions/clocks
@@ -172,10 +180,10 @@ struct SatPos
 
 	}
 
-	GTime		posTime;
-	SatSys		Sat				= {};					///> Satellite ID (system, prn)
-	SatNav*		satNav_ptr		= nullptr;				///< Pointer to a navigation object for this satellite
-	SatStat* 	satStat_ptr		= nullptr;				///< Pointer to a status object for this satellite
+	GTime				posTime;
+	SatSys				Sat				= {};					///> Satellite ID (system, prn)
+	SatNav*				satNav_ptr		= nullptr;				///< Pointer to a navigation object for this satellite
+	SatStat* 			satStat_ptr		= nullptr;				///< Pointer to a status object for this satellite
 
 	E_Source	posSource		= E_Source::NONE;
 	E_Source	clkSource		= E_Source::NONE;
@@ -237,7 +245,8 @@ struct SatPos
 struct GObs : Observation, GObsMeta, SatPos
 {
 	map<E_FType, Sig>				sigs;		///> Map of signals available in this observation (one per frequency only)
-	map<E_FType, list<Sig>>			sigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
+    map<E_FType, list<Sig>>			sigsLists;	///> Map of all signals available in this observation (may include multiple per frequency, eg L1X, L1C)
+												//	 Do not replace the list with a vector, it causes issues in rt
 
 	operator shared_ptr<GObs>()
 	{
@@ -394,28 +403,15 @@ struct LObs : Observation, LObsMeta, SatPos
 	GTime			timeTx				= {};
 	double			twoWayTimeOfFlight	= 0;
 
-	union
-	{
-		const unsigned int exclude = 0;
-		struct
-		{
-			unsigned excludeElevation		: 1;
-			unsigned excludeBias			: 1;
-			unsigned excludeEccentricity	: 1;
-			unsigned excludeSinexPos		: 1;
-			unsigned excludeSinex			: 1;
-			unsigned excludeTime			: 1;
-			unsigned excludeMeta			: 1;
-			unsigned excludeEphemeris		: 1;
-			unsigned excludeBadFlags		: 1;
-			unsigned excludeAlert			: 1;
-		};
-	};
-	double			pressure			= 0; //hPa (mbar)
-	double			temperature			= 0; //K
-	double			humidity			= 0; //0.00-1.00
-	double			wavelength			= 0; //nm
-	double			ephVar				= 0;
+	double			pressure			= 0;	// hPa (mbar)
+	double			temperature			= 0;	// K
+	double			humidity			= 0;	// 0.00-1.00
+	double			wavelengthNm		= 0;	// nm
+
+	double			rangeBias			= 0;	// m
+	double			timeBias			= 0;	// s
+	double			pressureBias		= 0;	// hPa (mbar)
+	double			humidityBias		= 0;	// 0.00-1.00
 
 	operator shared_ptr<LObs>()
 	{

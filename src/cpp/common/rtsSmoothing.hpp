@@ -7,13 +7,13 @@
 using std::map;
 using std::string;
 
-#include "algebra.hpp"
+#include "common/algebra.hpp"
 
 struct ReceiverMap;
 
-KFState rtsSmoothing(
-	KFState&	kfState,
+void rtsSmoothing(
+	KFState&		kfState,
 	ReceiverMap&	receiverMap,
-	bool		write		= false);
+	bool			write = false);
 
 

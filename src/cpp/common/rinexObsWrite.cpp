@@ -13,15 +13,14 @@ using std::pair;
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
-#include "observations.hpp"
-#include "instrument.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "trace.hpp"
+#include "common/rinexObsWrite.hpp"
+#include "common/rinexClkWrite.hpp"
+#include "common/observations.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
 
 struct RinexOutput
 {
@@ -166,7 +165,7 @@ void updateRinexObsHeader(
 
 void writeRinexObsHeader(
 	RinexOutput&		fileData,
-	SinexRecData&		snx,
+	Receiver&			rec,
 	std::fstream&		rinexStream,
 	GTime&				firstObsTime,
 	const double		rnxver)
@@ -184,6 +183,8 @@ void writeRinexObsHeader(
 	string prog = "PEA v2";
 	string runby = "Geoscience Australia";
 
+	auto& snx = rec.snx;
+
 	tracepdeex(0, rinexStream, "%9.2f%-11s%-20s%-20s%-20s\n",
 		rnxver,
 		"",
@@ -198,7 +199,7 @@ void writeRinexObsHeader(
 		"PGM / RUN BY / DATE");
 
 	tracepdeex(0, rinexStream, "%-60.60s%-20s\n",
-		snx.id_ptr->sitecode,
+		rec.id.c_str(),
 		"MARKER NAME");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-40.40s%-20s\n",
@@ -216,27 +217,27 @@ void writeRinexObsHeader(
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
 		snx.rec_ptr->sn,
-		snx.rec_ptr->type,
+		rec.receiverType.c_str(),
 		snx.rec_ptr->firm,
 		"REC # / TYPE / VERS");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
 		snx.ant_ptr->sn,
-		snx.ant_ptr->type,
+		rec.antennaType.c_str(),
 		"",
 		"ANT # / TYPE");
 
 	tracepdeex(0, rinexStream, "%14.4f%14.4f%14.4f%-18s%-20s\n",
-		snx.pos.x(),
-		snx.pos.y(),
-		snx.pos.z(),
+		rec.aprioriPos.x(),
+		rec.aprioriPos.y(),
+		rec.aprioriPos.z(),
 		"",
 		"APPROX POSITION XYZ");
 
 	tracepdeex(0, rinexStream, "%14.4f%14.4f%14.4f%-18s%-20s\n",
-		snx.ecc_ptr->ecc[2],
-		snx.ecc_ptr->ecc[1],
-		snx.ecc_ptr->ecc[0],
+		rec.antDelta[2],
+		rec.antDelta[0],
+		rec.antDelta[1],
 		"",
 		"ANTENNA: DELTA H/E/N");
 
@@ -417,7 +418,7 @@ bool updateRinexObsOutput(
 
 void writeRinexObsFile(
 	RinexOutput&		fileData,
-	SinexRecData&		snx,
+	Receiver&			rec,
 	string				fileName,
 	ObsList&			obsList,
 	GTime&				time,
@@ -439,7 +440,7 @@ void writeRinexObsFile(
 		else						fileData.sysDesc = rinexSysDesc(E_Sys::COMB);
 
 		updateRinexObsOutput(fileData, obsList, sysMap);
-		writeRinexObsHeader(fileData, snx, rinexStream, time, rnxver);
+		writeRinexObsHeader(fileData, rec, rinexStream, time, rnxver);
 	}
 	else
 	{
@@ -454,13 +455,11 @@ map<string, string> rinexObsFilenameMap;
 
 void writeRinexObs(
 	string&			id,
-	SinexRecData&	snx,
+	Receiver&		rec,
 	GTime&			time,
 	ObsList&		obsList,
 	const double	rnxver)
 {
-	Instrument instrument(__FUNCTION__);
-
 	string filename = acsConfig.rinex_obs_filename;
 
 	auto filenameSysMap = getSysOutputFilenames(filename, time, true, id);
@@ -469,6 +468,6 @@ void writeRinexObs(
 	{
 		auto& fileData = filenameObsFileDataMap[filename];
 
-		writeRinexObsFile(fileData, snx, filename, obsList, time, sysMap, rnxver);
+		writeRinexObsFile(fileData, rec, filename, obsList, time, sysMap, rnxver);
 	}
 }

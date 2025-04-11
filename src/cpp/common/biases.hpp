@@ -25,6 +25,7 @@ struct BiasEntry
 {
 	GTime		tini;								///< start time
 	GTime		tfin;								///< end time
+	GTime		refTime;							///< reference time of bias value
 	E_MeasType	measType	= CODE;					///< Measurement type
 	E_ObsCode	cod1		= E_ObsCode::NONE;		///< Measurement code 1
 	E_ObsCode	cod2		= E_ObsCode::NONE;		///< Measurement code 2
@@ -32,11 +33,27 @@ struct BiasEntry
 	double		slop		= 0;					///< hardware bias slope in meters/second
 	double		var			= 0;					///< hardware bias variance in meters^2
 	double		slpv		= 0;					///< hardware bias slope variance in (meters/second)^2
-	string		name		= "";					///< receiver name for receiver bias
+	string		name;								///< receiver name for receiver bias
 	SatSys		Sat;								///< satellite prn for satellite bias / satellite system for receiver bias
 	string		source		= "X";
 
 	long int	posInOutFile =-1;					///< Position this entry is written in biasSINEX file
+};
+
+
+struct TimeBiasMap : map<GTime, BiasEntry, std::greater<GTime>>
+{
+
+};
+
+struct ObsObsBiasMap : map<E_ObsCode, map<E_ObsCode, TimeBiasMap>>
+{
+
+};
+
+struct BiasMap : array<map<string, ObsObsBiasMap>, NUM_MEAS_TYPES>
+{
+
 };
 
 E_ObsCode str2code(
@@ -83,10 +100,10 @@ bool getBias(
 
 void writeBiasSinex(
 	Trace&			trace,
+	string			biasfile,
 	GTime			time,
 	KFState&		kfState,
 	KFState&		ionState,
-	string			biasfile,
 	ReceiverMap&	receiverMap);
 
 bool queryBiasOutput(
@@ -104,4 +121,4 @@ bool queryBiasOutput(
 void loadStateBiases(
 	KFState&	kfState);
 
-extern array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> biasMaps;
+extern BiasMap biasMaps;

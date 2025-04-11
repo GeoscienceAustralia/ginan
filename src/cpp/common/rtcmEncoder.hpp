@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include "rtcmTrace.hpp"
-#include "satSys.hpp"
-#include "enums.h"
-#include "ssr.hpp"
+#include "common/rtcmTrace.hpp"
+#include "common/satSys.hpp"
+#include "common/enums.h"
+#include "common/ssr.hpp"
 
 
 using std::pair;

@@ -1,6 +1,15 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/**
+ */
+FileType SP3__()
+{
+
+}
+
 #include <iostream>
 #include <string>
 
@@ -8,13 +17,13 @@ using std::string;
 
 #include <boost/log/trivial.hpp>
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
-#include "navigation.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/navigation.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 /** satellite code to satellite system
@@ -285,16 +294,7 @@ bool readsp3(
 				else
 				{
 					BOOST_LOG_TRIVIAL(error)
-					<< "Unknown sp3 time system: " << timeSysStr << std::endl;
-					return false;
-				}
-
-				// currently only GPST and UTC are supported
-				if	( tsys != +E_TimeSys::GPST
-					&&tsys != +E_TimeSys::UTC)
-				{
-					BOOST_LOG_TRIVIAL(error)
-					<< "Unsupported time system: " << timeSysStr << std::endl;
+					<< "Unknown sp3 time system: " << timeSysStr;
 					return false;
 				}
 			}
@@ -334,6 +334,7 @@ void readSp3ToNav(
 	if (!fileStream)
 	{
 		printf("\nSp3 file open error %s\n", file.c_str());
+		return;
 	}
 
 	vector<Peph>	pephList;

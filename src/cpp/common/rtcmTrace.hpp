@@ -11,8 +11,8 @@ using std::string;
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <bsoncxx/builder/basic/document.hpp>
 
-#include "satSys.hpp"
-#include "gTime.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
 
 struct Sig;
 struct Eph;
@@ -24,15 +24,15 @@ struct SSRHRClk;
 struct SSRCodeBias;
 struct SSRPhasBias;
 
-struct RtcmTrace 
+struct RtcmTrace
 {
 	string	rtcmTraceFilename	= "";
-	string	rtcmMountpoint;	
+	string	rtcmMountpoint;
 	bool qzssL6 = false;
-	
+
 	RtcmTrace(
 		string mountpoint	= "",
-		string filename		= "") 
+		string filename		= "")
 	:	rtcmTraceFilename	{filename},
 		rtcmMountpoint		{mountpoint}
 	{
@@ -44,12 +44,12 @@ struct RtcmTrace
 		std::ofstream outStream(rtcmTraceFilename, std::iostream::app);
 		if (!outStream)
 		{
-			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
 			return;
 		}
-	
+
 		outStream << timeGet();
-		outStream << " networkLog" << message << std::endl;
+		outStream << " " << __FUNCTION__ << message << "\n";
 	}
 
 	void messageChunkLog(
@@ -63,14 +63,14 @@ struct RtcmTrace
 		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
 		if (!outStream)
 		{
-			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << std::endl;
+			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
 			return;
 		}
-	
+
 		outStream << timeGet();
-		outStream << " messageRtcmLog" << message << std::endl;
+		outStream << " messageRtcmLog" << message << "\n";
 	}
-	
+
 	void traceSsrEph(
 		RtcmMessageType	messCode,
 		SatSys			Sat,
@@ -102,7 +102,7 @@ struct RtcmTrace
 		SatSys			Sat,
 		E_ObsCode		code,
 		SSRPhasBias&	ssrBias);
-	
+
 	void traceTimestamp(
 		GTime		time);
 

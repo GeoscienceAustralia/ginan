@@ -7,6 +7,12 @@ Orbits
 {% endblock %}
 
 
+    {% if selection is not defined%}
+      {% set selection = {} %}
+      {% set _ = selection.__setitem__("orbitType",    "Residual RTN") %}
+      {% set _ = selection.__setitem__("sat",     "*") %}
+      {% set _ = selection.__setitem__("series",  "*") %}
+    {% endif %}
 
 {% block menuselection %}
 <form method="post" class="row g-5" role="form" onsubmit="return validateForm()">
@@ -29,8 +35,8 @@ Orbits
     <br>
     <select multiple class="selectpicker form-control" name="series" id="series" data-container="body"
       data-live-search="true" title="Select type">
-      {% for series_ in session['list_series'] %}
-      {% if selection is defined and selection['series']|length and series_ in selection['series']%}
+      {% for series_ in session['list_measurements_series'] %}
+      {% if selection is defined and selection['series']|length and series_ in selection['series'] or "*" in selection['series'] %}
       <option value="{{series_}}" SELECTED>{{series_}}</option>"
       {%else%}
       <option value="{{series_}}">{{series_}}</option>"
@@ -45,7 +51,7 @@ Orbits
     <select multiple class="selectpicker form-control" name="sat" id="sat" data-container="body" data-live-search="true"
       title="Select satellite" data-hide-disabled="true" data-actions-box="true" data-virtual-scroll="false"> {% for
       sat_ in session['list_sat'] %}
-      {% if selection is defined and selection['sat']|length and sat_ in selection['sat']%}
+      {% if selection is defined and selection['sat']|length and sat_ in selection['sat'] or "*" in selection['sat'] %}
       <option value="{{sat_}}" SELECTED>{{sat_}}</option>"
       {%else%}
       <option value="{{sat_}}">{{sat_}}</option>"
@@ -55,13 +61,13 @@ Orbits
   </div>
 
 
-  <div class="col-lg-2">
+  <div class="col-lg-1">
     <label for="exclude">Exclude first (min):</label>
     <input type="text" class="form-control" id="exclude" name="exclude" placeholder="exclude" {% if selection is defined
       and selection['exclude'] %}value="{{ selection['exclude'] }}" {% endif %}>
   </div>
 
-  <div class="col-lg-2">
+  <div class="col-lg-1">
     <label for="exclude">Exclude last (min):</label>
     <input type="text" class="form-control" id="exclude_tail" name="exclude_tail" placeholder="exclude_tail" {% if
       selection is defined and selection['exclude_tail'] %}value="{{ selection['exclude_tail'] }}" {% endif %}>
@@ -100,6 +106,7 @@ Orbits
 
     // Check if a value is selected in each field
     notSelectedValue('orbitType', missingField);
+    notSelectedValue('series_base', missingField);
     notSelectedValue('series', missingField);
     notSelectedValue('sat', missingField);
     console.log(missingField)

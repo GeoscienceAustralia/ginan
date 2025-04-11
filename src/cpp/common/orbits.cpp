@@ -14,19 +14,20 @@ using std::chrono::time_point;
 using std::string;
 
 
-#include "peaCommitStrings.hpp"
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "algebra.hpp"
-#include "orbits.hpp"
-#include "satSys.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "pea/peaCommitStrings.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "orbprop/orbitProp.hpp"
+#include "common/algebra.hpp"
+#include "common/orbits.hpp"
+#include "common/satSys.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 
 #define RTOL_KEPLER			1E-14		///< relative tolerance for Kepler equation
@@ -45,7 +46,7 @@ bool inertial2Keplers(
 	Vector3d L = r.cross(v);
 
 	//Obtain the eccentricity vector
-	Vector3d e	= v.cross(L) / MU - e_r;
+	Vector3d e	= v.cross(L) / GM_Earth - e_r;
 
 	double L_x = L(0);
 	double L_y = L(1);
@@ -100,7 +101,7 @@ bool inertial2Keplers(
 
 	if (error)
 	{
-		std::cout << std::endl << "n0 " << n0.transpose();
+		std::cout << "\n" << "n0 " << n0.transpose();
 		std::cout << "\te " << e.transpose();
 		std::cout << "\tn1 " << n1.transpose();
 		std::cout << "\tnu " << nu;
@@ -165,7 +166,7 @@ VectorEci keplers2Inertial(
 	double nu	= 2 * atan2(	sqrt(1 + e_) * sin(E/2),
 								sqrt(1 - e_) * cos(E/2));
 
-	double r	= L.squaredNorm() / MU / (1 + e_ * cos(nu));
+	double r	= L.squaredNorm() / GM_Earth / (1 + e_ * cos(nu));
 
 	L.normalize();
 
@@ -236,7 +237,7 @@ VectorEci keplers2Inertial(
 
 	return rSat;
 // 	std::cout << "\te " << e.transpose();
-// 	std::cout << std::endl << "n0 " << n0.transpose();
+// 	std::cout << "\n" << "n0 " << n0.transpose();
 // 	std::cout << "\tn1 " << n1.transpose();
 
 // 	std::cout << "\tnu " << nu;
@@ -246,7 +247,7 @@ VectorEci keplers2Inertial(
 
 // 	double A = r / (1 - e_ * cos(E));
 //
-// 	dM = sqrt(MU_GPS /A/A/A);
+// 	dM = sqrt(GM_Earth /A/A/A);
 }
 
 void getKeplerPartials(
@@ -310,22 +311,24 @@ void getKeplerInversePartials(
 }
 
 VectorEci propagateEllipse(
-	Trace&		trace,
-	GTime		time,
-	double		dt,
-	VectorEci&	rSat,
-	VectorEci&	vSat,
-	VectorEcef&	ecef,
-	VectorEcef* vSatEcef_ptr,
-	bool		j2)
+			Trace&		trace,
+			GTime		time,
+			double		dt,
+	const	VectorEci&	rSat,
+	const	VectorEci&	vSat,
+			SatPos&		satPos,
+			bool		j2)
 {
 	ERPValues erpv = getErp(nav.erp, time);
 
 	FrameSwapper frameSwapper(time + dt, erpv);
 
+	auto& ecef		= satPos.rSatCom;
+	auto& vSatEcef	= satPos.satVel;
+
 	if (dt == 0)
 	{
-		ecef = frameSwapper(rSat, &vSat, vSatEcef_ptr);
+		ecef = frameSwapper(rSat, &vSat, &vSatEcef);
 
 		return rSat;
 	}
@@ -336,10 +339,15 @@ VectorEci propagateEllipse(
 
 	if (pass == false)
 	{
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Failed to determine keplers for " << satPos.Sat.id() << " , "
+		<< rSat.transpose().format(heavyFmt)
+		<< vSat.transpose().format(heavyFmt);
+
 		VectorEci newPos	= rSat
 							+ vSat * dt;
 
-		ecef = frameSwapper(newPos, &vSat, vSatEcef_ptr);
+		ecef = frameSwapper(newPos, &vSat, &vSatEcef);
 
 		return newPos;
 	}
@@ -360,9 +368,9 @@ VectorEci propagateEllipse(
 
 	double e = E.norm();
 
-	double T = 2 * PI / SQR(MU_GPS) * pow(h / sqrt(1 - SQR(e)), 3);		//2.82
+	double n = SQR(GM_Earth) / pow(h / sqrt(1 - SQR(e)), 3);		//2.82
 
-	keplers0[KEPLER::M] += 2 * PI * dt / T;
+	keplers0[KEPLER::M] += n * dt;
 
 	VectorEci newPos1 = keplers2Inertial(trace, keplers0);
 
@@ -380,11 +388,15 @@ VectorEci propagateEllipse(
 			double y = rSat.y();
 			double z = rSat.z();
 
-			a += 1.5 * J2 * MU * SQR(RE_MEAN)
-				/ (R * R * R * R * R) *
-				(	+ x	*	(5 * SQR(z/R) - 1) * Vector3d::UnitX()
-					+ y	*	(5 * SQR(z/R) - 1) * Vector3d::UnitY()
-					+ z * 	(5 * SQR(z/R) - 3) * Vector3d::UnitZ()	);
+			double commonTerm = 5 * SQR(z/R);
+
+			Vector3d vec = Vector3d(
+				x * (commonTerm - 1),
+				y * (commonTerm - 1),
+				z * (commonTerm - 3)
+			);
+
+			a += 1.5 * J2 * GM_Earth * SQR(RE_MEAN) / (R * R * R * R * R) * vec;
 		}
 
 		a /= 2;
@@ -394,10 +406,10 @@ VectorEci propagateEllipse(
 
 	double dtVel = 1e-4;
 
-	keplers0[KEPLER::M] += 2 * PI * dtVel / T;
+	keplers0[KEPLER::M] += n * dtVel;
 
 	VectorEci velEci;
-	if (vSatEcef_ptr)
+	if (1)
 	{
 		VectorEci newPos2 = keplers2Inertial(trace, keplers0);
 
@@ -406,8 +418,53 @@ VectorEci propagateEllipse(
 
 // 	std::cout << "\nrSatInertial:       " << 		newPos.transpose();
 
-	ecef = frameSwapper(newPos1, &velEci, vSatEcef_ptr);
+	ecef = frameSwapper(newPos1, &velEci, &vSatEcef);
 
 	return newPos1;
 }
 
+VectorEci propagateFull(
+	Trace&		trace,
+	GTime		time,
+	double		dt,
+	VectorEci&	rSat,
+	VectorEci&	vSat,
+	SatPos&		satPos)
+{
+	ERPValues erpv = getErp(nav.erp, time + dt);
+
+	FrameSwapper frameSwapper(time + dt, erpv);
+
+	auto& ecef		= satPos.rSatCom;
+	auto& vSatEcef	= satPos.satVel;
+
+	if (dt == 0)
+	{
+		ecef = frameSwapper(rSat, &vSat, &vSatEcef);
+
+		return rSat;
+	}
+
+	OrbitState orbit;
+	orbit.Sat = satPos.Sat;
+	orbit.pos = rSat;
+	orbit.vel = vSat;
+	orbit.posVelSTM = MatrixXd::Identity(6, 6);
+
+	Orbits orbits;
+	orbits.push_back(orbit);
+
+	OrbitIntegrator integrator;
+	integrator.timeInit	= time;
+
+	integrateOrbits(integrator, orbits, dt, acsConfig.propagationOptions.integrator_time_step);
+
+	VectorEci newPos;
+	VectorEci velEci;
+	newPos	= orbits[0].pos;
+	velEci	= orbits[0].vel;
+
+	ecef = frameSwapper(newPos, &velEci, &vSatEcef);
+
+	return newPos;
+}

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#include "aod.hpp"
+#include "orbprop/aod.hpp"
 
 Aod aod;
 
@@ -18,8 +18,8 @@ void Aod::read(
 	if (!infile)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Aod file open error " << filename << std::endl;
-		
+		<< "Aod file open error " << filename;
+
 		return;
 	}
 
@@ -44,38 +44,38 @@ void Aod::read(
 						&epoch[4],
 						&epoch[5],
 						type);
-			
+
 		if (found != 9)
 		{
 			continue;
 		}
 
-		if (string(type) == "glo") 
+		if (string(type) == "glo")
 		{
 			AodData data_;
 			data_.Cnm = MatrixXd::Zero(maxDeg+1, maxDeg+1);
 			data_.Snm = MatrixXd::Zero(maxDeg+1, maxDeg+1);
-			
+
 			GEpoch epoch_f;
 			for (int i = 0 ; i <6; i++)
 				epoch_f[i] = (double)epoch[i];
-			
+
 			GTime time = epoch_f;
-			for (int i = 0; i < totalCoefficients; i++) 
+			for (int i = 0; i < totalCoefficients; i++)
 			{
 				int n;
 				int m;
 				double C;
 				double S;
 				std::getline(infile, line);
-				
+
 				int found = sscanf(line.c_str(), "%d %d %lf %lf", &n, &m, &C, &S);
-				
+
 				if (found != 4)
 				{
 					continue;
 				}
-				
+
 				if (n <= maxDeg)
 				{
 					data_.Cnm(n, m) = C;
@@ -94,17 +94,17 @@ void Aod::interpolate(
 {
 	// Right now linear interpolation as it is recomanded by the technical note
 	auto it = data.lower_bound(time);
-	
+
 	if (it == data.end())		{	it--;	}
 	if (it == data.begin())		{	it++;	}
-	
+
 	auto it2 = it;
 	it2--;
-	
+
 	double t1 = (time - it2->first)	.to_double();
 	double t2 = (it->first - time)	.to_double();
 	double t = t1 + t2;
-	
+
 	Cnm = (it->second.Cnm * t1 + it2->second.Cnm * t2) / t;
 	Snm = (it->second.Snm * t1 + it2->second.Snm * t2) / t;
 }

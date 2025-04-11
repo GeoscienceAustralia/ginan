@@ -7,20 +7,20 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "planets.hpp"
-#include "common.hpp"
-#include "tides.hpp"
-#include "sinex.hpp"
-#include "enums.h"
-#include "slr.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "orbprop/planets.hpp"
+#include "common/common.hpp"
+#include "common/tides.hpp"
+#include "common/sinex.hpp"
+#include "common/enums.h"
+#include "slr/slr.hpp"
 
 using namespace boost::algorithm;
 
 constexpr int MIN_LINE_LEN = 64;
 
-SphericalComMap	sphericalComMap;			//todo aaron, ew
+SphericalComMap	sphericalComMap;
 
 
 /** Read SLR spherical satellite centre-of-mass (CoM) file
@@ -58,7 +58,7 @@ void readCom(
 		GEpoch startEp	= {std::stod(line.substr(11,4)), std::stod(line.substr(8, 2)),	std::stod(line.substr(5,2)),	0, 0, 0};
 		GEpoch endEp	= {std::stod(line.substr(22,4)), std::stod(line.substr(19,2)),	std::stod(line.substr(16,2)),	0, 0, 0};
 		string recId = line.substr(0, 4);
-		double comValue = std::stoi(line.substr(60, 4)) * std::pow(10, -3); // mm->m
+		double comValue = std::stoi(line.substr(60, 4)) * 1e-3; // mm->m
 
 		// Convert to gps time
 		GTime start	= startEp;
@@ -78,17 +78,15 @@ void readCom(
 string stripNumbers(
 	string	str)	///< String to strip
 {
-	vector<char> nums = {'0','1','2','3','4','5','6','7','8','9',' '};
-	for (auto n : nums)
-	{
-		str.erase(remove(str.begin(), str.end(), n), str.end());
-	}
+	str.erase(std::remove_if(str.begin(), str.end(), [](unsigned char x) { return std::isdigit(x) || std::isspace(x); }), str.end());
+
 	return str;
 }
 
 /** Check if sat is spherical (i.e. listed in spherical CoM map)
 */
-bool isSpherical(string satName)
+bool isSpherical(
+	string satName)
 {
 	auto satFind = sphericalComMap.find(stripNumbers(satName)); // sphericalComMap indexed by sat ID
 	if (satFind == sphericalComMap.end())
@@ -100,55 +98,35 @@ bool isSpherical(string satName)
 }
 
 /** Center of mass to laser retroreflector array offset for spherical satellites
-* Dependent on look vector
 */
-VectorEcef satComOffSphere(
+double satComOffSphere(
 	LObs&		obs)		///< SLR observation
 {
-	auto it1 = sphericalComMap.find(stripNumbers(obs.satName)); // sphericalComMap indexed by sat ID
-	if (it1 == sphericalComMap.end())
-	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: No CoM data available for satellite " << obs.satName;
-		return VectorEcef();
-	}
-	
-	auto& [dummy1, satMap] = *it1;
+	string satName	= stripNumbers(obs.satName);
+	string recId	= std::to_string(obs.recCdpId);
 
-	auto it2 = satMap.find(std::to_string(obs.recCdpId)); // satMap indexed by rec ID
-	if (it2 == satMap.end())
+	auto it = sphericalComMap[satName][recId].lower_bound(obs.time);
+	if (it != sphericalComMap[satName][recId].end())
 	{
-		obs.excludeMeta = true;
-		return VectorEcef();
-	}
-	
-	auto& [dummy2, timeComMap] = *it2;
-
-	auto it3 = timeComMap.lower_bound(obs.time); //timeComMap indexed by start time
-	if (it3 == timeComMap.end())
-	{
-		obs.excludeMeta = true;
-		return VectorEcef();
-	}
-	
-	auto& [dummy3, comEntry] = *it3;
-	
-	if (comEntry.endTime < obs.time)
-	{
-		obs.excludeTime = true;
-		return VectorEcef();
+		auto& [dummy, comEntry] = *it;
+		if (comEntry.endTime > obs.time)
+		{
+			return comEntry.comValue;
+		}
 	}
 
-	if (obs.satStat_ptr == nullptr)
+	if (acsConfig.require_reflector_com)
 	{
-		return VectorEcef();
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Observation rejected due to lack of laser retroreflector COM correction";
+
+		obs.excludeCom = true;
 	}
-	
-	auto& satStat = *obs.satStat_ptr;
-	
-	VectorEcef comOffset = (Vector3d)(-comEntry.comValue * satStat.e);
-	
-	return comOffset;
+	else
+	{
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Laser retroreflector COM correction not found";
+	}
+
+	return 0;
 }
 
 /** Center of mass to laser retroreflector array offset for GNSS satellites
@@ -157,26 +135,32 @@ VectorEcef satComOffGnss(
 	LObs&		obs)	///< SLR observation
 {
 	GTime time = obs.time;
-	
+
 	SinexSatSnx	satSnx;
 	auto result = getSatSnx(obs.Sat, time, satSnx);
-	if (result.failure)			//todo aaron, overly zealous here?	//todo aaron remove this, use other function
+	if	(!result.failure
+		&&obs.satNav_ptr != nullptr)
 	{
-		obs.excludeMeta = true;
-		return VectorEcef();
+		auto& satNav = *obs.satNav_ptr;
+
+		Vector3d ecc	= satSnx.ecc_ptrs[E_EccType::L_LRA]->ecc
+						- satSnx.com;
+
+		VectorEcef comOffset	= body2ecef(satNav.attStatus, ecc);
+
+		return comOffset;
 	}
 
-	if (obs.satNav_ptr == nullptr)
+	if (acsConfig.require_reflector_com)
 	{
-		return VectorEcef();
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Observation rejected due to lack of laser retroreflector COM correction";
+
+		obs.excludeCom = true;
 	}
-	
-	auto& satNav = *obs.satNav_ptr;
-	
-	Vector3d ecc	= satSnx.ecc_ptrs[E_EccType::L_LRA]->ecc 
-					- satSnx.com;	
+	else
+	{
+		BOOST_LOG_TRIVIAL(warning)	<< "Warning: Laser retroreflector COM correction not found";
+	}
 
-	VectorEcef comOffset	= body2ecef(satNav.attStatus, ecc);
-
-	return comOffset;
+	return VectorEcef();
 }

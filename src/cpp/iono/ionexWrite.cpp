@@ -3,24 +3,24 @@
 // #pragma GCC optimize ("O0")
 
 
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "satStat.hpp"
-#include "algebra.hpp"
-#include "satSys.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/satStat.hpp"
+#include "common/algebra.hpp"
+#include "common/satSys.hpp"
 
 #define IONEX_NEXP		-1
 #define SINGL_LAY_ERR	0.3
 
-static double	ionex_latmin = -55;
-static double	ionex_lonmin = 90;
-static double	ionex_latinc = 5;
-static double	ionex_loninc = 5;
-static int		ionex_latres = 15;
-static int		ionex_lonres = 19;
+static double	ionexLatmin = -55;
+static double	ionexLonmin = 90;
+static double	ionexLatinc = 5;
+static double	ionexLoninc = 5;
+static int		ionexLatres = 15;
+static int		ionexLonres = 19;
 
-int last_ionex = -1;
+static int lastIonex = -1;
 
 map<string, long> endLinePos;
 
@@ -43,21 +43,21 @@ double ionVtec(
 	}
 }
 
-bool writeIonexHead(
+void writeIonexHead(
 	Trace& ionex)
 {
 	ionexMapIndex = 1;
 
-	ionex_latinc = acsConfig.ionexGrid.lat_res;
-	ionex_loninc = acsConfig.ionexGrid.lon_res;
-	ionex_latres = floor(acsConfig.ionexGrid.lat_width / ionex_latinc) + 1;
-	ionex_lonres = floor(acsConfig.ionexGrid.lon_width / ionex_loninc) + 1;
-	ionex_latmin = acsConfig.ionexGrid.lat_centre - ionex_latinc * (ionex_latres - 1) / 2;
-	ionex_lonmin = acsConfig.ionexGrid.lon_centre - ionex_loninc * (ionex_lonres - 1) / 2;
+	ionexLatinc = acsConfig.ionexGrid.lat_res;
+	ionexLoninc = acsConfig.ionexGrid.lon_res;
+	ionexLatres = floor(acsConfig.ionexGrid.lat_width / ionexLatinc) + 1;
+	ionexLonres = floor(acsConfig.ionexGrid.lon_width / ionexLoninc) + 1;
+	ionexLatmin = acsConfig.ionexGrid.lat_centre - ionexLatinc * (ionexLatres - 1) / 2;
+	ionexLonmin = acsConfig.ionexGrid.lon_centre - ionexLoninc * (ionexLonres - 1) / 2;
 
 	if (acsConfig.ionModelOpts.layer_heights.empty())
 	{
-		return false;
+		return;
 	}
 
 	double hght1 = acsConfig.ionModelOpts.layer_heights.front()	/ 1000;
@@ -76,16 +76,14 @@ bool writeIonexHead(
 	tracepdeex(0, ionex, "%8.1f%52sBASE RADIUS\n", RE_WGS84 / 1000.0, " ");
 	tracepdeex(0, ionex, "%6d%54sMAP DIMENSION\n", acsConfig.ionModelOpts.layer_heights.size() > 1 ? 3 : 2, " ");
 	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sHGT1 / HGT2 / DHGT\n",			hght1,			hght2,			dhght, " ");
-	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sLAT1 / LAT2 / DLAT\n", ionex_latmin + ionex_latinc * (ionex_latres - 1), ionex_latmin, -ionex_latinc, " ");
-	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sLON1 / LON2 / DLON\n", ionex_lonmin, ionex_lonmin + ionex_loninc * (ionex_lonres - 1), ionex_loninc, " ");
+	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sLAT1 / LAT2 / DLAT\n", ionexLatmin + ionexLatinc * (ionexLatres - 1), ionexLatmin, -ionexLatinc, " ");
+	tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%40sLON1 / LON2 / DLON\n", ionexLonmin, ionexLonmin + ionexLoninc * (ionexLonres - 1), ionexLoninc, " ");
 	tracepdeex(0, ionex, "%6d%54sEXPONENT\n", IONEX_NEXP, "");
 	tracepdeex(0, ionex, "%-60s%s\n", acsConfig.rinex_comment.c_str(),												"COMMENT");
 	tracepdeex(0, ionex, "%60sEND OF HEADER\n\n", " ");
-
-	return true;
 }
 
-int writeIonexEpoch(
+void writeIonexEpoch(
 	Trace&		trace,
 	Trace&		ionex,
 	GTime		time,
@@ -94,13 +92,13 @@ int writeIonexEpoch(
 	GTow tow	= time;
 	int timeseg = floor(tow / acsConfig.ionexGrid.time_res);
 
-	if	(  last_ionex >= 0
-		&& last_ionex == timeseg)
+	if	(  lastIonex >= 0
+		&& lastIonex == timeseg)
 	{
-		return 0;
+		return;
 	}
 
-	last_ionex = timeseg;
+	lastIonex = timeseg;
 
 	GEpoch ep = time;
 	tracepdeex(4, trace, "  ..Writing IONEX epoch:%6.0f%6.0f%6.0f%6.0f%6.0f%6.0f \n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
@@ -111,26 +109,26 @@ int writeIonexEpoch(
 	vector<double> tecrmsList;
 
 	for (int ihgt = 0; ihgt < acsConfig.ionModelOpts.layer_heights.size();	ihgt++)
-	for (int ilat = 0; ilat < ionex_latres;									ilat++)
+	for (int ilat = 0; ilat < ionexLatres;									ilat++)
 	{
 		VectorPos ipp;
-		ipp[0] = ionex_latmin + (ionex_latres - ilat - 1) * ionex_latinc;
+		ipp[0] = ionexLatmin + (ionexLatres - ilat - 1) * ionexLatinc;
 
 		tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%6.1f%6.1f%28sLAT/LON1/LON2/DLON/H",
 				ipp[0],
-				ionex_lonmin,
-				ionex_lonmin + (ionex_lonres - 1) * ionex_loninc,
-				ionex_loninc,
+				ionexLonmin,
+				ionexLonmin + (ionexLonres - 1) * ionexLoninc,
+				ionexLoninc,
 				acsConfig.ionModelOpts.layer_heights[ihgt] / 1000, " ");
 
 		ipp[0] *= D2R;
 
-		for (int ilon = 0; ilon < ionex_lonres; ilon++)
+		for (int ilon = 0; ilon < ionexLonres; ilon++)
 		{
 			if (ilon % 16 == 0)
 				tracepdeex(0, ionex, "\n");
 
-			ipp[1] = (ionex_lonmin + ilon * ionex_loninc) * D2R;
+			ipp[1] = (ionexLonmin + ilon * ionexLoninc) * D2R;
 
 			double var = 0;
 			double iono = ionVtec(trace, time, ipp, ihgt, var, kfState) / pow(10, IONEX_NEXP);
@@ -175,16 +173,16 @@ int writeIonexEpoch(
 	auto it = tecrmsList.begin();
 
 	for (int ihgt = 0; ihgt < acsConfig.ionModelOpts.layer_heights.size();	ihgt++)
-	for (int ilat = 0; ilat < ionex_latres;									ilat++)
+	for (int ilat = 0; ilat < ionexLatres;									ilat++)
 	{
 		tracepdeex(0, ionex, "  %6.1f%6.1f%6.1f%6.1f%6.1f%28sLAT/LON1/LON2/DLON/H",
-				ionex_latmin + (ionex_latres - ilat - 1)	* ionex_latinc,
-				ionex_lonmin,
-				ionex_lonmin + (ionex_lonres - 1)			* ionex_loninc,
-				ionex_loninc,
+				ionexLatmin + (ionexLatres - ilat - 1)	* ionexLatinc,
+				ionexLonmin,
+				ionexLonmin + (ionexLonres - 1)			* ionexLoninc,
+				ionexLoninc,
 				acsConfig.ionModelOpts.layer_heights[ihgt] / 1000, "");
 
-		for (int ilon = 0; ilon < ionex_lonres; ilon++)
+		for (int ilon = 0; ilon < ionexLonres; ilon++)
 		{
 			if (ilon % 16 == 0)
 				tracepdeex(0, ionex, "\n");
@@ -200,26 +198,26 @@ int writeIonexEpoch(
 
 	tracepdeex(0, ionex, "%6d%54sEND OF RMS MAP\n", ionexMapIndex, "");
 
-	return ionexMapIndex++;
+	ionexMapIndex++;
 }
 
-bool ionexFileWrite(
+void ionexFileWrite(
 	Trace&		trace,
 	string		filename,
 	GTime		time,
 	KFState&	kfState)
 {
-	if (acsConfig.ionModelOpts.model == +E_IonoModel::NONE)		return false;
-	if (acsConfig.ionModelOpts.model == +E_IonoModel::MEAS_OUT)	return false;
-	if (acsConfig.ionModelOpts.layer_heights.size()	< 1) 		return false;
-	if (acsConfig.ionModelOpts.function_order		< 1) 		return false;
+	if (acsConfig.ionModelOpts.model == +E_IonoModel::NONE)		return;
+	if (acsConfig.ionModelOpts.model == +E_IonoModel::MEAS_OUT)	return;
+	if (acsConfig.ionModelOpts.layer_heights.size()	< 1) 		return;
+	if (acsConfig.ionModelOpts.function_order		< 1) 		return;
 
 	double sigma0 = 0;
 	KFKey std0Key;
 	std0Key.type	= KF::IONOSPHERIC;
 	std0Key.num		= 0;
-	if (kfState.getKFSigma(std0Key, sigma0) == false)			return false;
-	if (sigma0 > 1) 											return false;
+	if (kfState.getKFSigma(std0Key, sigma0) == false)			return;
+	if (sigma0 > 1) 											return;
 
 	std::ofstream ionex(filename, std::fstream::in | std::fstream::out);
 
@@ -241,7 +239,5 @@ bool ionexFileWrite(
 	endLinePos[filename] = ionex.tellp();
 
 	tracepdeex(0, ionex, "%60sEND OF FILE\n", " ");
-
-	return true;
 }
 

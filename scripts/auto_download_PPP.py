@@ -184,7 +184,7 @@ def generate_product_filename(
     file_ext: str,
     shift: int = 0,
     long_filename: bool = False,
-    AC: str = "IGS",
+    analysis_center: str = "IGS",
     timespan: timedelta = timedelta(days=1),
     solution_type: str = "ULT",
     sampling_rate: str = "15M",
@@ -204,10 +204,10 @@ def generate_product_filename(
 
     if long_filename:
         if content_type == None:
-            content_type = generate_content_type(file_ext, analysis_center=AC)
+            content_type = generate_content_type(file_ext, analysis_center=analysis_center)
         product_filename = (
             generate_long_filename(
-                analysis_center=AC,
+                analysis_center=analysis_center,
                 content_type=content_type,
                 format_type=file_ext,
                 start_epoch=reference_start,
@@ -224,7 +224,12 @@ def generate_product_filename(
             product_filename = f"igs{gps_date.yr[2:]}P{gps_date.gpswk}.snx.Z"
         else:
             hour = f"{reference_start.hour:02}"
-            product_filename = f"igu{gps_date.gpswkD}_{hour}.{file_ext}.Z"
+            prefix = "igs" if solution_type == "FIN" else "igr" if solution_type == "RAP" else "igu"
+            product_filename = (
+                f"{prefix}{gps_date.gpswkD}_{hour}.{file_ext}.Z"
+                if solution_type == "ULT"
+                else f"{prefix}{gps_date.gpswkD}.{file_ext}.Z"
+            )
     return product_filename, gps_date, reference_start
 
 
@@ -304,7 +309,7 @@ def download_product_from_cddis(
         reference_start,
         file_ext,
         long_filename=long_filename,
-        AC=analysis_center,
+        analysis_center=analysis_center,
         timespan=timespan,
         solution_type=solution_type,
         sampling_rate=sampling_rate,
@@ -324,7 +329,7 @@ def download_product_from_cddis(
                 file_ext,
                 shift=-6,
                 long_filename=long_filename,
-                AC=analysis_center,
+                analysis_center=analysis_center,
                 timespan=timespan,
                 solution_type=solution_type,
                 sampling_rate=sampling_rate,
@@ -350,19 +355,23 @@ def download_product_from_cddis(
                     file_ext,
                     shift=24,  # Shift at the start of the loop - speeds up total download time
                     long_filename=long_filename,
-                    AC=analysis_center,
+                    analysis_center=analysis_center,
                     timespan=timespan,
                     solution_type=solution_type,
                     sampling_rate=sampling_rate,
                     project=project_type,
                 )
-                download_file_from_cddis(
-                    filename=product_filename,
-                    ftp_folder=f"gnss/products/{gps_date.gpswk}",
-                    output_folder=download_dir,
-                    if_file_present=if_file_present,
-                    note_filetype=file_ext,
+                download_filepath = check_whether_to_download(
+                    filename=product_filename, download_dir=download_dir, if_file_present=if_file_present
                 )
+                if download_filepath:
+                    download_file_from_cddis(
+                        filename=product_filename,
+                        ftp_folder=f"gnss/products/{gps_date.gpswk}",
+                        output_folder=download_dir,
+                        if_file_present=if_file_present,
+                        note_filetype=file_ext,
+                    )
                 count += 1
                 remain = end_epoch - reference_start
 
@@ -876,7 +885,7 @@ def search_for_most_recent_file(
         reference_start=pointer_date.as_datetime,
         file_ext=file_type,
         long_filename=long_filename,
-        AC=analysis_center,
+        analysis_center=analysis_center,
         timespan=timespan,
         solution_type=solution_type,
         sampling_rate=sampling_rate,
@@ -896,7 +905,7 @@ def search_for_most_recent_file(
             reference_start=pointer_date.as_datetime,
             file_ext=file_type,
             long_filename=long_filename,
-            AC=analysis_center,
+            analysis_center=analysis_center,
             timespan=timespan,
             solution_type=solution_type,
             sampling_rate=sampling_rate,
@@ -1191,11 +1200,15 @@ def auto_download(
                 timespan=timedelta(days=1),
                 if_file_present=if_file_present,
             )
-        except FileNotFoundError:
-            logging.info(f"Received an error ({FileNotFoundError}) while try to download - date too recent.")
+        except ftplib.all_errors as e:
+            logging.info(f"Received an error ({e}) while try to download - date too recent.")
             logging.info(f"Downloading most recent SNX file available.")
             download_most_recent_cddis_file(
-                download_dir=target_dir, pointer_date=start_gpsdate, file_type="SNX", long_filename=long_filename
+                download_dir=target_dir,
+                pointer_date=start_gpsdate,
+                file_type="SNX",
+                long_filename=long_filename,
+                if_file_present=if_file_present,
             )
     if sp3:
         download_product_from_cddis(
@@ -1327,7 +1340,7 @@ def auto_download(
 @click.option("--model-dir", help="Directory to Download static model files. Default: product-dir / tables", type=Path)
 @click.option(
     "--solution-type",
-    help="The solution type of products to download from CDDIS. 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
+    help="The solution type of products to download from CDDIS. 'FIN': final, or 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
     default="RAP",
     type=str,
 )

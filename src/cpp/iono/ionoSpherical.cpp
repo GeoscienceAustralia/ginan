@@ -1,13 +1,13 @@
 
-#include "acceleration.hpp"
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "ionoModel.hpp"
-#include "ionModels.hpp"
-#include "planets.hpp"
-#include "common.hpp"
+#include "orbprop/acceleration.hpp"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/ionModels.hpp"
+#include "orbprop/planets.hpp"
+#include "common/common.hpp"
 
 
 Legendre ionLeg;

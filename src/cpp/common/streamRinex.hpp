@@ -1,10 +1,11 @@
 
 #pragma once
 
+#include "common/navigation.hpp"
 
-#include "streamObs.hpp"
+#include "common/streamObs.hpp"
 
-#include "rinex.hpp"
+#include "common/rinex.hpp"
 
 
 struct RinexParser : Parser, ObsLister
@@ -16,7 +17,7 @@ struct RinexParser : Parser, ObsLister
 	map<E_Sys, map<int, CodeType>>	sysCodeTypes;
 	ObsList							tempObsList;
 	RinexStation					rnxRec = {};
-	
+
 	void parse(
 		std::istream& inputStream)
 	{
@@ -38,7 +39,7 @@ struct RinexParser : Parser, ObsLister
 			obsListList.push_back(std::move(tempObsList));
 		}
 	}
-	
+
 	string parserType()
 	{
 		return "RinexParser";

@@ -8,8 +8,8 @@ inputs:
 
     satellite_data:
         sp3_files:
-        - gag20624.sp3
-        - igs20624.sp3
+        - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+        - TUG0R03FIN_20191990000_01D_05M_ORB.SP3
 
 outputs:
     outputs_root: ./outputs/compare_orbits
@@ -24,18 +24,22 @@ outputs:
 
 satellite_options:
     global:
-        mincon_scale_apriori_var:     0.01
-
+        exclude: true
+        mincon_scale_apriori_sigma:     1
+    GPS:
+        exclude: false
 
 processing_options:
     minimum_constraints:
 
         enable:                     true
-
-        translation:                { estimated: [true] }
-        rotation:                   { estimated: [true] }
-        # scale:                      { estimated: [true] }
-        delay:                      { estimated: [true] }
+        # once_per_epoch:             true
+        translation:                { estimated: [true], sigma: [10]}
+        rotation:                   { estimated: [true], sigma: [10]}
+        # translation_rate:           { estimated: [true], sigma: [100]}
+        # rotation_rate:              { estimated: [true], sigma: [100]}
+        # scale:                      { estimated: [true], sigma: [10]}
+        # delay:                      { estimated: [true], sigma: [10]}
 
         outlier_screening:
             chi_square:
@@ -44,8 +48,10 @@ processing_options:
             prefit:
                 max_iterations:     3                # Maximum number of measurements to exclude using prefit checks before attempting to filter
                 sigma_check:        true             # (bool)  Enable prefit sigma check
-                sigma_threshold:    3.0              # (float) sigma threshold
+                state_sigma_threshold:  3.0          # (float) sigma threshold for states
+                meas_sigma_threshold:   3.0          # (float) sigma threshold for measurements
             postfit:
                 max_iterations:     20               # Maximum number of measurements to exclude using postfit checks while iterating filter
                 sigma_check:        true             # (bool)  Enable postfit sigma check
-                sigma_threshold:    3.0              # (float) sigma threshold
+                state_sigma_threshold:  3.0          # (float) sigma threshold for states
+                meas_sigma_threshold:   3.0          # (float) sigma threshold for measurements

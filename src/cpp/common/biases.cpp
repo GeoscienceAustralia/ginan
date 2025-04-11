@@ -1,15 +1,22 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType BSX__()
+{
+
+}
+
 #include <functional>
 
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "biases.hpp"
-#include "enums.h"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/biases.hpp"
+#include "common/enums.h"
 
 
-array<map<string, map<E_ObsCode, map<E_ObsCode, map<GTime, BiasEntry, std::greater<GTime>>>>>, NUM_MEAS_TYPES> biasMaps;		///< Multi dimensional map, as biasMaps[measType][id][code1][code2][time]
+BiasMap biasMaps;		///< Multi dimensional map, as biasMaps[measType][id][code1][code2][time]
 
 
 /** Initialise satellite DSBs between default signals, e.g. P1-P2 DCBs, with 0 values
@@ -77,7 +84,7 @@ void addDefaultBias()
 	}
 }
 
-void loadStateBiases(
+void loadStateBiases(		//todo aaron this probably needs to be called to write biases from filter to files
 	KFState&	kfState)
 {
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
@@ -312,22 +319,95 @@ bool decomposeBGDBias(
 }
 
 
-void setRestrictiveStartTime(
-	GTime& current,
-	GTime& potential)
+BiasEntry interpolateBias(
+			GTime&		time,				///< Time of bias to interpolate
+	const	BiasEntry&	bias1,				///< First bias entry
+	const	BiasEntry&	bias2)				///< Second bias entry
 {
-	if (current > potential)
+	BiasEntry output = bias1;
+
+	double dt1	= (time - bias1.refTime).to_double();
+	double dt2	= (time - bias2.refTime).to_double();
+	double dT	= (bias2.refTime - bias1.refTime).to_double();
+
+	if	( time < bias2.tini		// bias1.tini < time < bias2.tini, do interpolation
+		&&output.slop == 0)		// calculate bias slope (as to interpolate linearly) if not available
+	{
+		double coeff1 = -dt2 / dT;
+		double coeff2 = -dt1 / dT;
+		output.bias = bias1.bias * coeff1 - bias2.bias * coeff2;
+		output.var	= bias1.var * SQR(coeff1) + bias2.var * SQR(coeff2);
+		output.tini	= bias1.refTime;
+		output.tfin	= bias2.refTime;
+	}
+	else						// otherwise use existing bias slope value (and tini and tfin) whether it is 0 or not
+	{
+		output.bias += output.slop * dt1;
+		output.var	= bias1.var + bias1.slpv * SQR(dt1);
+	}
+
+	return output;
+}
+
+bool calculateBias(
+			GTime&			time,				///< Time of bias to look up
+			BiasEntry&		output,				///< The bias entry retrieved
+	const	TimeBiasMap&	timeBiasMap)		///< Bias map for given measrement type, device & observation codes, as timeBiasMap[time]
+{
+	//find the last bias in that map that comes before the desired time
+	auto biasIt = timeBiasMap.lower_bound(time);
+	if (biasIt == timeBiasMap.end())
+	{
+		return false;
+	}
+
+	//a valid time entry was found, use it
+	auto& [dummy1, bias1] = *biasIt;
+
+	//get the first bias in that map that comes after the desired time, if no entry comes after, use the earlier one (same to bias1) for extrapolation purpose
+	if (biasIt != timeBiasMap.begin())
+	{
+		biasIt--;
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No suitable data for bias interpolation, extrapolated bias in use.";
+	}
+
+	auto& [dummy2, bias2] = *biasIt;
+
+	GTime tfin = bias2.tfin;
+	if (tfin == GTime::noTime())
+	{
+		tfin = bias2.tini + S_IN_DAY;
+	}
+
+	if (time <= tfin)	// Only calculate bias when requested epoch time is within the valid time period
+	{
+		output = interpolateBias(time, bias1, bias2);
+		return true;
+	}
+
+	return false;
+}
+
+void setRestrictiveStartTime(
+	GTime& current,				///< Current start time of bias
+	GTime& potential)			///< Potential start time of bias
+{
+	if (current < potential)
 	{
 		current = potential;
 	}
 }
 
 void setRestrictiveEndTime(
-	GTime& current,
-	GTime& potential)
+	GTime& current,				///< Current end time of bias
+	GTime& potential)			///< Potential end time of bias
 {
-	if	( current.bigTime == 0
-		||current < potential)
+	if	(  current == GTime::noTime()
+		||(current > potential
+		&& potential != GTime::noTime()))
 	{
 		current = potential;
 	}
@@ -341,10 +421,7 @@ bool biasRecurser(
 			BiasEntry&		output,				///< The bias entry retrieved
 	const	E_ObsCode&		obsCode1,			///< Base code of observation to find biases for
 	const	E_ObsCode&		obsCode2,			///< Secondary code of observation to find biases for
-	const	map<E_ObsCode,
-			map<E_ObsCode,
-			map<GTime,
-				BiasEntry, std::greater<GTime>>>>& obsObsBiasMap,	///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
+	const	ObsObsBiasMap&	obsObsBiasMap,		///< Bias map for given measrement type & device, as obsObsBiasMap[code1][code2][time]
 			set<E_ObsCode>&	checkedObscodes)	///< A list of all checked observation codes
 {
 	checkedObscodes.insert(obsCode1);
@@ -366,18 +443,9 @@ bool biasRecurser(
 
 		auto& [dummy, timeBiasMap] = *it2;
 
-
-		//find the last bias in that map that comes before the desired time
-		auto biasIt = timeBiasMap.lower_bound(time);
-		if (biasIt != timeBiasMap.end())
-		{
-			//a valid time entry was found, use it
-
-			auto& [dummy, bias] = *biasIt;
-
-			output = bias;
+		bool pass = calculateBias(time, output, timeBiasMap);
+		if (pass)
 			return true;
-		}
 	}
 
 	//we didnt find what we were looking for with this set of obscodes,
@@ -398,17 +466,13 @@ bool biasRecurser(
 
 		//a valid secondary path was found, now get the first half at the correct time
 
-		//find the last bias in that map that comes before the desired time
-		auto biasIt = primarySecondaryTimeBiasMap.lower_bound(time);
-		if (biasIt == primarySecondaryTimeBiasMap.end())
-		{
-			//a valid time entry was not found, try the next path
+		BiasEntry pathA;
+		pass = calculateBias(time, pathA, primarySecondaryTimeBiasMap);
+		if (pass == false)
 			continue;
-		}
 
-		//we've found both sides of the path, join them
-		auto& [dummy, pathA] = *biasIt;
 		output = pathA;
+
 		output.bias		+= pathB.bias;
 		output.var		+= pathB.var;
 		output.slop		+= pathB.slop;

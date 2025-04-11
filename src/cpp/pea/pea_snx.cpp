@@ -6,13 +6,16 @@
 
 using boost::algorithm::to_lower_copy;
 
-#include "eigenIncluder.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "sinex.hpp"
+#include "common/eigenIncluder.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/sinex.hpp"
+#include "slr/slr.hpp"
+#include "pea/peaCommitStrings.hpp"
 
 void getStationsFromSinex(
 	map<string, Receiver>&	receiverMap,
@@ -30,16 +33,16 @@ void sinexPostProcessing(
 	theSinex.acknowledgements.	clear();
 	theSinex.inputHistory.		clear();
 
-	sinex_check_add_ga_reference("PPP Solution", "2.1", false);
+	sinexCheckAddGaReference("PPP Solution", ginanCommitVersion(), false);
 
 	// add in the files used to create the solution
-	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, ubxinput,				"UBX");			}
-	for (auto& [id, rnxinput] : acsConfig.rnx_inputs)	{	sinex_add_files(acsConfig.analysis_agency, time, rnxinput,				"RINEX v3.x");	}
-														{	sinex_add_files(acsConfig.analysis_agency, time, acsConfig.sp3_files,	"SP3");			}
-														{	sinex_add_files(acsConfig.analysis_agency, time, acsConfig.snx_files,	"SINEX");		}
+	for (auto& [id, ubxinput] : acsConfig.ubx_inputs)	{	sinexAddFiles(acsConfig.analysis_agency, time, ubxinput,			"UBX");			}
+	for (auto& [id, rnxinput] : acsConfig.rnx_inputs)	{	sinexAddFiles(acsConfig.analysis_agency, time, rnxinput,			"RINEX v3.x");	}
+														{	sinexAddFiles(acsConfig.analysis_agency, time, acsConfig.sp3_files,	"SP3");			}
+														{	sinexAddFiles(acsConfig.analysis_agency, time, acsConfig.snx_files,	"SINEX");		}
 
 	// Add other statistics as they become available...
-	sinex_add_statistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
+	sinexAddStatistic("SAMPLING INTERVAL (SECONDS)", acsConfig.epoch_interval);
 
 	char obsCode	= 'P';	//GNSS measurements
 	char constCode	= ' ';
@@ -65,9 +68,15 @@ void sinexPostProcessing(
 }
 
 void sinexPerEpochPerStation(
+	Trace&		trace,
 	GTime		time,
 	Receiver&	rec)
 {
+	if (rec.id.empty())
+	{
+		return;
+	}
+
 	{
 		auto& solEpoch = theSinex.solEpochMap[rec.id];
 
@@ -85,24 +94,60 @@ void sinexPerEpochPerStation(
 	UYds yds = time;
 	UYds defaultStop(-1,-1,-1);
 
-	if 	(  time_compare(rec.snx.stop, yds)			>  0
-		&& time_compare(rec.snx.stop, defaultStop)	!= 0)
+	if 	(  rec.snx.stop	> yds
+		&& rec.snx.stop	> defaultStop)
 	{
 		//already have valid data
 		return;
 	}
 
-	auto result = getStnSnx(rec.id, time, rec.snx);
+	string snxId = rec.id;
+
+	if (cdpIdMap.find(rec.id) != cdpIdMap.end())
+	{
+		// need to use CDP ID for SLR stations if possible
+		int cdpId = cdpIdMap.at(rec.id);
+		assert(cdpId >= 1000);	// if fails, need to consider zero-padding in sinex files
+		snxId = std::to_string(cdpId);
+	}
+
+	rec.failureEccentricity = rec.antDelta.isZero();
 
 	auto& recOpts = acsConfig.getRecOpts(rec.id);
+	{
+		auto& eccModel = recOpts.eccentricityModel;
+		if (rec.antDelta	.isZero()	&& eccModel.enable)				{	rec.antDelta		= recOpts.eccentricityModel.eccentricity;					rec.failureEccentricity = false;	}
+		if (rec.antennaType	.empty())										rec.antennaType		= recOpts.antenna_type;
+		if (rec.receiverType.empty())										rec.receiverType	= recOpts.receiver_type;
+	}
 
-	if (rec.antDelta	.isZero())		rec.antDelta		= recOpts.eccentricityModel.eccentricity;
-	if (rec.antennaType	.empty())		rec.antennaType		= recOpts.antenna_type;
-	if (rec.receiverType.empty())		rec.receiverType	= recOpts.receiver_type;
+	string refSys = "UNE";
+	auto result = getRecSnx(snxId, time, rec.snx);
+	if (!result.failureSiteId)
+	{
+		if (rec.antDelta	.isZero()	&& rec.snx.ecc_ptr	!= nullptr)	{	rec.antDelta		= rec.snx.ecc_ptr->ecc;		refSys = rec.snx.ecc_ptr->rs;	rec.failureEccentricity = false;	}
+		if (rec.antennaType	.empty()	&& rec.snx.ant_ptr	!= nullptr)		rec.antennaType		= rec.snx.ant_ptr->type;
+		if (rec.receiverType.empty()	&& rec.snx.rec_ptr	!= nullptr)		rec.receiverType	= rec.snx.rec_ptr->type;
+	}
 
-	if (rec.antDelta	.isZero())		rec.antDelta		= rec.snx.ecc_ptr->ecc;
-	if (rec.antennaType	.empty())		rec.antennaType		= rec.snx.ant_ptr->type;
-	if (rec.receiverType.empty())		rec.receiverType	= rec.snx.rec_ptr->type;
+	if	( result.failureSiteId)
+	{
+		rec.failureSinex = true;
+	}
+
+	if	( result.failureEstimate
+		&&recOpts.apriori_pos.isZero())
+	{
+		rec.failureAprioriPos = true;
+	}
+
+	if	( refSys != "UNE")
+	{
+		rec.failureEccentricity = true;
+
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error: Receiver eccentricity referency system != UNE";	//todo aaron, this needs duplication elsewhere, rs unchecked
+	}
 
 	if (rec.receiverType.empty() == false)
 	{
@@ -121,8 +166,6 @@ void sinexPerEpochPerStation(
 		}
 	}
 
-	auto trace = getTraceFile(rec);
-
 	// Initialise the receiver antenna information
 	for (bool once : {1})
 	{
@@ -134,6 +177,8 @@ void sinexPerEpochPerStation(
 			trace
 			<< "Antenna name not specified"
 			<< rec.id << ": Antenna name not specified";
+
+			rec.failureAntenna = true;
 
 			break;
 		}
@@ -161,29 +206,10 @@ void sinexPerEpochPerStation(
 			rec.antennaId = tmpant;
 			break;
 		}
-		else
-		{
-			trace
-			<< "No information for antenna " << rec.antennaType;
 
-			break;
-		}
-	}
+		trace
+		<< "No information for antenna " << rec.antennaType;
 
-	if	( result.failureEstimate
-		&&recOpts.apriori_pos.isZero())
-	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Receiver " << rec.id << " position not found in sinex or yaml files";
-
-		return; // No current station position estimate!
-	}
-
-	if (result.failureSiteId)
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Receiver " << rec.id << " not found in sinex file";
-
-		return;
+		rec.failureAntenna = true;
 	}
 }

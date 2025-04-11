@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "streamSerial.hpp"
+#include "common/streamSerial.hpp"
 
 void SerialStream::openStream()
 {
@@ -12,6 +12,6 @@ void SerialStream::openStream()
 	
 	if (fileDescriptor < 0)
 	{
-		std::cout << std::endl << "Error opening " << path << " as SerialStream";
+		std::cout << "\n" << "Error opening " << path << " as SerialStream";
 	}
 }

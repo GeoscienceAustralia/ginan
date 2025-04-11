@@ -10,13 +10,13 @@
 using std::vector;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "acsConfig.hpp"
-#include "algebra.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
-#include "erp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/acsConfig.hpp"
+#include "common/algebra.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
+#include "common/erp.hpp"
 
 using namespace boost::numeric::odeint;
 
@@ -157,22 +157,7 @@ struct InertialIntegrator
 				MatrixXd&		dAdParam);
 };
 
-KFState getInertialsFromState(
-	Trace&			trace,
-	string			id,
-	const KFState&	kfState);
-
 void predictInertials(
-	Trace&			trace,
-	const KFState&	kfState,
-	GTime           time);
-
-Inertials prepareInertials(
-	Trace&			trace,
-	const KFState&	kfState);
-
-void integrateInertials(
-	InertialIntegrator&	inertialPropagator,
-	Inertials&			inertials,
-	double				integrationPeriod,
-	double 				dt);
+	Trace&		trace,
+	KFState&	kfState,
+	GTime		time);

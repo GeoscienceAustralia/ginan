@@ -6,14 +6,14 @@
 
 using std::lock_guard;
 
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "jpl_eph.hpp"
-#include "planets.hpp"
-#include "enums.h"
-#include "erp.hpp"
-#include "sofa.h"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "3rdparty/jpl/jpl_eph.hpp"
+#include "orbprop/planets.hpp"
+#include "common/enums.h"
+#include "common/erp.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 
 std::mutex jplEphMutex;
@@ -56,12 +56,12 @@ bool jplEphPos(
 				vel(2) = r_p[5] * AUPerDay;
 			}
 			return true;
-		case -1:		std::cout << "JPL_EPH_OUTSIDE_RANGE"				<< std::endl;	break;
-		case -2:		std::cout << "JPL_EPH_READ_ERROR"					<< std::endl;	break;
-		case -3:		std::cout << "JPL_EPH_QUANTITY_NOT_IN_EPHEMERIS"	<< std::endl;	break;
-		case -5:		std::cout << "JPL_EPH_INVALID_INDEX"				<< std::endl;	break;
-		case -6:		std::cout << "JPL_EPH_FSEEK_ERROR"					<< std::endl;	break;
-		default:		std::cout << "Result is out of Known Situation"		<< std::endl;	break;
+		case -1:		std::cout << "JPL_EPH_OUTSIDE_RANGE"				<< "\n";	break;
+		case -2:		std::cout << "JPL_EPH_READ_ERROR"					<< "\n";	break;
+		case -3:		std::cout << "JPL_EPH_QUANTITY_NOT_IN_EPHEMERIS"	<< "\n";	break;
+		case -5:		std::cout << "JPL_EPH_INVALID_INDEX"				<< "\n";	break;
+		case -6:		std::cout << "JPL_EPH_FSEEK_ERROR"					<< "\n";	break;
+		default:		std::cout << "Result is out of Known Situation"		<< "\n";	break;
 	}
 	
 	return false;

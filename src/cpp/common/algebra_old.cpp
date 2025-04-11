@@ -6,13 +6,12 @@
 using std::pair;
 
 
-#include "eigenIncluder.hpp"
-#include "algebraTrace.hpp"
-#include "testUtils.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "acsQC.hpp"
-#include "trace.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/acsQC.hpp"
+#include "common/trace.hpp"
 
 [[deprecated]]
 double *mat(int n, int m)
@@ -71,7 +70,7 @@ void matcpy(double *A, const double *B, int n, int m)
 {
 	memcpy(A,B,sizeof(double)*n*m);
 }
-#ifdef LAPACK 
+#ifdef LAPACK
 [[deprecated]]
 void matmul(const char *tr, int n, int k, int m, double alpha,
 				const double *A, const double *B, double beta, double *C)
@@ -200,8 +199,8 @@ int matinv(double *A, int n)
 	if (ludcmp(B,n,indx,&d)) {free(indx); free(B); return -1;}
 	for (j=0;j<n;j++)
 	{
-		for (i=0;i<n;i++) 
-			A[i+j*n]=0.0; 
+		for (i=0;i<n;i++)
+			A[i+j*n]=0.0;
 		A[j+j*n]=1.0;
 		lubksb(B,n,indx,A+j*n);
 	}
@@ -394,7 +393,7 @@ int chiqc(
 		126 ,127 ,128 ,129 ,131 ,132 ,133 ,134 ,135 ,137 ,
 		138 ,139 ,140 ,142 ,143 ,144 ,145 ,147 ,148 ,149
 	};
-	
+
 	if (ind == 0)
 	{
 		val = vtpv / (m - n);

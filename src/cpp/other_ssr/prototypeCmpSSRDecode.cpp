@@ -1,7 +1,7 @@
 
-#include "rtcmDecoder.hpp"
-#include "ionoModel.hpp"
-#include "otherSSR.hpp"
+#include "common/rtcmDecoder.hpp"
+#include "iono/ionoModel.hpp"
+#include "other_ssr/otherSSR.hpp"
 
 #define CMPSSRTRCLVL 2
 
@@ -184,7 +184,7 @@ void copySSRBlock (
 		{
 			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR ORBITS %s %s %4d  %2d %10.4f %10.4f %10.4f",
 						Sat.id().c_str(),
-						tEph.to_string(2).c_str(),
+						tEph.to_string().c_str(),
 						ssrBlock.ssrEph.iode,
 						ssrBlock.ssrEph.iod,
 						ssrBlock.ssrEph.deph[0],
@@ -211,7 +211,7 @@ void copySSRBlock (
 		{
 			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR CLOCKS %s %s       %2d %10.4f",
 							Sat.id().c_str(),
-							tClk.to_string(2).c_str(),
+							tClk.to_string().c_str(),
 							ssrBlock.ssrClk.iod,
 							ssrBlock.ssrClk.dclk[0]);
 
@@ -233,7 +233,7 @@ void copySSRBlock (
 		entry.tfin		= entry.tini + acsConfig.ssrInOpts.code_bias_valid_time;
 		entry.source	= "ssr";
 
-		tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR CODBIA %s %s: ", Sat.id().c_str(),entry.tini.to_string(2).c_str());
+		tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR CODBIA %s %s: ", Sat.id().c_str(),entry.tini.to_string().c_str());
 
 		for (auto& [code,biasSSR] : ssrBlock.ssrCodeBias.obsCodeBiasMap)
 		{
@@ -265,7 +265,7 @@ void copySSRBlock (
 		entry.tfin		= entry.tini + acsConfig.ssrInOpts.phase_bias_valid_time;
 		entry.source	= "ssr";
 
-		tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR PHSBIA %s %s: ", Sat.id().c_str(),entry.tini.to_string(2).c_str());
+		tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR PHSBIA %s %s: ", Sat.id().c_str(),entry.tini.to_string().c_str());
 
 		for(auto& [code,biasSSR] : ssrBlock.ssrPhasBias.obsCodeBiasMap)
 		{
@@ -294,7 +294,7 @@ void copySSRBlock (
 
 		tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR URA    %s %s  %.4f",
 			Sat.id().c_str(),
-			ssrBlock.ssrUra.t0.to_string(2).c_str(),
+			ssrBlock.ssrUra.t0.to_string().c_str(),
 			uraSsr[ssrBlock.ssrUra.ura] / 1000);
 
 		ssrBlock.uraUpdated = false;
@@ -346,7 +346,7 @@ void copySSRCorrections(
 				navAtm.tropData[tAtm] = regData.tropData[tAtm];
 				if (regInd == acsConfig.ssrOpts.region_id)
 				{
-																			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR TRP     %s  %.4f\n    Poly:",	tAtm.to_string(0).c_str(), regData.tropData[tAtm].sigma);
+																			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR TRP     %s  %.4f\n    Poly:",	tAtm.to_string().c_str(), regData.tropData[tAtm].sigma);
 					for (auto& [ind,val] : regData.tropData[tAtm].polyDry)	tracepdeex(CMPSSRTRCLVL+1,std::cout, " %.4f", val);
 																			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n    Grid:");
 					for (auto& [ind,val] : regData.tropData[tAtm].gridWet)	tracepdeex(CMPSSRTRCLVL+1,std::cout, " %.4f", val);
@@ -360,7 +360,7 @@ void copySSRCorrections(
 				navAtm.stecData[Sat][tAtm] = stecMap[tAtm];
 				if (regInd == acsConfig.ssrOpts.region_id)
 				{
-																			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR ION %s %s  %.4f\n    Poly:",Sat.id().c_str(), tAtm.to_string(0).c_str(), stecMap[tAtm].sigma);
+																			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n#CMP_SSR ION %s %s  %.4f\n    Poly:",Sat.id().c_str(), tAtm.to_string().c_str(), stecMap[tAtm].sigma);
 					for (auto& [ind,val] : stecMap[tAtm].poly)				tracepdeex(CMPSSRTRCLVL+1,std::cout, " %.4f", val);
 																			tracepdeex(CMPSSRTRCLVL+1,std::cout, "\n    Grid:");
 					for (auto& [ind,val] : stecMap[tAtm].grid)				tracepdeex(CMPSSRTRCLVL+1,std::cout, " %.4f", val);
@@ -655,7 +655,7 @@ int decodeSSR_mask(
 	}
 
 	tracepdeex(CMPSSRTRCLVL, std::cout, "\n#CMPSSR_MSK %s  iod: %2d  nsat: %2d  nsig: %2d ",
-					compactSsrMaskTime.to_string(0),
+					compactSsrMaskTime.to_string().c_str(),
 					compactSSRIod,
 					compactSsrSatelliteIndex[-1].size(),
 					compactSsrSignalIndex[-1].size());
@@ -713,7 +713,7 @@ int decodeSSR_orbit(
 		compactSsrStorage[-1][Sat].ephUpdated	= true;
 	}
 
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_ORB %s  iod: %2d  nsat: %2d           udi: %2d", ssrMeta.receivedTime.to_string(0), compactSSRIod, compactSsrSatelliteIndex[-1].size(), ssrEph.udi);
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_ORB %s  iod: %2d  nsat: %2d           udi: %2d", ssrMeta.receivedTime.to_string().c_str(), compactSSRIod, compactSsrSatelliteIndex[-1].size(), ssrEph.udi);
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-1);
@@ -766,7 +766,7 @@ int decodeSSR_clock(
 		compactSsrStorage[-1][Sat].clkUpdated	= true;
 	}
 
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_CLK %s  iod: %2d  nsat: %2d            udi: %2d", ssrMeta.receivedTime.to_string(0), compactSSRIod, compactSsrSatelliteIndex[-1].size(), ssrClk.udi);
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_CLK %s  iod: %2d  nsat: %2d            udi: %2d", ssrMeta.receivedTime.to_string().c_str(), compactSSRIod, compactSsrSatelliteIndex[-1].size(), ssrClk.udi);
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-1);
@@ -863,9 +863,9 @@ int decodeSSR_combined(
 	}
 
 	if (regionID == -1)
-		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_CMB %s %s %s global   , nsat:%d", ssrMeta.receivedTime.to_string(0), orbitAvailable?"orb":"   ", clockAvailable?"clk":"   ",           compactSsrSatelliteIndex[regionID].size());
+		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_CMB %s %s %s global   , nsat:%d", ssrMeta.receivedTime.to_string().c_str(), orbitAvailable?"orb":"   ", clockAvailable?"clk":"   ",           compactSsrSatelliteIndex[regionID].size());
 	else
-		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_CMB %s %s %s region %2d, nsat:%d",ssrMeta.receivedTime.to_string(0), orbitAvailable?"orb":"   ", clockAvailable?"clk":"   ", regionID, compactSsrSatelliteIndex[regionID].size());
+		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_CMB %s %s %s region %2d, nsat:%d",ssrMeta.receivedTime.to_string().c_str(), orbitAvailable?"orb":"   ", clockAvailable?"clk":"   ", regionID, compactSsrSatelliteIndex[regionID].size());
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(regionID);
@@ -921,7 +921,7 @@ int decodeSSR_code_bias(
 		auto& biasEntry = compactSsrStorage[-1][Sat].ssrCodeBias.obsCodeBiasMap[code];
 		biasEntry.bias	= decodeCmpSsrField (data,i,11,0.02,0);
 	}
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_COD %s iod: %2d udi: %2d nsig:%d", ssrMeta.receivedTime.to_string(0), compactSSRIod, ssrCodeBias.udi, compactSsrSignalIndex[-1].size());
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_COD %s iod: %2d udi: %2d nsig:%d", ssrMeta.receivedTime.to_string().c_str(), compactSSRIod, ssrCodeBias.udi, compactSsrSignalIndex[-1].size());
 
 	for (auto& [indx, Sat] : compactSsrSatelliteIndex[-1])
 		compactSsrStorage[-1][Sat].codeUpdated	= true;
@@ -991,7 +991,7 @@ int decodeSSR_phas_bias(
 	for (auto& [indx, Sat] : compactSsrSatelliteIndex[-1])
 		compactSsrStorage[-1][Sat].phaseUpdated	= true;
 
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_PHS %s  iod: %2d  nsig:%d  udi: %2d", ssrMeta.receivedTime.to_string(0), compactSSRIod, compactSsrSignalIndex[-1].size(), ssrPhasBias.udi);
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_PHS %s  iod: %2d  nsig:%d  udi: %2d", ssrMeta.receivedTime.to_string().c_str(), compactSSRIod, compactSsrSignalIndex[-1].size(), ssrPhasBias.udi);
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-1);
@@ -1115,9 +1115,9 @@ int decodeSSR_comb_bias(
 	}
 
 	if (regionID == -1)
-		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_BIA %s %s %s global   , nsig:%d", ssrMeta.receivedTime.to_string(0), code_Available?"cod":"   ", phaseAvailable?"phs":"   ",           compactSsrSignalIndex[regionID].size());
+		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_BIA %s %s %s global   , nsig:%d", ssrMeta.receivedTime.to_string().c_str(), code_Available?"cod":"   ", phaseAvailable?"phs":"   ",           compactSsrSignalIndex[regionID].size());
 	else
-		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_BIA %s %s %s region %2d, nsig:%d",ssrMeta.receivedTime.to_string(0), code_Available?"cod":"   ", phaseAvailable?"phs":"   ", regionID, compactSsrSignalIndex[regionID].size());
+		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_BIA %s %s %s region %2d, nsig:%d",ssrMeta.receivedTime.to_string().c_str(), code_Available?"cod":"   ", phaseAvailable?"phs":"   ", regionID, compactSsrSignalIndex[regionID].size());
 
 
 	for (auto& [indx, Sat] : compactSsrSatelliteIndex[regionID])
@@ -1177,7 +1177,7 @@ int decodeSSR_URA(
 		compactSsrStorage[-1][Sat].uraUpdated	= true;
 	}
 
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_URA %s  iod: %2d  nsat: %2d  udi: %2d", ssrMeta.receivedTime.to_string(0), compactSSRIod, compactSsrSatelliteIndex[-1].size(), ssrUra.udi);
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_URA %s  iod: %2d  nsat: %2d  udi: %2d", ssrMeta.receivedTime.to_string().c_str(), compactSSRIod, compactSsrSatelliteIndex[-1].size(), ssrUra.udi);
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-1);
@@ -1268,7 +1268,7 @@ int decodeSSR_slant_TEC(
 	}
 
 	ssrAtmUpdated = true;
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_TEC %s %d region %2d, nsat: %d",tAtm.to_string(0), STECType, regionID, compactSsrIonoIndex[regionID].size());
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_TEC %s %d region %2d, nsat: %d",tAtm.to_string().c_str(), STECType, regionID, compactSsrIonoIndex[regionID].size());
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-2);
@@ -1350,7 +1350,7 @@ int decodeSSR_grid_ATM(
 	}
 
 	ssrAtmUpdated = true;
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_GRD %s %d %d region %2d, nsig:%d", tAtm.to_string(0), tropType, STECtype, regionID, compactSsrIonoIndex[regionID].size());
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_GRD %s %d %d region %2d, nsig:%d", tAtm.to_string().c_str(), tropType, STECtype, regionID, compactSsrIonoIndex[regionID].size());
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-2);
@@ -1456,7 +1456,7 @@ int decodeSSR_comp_ATM(
 
 	if (stecType == 0)
 	{
-		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_ATM %s %s     region %2d, nsig:%d",ssrMeta.receivedTime.to_string(0), (tropType>0)?"trp":"   ", regionID, compactSsrSignalIndex[regionID].size());
+		tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_ATM %s %s     region %2d, nsig:%d",ssrMeta.receivedTime.to_string().c_str(), (tropType>0)?"trp":"   ", regionID, compactSsrSignalIndex[regionID].size());
 		if (ssrMeta.multipleMessage == 0)
 			copySSRCorrections(-2);
 		return i;
@@ -1540,7 +1540,7 @@ int decodeSSR_comp_ATM(
 	}
 
 	ssrAtmUpdated = true;
-	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_ATM %s %s ion region %2d, nsig:%d",ssrMeta.receivedTime.to_string(0), (tropType>0)?"trp":"   ", regionID, compactSsrSignalIndex[regionID].size());
+	tracepdeex(CMPSSRTRCLVL, std::cout,"\n#CMPSSR_ATM %s %s ion region %2d, nsig:%d",ssrMeta.receivedTime.to_string().c_str(), (tropType>0)?"trp":"   ", regionID, compactSsrSignalIndex[regionID].size());
 
 	if (ssrMeta.multipleMessage == 0)
 		copySSRCorrections(-2);

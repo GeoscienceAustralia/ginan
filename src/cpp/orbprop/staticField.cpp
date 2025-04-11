@@ -10,8 +10,8 @@ using std::vector;
 #include<boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "staticField.hpp"
-#include "gTime.hpp"
+#include "orbprop/staticField.hpp"
+#include "common/gTime.hpp"
 
 //todo aaron global
 StaticField egm;
@@ -32,7 +32,7 @@ void StaticField::read(
 	if (!infile)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "EGM file open error " << filename << std::endl;
+		<< "EGM file open error " << filename;
 
 		return;
 	}

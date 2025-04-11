@@ -1,10 +1,10 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "algebra.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "ppp.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "pea/ppp.hpp"
 
 #include <iostream>
 #include <random>
@@ -167,7 +167,7 @@ KFState walkthrough1()
 
 	for (int epoch = 1; epoch <= 2; epoch++)
 	{
-		std::cout << std::endl << "Begin Epoch " << epoch << std::endl;
+		std::cout << "\n" << "Begin Epoch " << epoch << "\n";
 		time += 60;
 
 		KFMeasEntryList kfMeasEntryList;
@@ -239,17 +239,17 @@ KFState walkthrough1()
 																						if (epoch == 1)	printWait(noteInit);
 																						if (epoch == 2)	printWait(noteProcNoise);
 
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);		//filterKalman requires a consolidated KFMeas input, rather than a list of individial KFMeasEntrys, create it here
+		KFMeas kfMeas(kfState, kfMeasEntryList, time);		//filterKalman requires a consolidated KFMeas input, rather than a list of individial KFMeasEntrys, create it here
 
 		if (1)
 		{
 			if (epoch == 1)
-				kfState.outputMeasurements(std::cout, combinedMeas);
+				kfState.outputMeasurements(std::cout, kfMeas);
 																						if (epoch == 1)	printWait(noteMeas);
 		}
 
 
-		kfState.filterKalman(std::cout, combinedMeas, true);		//perform the kalman filter operation (the true indicates this is an extended kalman filter using precalculated OMCs, this should generally be true in ginan)
+		kfState.filterKalman(std::cout, kfMeas, "", true);		//perform the kalman filter operation (the true indicates this is an extended kalman filter using precalculated OMCs, this should generally be true in ginan)
 																						if (epoch == 1)	printWait(noteResiduals);
 																						if (epoch == 2) printWait(noteReject);
 
@@ -332,10 +332,10 @@ void walkthrough2(
 		double actualVelocity	= v0
 								+ a		* t;
 
-		std::cout << std::endl << "\n\n\n\nEpoch "
+		std::cout << "\n" << "\n\n\n\nEpoch "
 		<< "\n t = " << t
 		<< "\n x = " << actualPosition
-		<< "\n v = " << actualVelocity << std::endl;
+		<< "\n v = " << actualVelocity << "\n";
 		time += dt;														//generally we wouldnt be iterating over t, dt like this, we would be given a time from some external observation source and we'd just use it
 
 		KFMeasEntryList kfMeasEntryList;
@@ -397,13 +397,13 @@ void walkthrough2(
 			kfState.outputStates(std::cout, " - POST SECOND STATE TRANSITION");
 
 
-		KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList, time);
+		KFMeas kfMeas(kfState, kfMeasEntryList, time);
 
 
 		if (1)
 		{
 			if (t == 0)
-				kfState.outputMeasurements(std::cout, combinedMeas);
+				kfState.outputMeasurements(std::cout, kfMeas);
 																						if (t == 0)	printWait(noteMeas2);
 
 
@@ -413,7 +413,7 @@ void walkthrough2(
 		}
 
 
-		kfState.filterKalman(std::cout, combinedMeas, true);
+		kfState.filterKalman(std::cout, kfMeas, "", true);
 
 
 		kfState.outputStates(std::cout, " - POST FILTER");

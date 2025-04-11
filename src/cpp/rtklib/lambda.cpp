@@ -15,9 +15,9 @@
 
 #include <math.h>
 
-#include "algebra.hpp"
-#include "common.hpp"
-#include "trace.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
 
 
 /* constants/macros ----------------------------------------------------------*/

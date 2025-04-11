@@ -1,9 +1,9 @@
 import plotly.graph_objs as go
-from flask import current_app, render_template, request
+from flask import current_app, render_template, request, session
 
 from backend.data.clocks import Clocks
 from backend.data.measurements import MeasurementArray
-from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data
+from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data, extract_database_series
 from . import eda_bp
 
 
@@ -27,7 +27,7 @@ def handle_post_request():
         "exclude": form_data.get("exclude"),
         "clockType": form_data.get("clockType")
     }
-    
+
     if form["exclude"] == "":
         form["exclude"] = 0
     else:
@@ -37,14 +37,15 @@ def handle_post_request():
         form["exclude_tail"] = 0
     else:
         form["exclude_tail"] = int(form["exclude_tail"])
-        
-    db_, series_ = form["series"].split("\\")
-    db_2, series_2 = form["series_base"].split("\\")
+    session['clocks'] = form
+    db_, series_ = extract_database_series(form["series"])
+    db_2, series_2 = extract_database_series(form["series_base"])
     if db_ != db_2:
         return render_template(
             "clocks.jinja",
             # content=client.mongo_content,
             extra=extra,
+            selection=session['clocks'] ,
             message="Error getting data: Can only compare series from the same database",
         )
     if form["clockType"] == "Satellite":
@@ -63,6 +64,7 @@ def handle_post_request():
         return render_template(
             "clocks.jinja",
             extra=extra,
+            selection=session['clocks'] ,
             message=f"Error getting data: {str(err)}",
         )
     data.find_minmax()
@@ -79,13 +81,14 @@ def handle_post_request():
     result.get_stats()
     table = {}
     for _clock in result:
+        smallLegend = [_clock.id[a] for a in _clock.id]
         trace.append(
             go.Scatter(
                 x=_clock.epoch[_clock.subset],
                 y=_clock.data["x"][_clock.subset],
                 mode="lines",
-                name=f"{_clock.id}",
-                hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>" + f"{_clock.id}",
+                name=f"{smallLegend}",
+                hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>" + f"{smallLegend}",
             )
         )
         current_app.logger.debug(_clock.info)
@@ -98,7 +101,7 @@ def handle_post_request():
         extra=extra,
         graphJSON=generate_fig(trace),
         mode="plotly",
-        selection=form,
+        selection=session['clocks'] ,
         table_data=table,
         table_headers=["RMS", "mean"],
         tableagg_data=table_agg,

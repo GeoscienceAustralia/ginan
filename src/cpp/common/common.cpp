@@ -5,8 +5,8 @@
 
 #include <stdexcept>
 
-#include "constants.hpp"
-#include "common.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
 
 const double ura_eph[] =	///< URA values (ref [3] 20.3.3.3.1.1)
 {

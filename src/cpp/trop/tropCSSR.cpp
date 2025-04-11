@@ -1,12 +1,12 @@
-#include "tropModels.hpp"
-#include "ionoModel.hpp"
-#include "acsConfig.hpp"
+#include "trop/tropModels.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
 
 #define ERR_SAAS	0.3			///< saastamoinen model error std (m)
 
 /** SSR Troposphere model
  * compute tropospheric delay using compact SSR contents
- * Neill Mapping functions ia used for mapping
+ * Neill Mapping functions is used for mapping
 * return : tropospheric delay (m)
 */
 double tropCSSR(

@@ -2,12 +2,12 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "customDecoder.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/customDecoder.hpp"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 
 map<string, map<GTime, Vector3d,	std::greater<GTime>>>	CustomDecoder::gyroDataMaps;
@@ -17,7 +17,7 @@ map<string, map<GTime, double,		std::greater<GTime>>>	CustomDecoder::tempDataMap
 void CustomDecoder::decodeRAWX(
 	vector<unsigned char>& payload)
 {
-// 	std::cout << "Recieved RAWX message" << std::endl;
+// 	std::cout << "Recieved RAWX message" << "\n";
 
 	double				rcvTow	= *((double*)				&payload[0]);
 	short unsigned	int	week	= *((short unsigned	int*)	&payload[8]);
@@ -29,7 +29,7 @@ void CustomDecoder::decodeRAWX(
 		return;
 	}
 
-// 	std::cout << std::endl << "Recieved RAWX message has " << numMeas << " measurements" << std::endl;
+// 	std::cout << "\n" << "Recieved RAWX message has " << numMeas << " measurements" << "\n";
 
 	map<SatSys, GObs> obsMap;
 
@@ -77,7 +77,7 @@ void CustomDecoder::decodeMEAS(
 
 	double timeOffset = ((signed int)(timeTag - lastTimeTag)) * 1e-3;
 
-// 	std::cout << std::endl << "Recieved MEAS message has " << numMeas << " measurements at " << timeOffset << std::endl;
+// 	std::cout << "\n" << "Recieved MEAS message has " << numMeas << " measurements at " << timeOffset << "\n";
 
 	for (int i = 0; i < numMeas; i++)
 	{
@@ -97,7 +97,7 @@ void CustomDecoder::decodeMEAS(
 		{
 			default:
 			{
-// 				std::cout << std::endl << measDataType._to_string();
+// 				std::cout << "\n" << measDataType._to_string();
 				break;
 			}
 			case E_MEASDataType::GYRO_X:
@@ -105,7 +105,7 @@ void CustomDecoder::decodeMEAS(
 			case E_MEASDataType::GYRO_Z:
 			{
 				double gyro = dataField * P2_12;
-// 				std::cout << std::endl << measDataType._to_string() << " : " << gyro;
+// 				std::cout << "\n" << measDataType._to_string() << " : " << gyro;
 
 				int index = 0;
 				if		(measDataType == +E_MEASDataType::GYRO_X)	index = 0;		//ubx indices are dumb and not ordered
@@ -121,7 +121,7 @@ void CustomDecoder::decodeMEAS(
 			case E_MEASDataType::ACCL_Z:
 			{
 				double accl = dataField * P2_10;
-// 				std::cout << std::endl << measDataType._to_string() << " : " << accl;
+// 				std::cout << "\n" << measDataType._to_string() << " : " << accl;
 
 				int index = 0;
 				if		(measDataType == +E_MEASDataType::ACCL_X)	index = 0;
@@ -135,7 +135,7 @@ void CustomDecoder::decodeMEAS(
 			case E_MEASDataType::GYRO_TEMP:
 			{
 				double temp = dataField * 1e-2;
-// 				std::cout << std::endl << measDataType._to_string() << " : " << temp;
+// 				std::cout << "\n" << measDataType._to_string() << " : " << temp;
 
 				tempDataMaps[recId][lastTime + timeOffset] = temp;
 
@@ -154,7 +154,7 @@ void CustomDecoder::decodeEphFrames(
 
 	if (pass)
 	{
-		std::cout << std::endl << "*";
+		std::cout << "\n" << "*";
 		eph.Sat		= Sat;
 		eph.type	= E_NavMsgType::LNAV;
 		nav.ephMap[eph.Sat][eph.type][eph.toe] = eph;
@@ -171,7 +171,7 @@ void CustomDecoder::decodeEphFrames(
 void CustomDecoder::decodeSFRBX(
 	vector<unsigned char>& payload)
 {
-// 	std::cout << "Recieved SFRBX message" << std::endl;
+// 	std::cout << "Recieved SFRBX message" << "\n";
 	if (payload.size() < 5)
 		return;
 

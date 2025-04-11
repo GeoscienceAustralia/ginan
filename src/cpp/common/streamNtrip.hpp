@@ -1,68 +1,64 @@
 
 #pragma once
 
-#include "streamSerial.hpp"
-#include "ntripSocket.hpp"
+#include "common/streamSerial.hpp"
+#include "common/tcpSocket.hpp"
 
 
 #include <mutex>
 
 
-
-struct NtripStream : NtripSocket, SerialStream
+struct NtripResponder : TcpSocket
 {
-
-private:
-
-	std::mutex				receivedDataBufferMtx;	//< This mutex ensures that the main thread and the io_service thread dont alter the receivedDataBuffer buffer at the same time.
-	vector<vector<char>>	chunkList;
-
-public:
-
-	NtripStream(
-		const string& url_str) :
-		NtripSocket(url_str)
+	NtripResponder(
+		const string& url_str)
+		:	TcpSocket(url_str)
 	{
-		std::stringstream	request_stream;
-							request_stream	<< "GET " 		<< url.path << " HTTP/1.1"				<< "\r\n";
-							request_stream	<< "Host: " 	<< url.host								<< "\r\n";
-							request_stream	<< "Ntrip-Version: Ntrip/2.0"							<< "\r\n";
-							request_stream	<< "User-Agent: NTRIP ACS/1.0"							<< "\r\n";
+
+	}
+
+	void requestResponseHandler(
+		const boost::system::error_code& err)
+	override;
+
+	virtual void serverResponse(
+		unsigned int	statusCode,
+		string			httpVersion)
+	{
+		std::cout << "Code Error: No server response defined" << std::endl;
+	};
+};
+
+
+struct NtripStream : NtripResponder
+{
+	NtripStream(
+		const string& url_str)
+		:	NtripResponder(url_str)
+	{
+		std::stringstream	requestStream;
+							requestStream	<< "GET " 		<< url.path << " HTTP/1.1"				<< "\r\n";
+							requestStream	<< "Host: " 	<< url.host								<< "\r\n";
+							requestStream	<< "Ntrip-Version: Ntrip/2.0"							<< "\r\n";
+							requestStream	<< "User-Agent: NTRIP ACS/1.0"							<< "\r\n";
 		if (!url.user.empty())
 		{
-							request_stream	<< "Authorization: Basic "
+							requestStream	<< "Authorization: Basic "
 											<< Base64::encode(string(url.user + ":" + url.pass))	<< "\r\n";
 		}
-							request_stream	<< "Connection: close"									<< "\r\n";
-							request_stream	<< "\r\n";
+							requestStream	<< "Connection: close"									<< "\r\n";
+							requestStream	<< "\r\n";
 
-		request_string = request_stream.str();
+		requestString = requestStream.str();
 
 		connect();
 	}
 
-	/** Retrieve data from the stream and store it for later removal
-	*/
-	void getData()
+	void serverResponse(
+		unsigned int	statusCode,
+		string			httpVersion)
 	override;
 
-	void connected()
-	override;
-
-	void dataChunkDownloaded(
-		vector<char>& dataChunk)
-	override;
-
-
-	/*
-	* Due to boost::asio::io_service::work being added to boost::asio::io_service
-	* io_service.run() blocks the thread in NtripStream::connect() and uses it in
-	* the background to perform ansyncronous operations until io_service.stop()
-	* is called at which time the thread exits.
-	* As it is detached there is no need for a join, there is one worker thread
-	* for all the NtripStream objects.
-	*/
-
-	virtual ~NtripStream() = default;
+	~NtripStream(){};
 };
 

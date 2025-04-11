@@ -7,7 +7,7 @@ import plotly.graph_objs as go
 from backend.dbconnector.mongo import MongoDB
 from backend.data.measurements import MeasurementArray, Measurements
 from backend.data.satellite import Satellite
-from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data
+from ..utilities import init_page, extra, generate_fig, aggregate_stats, get_data, extract_database_series
 from . import eda_bp
 
 
@@ -35,13 +35,13 @@ def handle_post_request():
         form["exclude_tail"] = 0
     else:
         form["exclude_tail"] = int(form["exclude_tail"])
-
+    session["orbits"] = form
     current_app.logger.info(
         f"GET {form['orbitType']}, {form['series']}, {form['sat']},exclude {form['exclude']} minutes"
     )
     data = MeasurementArray()
-    for db in form["series"]:
-        db_, series_ = db.split("\\")
+    for series in form["series"]:
+        db_, series_ = extract_database_series(series)
         with MongoDB(session["mongo_ip"], data_base=db_, port=session["mongo_port"]) as client:
             for sat in form["sat"]:
                 try:
@@ -61,12 +61,13 @@ def handle_post_request():
         for _data in meas.data:
             legend = meas.id
             legend["yaxis"] = _data
+            smallLegend = [legend[a] for a in legend]
             trace.append(
                 go.Scatter(
                     x=meas.epoch[meas.subset],
                     y=meas.data[_data][meas.subset],
                     mode=type,
-                    name=f"{legend}",
+                    name=f"{smallLegend}",
                     hovertemplate="%{x|%Y-%m-%d %H:%M:%S}<br>" + "%{y:.4e%}<br>",
                 )
             )
@@ -99,7 +100,7 @@ def handle_post_request():
         "orbits.jinja",
         graphJSON=generate_fig(trace),
         mode="plotly",
-        selection=form,
+        selection=session["orbits"],
         # content=client.mongo_content,
         extra=extra,
         table_data=table,

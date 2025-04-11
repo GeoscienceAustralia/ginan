@@ -3,22 +3,16 @@
 
 add_subdirectory(3rdparty/sofa)
 
-add_library(ginan_core
+add_executable(pea
 
-		common/acsConfig.hpp
+		../Architecture/Ginan.cpp
+
 		common/acsConfig.cpp
 		common/acsConfigDocs.cpp
 
-		3rdparty/enum.h
-		3rdparty/EigenDenseBaseAddons.h
-
 		3rdparty/jpl/jpl_eph.cpp
-		3rdparty/jpl/jpl_eph.hpp
-		3rdparty/jpl/jpl_int.hpp
 
 		3rdparty/egm96/EGM96.c
-		3rdparty/egm96/EGM96.h
-		3rdparty/egm96/EGM96_data.h
 
 		3rdparty/slr/read_crd.c
 
@@ -33,7 +27,12 @@ add_library(ginan_core
 		3rdparty/iers2010/hardisp/tdfrph.cpp
 		3rdparty/iers2010/dehanttideinel/dehanttide_all.cpp
 
+		3rdparty/nrlmsise/nrlmsise-00.cpp
+		3rdparty/nrlmsise/nrlmsise-00_data.cpp
+
 		pea/main.cpp
+		pea/inputs.cpp
+		pea/outputs.cpp
 		pea/minimumConstraints.cpp
 		pea/minimumConstraints.hpp
 		pea/peaCommitStrings.cpp
@@ -45,145 +44,85 @@ add_library(ginan_core
 		pea/ppp_callbacks.cpp
 		pea/ppp_pseudoobs.cpp
 		pea/ppp_slr.cpp
-		pea/ppp.hpp
 		pea/preprocessor.cpp
 		pea/spp.cpp
 
-		common/api.hpp
 		common/api.cpp
 		common/ntripBroadcast.cpp
-		common/ntripBroadcast.hpp
-		common/acsQC.hpp
 		common/acsQC.cpp
 		common/algebra.cpp
 		common/algebra_old.cpp
-		common/algebra.hpp
 		common/algebraTrace.cpp
-		common/algebraTrace.hpp
 		common/attitude.cpp
 		common/compare.cpp
-		common/compare.hpp
-		common/antenna.hpp
 		common/antenna.cpp
 		common/biases.cpp
 		common/biasSINEXread.cpp
 		common/biasSINEXwrite.cpp
-		common/binaryStore.cpp
-		common/binaryStore.hpp
-		common/common.hpp
 		common/common.cpp
-		common/constants.hpp
 		common/constants.cpp
 		common/customDecoder.cpp
-		common/cost.hpp
 		common/cost.cpp
 		common/debug.cpp
-		common/debug.hpp
-		common/eigenIncluder.hpp
 		common/ephemeris.cpp
 		common/ephemeris.hpp
 		common/ephBroadcast.cpp
 		common/ephKalman.cpp
 		common/ephPrecise.cpp
 		common/ephSSR.cpp
-		common/enums.h
 		common/erp.cpp
-		common/erp.hpp
 		common/fileLog.cpp
 		common/fileLog.hpp
 		common/gpx.cpp
-		common/gpx.hpp
+		common/pos.cpp
 		common/gTime.cpp
-		common/gTime.hpp
-		common/icdDecoder.hpp
-		common/instrument.cpp
-		common/instrument.hpp
+		common/interactiveTerminal.cpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
-		common/linearCombo.hpp
 		common/mongo.cpp
-		common/mongo.hpp
 		common/mongoRead.cpp
-		common/mongoRead.hpp
 		common/mongoWrite.cpp
-		common/mongoWrite.hpp
 
-		common/navigation.hpp
-		common/observations.hpp
-		common/ntripSocket.cpp
-		common/ntripSocket.hpp
 		common/ntripTrace.cpp
-		common/ntripTrace.hpp
 		common/orbits.cpp
-		common/orbits.hpp
-		common/packetStatistics.hpp
 		common/receiver.cpp
 		common/receiver.cpp
 		common/rinex.cpp
-		common/rinex.hpp
 		common/rtsSmoothing.cpp
 		common/rtcmDecoder.cpp
-		common/rtcmDecoder.hpp
 		common/rtcmEncoder.cpp
-		common/rtcmEncoder.hpp
 		common/rtcmTrace.cpp
-		common/rtcmTrace.hpp
-		common/satStat.hpp
 		common/summary.cpp
-		common/summary.hpp
 		common/satSys.cpp
-		common/satSys.hpp
-		common/sinex.hpp
 		common/sinex.cpp
 		common/sinexParser.cpp
-		common/sinexParser.hpp
 		common/tropSinex.cpp
 		common/sp3.cpp
 		common/sp3Write.cpp
-		common/sp3Write.hpp
 		common/orbex.cpp
-		common/orbexWrite.hpp
 		common/orbexWrite.cpp
-		common/ssr.hpp
+		common/tcpSocket.cpp
+		common/tcpSocket.cpp
 		common/trace.cpp
-		common/trace.hpp
 		common/testUtils.cpp
-		common/testUtils.hpp
 		common/rinexClkWrite.cpp
-		common/rinexClkWrite.hpp
 		common/rinexNavWrite.cpp
-		common/rinexNavWrite.hpp
 		common/rinexObsWrite.cpp
-		common/rinexObsWrite.hpp
 		common/tides.cpp
-		common/tides.hpp
 		common/ubxDecoder.cpp
-		common/ubxDecoder.hpp
 		common/walkthrough.cpp
 		common/localAtmosRegion.cpp
 
-		common/streamFile.hpp
 		common/streamNtrip.cpp
-		common/streamNtrip.hpp
 		common/streamCustom.cpp
-		common/streamCustom.hpp
-		common/streamObs.hpp
-		common/streamRinex.hpp
-		common/streamRtcm.hpp
 		common/streamSerial.cpp
-		common/streamSerial.hpp
-		common/streamSp3.hpp
 		common/streamUbx.cpp
-		common/streamUbx.hpp
 		common/streamParser.cpp
-		common/streamParser.hpp
 
-		iono/geomagField.hpp
 		iono/geomagField.cpp
 		iono/ionex.cpp
 		iono/ionoMeas.cpp
 		iono/ionoModel.cpp
-		iono/ionoModel.hpp
 		iono/ionoSpherical.cpp
 		iono/ionoSphericalCaps.cpp
 		iono/ionoBSplines.cpp
@@ -192,7 +131,6 @@ add_library(ginan_core
 
 		inertial/posProp.cpp
 
-		trop/tropModels.hpp
 		trop/tropModels.cpp
 		trop/tropSAAS.cpp
 		trop/tropSBAS.cpp
@@ -205,7 +143,6 @@ add_library(ginan_core
 
 		slr/slrCom.cpp
 		slr/slrObs.cpp
-		slr/slrSat.cpp
 		slr/slrRec.cpp
 
 		other_ssr/otherSSR.hpp
@@ -225,35 +162,23 @@ add_library(ginan_core
 		orbprop/staticField.cpp
 		orbprop/centerMassCorrections.cpp
 		orbprop/oceanPoleTide.cpp
+		orbprop/spaceWeather.cpp
 
 		rtklib/lambda.cpp
-		rtklib/lambda.h
 		rtklib/rtkcmn.cpp
+
+		sbas/sisnet.cpp
+		sbas/sbas.cpp
 )
 
-target_include_directories(ginan_core PUBLIC
-		3rdparty
-		3rdparty/egm96
-		3rdparty/iers2010
-		3rdparty/sofa/src
-		3rdparty/jpl
-		3rdparty/mqtt_cpp/
-		3rdparty/slr
+add_dependencies(pea updateGit)
+
+target_include_directories(pea PUBLIC
+
 
 		configurator
-
-		ambres
-		slr
-		common
-		iono
-		trop
-		inertial
-		orbprop
-		pea
-		peaUploader
-		rtklib
-		other_ssr
-
+		../Architecture/
+        ${CMAKE_CURRENT_SOURCE_DIR}
 		${EIGEN3_INCLUDE_DIRS}
 		${LAPACK_INCLUDE_DIRS}
 		${OPENBLAS_INCLUDE_DIRS}
@@ -269,13 +194,13 @@ target_include_directories(ginan_core PUBLIC
 		"/usr/local/lib"
 		)
 
-target_compile_options(ginan_core PRIVATE -fpie)
+target_compile_options(pea PRIVATE -fpie)
 
 if(OpenMP_CXX_FOUND)
-	target_link_libraries(ginan_core PUBLIC OpenMP::OpenMP_CXX)
+	target_link_libraries(pea PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-target_compile_definitions(ginan_core PRIVATE
+target_compile_definitions(pea PRIVATE
 							EIGEN_USE_BLAS=1
 						)
 
@@ -302,13 +227,12 @@ add_executable(interpolate_loading
 		)
 
 target_include_directories(otl PUBLIC
-		common
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${YAML_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
+        ${NETCDF_INCLUDES}
+        ${NETCDF_INCLUDES_CXX}
+        )
 
 target_include_directories(make_otl_blq PUBLIC
 		loading
@@ -358,13 +282,14 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 if(ENABLE_PARALLELISATION)
-	target_compile_definitions(ginan_core PRIVATE ENABLE_PARALLELISATION=1)
+	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
 endif()
 
 
-target_link_libraries(ginan_core PUBLIC
+target_link_libraries(pea PUBLIC
 						m
 						pthread
+						# openblasp
 						sofa_lib
 						${Boost_LIBRARIES}
 						${BLAS_LIBRARIES}
@@ -376,19 +301,10 @@ target_link_libraries(ginan_core PUBLIC
 						${OPENSSL_LIBRARY_DIRS}
 						${OPENSSL_LIBRARIES}
 						dl
+						ncurses
 					)
 
-
-add_executable(pea
-	pea.cpp)
-
 set_property(TARGET pea PROPERTY POSITION_INDEPENDENT_CODE FALSE)
-
-target_include_directories(pea PUBLIC
-	)
-
-target_link_libraries(pea PRIVATE ginan_core)
-
 
 add_custom_target(peas)
 
@@ -402,5 +318,3 @@ add_dependencies(peas
 					docs
 					)
 endif()
-
-

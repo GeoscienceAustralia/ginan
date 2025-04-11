@@ -1,16 +1,16 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "GNSSambres.hpp"
-#include "constants.hpp"
-#include "ionoModel.hpp"
-#include "biases.hpp"
-#include "ppp.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/constants.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/biases.hpp"
+#include "pea/ppp.hpp"
 
 map<KFKey, map<int, BiasEntry>> sinexBiases_out;
 long int	bottomOfFile = 0;
 double 		startTimeofFile[3];
-string		lastBiasSINEXFile = "";
+string		lastBiasSINEXFile;
 
 /** Convert enum observation code to code string
 */
@@ -95,7 +95,8 @@ void writeBSINEXHeader(
 	tracepdeex(0, trace, " BIAS_MODE                               ABSOLUTE\n");
 	tracepdeex(0, trace, " TIME_SYSTEM                             %s  \n", acsConfig.bias_time_system.c_str());
 
-	E_Sys refConst = acsConfig.receiver_reference_clk;
+	auto& recOpts = acsConfig.getRecOpts("global");
+	E_Sys refConst = recOpts.receiver_reference_system;
 	tracepdeex(0, trace, " RECEIVER_CLOCK_REFERENCE_GNSS           %c\n", refConst._to_string()[0]);
 
 	for (auto& [sys, solve] : acsConfig.solve_amb_for)
@@ -228,7 +229,7 @@ int addBiasEntry(
 		break;
 	}
 
-	tracepdeex(3,trace,"\n Searched %s bias for %s %2d %s:  ",(measType==CODE)?"CODE ":"PHASE", kfKey.Sat.id().c_str(), kfKey.num, tini.to_string(0).c_str());
+	tracepdeex(3,trace,"\n Searched %s bias for %s %2d %s:  ",(measType==CODE)?"CODE ":"PHASE", kfKey.Sat.id().c_str(), kfKey.num, tini.to_string().c_str());
 
 	if (found >= 0)
 	{
@@ -272,7 +273,7 @@ void updateBiasOutput(
 	GTime			time,			///< Time of bias update
 	KFState&		kfState,		///< Filter state to take biases from
 	KFState&		ionState,		///< Filter state to take biases from
-	ReceiverMap&	receiverMap,		///< stations for which to output receiver biases
+	ReceiverMap&	receiverMap,	///< Receivers for which to output biases
 	E_MeasType		measType)		///< Type of measurement to find bias for
 {
 	int nstore = 0;
@@ -354,13 +355,13 @@ void updateBiasOutput(
 */
 void writeBiasSinex(
 	Trace&			trace,			///< Trace to output to
+	string			biasfile,		///< File to write
 	GTime			time,			///< Time of bias to write
 	KFState&		kfState,		///< Filter state to take biases from
 	KFState&		ionState,		///< Filter state to take biases from
-	string			biasfile,		///< File to write
-	ReceiverMap&	receiverMap)		///< stations for which to output receiver biases
+	ReceiverMap&	receiverMap)	///< Receivers for which to output biases
 {
-	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string(0).c_str());
+	tracepdeex(3,trace,"Writing bias SINEX into: %s %s\n", biasfile.c_str(), time.to_string().c_str());
 
 	std::ofstream outputStream(biasfile, std::fstream::in | std::fstream::out);
 	if (!outputStream)
@@ -485,7 +486,7 @@ bool queryBiasOutput(
 	bias		= 0;
 	variance	= 0;
 
-	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string(0).c_str());
+	tracepdeex(3,trace,"\n Searching %s bias for %s %s %s:  ",(type==CODE)?"CODE ":"PHASE", Sat.id().c_str(), obsCode._to_string(), time.to_string().c_str());
 
 	bool found = false;
 

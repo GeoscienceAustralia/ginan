@@ -1,6 +1,14 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/**
+ */
+FileType ATX__()
+{
+
+}
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
@@ -8,14 +16,14 @@
 
 using std::ifstream;
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "antenna.hpp"
-#include "common.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/antenna.hpp"
+#include "common/common.hpp"
+#include "common/enums.h"
 
 
 map<E_FType, double> roughFrequency =
@@ -283,6 +291,13 @@ Vector3d antPco(
 
 	auto& [dummy3, pco] = *it3;
 
+	if	( pco.validUntil != GTime::noTime()
+		&&time > pco.validUntil)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys << " L" << foundTestFt << " at " << time;
+		return Vector3d::Zero();
+	}
+
 	var = 0;
 
 	if (radio == +E_Radio::TRANSMITTER)		return pco.satPco;
@@ -351,6 +366,13 @@ double antPcv(
 	}
 
 	auto& [dummy3, pcd] = *it3;
+
+	if	( pcd.validUntil != GTime::noTime()
+		&&time > pcd.validUntil)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
+		return 0;
+	}
 
 	auto& pcvMap1D = pcd.elMap;
 	auto& pcvMap2D = pcd.azElMap;
@@ -475,15 +497,17 @@ void readantexf(
 	string		filepath,
 	Navigation&	nav)
 {
-	bool	noazi_flag		= false;
-	int		num_azi_rd		= 0;
+	DOCS_REFERENCE(ATX__);
+
+	bool	noAziLineRead	= false;
+	int		numAziLinesRead	= 0;
 	int		irms			= 0;
 
 	ifstream fileStream(filepath);
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening antex file" << filepath << std::endl;
+		<< "Error opening antex file" << filepath << "\n";
 		return;
 	}
 
@@ -493,7 +517,8 @@ void readantexf(
 	VectorEnu				recPco;
 	Vector3d				satPco = Vector3d::Zero();
 	string					id;
-	GTime					time;
+	GTime					validFrom;
+	GTime					validUntil;
 
 	E_FType	ft	= FTYPE_NONE;
 	E_Sys	sys	= E_Sys::NONE;
@@ -523,12 +548,13 @@ void readantexf(
 
 		if (strstr(comment, "START OF ANTENNA"))
 		{
-			recPcv	= pcv0;
-			freqPcv	= pcv0;
-			recPco	= Vector3d::Zero();
-			satPco	= Vector3d::Zero();
-			id		= "";
-			time	= GTime::noTime();
+			recPcv		= pcv0;
+			freqPcv		= pcv0;
+			recPco		= Vector3d::Zero();
+			satPco		= Vector3d::Zero();
+			id			= "";
+			validFrom	= GTime::noTime();
+			validUntil	= GTime::noTime();
 
 			continue;
 		}
@@ -622,14 +648,16 @@ void readantexf(
 			strncpy(valid_from, buff, 43);	valid_from[43] = '\0';
 			char* p = strtok(valid_from, " ");
 			int j = 0;
+
+			GEpoch ep;
 			while (p != nullptr)
 			{
-				recPcv.tf[j] = (double) atoi(p);
+				ep[j] = (double) atoi(p);
 				p = strtok(nullptr, " ");
 				j++;
 			}
 
-			time = epoch2time(recPcv.tf);
+			validFrom = ep;
 
 			continue;
 		}
@@ -640,13 +668,19 @@ void readantexf(
 			char valid_until[44];
 			strncpy(valid_until, buff   ,43);	valid_until[43] = '\0';
 			char* p = strtok(valid_until, " ");
+
 			int j = 0;
+
+			GEpoch ep;
+
 			while (p != nullptr)
 			{
-				recPcv.tu[j] = (double) atoi(p);
+				ep[j] = (double) atoi(p);
 				p = strtok(nullptr, " ");
 				j++;
 			}
+
+			validUntil = ep;
 
 			continue;
 		}
@@ -672,8 +706,8 @@ void readantexf(
 
 		if (strstr(comment, "START OF FREQUENCY"))
 		{
-			num_azi_rd = 0;
-			noazi_flag = false;
+			numAziLinesRead	= 0;
+			noAziLineRead	= false;
 
 			string antexFCode;
 			antexFCode.assign(&buff[3], 3);
@@ -688,16 +722,22 @@ void readantexf(
 
 		if (strstr(comment, "END OF FREQUENCY"))
 		{
-			noazi_flag	= false;
+			noAziLineRead	= false;
 
-			nav.pcvMap[id][sys][ft][time]			= freqPcv;
-			nav.pcoMap[id][sys][ft][time].recPco	= recPco;
-			nav.pcoMap[id][sys][ft][time].satPco	= satPco;
+			auto& pcv = nav.pcvMap[id][sys][ft][validFrom];
+			auto& pco = nav.pcoMap[id][sys][ft][validFrom];
+
+			pcv			= freqPcv;
+			pco.recPco	= recPco;
+			pco.satPco	= satPco;
+
+			pcv.validUntil	= validUntil;
+			pco.validUntil	= validUntil;
 
 			if (id.size() <= 3) // filters out non-PRNS e.g. "3S-02-TSADM     NONE"
 			{
-				nav.svnMap[SatSys(id.c_str())][time]	= recPcv.svn;
-				nav.blocktypeMap[recPcv.svn]			= recPcv.type;
+				nav.svnMap[SatSys(id.c_str())][validFrom]	= recPcv.svn;
+				nav.blocktypeMap[recPcv.svn]				= recPcv.type;
 			}
 
 			continue;
@@ -709,34 +749,35 @@ void readantexf(
 		if	(  irms == 0
 			&& strstr(buff, "NOAZI"))
 		{
+			char tmp[10];
+
 			for (int i = 0; i < recPcv.nz; i++)
 			{
 				int offset = i * 8 + 8;
-				char tmp[10];
 				strncpy(tmp, buff + offset, 8);		tmp[8]='\0';
+
 				double pcv_val = atof(tmp);
 				freqPcv.elMap.push_back(pcv_val * 1e-3);
 			}
 
-			noazi_flag = true;
+			noAziLineRead = true;
 
 			continue;
 		}
 
 		if	(  irms == 0
-			&& noazi_flag)
+			&& noAziLineRead)
 		{
 			char tmp[10];
-			strncpy(tmp, buff, 8);			tmp[8]='\0';
 
 			for (int i = 0; i < recPcv.nz; i++)
 			{
 				int offset = i * 8 + 8;
 				strncpy(tmp, buff + offset, 8);		tmp[8]='\0';
 				double pcv_val = atof(tmp);
-				freqPcv.azElMap[num_azi_rd].push_back(pcv_val * 1e-3);
+				freqPcv.azElMap[numAziLinesRead].push_back(pcv_val * 1e-3);
 			}
-			num_azi_rd++;
+			numAziLinesRead++;
 
 			continue;
 		}

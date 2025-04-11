@@ -5,7 +5,7 @@
 
 using std::ifstream;
 
-#include "tropModels.hpp"
+#include "trop/tropModels.hpp"
 
 /** vmf3 grid file contents
  */
@@ -54,9 +54,12 @@ struct Vmf3GridPoint
 struct Vmf3 : map<GTime, map<double, map<double, Vmf3GridPoint>>>	/* VMF gridmap [time][lat][lon] plus orography vector */
 {
 	vector<double>	orography;
+
+	int gridLength		= 0;
+	int orographyLength	= 0;
 };
 
-Vmf3 globalVMF3Struct;						///< vmf3 grid info
+Vmf3 globalVMF3;						///< vmf3 grid info
 
 const double anm_bh[91][5] =
 {
@@ -819,13 +822,13 @@ const double bnm_cw[91][5]=
 void readorog(
 	string			filepath)		///< filename
 {
-	globalVMF3Struct.orography.clear();
+	globalVMF3.orography.clear();
 
 	ifstream filestream(filepath);
 	if (!filestream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening orography file" << filepath << std::endl;
+		<< "Error opening orography file" << filepath << "\n";
 		return;
 	}
 
@@ -842,8 +845,17 @@ void readorog(
 
 		if (found)
 		{
-			globalVMF3Struct.orography.push_back(val);
+			globalVMF3.orography.push_back(val);
 		}
+	}
+
+	globalVMF3.orographyLength = globalVMF3.orography.size();
+
+	if	( globalVMF3.gridLength != 0
+		&&globalVMF3.gridLength != globalVMF3.orographyLength)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error: Orography and VMF3 file grid dimensions do not match";
 	}
 }
 
@@ -856,7 +868,7 @@ void readvmf3(
 	if (!filestream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening vmf3 file" << filepath << std::endl;
+		<< "Error opening vmf3 file" << filepath << "\n";
 		return;
 	}
 
@@ -876,7 +888,6 @@ void readvmf3(
 
 		char* buff = &line[0];
 
-		/* ignore the first line */
 		if (strchr(buff, '!'))
 		{
 			GEpoch epoch;
@@ -917,8 +928,17 @@ void readvmf3(
 
 		if (found == 6)
 		{
-			globalVMF3Struct[time][gridPoint.lat][gridPoint.lon] = gridPoint;
+			globalVMF3[time][gridPoint.lat][gridPoint.lon] = gridPoint;
 		}
+	}
+
+	globalVMF3.gridLength = index;
+
+	if	( globalVMF3.orographyLength != 0
+		&&globalVMF3.orographyLength != globalVMF3.gridLength)
+	{
+		BOOST_LOG_TRIVIAL(error)
+		<< "Error: Orography and VMF3 file grid dimensions do not match";
 	}
 }
 
@@ -1028,10 +1048,27 @@ void legenpoly(
 	double ah = vmf3GP.ah;
 	double aw = vmf3GP.aw;
 
-	vmf3GP.mfh = (1 + (ah / (1 + bh / (1 + ch)))) / (sin(el) + (ah / (sin(el) + bh / (sin(el) + ch))));
-	vmf3GP.mfw = (1 + (aw / (1 + bw / (1 + cw)))) / (sin(el) + (aw / (sin(el) + bw / (sin(el) + cw))));
+	double sinel = sin(el);
 
-	double h1 = 1 / sin(el) - (1 + (a1 / (1 + b1 / (1 + c1)))) / (sin(el) + (a1 / (sin(el) + b1 / (sin(el) + c1))));
+	auto continuedFrac = [&](double a, double b, double c)
+	{
+		double answer	=  (1	+ a
+								/ (1	+ b
+										/ (1 + c)))
+
+						/ (sinel	+ a
+									/ (sinel	+ b
+												/ (sinel + c)));
+
+		return answer;
+	};
+
+	vmf3GP.mfh	= continuedFrac(ah, bh, ch);
+	vmf3GP.mfw	= continuedFrac(aw, bw, cw);
+
+	double h1	= 1 / sinel
+				- continuedFrac(a1, b1, c1);
+
 	vmf3GP.mfh += h1 * hgt / 1000;
 }
 
@@ -1085,7 +1122,7 @@ double tropVMF3(
 	double& 	var)
 {
 	var = -1;
-	if (globalVMF3Struct.empty())
+	if (globalVMF3.empty())
 	{
 		return 0;
 	}
@@ -1097,8 +1134,14 @@ double tropVMF3(
 	if (lond < 0)
 		lond += 360;
 
+	if (el < 0)
+	{
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": el < 0, setting it to 1e-6";
+		el = 1e-6;
+	}
+
 	vector<double> fractionsa;
-	auto a = getStraddle(globalVMF3Struct, time, fractionsa);
+	auto a = getStraddle(globalVMF3, time, fractionsa);
 
 	Vmf3GridPoint timePoint;
 	for (int i = 0; i < 2; i++)
@@ -1119,7 +1162,7 @@ double tropVMF3(
 			{
 				Vmf3GridPoint vmf3GP = *c[i];
 				{
-					vmf3GP.orog = globalVMF3Struct.orography[vmf3GP.index];
+					vmf3GP.orog = globalVMF3.orography[vmf3GP.index];
 				}
 
 				lonPoint += vmf3GP * fractionsc[i];
@@ -1132,10 +1175,17 @@ double tropVMF3(
 	Vmf3GridPoint& vmf3GP = timePoint;
 	{
 		/* (a) zhd */
-		double thingA = (vmf3GP.zhd / 0.0022768) * (1 - 0.00266 * cos(2 * pos.lat()) - 0.28 * 1e-6 * vmf3GP.orog);
-		double thingB = pow((1 - 0.0000226 * (hgt - vmf3GP.orog)), 5.225);
 
-		vmf3GP.zhd = 0.0022768 * thingA * thingB / (1 - 0.00266 * cos(2 * pos.lat()) - 0.28 * 1e-6 * hgt);
+		// const double REFRACTIVITY = 0.0022768;	//cancelled
+
+		const double LAPSE_RATE = 0.0000226;
+
+		double lapseRateDelta = pow((1 - LAPSE_RATE * (hgt - vmf3GP.orog)), 5.225);
+
+		auto davisDelayDenom = [&](double height) { return 1 - 0.00266 * cos(2 * pos.lat()) - 0.28 * 1e-6 * height;	};
+
+		vmf3GP.zhd = lapseRateDelta * vmf3GP.zhd	* davisDelayDenom(vmf3GP.orog)
+													/ davisDelayDenom(hgt);
 
 		/* (b) zwd */
 		double scaler = exp(-(hgt - vmf3GP.orog) / 2000);
@@ -1144,7 +1194,7 @@ double tropVMF3(
 		UYds yds = time;
 
 		double doy	= yds.doy
-					+ yds.sod / 86400.0;
+					+ yds.sod / S_IN_DAY;
 
 		/* legendre polynomials */
 		legenpoly(vmf3GP, doy, el, hgt);

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
@@ -13,24 +13,27 @@
 #include <tuple>
 #include <map>
 
+using boost::algorithm::to_upper;
 using boost::algorithm::to_lower;
+using std::recursive_mutex;
 using std::lock_guard;
 using std::string;
 using std::vector;
-using std::mutex;
 using std::tuple;
 using std::hash;
 using std::pair;
 using std::map;
 
-#include "acsConfig.hpp"
-#include "satSys.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
+#include "common/acsConfig.hpp"
+#include "common/satSys.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
 
 
 //forward declaration
+struct KFMeasEntryList;
 struct Receiver;
+struct KFState;
 
 /** Keys used to interface with Kalman filter objects.
 * These have parameters to separate states of different 'type', for different 'Sat's, with different receiver id 'str's and may have a different 'num' (eg xyz->0,1,2)
@@ -39,16 +42,21 @@ struct Receiver;
 */
 struct KFKey
 {
-	short int	type	= 0;			///< Key type (From enum)
-	SatSys		Sat		= {};			///< Satellite
-	string		str		= "";			///< String (receiver ID)
-	int 		num		= 0;			///< Subkey number (eg xyz => 0,1,2)
-	string		comment	= "";			///< Optional comment
-	Receiver*	rec_ptr	= 0;			///< Pointer to station object for dereferencing
+	short int		type	= 0;			///< Key type (From enum)
+	SatSys			Sat		= {};			///< Satellite
+	string			str;					///< String (receiver ID)
+	int 			num		= 0;			///< Subkey number (eg xyz => 0,1,2)
+	string			comment;				///< Optional comment
+	Receiver*		rec_ptr	= 0;			///< Pointer to station object for dereferencing
 
+	mutable	GTime	estimatedTime;
+
+	bool operator !=	(const KFKey& b) const;
 	bool operator ==	(const KFKey& b) const;
 	bool operator <		(const KFKey& b) const;
 
+	/** Create a string with the same spacing as ordinary outputs
+	 */
 	static string emptyString()
 	{
 		KFKey key;
@@ -76,7 +84,7 @@ struct KFKey
 		char buff[100];
 		snprintf(buff, sizeof(buff), "%s,%s,%s,%d", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), num);
 		string str = buff;
-		to_lower(str);
+		to_upper(str);
 
 		return str;
 	}
@@ -101,41 +109,23 @@ struct KFKey
 
 };
 
-namespace std
-{
-	template<> struct hash<KFKey>
-	{
-		size_t operator()(KFKey const& key) const
-		{
-			//create hashes of all parts and XOR them to get a complete hash
-
-			size_t hashval	= hash<string>	{}(key.str)		<< 0
-							^ hash<size_t>	{}(key.Sat) 	<< 1
-							^ hash<int>		{}(key.type) 	<< 2
-							^ hash<short>   {}(key.num) 	<< 3;
-			return hashval;
-		}
-	};
-}
-
 struct FilterChunk
 {
+	string	id;
 	Trace*	trace_ptr = nullptr;
 	int		begX		=  0;
-	int		numX		= -1;
+	int		numX		=  0;
 	int		begH		=  0;
 	int		numH		= -1;
-};
 
-/** Minimum viable kfState element object.
-* Used in binary io to save space, and where other functions are not required.
-*/
-struct SubState
-{
-	KFKey				kfKey;		///< Key for this state
-	double				x;			///< Value for this state
+	template<class ARCHIVE>
+	void serialize(ARCHIVE& ar, const unsigned int& version)
+	{
+		ar & id;
+		ar & begX;
+		ar & numX;
+	}
 };
-
 
 struct ComponentsDetails
 {
@@ -169,36 +159,67 @@ struct KFMeas
 	VectorXd	Y;							///< Value of the observations (for linear systems)
 	VectorXd	V;							///< Prefit Residual of the observations (for non-linear systems)
 	VectorXd	VV;							///< Postfit Residual of the observations (for non-linear systems)
-	MatrixXd	R;							///< Measurement noise for these observations
 	VectorXd	W;							///< Weight (inverse of noise) used in least squares
+	MatrixXd	R;							///< Measurement noise for these observations
 	MatrixXd	H;							///< Design matrix between measurements and state
 	MatrixXd	H_star;						///< Design matrix between measurements and noise states
+	VectorXd	uncorrelatedNoise;			///< Uncorellated noise for measurements
 
-	vector<KFKey>									obsKeys;					///< Optional labels for reporting when measurements are removed etc.
+	map<KFKey, int>									noiseIndexMap;		///< Map from key to indexes of parameters in the noise vector
+	vector<KFKey>									obsKeys;			///< Vector of optional labels for reporting when measurements are removed etc.
 	vector<map<string, void*>>						metaDataMaps;
 	vector<map<E_Component, ComponentsDetails>>		componentsMaps;
 
-	void removeMeas(int index)
+	KFMeas()
 	{
-		vector<int> keepIndices;
 
-		for (int i = 0; i < Y.rows(); i++)
+	};
+
+	KFMeas(
+		KFMeas&							kfMeas,			///< Measurement to form linear combination from
+		vector<Triplet<double>>&&		triplets,		///< Linear combination triplets
+		vector<KFKey>&&					obsKeys,		///< New obs key vector
+		vector<map<string, void*>>&&	metaDataMaps)	///< Optional new metadata vector
+	:	obsKeys			{obsKeys},
+		metaDataMaps	{metaDataMaps}
+	{
+		auto F = SparseMatrix<double>(obsKeys.size(), kfMeas.obsKeys.size());
+
+		F.setFromTriplets(triplets.begin(), triplets.end());
+
+		time				= 		kfMeas.time;
+//		Y					= F *	kfMeas.Y;
+		V					= F *	kfMeas.V;
+		VV					= V;
+//		W					= F *	kfMeas.W;
+		R					= F *	kfMeas.R * F.transpose();
+		H					= F *	kfMeas.H;
+		H_star				= F *	kfMeas.H_star;
+		uncorrelatedNoise	= 		kfMeas.uncorrelatedNoise;
+
+		componentsMaps.resize(obsKeys.size());
+		for (auto& triplet : triplets)
 		{
-			if (i != index)
+			auto newIndex	= triplet.row();
+			auto oldIndex	= triplet.col();
+			double scalar	= triplet.value();
+
+			for (auto& [component, details] : kfMeas.componentsMaps[oldIndex])
 			{
-				keepIndices.push_back(i);
+				componentsMaps[newIndex][component] += details * scalar;
 			}
 		}
-
-		obsKeys.erase(obsKeys.begin() + index);
-
-		Y		= ( Y		(keepIndices)				).eval();
-		V		= ( V		(keepIndices)				).eval();
-		VV		= ( VV		(keepIndices)				).eval();
-		R		= ( R		(keepIndices, keepIndices)	).eval();
-		H		= ( H		(keepIndices, all)			).eval();
-		H_star	= ( H_star	(keepIndices, all)			).eval();
 	}
+
+	KFMeas(
+		KFState&			kfState,
+		KFMeasEntryList&	kfEntryList,
+		GTime				measTime = GTime::noTime(),
+		MatrixXd*			noiseMatrix_ptr = nullptr);
+
+	int		getNoiseIndex(
+		const	KFKey&		key)
+	const;
 
 	template<class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int& version)
@@ -255,12 +276,15 @@ struct KFMeas
 */
 struct InitialState
 {
-	double	estimate	= false;
-	double	x			= 0;	///< State value
-	double	P			= -1;	///< State Covariance
-	double	Q			= 0;	///< Process Noise, -ve indicates infinite (throw away state)
-	double	tau			= -1;	///< Correlation Time, default to -1 (inf) (Random Walk)
-	double	mu			= 0;	///< Desired Mean Value
+	bool	estimate			= false;
+	bool	use_remote_sigma	= false;
+	double	x					= 0;	///< State value
+	double	P					= -1;	///< State Covariance
+	double	sigmaMax			= 0;	///< Sigma limit
+	double	outageLimit			= 0;	///< Maxiumum time without state estimation
+	double	Q					= 0;	///< Process Noise, -ve indicates infinite (throw away state)
+	double	tau					= -1;	///< Correlation Time, default to -1 (inf) (Random Walk)
+	double	mu					= 0;	///< Desired Mean Value
 	string	comment;
 };
 
@@ -290,8 +314,32 @@ struct KFMeasEntryList : vector<KFMeasEntry>
 
 };
 
-typedef bool (*StateRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, const	KFKey&	key,	bool postFit);
-typedef bool (*MeasRejectCallback)	(Trace& trace, KFState& kfState, KFMeas& meas, 			int		index,	bool postFit);
+struct RejectCallbackDetails
+{
+	Trace&		trace;			///< Trace to output to
+	KFState&	kfState;
+	KFMeas&		kfMeas;			///< Measurements, noise, and design matrix
+
+	RejectCallbackDetails(
+		Trace&		trace,
+		KFState&	kfState,
+		KFMeas&		kfMeas)
+	:	trace		{trace},
+		kfState		{kfState},
+		kfMeas		{kfMeas}
+	{
+
+	}
+
+	KFKey		kfKey;						///< Key to the state that has worst ratio (only if worse than badMeasIndex)
+	int			measIndex	= -1;			///< Index of the measurement that has the worst ratio
+	bool		postFit		= false;
+	double		scalar		= 0;
+};
+
+
+typedef bool (*StateRejectCallback)	(RejectCallbackDetails rejectCallbackDetails);
+typedef bool (*MeasRejectCallback)	(RejectCallbackDetails rejectCallbackDetails);
 
 struct Exponential
 {
@@ -312,22 +360,26 @@ struct KFState_ : FilterOptions
 	GTime		time = {};
 	VectorXd	x;										///< State
 	MatrixXd	P;										///< State Covariance
-	MatrixXd	Pp;										///< State Covariance update
 	VectorXd	dx;										///< Last filter update
 
-	map<KFKey, short int>								kfIndexMap;			///< Map from key to indexes of parameters in the state vector
-	map<KFKey, short int>								noiseIndexMap;		///< Map from key to indexes of parameters in the noise vector
+	map<KFKey, int>										kfIndexMap;			///< Map from key to indexes of parameters in the state vector
 
 	map<KFKey, map<KFKey, map<int, double>>>			stateTransitionMap;
 	map<KFKey, double>									gaussMarkovTauMap;
 	map<KFKey, double>									gaussMarkovMuMap;
 	map<KFKey, double>									procNoiseMap;
 	map<KFKey, double>									initNoiseMap;
-	map<KFKey, double>									noiseElementMap;
+	map<KFKey, double>									sigmaMaxMap;
+	map<KFKey, double>									outageLimitMap;
 	map<KFKey, Exponential>								exponentialNoiseMap;
+
+	map<KFKey, map<KFKey, double>>						pseudoStateMap;			///< Map of pseudo states, and a further map of their coefficients
+	map<KFKey, KFKey>									pseudoParentMap;		///< Map from ordinary states to their combined pseudo state parent.
 
 	vector<StateRejectCallback> 						stateRejectCallbacks;
 	vector<MeasRejectCallback> 							measRejectCallbacks;
+
+	map<string, FilterChunk>							filterChunkMap;
 
 	map<string, string>									metaDataMap;
 
@@ -337,24 +389,25 @@ struct KFState_ : FilterOptions
 
 	string		id						= "KFState";
 
-	string		suffix					= "";
-
 	string		rts_basename			= "";
-	int			rts_lag					= 0;
 
 	bool		output_residuals		= false;
 	bool		outputMongoMeasurements	= false;
+
+	KFState*	alternate_ptr			= nullptr;
 
 	map<string, int>	statisticsMap;
 	map<string, int>	statisticsMapSum;
 };
 
 
+/** Wrapper to simplify copying with default copy but overriding slightly.
+ */
 struct KFState : KFState_
 {
-	mutex kfStateMutex;
+	recursive_mutex kfStateMutex;
 
-	static const KFKey oneKey;
+	static const KFKey oneKey;			///< KFStates generally contain a ONE state as the first element, used for converting matrix additions to matrix multiplications.
 
 	KFState(
 		const KFState &kfState)
@@ -369,13 +422,12 @@ struct KFState : KFState_
 	{
 		//initialise all filter state objects with a ONE element for later use.
 		x			= VectorXd	::Ones(1);
-// 		Z			= MatrixXd	::Ones(1,1);
 		P			= MatrixXd	::Zero(1,1);
 		dx			= VectorXd	::Zero(1);
 
 		kfIndexMap[oneKey]	= 0;
 
-		initFilterEpoch();
+		initFilterEpoch(nullStream);
 	}
 
 	KFState& operator=(
@@ -399,6 +451,7 @@ struct KFState : KFState_
 		ar & time;
 		ar & x;
 		ar & dx;
+		ar & filterChunkMap;
 
 		double num;
 		int rows = P.rows();
@@ -429,17 +482,22 @@ struct KFState : KFState_
 		}
 	}
 
-	void	initFilterEpoch();
+	void	initFilterEpoch(
+		Trace&		trace);
 
 	int		getKFIndex(
 		const	KFKey&		key)
 	const;
 
-	int		getNoiseIndex(
-		const	KFKey&		key)
+	E_Source	getKFValue(
+		const	KFKey&		key,
+				double&		value,
+				double*		variance		= nullptr,
+				double*		adjustment_ptr	= nullptr,
+				bool		allowAlternate	= true)
 	const;
 
-	bool	getKFValue(
+	E_Source	getPseudoValue(
 		const	KFKey&		key,
 				double&		value,
 				double*		variance		= nullptr,
@@ -453,6 +511,10 @@ struct KFState : KFState_
 	bool	addKFState(
 		const	KFKey&			kfKey,
 		const	InitialState&	initialState = {});
+
+	bool	addPseudoState(
+		const	KFKey&				kfKey,
+		const	map<KFKey, double>&	coeffMap);
 
 	void	setExponentialNoise(
 		const	KFKey&			kfKey,
@@ -483,9 +545,8 @@ struct KFState : KFState_
 		const	double			variance);
 
 	void	removeState(
-		const	KFKey&			kfKey);
-
-	void	noiseElementStateTransition();
+		const	KFKey&			kfKey,
+				bool			allowDeleteParent = true);
 
 	void	stateTransition(
 		Trace&		trace,
@@ -499,28 +560,21 @@ struct KFState : KFState_
 		MatrixXd&	procNoise);
 
 	void	preFitSigmaCheck(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		KFKey&			badStateKey,
-		int&			badMeasIndex,
-		KFStatistics&	statistics,
-		int				begX,
-		int				numX,
-		int				begH,
-		int				numH);
+		RejectCallbackDetails&	callbackDetails,
+		KFStatistics&			statistics,
+		int						begX,
+		int						numX,
+		int						begH,
+		int						numH);
 
 	void	postFitSigmaChecks(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		VectorXd&		dx,
-		int				iteration,
-		KFKey&			badStateKey,
-		int&			badMeasIndex,
-		KFStatistics&	statistics,
-		int				begX,
-		int				numX,
-		int				begH,
-		int				numH);
+		RejectCallbackDetails&	callbackDetails,
+		VectorXd&				dx,
+		KFStatistics&			statistics,
+		int						begX,
+		int						numX,
+		int						begH,
+		int						numH);
 
 	double stateChiSquare(
 		Trace&		trace,
@@ -581,22 +635,17 @@ struct KFState : KFState_
 		KFMeas&		meas);
 
 	bool	doStateRejectCallbacks(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		KFKey&			badKey,
-		bool			postFit);
+		RejectCallbackDetails	rejectDetails);
 
 	bool	doMeasRejectCallbacks(
-		Trace&			trace,
-		KFMeas&			kfMeas,
-		int				badIndex,
-		bool			postFit);
+		RejectCallbackDetails	rejectDetails);
 
 	void	filterKalman(
-		Trace&					trace,
-		KFMeas&					kfMeas,
-		bool					innovReady			= false,
-		vector<FilterChunk>*	filterChunkList_ptr	= nullptr);
+		Trace&						trace,
+		KFMeas&						kfMeas,
+		const string&				suffix				= "",
+		bool						innovReady			= false,
+		map<string, FilterChunk>*	filterChunkMap_ptr	= nullptr);
 
 	void	leastSquareInitStates(
 		Trace&			trace,
@@ -604,11 +653,6 @@ struct KFState : KFState_
 		bool			initCovars	= false,
 		VectorXd*		dx			= nullptr,
 		bool			innovReady	= false);
-
-	KFMeas	combineKFMeasList(
-		KFMeasEntryList&	kfEntryList,
-		GTime				measTime = GTime::noTime(),
-		MatrixXd*			noiseMatrix_ptr = nullptr);
 
 	VectorXd getSubState(
 		map<KFKey, int>&	kfKeyMap,
@@ -622,69 +666,13 @@ struct KFState : KFState_
 	const;
 
 	KFState getSubState(
-		vector<KF>)
+		vector<KF>	types,
+		KFMeas*		meas_ptr = nullptr)
 	const;
 
-	void	removeState(
-		const	KFKey&			kfKey)
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.removeState		(kfKey);
-	}
-
-	void setExponentialNoise(
-		const	KFKey&			kfKey,
-		const	Exponential		exponential)
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setExponentialNoise	(kfKey, exponential);
-	}
-
-	void addNoiseElement(
-		const	KFKey&			kfKey,
-		const	double			variance)
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.addNoiseElement	(kfKey, variance);
-	}
-
-	void addNoiseEntry(
-		const	KFKey&			kfKey,
-		const	double			value,
-		const	double			variance)
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.addNoiseEntry	(kfKey, value, variance);
-	}
-
-	bool 	addKFState(
-		const	KFKey&			kfKey,
-		const	InitialState&	initialState = {})
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	return	kfState.addKFState		(kfKey, initialState);
-	}
-
-	void	setKFTrans(
-		const	KFKey&			dest,
-		const	KFKey&			source,
-		const	double			value,
-		const	InitialState&	initialState = {})
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);			kfState.setKFTrans		(dest, source, value, initialState);
-	}
-
-	void	setKFTransRate(
-		const	KFKey&			integral,
-		const	KFKey&			rate,
-		const	double			value,
-		const	InitialState&	initialRateState		= {},
-		const	InitialState&	initialIntegralState	= {})
-	const
-	{
-		auto& kfState = *const_cast<KFState*>(this);	lock_guard<mutex> guard(kfState.kfStateMutex);	kfState.setKFTransRate	(integral, rate, value, initialRateState, initialIntegralState);
-	}
+	vector<KFKey> decomposedStateKeys(
+		const KFKey& composedKey)
+	const;
 };
 
 /** Object to hold an individual measurement.
@@ -693,17 +681,17 @@ struct KFState : KFState_
 */
 struct KFMeasEntry
 {
-			KFState*					kfState_ptr			= nullptr;			///< Pointer to filter object that measurements are referencing
-	const	KFState*					constKfState_ptr	= nullptr;			///< Pointer to filter object that measurements are referencing
+	KFState*	kfState_ptr	= nullptr;			///< Pointer to filter object that measurements are referencing
 
-	double valid	= true;			///< Optional parameter to invalidate a measurement (to avoid needing to delete it and reshuffle a vector)
-	double value	= 0;			///< Value of measurement (for linear systems)
-	double noise	= 0;			///< Noise of measurement
-	double innov	= 0;			///< Innovation of measurement (for non-linear systems)
-	KFKey obsKey	= {};			///< Optional labels to be used in output traces
+	double		valid		= true;			///< Optional parameter to invalidate a measurement (to avoid needing to delete it and reshuffle a vector)
+	double		value		= 0;			///< Value of measurement (for linear systems)
+	double		noise		= 0;			///< Noise of measurement
+	double		innov		= 0;			///< Innovation of measurement (for non-linear systems)
+	KFKey		obsKey		= {};			///< Optional labels to be used in output traces
 
 	map<E_Component, ComponentsDetails> componentsMap;
 
+	map<KFKey,	double>		noiseElementMap;
 	map<KFKey,	double>		designEntryMap;
 	map<KFKey,	double>		usedValueMap;
 	map<KFKey,	double>		noiseEntryMap;
@@ -713,15 +701,6 @@ struct KFMeasEntry
 				KFState*	kfState_ptr,
 				KFKey		obsKey		= {})
 	:	kfState_ptr			(kfState_ptr),
-		obsKey				(obsKey)
-	{
-
-	}
-
-	KFMeasEntry(
-		const	KFState*	constKfState_ptr,
-				KFKey		obsKey		= {})
-	:	constKfState_ptr	(constKfState_ptr),
 		obsKey				(obsKey)
 	{
 
@@ -744,10 +723,9 @@ struct KFMeasEntry
 		{
 			return;
 		}
-		if (kfState_ptr)		{	kfState_ptr		->addNoiseElement(kfKey, variance);		}
-		if (constKfState_ptr)	{	constKfState_ptr->addNoiseElement(kfKey, variance);		}
 
-		noiseEntryMap[kfKey] += value;
+		noiseElementMap	[kfKey]	=  variance;
+		noiseEntryMap	[kfKey] += value;
 	}
 
 	/** Adds a design matrix entry for this measurement
@@ -768,12 +746,23 @@ struct KFMeasEntry
 			return;
 		}
 
-		bool retval = false;
-		if (kfState_ptr)		{	kfState_ptr		->addKFState(kfKey, initialState);		}
-		if (constKfState_ptr)	{	constKfState_ptr->addKFState(kfKey, initialState);		}
+		if (kfState_ptr)
+		{
+			auto& kfState = *kfState_ptr;
 
-		usedValueMap[kfKey] = initialState.x;
-		designEntryMap[kfKey] += value;
+			kfState.addKFState(kfKey, initialState);
+
+			auto it = kfState.outageLimitMap.find(kfKey);
+			if (it != kfState.outageLimitMap.end())
+			{
+				auto& [editKey, dummy] = *it;
+
+				editKey.estimatedTime = kfState.time;
+			}
+		}
+
+		usedValueMap	[kfKey] =  initialState.x;
+		designEntryMap	[kfKey] += value;
 	}
 
 	/** Adds the measurement noise entry for this measurement
@@ -783,17 +772,17 @@ struct KFMeasEntry
 	{
 		if (value == 0)
 		{
-			std::cout << "Zero noise encountered"	<< std::endl;
+			std::cout << "Zero noise encountered"	<< "\n";
 // 			return;
 		}
 		if 		(std::isinf(value))
 		{
-			std::cout << "Inf noise encountered"	<< std::endl;
+			std::cout << "Inf noise encountered"	<< "\n";
 			return;
 		}
 		else if (std::isnan(value))
 		{
-			std::cout << "Nan noise encountered"	<< std::endl;
+			std::cout << "Nan noise encountered"	<< "\n";
 			return;
 		}
 
@@ -816,6 +805,7 @@ struct KFMeasEntry
 		this->innov = value;
 	}
 };
+
 
 KFState mergeFilters(
 	const vector<KFState*>&	kfStatePointerList,

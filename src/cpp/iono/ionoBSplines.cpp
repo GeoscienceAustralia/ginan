@@ -1,8 +1,8 @@
 
-#include "ionoModel.hpp"
-#include "observations.hpp"
-#include "common.hpp"
-#include "acsConfig.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/observations.hpp"
+#include "common/common.hpp"
+#include "common/acsConfig.hpp"
 
 struct BspBasis
 {

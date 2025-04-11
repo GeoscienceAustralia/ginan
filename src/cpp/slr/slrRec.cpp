@@ -1,14 +1,15 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "slr.hpp"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "trop/tropModels.hpp"
+#include "common/constants.hpp"
+#include "3rdparty/iers2010/iers2010.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "slr/slr.hpp"
 
 map<string, vector<string>>						slrObsFiles;
 map<string, map<GTime, shared_ptr<LObs>>>		slrSiteObsMap;
@@ -28,88 +29,56 @@ double getWaterVapPressure(
 	return saturationVaporPressureHpa * humidity;
 }
 
-/** Retrieve receiver a-priori position & eccentricity
-*/
-void getRecPosApriori(//todo aaron, remove this, use other function
-	LObs&		obs,	///< SLR observation
-	Receiver&	rec)	///< Receiver
-{
-	assert(obs.recCdpId >= 1000); //if fails, need to consider zero-padding in sinex files
-
-	SinexRecData snx;
-	auto result = getStnSnx(std::to_string(obs.recCdpId), obs.time, snx);
-	if (result.failureSiteId)		{	BOOST_LOG_TRIVIAL(error) << "Receiver " << obs.recCdpId << " not found in sinex file";				obs.excludeSinex		= true;		return;	}
-	if (result.failureEccentricity)	{	BOOST_LOG_TRIVIAL(error) << "Receiver " << obs.recCdpId << " eccentricity not found in sinex file";	obs.excludeEccentricity	= true;		return;	}
-	if (result.failureEstimate)		{	BOOST_LOG_TRIVIAL(error) << "Receiver " << obs.recCdpId << " position not found in sinex file";		obs.excludeSinexPos		= true;		return;	}
-	if (snx.ecc_ptr->rs != "UNE")
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Error: Receiver eccentricity referency system != UNE: " << snx.ecc_ptr->rs;	//todo aaron, this needs duplication elsewhere, rs unchecked
-	}
-
-	rec.aprioriPos = snx.pos;
-
-	double yearsSinceRef = (obs.time - snx.refEpoch).to_double() / 86400.0 / 365.25;
-	rec.aprioriPos += snx.vel * yearsSinceRef;
-
-	if (snx.ecc_ptr == nullptr)
-		return;
-	auto eccEntry = *snx.ecc_ptr;
-
-	if (eccEntry.rs == "UNE")
-		rec.antDelta = eccEntry.ecc;
-// 	else if (eccEntry.rs == "XYZ")
-// 	{
-// 		auto& pos = rec.pos
-// 		ecef2pos(rec.aprioriPos, pos);
-//
-// 		rec.antDelta = ecef2enu(pos, eccEntry.ecc);
-// 	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Error: Receiver eccentricity referency system != UNE: " << eccEntry.rs;
-	}
-}
-
 /** Calculate trop delay on SLR observation
 */
 double laserTropDelay(
-	LObs&		obs,		///< SLR observation
-	VectorPos&	pos,		///< Receiver position
-	double		el)	///< Elevation of sat
+	LObs&			obs,		///< SLR observation
+	VectorPos&		pos,		///< Receiver position
+	AzEl&			azel,		///< Azimuth/Elevation of sat (azimuth for future use)
+	TropStates&		tropStates,	///< (gradients for future use)
+	TropMapping&	dTropDx,	///< (gradients for future use)
+	double&			var)
 {
-	double waterVapourPressure = getWaterVapPressure(obs.temperature, obs.humidity);
+	double temperature	= obs.temperature;
+	double humidity		= obs.humidity - obs.humidityBias;
+	double pressure		= obs.pressure - obs.pressureBias;
+	double wavelengthUm	= obs.wavelengthNm * 1e-3;
+
+	double waterVapourPressure = getWaterVapPressure(temperature, humidity);
 
 	double ztd;
 	double zhd;
 	double zwd;
-				iers2010::fcul_zd_hpa	(pos.latDeg(), pos.hgt(), obs.pressure, waterVapourPressure, obs.wavelength * 1e-3, ztd, zhd, zwd);
-	double mf =	iers2010::fcul_a		(pos.latDeg(), pos.hgt(), obs.temperature, el * R2D);
+				iers2010::fcul_zd_hpa	(pos.latDeg(), pos.hgt(), pressure, waterVapourPressure, wavelengthUm, ztd, zhd, zwd);
+	double mf =	iers2010::fcul_a		(pos.latDeg(), pos.hgt(), temperature, azel.el * R2D);
+
+	tropStates.zenith	= ztd;
+	dTropDx.dryMap		= mf;
+	dTropDx.wetMap		= mf;
 
 	return ztd * mf;
 }
 
-/** Apply a-priori biases to observation
+/** Update a-priori biases
+* Don't corrected for raw observations directly in LObs struct
 */
-void applyBiases(
-	LObs&	obs)	///< SLR observation
+void updateSlrRecBiases(
+	LObs&				obs)
 {
-	map<char, double> biases; 	// Indexed by "M" models codes - Ref: https://ilrs.dgfi.tum.de/fileadmin/data_handling/ILRS_Data_Handling_File.snx
-	getRecBias(std::to_string(obs.recCdpId), obs.time, biases);
+	map<char, double> biasMap;		// Indexed by "M" models codes - Ref: https://ilrs.gsfc.nasa.gov/docs/2024/ILRS_Data_Handling_File_2024.02.13.snx
 
-	obs.timeTx				-=  biases['T'] + biases['U'];
-	obs.twoWayTimeOfFlight	-= (biases['R'] + biases['E']) / CLIGHT;
-	obs.humidity			-=  biases['H'];
-	obs.pressure			-=  biases['P'];
+	getSlrRecBias(std::to_string(obs.recCdpId), obs.Sat, obs.time, biasMap);	// Always do this to allow checking excluded data
 
-	if	( biases['X']
-		||biases['N']
-		||biases['Q']
-		||biases['V'])
+	obs.rangeBias		= biasMap['R'] + biasMap['E'];
+	obs.timeBias		= biasMap['T'] + biasMap['U'];
+	obs.humidityBias	= biasMap['H'];
+	obs.pressureBias	= biasMap['P'];
+
+	if	( biasMap['X']
+		||biasMap['N']
+		||biasMap['Q']
+		||biasMap['V'])
 	{
-		obs.excludeBias = true;
+		obs.excludeDataHandling = true;
 	}
-
-	obs.time = obs.timeTx + obs.twoWayTimeOfFlight / 2;
 }

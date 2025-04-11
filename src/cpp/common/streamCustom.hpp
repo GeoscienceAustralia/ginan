@@ -2,10 +2,10 @@
 #pragma once
 
 
-#include "packetStatistics.hpp"
-#include "customDecoder.hpp"
-#include "streamParser.hpp"
-#include "streamObs.hpp"
+#include "common/packetStatistics.hpp"
+#include "common/customDecoder.hpp"
+#include "common/streamParser.hpp"
+#include "common/streamObs.hpp"
 
 #define CUSTOM_PREAMBLE 0xAC
 

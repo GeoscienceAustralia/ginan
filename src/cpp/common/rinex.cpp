@@ -1,22 +1,34 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+FileType CLK__()
+{
+
+}
+
+FileType RNX__()
+{
+
+}
+
 #include <boost/log/trivial.hpp>
 
 #include <string>
 
 using std::string;
 
-#include "rinexNavWrite.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "common.hpp"
-#include "biases.hpp"
-#include "gTime.hpp"
-#include "rinex.hpp"
-#include "trace.hpp"
-#include "enum.h"
+#include "common/rinexNavWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/common.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
+#include "common/rinex.hpp"
+#include "common/trace.hpp"
+#include "3rdparty/enum.h"
 
 #define MAXPOSHEAD  1024            	///< max head line position
 #define MINFREQ_GLO -7              	///< min frequency number glonass
@@ -240,10 +252,9 @@ void decodeObsH(
 				//save the type char before cleaning the string
 				char typeChar = obsCode2str[0];
 
-
 				for (E_Sys sys : E_Sys::_values())
 				{
-					auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).id()});
+					auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).sysName()});
 
 					map<E_ObsCode2, E_ObsCode>* conversionMap_ptr;
 					if	( typeChar != 'C'
@@ -265,6 +276,12 @@ void decodeObsH(
 					{
 						E_ObsCode2	obsCode2	= E_ObsCode2::_from_string(obsCode2str);
 						E_ObsCode	obsCode		= conversionMap[obsCode2];
+
+						if (obsCode == +E_ObsCode::NONE)
+						{
+							BOOST_LOG_TRIVIAL(warning) << "Warning: Unmapped code in V2 rinex: " << obsCode2str;
+						}
+
 						codeType.code = obsCode;
 						codeType.type = typeChar;
 					}
@@ -304,12 +321,9 @@ void decodeObsH(
 			if (sscanf(p, "R%2d %2d", &prn, &fcn) < 2)
 				continue;
 
-			if (1 <= prn
-				&&prn <= NSATGLO)
-			{
-				nav.glo_fcn[prn - 1] = fcn + 8;
-			}
+			SatSys Sat(E_Sys::GLO, prn);
 
+			nav.gloFreqMap[Sat] = fcn;
 		}
 	}
 	else if (strstr(label, "GLONASS COD/PHS/BIS" ))
@@ -628,7 +642,7 @@ int readRnxH(
 						auto obs2 = E_ObsCode2	::_from_string_nocase(r2);
 						auto obs3 = E_ObsCode	::_from_string_nocase(r3);
 
-						auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).id()});
+						auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).sysName()});
 
 						auto& codeMap = recOpts.rinex23Conv.codeConv;
 						auto& phasMap = recOpts.rinex23Conv.phasConv;
@@ -644,22 +658,24 @@ int readRnxH(
 			}
 			else if (block)
 			{
-				double bias;
-				SatSys Sat;
+				//ignore reported widelane biases
 
-				// cnes/cls grg clock
-				if	( !strncmp(buff, "WL", 2)
-					&&(Sat = SatSys(buff + 3), Sat)
-					&& sscanf(buff+40, "%lf", &bias) == 1)
-				{
-					nav.satNavMap[Sat].wlbias = bias;
-				}
-				// cnes ppp-wizard clock
-				else if ((Sat = SatSys(buff + 1), Sat)
-						&&sscanf(buff+6, "%lf", &bias) == 1)
-				{
-					nav.satNavMap[Sat].wlbias = bias;
-				}
+				// double bias;
+				// SatSys Sat;
+    //
+				// // cnes/cls grg clock
+				// if	( !strncmp(buff, "WL", 2)
+				// 	&&(Sat = SatSys(buff + 3), Sat)
+				// 	&& sscanf(buff+40, "%lf", &bias) == 1)
+				// {
+				// 	nav.satNavMap[Sat].wlbias = bias;
+				// }
+				// // cnes ppp-wizard clock
+				// else if ((Sat = SatSys(buff + 1), Sat)
+				// 		&&sscanf(buff+6, "%lf", &bias) == 1)
+				// {
+				// 	nav.satNavMap[Sat].wlbias = bias;
+				// }
 			}
 			continue;
 		}

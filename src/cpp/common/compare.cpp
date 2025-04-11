@@ -7,19 +7,17 @@
 using std::string;
 using std::vector;
 
-#include "minimumConstraints.hpp"
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephemeris.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "attitude.hpp"
-#include "trace.hpp"
-#include "rinex.hpp"
-
-void createDirectories(
-	boost::posix_time::ptime	logptime);
+#include "pea/minimumConstraints.hpp"
+#include "common/eigenIncluder.hpp"
+#include "pea/inputsOutputs.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephemeris.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/attitude.hpp"
+#include "common/trace.hpp"
+#include "common/rinex.hpp"
 
 struct TraceDummy
 {
@@ -38,9 +36,6 @@ void compareClocks(
 }
 
 
-map<GTime, map<string, Peph>> pephMapMap0;
-map<GTime, map<string, Peph>> pephMapMap1;
-
 void compareOrbits(
 	vector<string> files)
 {
@@ -52,7 +47,7 @@ void compareOrbits(
 
 		createDirectories(logptime);
 
-		createNewTraceFile("Network",	logptime,	acsConfig.network_trace_filename,	traceDummy.traceFilename,	true,	acsConfig.output_config);
+		createNewTraceFile("Network", "", logptime,	acsConfig.network_trace_filename,	traceDummy.traceFilename,	true,	acsConfig.output_config);
 	}
 
 	auto trace = getTraceFile(traceDummy);
@@ -67,23 +62,35 @@ void compareOrbits(
 
 	for (int i = 1; i < navVec.size(); i++)
 	{
-		std::cout << std::endl << "Comparing files:"
-		<< std::endl << files[0]
-		<< std::endl << files[i]
-		<< std::endl;
+		std::cout << "\n" << "Comparing files:"
+		<< "\n" << files[0]
+		<< "\n" << files[i]
+		<< "\n";
 
 		//invert maps
-		pephMapMap0.clear();
-		pephMapMap1.clear();
+		map<GTime, map<string, Peph>> pephMapMap0;
+		map<GTime, map<string, Peph>> pephMapMap1;
 
 		for (auto& [id,		pephMap]	: navVec[0].pephMap)
 		for (auto& [time,	peph]		: pephMap)
 		{
+			auto satOpts = acsConfig.getSatOpts(peph.Sat);
+			if (satOpts.exclude)
+			{
+				continue;
+			}
+
 			pephMapMap0[time][id] = peph;
 		}
-		for (auto& [id,		pephMap]	: navVec[1].pephMap)
+		for (auto& [id,		pephMap]	: navVec[i].pephMap)
 		for (auto& [time,	peph]		: pephMap)
 		{
+			auto satOpts = acsConfig.getSatOpts(peph.Sat);
+			if (satOpts.exclude)
+			{
+				continue;
+			}
+
 			pephMapMap1[time][id] = peph;
 		}
 
@@ -91,16 +98,29 @@ void compareOrbits(
 		MinconStatistics minconStatistics1;
 		map<KFKey, vector<double>>	transformStatisticsMap;
 
+		KFState kfStateTransform;
+
+		int iterations;
+		if (acsConfig.minconOpts.once_per_epoch)	iterations = 1;
+		else										iterations = 2;
+
+		for (int iteration = 1; iteration <= iterations; iteration++)
 		for (auto& [time, pephMap0] : pephMapMap0)
 		{
 			auto it = pephMapMap1.find(time);
 			if (it == pephMapMap1.end())
 			{
-				std::cout << std::endl << time << " not found in " << files[i];
+				std::cout << "\n" << time << " not found in " << files[i];
 				continue;
 			}
 
 			auto& [dummy, pephMap1] = *it;
+
+			if (acsConfig.minconOpts.once_per_epoch)
+			{
+				//reset for each epoch
+				kfStateTransform = KFState();
+			}
 
 			KFState kfState;
 
@@ -113,7 +133,7 @@ void compareOrbits(
 				auto it2 = pephMap1.find(id);
 				if (it2 == pephMap1.end())
 				{
-					std::cout << std::endl << id << " not found in " << files[i] << " for " << time;
+					// std::cout << "\n" << id << " not found in " << files[i] << " for " << time;
 					continue;
 				}
 
@@ -159,24 +179,45 @@ void compareOrbits(
 
 			if (acsConfig.process_minimum_constraints)
 			{
-				KFState kfStateTransform;
+				bool				estimate			= true;
+				MinconStatistics*	totalStatistics_ptr	= &minconStatistics1;
+
+				if	( iterations	== 2
+					&&iteration		== 2)
+				{
+					//dont reestimate the transform the second time around
+					estimate = false;
+				}
+
+				if	( iterations	== 2
+					&&iteration		== 1)
+				{
+					//dont add statistics the first time around
+					totalStatistics_ptr = nullptr;
+				}
 
 				MinconStatistics minconStatistics0;
 
-				mincon(trace, kfState, &minconStatistics0, &minconStatistics1, false, &kfStateTransform);
+				mincon(trace, kfState, &minconStatistics0, totalStatistics_ptr, false, &kfStateTransform, estimate, !estimate);
 
-				outputMinconStatistics(trace, minconStatistics0, "/" + time.to_string());
-
-				for (auto& [kfKey, index] : kfStateTransform.kfIndexMap)
+				if	( iterations	== 1
+					||iteration		== 2)
 				{
-					if (kfKey.type == KF::ONE)
+					//only chance, or second time around, output statistics
+
+					outputMinconStatistics(trace, minconStatistics0, "/" + time.to_string());
+
+					for (auto& [kfKey, index] : kfStateTransform.kfIndexMap)
 					{
-						continue;
+						if (kfKey.type == KF::ONE)
+						{
+							continue;
+						}
+
+						double val = kfStateTransform.x(index);
+
+						transformStatisticsMap[kfKey].push_back(val);
 					}
-
-					double val = kfStateTransform.x(index);
-
-					transformStatisticsMap[kfKey].push_back(val);
 				}
 			}
 		}
@@ -214,17 +255,17 @@ void compareAttitudes(
 		auto& nav0 = navVec[0];
 		auto& nav1 = navVec[1];
 
-		std::cout << std::endl << "Comparing files:"
-		<< std::endl << files[0]
-		<< std::endl << files[i]
-		<< std::endl;
+		std::cout << "\n" << "Comparing files:"
+		<< "\n" << files[0]
+		<< "\n" << files[i]
+		<< "\n";
 
 		for (auto& [id, attMap0] : nav0.attMapMap)
 		{
 			auto it = nav1.attMapMap.find(id);
 			if (it == nav1.attMapMap.end())
 			{
-				std::cout << std::endl << id << " not found in " << files[i];
+				std::cout << "\n" << id << " not found in " << files[i];
 				continue;
 			}
 
@@ -235,7 +276,7 @@ void compareAttitudes(
 				auto it = attMap.find(time);
 				if (it == attMap.end())
 				{
-					std::cout << std::endl << time << " not found in " << files[i] << " for " << id;
+					std::cout << "\n" << time << " not found in " << files[i] << " for " << id;
 					continue;
 				}
 
@@ -243,7 +284,7 @@ void compareAttitudes(
 
 				double angle = att0.q.angularDistance(att.q) * R2D;
 
-				tracepdeex(0, std::cout, "\n%s - %s - %6.1fdeg", time.to_string(0).c_str(), id.c_str(), angle);
+				tracepdeex(0, std::cout, "\n%s - %s - %6.1fdeg", time.to_string().c_str(), id.c_str(), angle);
 			}
 		}
 	}

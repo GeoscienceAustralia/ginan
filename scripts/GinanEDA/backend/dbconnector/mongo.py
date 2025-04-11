@@ -40,28 +40,15 @@ class MongoDB:
             raise ConnectionError("Failed to connect to MongoDB server") from err
 
     def get_content(self) -> None:
-        # Will need to find a better way for that, the EDA is readonly. addint the index with the EDA isn't a good idea. For large database it will take a long time
-        # resp = self.mongo_client[self.mongo_db]["Measurements"].create_index(
-        # [
-        #     ("Epoch", 1),
-        #     ("Site", 1),
-        #     ("Sat", 1)
-        # ])
-        #
-        # print("index response:", resp)
-        #
-        # resp = self.mongo_client[self.mongo_db]["States"].create_index(
-        # [
-        #     ("Epoch", 1),
-        #     ("Site", 1),
-        #     ("Sat", 1),
-        #     ("States", 1)
-        # ])
-        #
-        # print("index response:", resp)
+        if "Content" not in self.mongo_client[self.mongo_db].list_collection_names():
+            raise ValueError("No Content collection found")
 
+        first_cursor = self.mongo_client[self.mongo_db]["Content"].find_one()
+        key = "Type" if "Type" in first_cursor else "type"
         for cursor in self.mongo_client[self.mongo_db]["Content"].find():
-            self.mongo_content[cursor["type"]] = cursor["Values"]
+            self.mongo_content[cursor[key]] = cursor["Values"]
+
+
         self.mongo_content["Geometry"] = []
         geom = self.mongo_client[self.mongo_db]["Geometry"].find_one({})
         if "Measurements" in self.mongo_client[self.mongo_db].list_collection_names():
@@ -139,7 +126,7 @@ class MongoDB:
                 "$push": {"$cond": [{"$eq": [{"$ifNull": [f"${key}", None]}, None]}, float("nan"), f"${key}"]}
             }
         logger.info(agg_pipeline)
-        cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline)
+        cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline, allowDiskUse=True)
         # check if cursor is empty
         if not cursor.alive:
             raise ValueError("No data found")
@@ -212,13 +199,14 @@ class MongoDB:
         pipeline = []
         pipeline.append({"$match": matchObj})
         pipeline.append(
-            {   
-                "$group":      
+            {
+                "$group":
                 {
-                    "_id":      groupObj, 
-                    "Epoch":    {"$first":          "$Epoch"        }, 
-                    "y":        {"$addToSet":       "$" + yvalue    }, 
-                    "fields":   {"$mergeObjects":   "$id"           }
+                    "_id":      groupObj,
+                    "Epoch":    {"$first":          "$Epoch"        },
+                    "y":        {"$addToSet":       "$" + yvalue    },
+                    "fields":   {"$mergeObjects":   "$id"           },
+                    "other":    {"$mergeObjects":   "$val"          }
                 }
             })
         pipeline.append({"$sort":       sortObj})

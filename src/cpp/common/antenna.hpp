@@ -10,16 +10,15 @@ using std::string;
 using std::vector;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "azElMapData.hpp"
-#include "satStat.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/azElMapData.hpp"
+#include "common/satStat.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 struct PhaseCenterData : AzElMapData<double>
 {
-	/* antenna parameter type */
 	E_FType	ft;
 	string	type;					///< antenna type
 	string	code;					///< serial number or satellite code
@@ -27,14 +26,17 @@ struct PhaseCenterData : AzElMapData<double>
 	string	cospar;					///< Cospar code satellites
 	string	calibModel;				///< name of the antenna calibration model
 
-	double tf[6];					///< valid from YMDHMS
-	double tu[6];					///< valid until YMDHMS
+	GTime	validFrom;
+	GTime	validUntil;
 };
 
 struct PhaseCenterOffset
 {
 	Vector3d	satPco = Vector3d::Zero();
 	Vector3d	recPco = Vector3d::Zero();
+
+	GTime	validFrom;
+	GTime	validUntil;
 };
 
 //forward declaration for pointer below

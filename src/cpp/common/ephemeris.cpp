@@ -1,22 +1,21 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "mongoRead.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "ephemeris.hpp"
-#include "testUtils.hpp"
-#include "algebra.hpp"
-#include "orbits.hpp"
-#include "satSys.hpp"
-#include "common.hpp"
-#include "trace.hpp"
-#include "enums.h"
-#include "ssr.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/mongoRead.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "common/ephemeris.hpp"
+#include "common/algebra.hpp"
+#include "common/orbits.hpp"
+#include "common/satSys.hpp"
+#include "common/common.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
+#include "common/ssr.hpp"
 
 /** URA SSR by variance
 */
@@ -96,7 +95,7 @@ bool satclk(
 
 	for (auto& ephType : ephTypes)
 	{
-		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType);
+		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%d", __FUNCTION__, time.to_string().c_str(), satPos.Sat.id().c_str(), ephType);
 
 		switch (ephType)
 		{
@@ -116,6 +115,20 @@ bool satclk(
 		satPos.clkSource	= ephType;
 		satPos.ephClkValid	= true;
 
+		if	(acsConfig.check_broadcast_differences
+			&&ephType != +E_Source::BROADCAST)
+		{
+			SatPos copy = satPos;
+
+			bool pass = satClkBroadcast(trace, time, teph, copy, nav);
+			double delta = (copy.satClk - satPos.satClk) * CLIGHT;
+			if	( pass
+				&&fabs(delta) > 30)
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning, clock for " << satPos.Sat.id() << " is " << delta << " from broadcast";
+			}
+		}
+
 		break;
 	}
 
@@ -131,7 +144,7 @@ bool satpos(
 	GTime				teph,				///< time to select ephemeris (gpst)
 	SatPos&				satPos,				///< Data required for determining and storing satellite positions/clocks
 	vector<E_Source>	ephTypes,			///< Source of ephemeris
-	E_OffsetType		offsetType,			///< Type of antenna offset to apply		//todo aaron, remove entirely?
+	E_OffsetType		offsetType,			///< Type of antenna offset to apply
 	Navigation&			nav,				///< navigation data
 	const KFState*		kfState_ptr,		///< Optional pointer to a kalman filter to take values from
 	const KFState*		remote_ptr)			///< Optional pointer to a kalman filter to take values from
@@ -141,17 +154,18 @@ bool satpos(
 
 	for (auto& ephType : ephTypes)
 	{
-		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%s offsetType=%d", __FUNCTION__, time.to_string(3).c_str(), satPos.Sat.id().c_str(), ephType._to_string(), offsetType);
+		tracepdeex(4, trace, "\n%-10s: time=%s sat=%s ephType=%s offsetType=%d", __FUNCTION__, time.to_string().c_str(), satPos.Sat.id().c_str(), ephType._to_string(), offsetType);
 
 		if (returnValue == false)
 		switch (ephType)
 		{
-			case E_Source::BROADCAST:	returnValue = satPosBroadcast	(trace, time, teph,		satPos, nav				);	break;
-			case E_Source::SSR:			returnValue = satPosSSR			(trace, time, teph,		satPos, nav				);	break;
-			case E_Source::PRECISE:		returnValue = satPosPrecise		(trace, time, 			satPos, nav				);	break;
-			case E_Source::KALMAN:		returnValue = satPosKalman		(trace, time, 			satPos,	kfState_ptr		);	break;
-			case E_Source::REMOTE:		returnValue = satPosKalman		(trace, time, 			satPos,	remote_ptr		);	break;
-			default:					satPos.ephPosValid = false;	return false;
+			case E_Source::BROADCAST:	returnValue = satPosBroadcast	(trace, time, teph,		satPos, nav			);	break;
+			case E_Source::SSR:			returnValue = satPosSSR			(trace, time, teph,		satPos, nav			);	break;
+			case E_Source::PRECISE:		returnValue = satPosPrecise		(trace, time, 			satPos, nav			);	break;
+			case E_Source::KALMAN:		returnValue = satPosKalman		(trace, time, 			satPos,	kfState_ptr	);	break;
+			case E_Source::REMOTE:		returnValue = satPosKalman		(trace, time, 			satPos,	remote_ptr	);	break;
+			case E_Source::CONFIG:		continue;
+			default:					continue;
 		}
 
 		if (returnValue == false)
@@ -166,6 +180,19 @@ bool satpos(
 			case E_Source::PRECISE:		satPos.rSatApc = satPos.rSatCom;	break;
 			case E_Source::KALMAN:		satPos.rSatApc = satPos.rSatCom;	break;
 			case E_Source::REMOTE:		satPos.rSatApc = satPos.rSatCom;	break;
+		}
+
+		if	( acsConfig.check_broadcast_differences
+			&&ephType != +E_Source::BROADCAST)
+		{
+			SatPos copy = satPos;
+			bool pass = satPosBroadcast(trace, time, teph, copy, nav);
+			double delta = (satPos.rSatApc - copy.rSatApc).norm();
+			if	( pass
+				&&delta > 10)
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning, orbit for " << satPos.Sat.id() << " is " << delta << " from broadcast";
+			}
 		}
 
 		tracepdeex(4, trace, " - FOUND");
@@ -223,7 +250,8 @@ bool satpos(
 			||satPos.satNav_ptr->lamMap[j] == 0
 			||satPos.satNav_ptr->lamMap[k] == 0)
 		{
-			updatenav(satPos);		// satAntOff() requries lamMap
+			// satAntOff() requries lamMap
+			updateLamMap(time, satPos);
 		}
 
 		Vector3d dAnt = Vector3d::Zero();
@@ -286,14 +314,7 @@ bool satPosClk(
 	E_OffsetType		offsetType,			///< Point of satellite to output position of
 	E_Relativity		applyRelativity)	///< Option to apply relativistic correction to clock
 {
-	if (obs.exclude)
-	{
-		obs.failureExclude = true;
-
-		return false;
-	}
-
-	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string(3).c_str(), obs.Sat.id());
+	tracepdeex(3, trace, "\n%-10s: teph=%s %s", __FUNCTION__, teph.to_string().c_str(), obs.Sat.id());
 
 	double pr = 0;
 
@@ -311,7 +332,7 @@ bool satPosClk(
 	{
 		obs.failureNoPseudorange = true;
 
-		tracepdeex(2, trace, "\nno pseudorange %s sat=%s", obs.time.to_string(3).c_str(), obs.Sat.id().c_str());
+		tracepdeex(2, trace, "\nno pseudorange %s sat=%s", obs.time.to_string().c_str(), obs.Sat.id().c_str());
 		return false;
 	}
 
@@ -330,11 +351,11 @@ bool satPosClk(
 	{
 		obs.failureNoSatClock = true;
 
-		tracepdeex(2, trace, "\nno satellite clock %s sat=%s", time.to_string(3).c_str(), obs.Sat.id().c_str());
+		tracepdeex(2, trace, "\nno satellite clock %s sat=%s", time.to_string().c_str(), obs.Sat.id().c_str());
 		return false;
 	}
 
-	tracepdeex(5, trace, "\neph time %s %s pr=%.5f, satClk= %.5f", obs.Sat.id().c_str(), time.to_string(3).c_str(), pr / CLIGHT, obs.satClk);
+	tracepdeex(5, trace, "\neph time %s %s pr=%.5f, satClk= %.5f", obs.Sat.id().c_str(), time.to_string().c_str(), pr / CLIGHT, obs.satClk);
 
 	time -= obs.satClk;	// Eugene: what if using ssr?
 
@@ -345,7 +366,7 @@ bool satPosClk(
 	{
 		obs.failureNoSatPos = true;
 
-		tracepdeex(3, trace, "\n%s failed (no ephemeris?) %s sat=%s", __FUNCTION__, time.to_string(3).c_str(), obs.Sat.id().c_str());
+		tracepdeex(3, trace, "\n%s failed (no ephemeris?) %s sat=%s", __FUNCTION__, time.to_string().c_str(), obs.Sat.id().c_str());
 
 		return false;
 	}
@@ -353,7 +374,7 @@ bool satPosClk(
 	adjustRelativity(obs, applyRelativity);
 
 	tracepdeex(3, trace, "\n%s sat=%s rs=%13.3f %13.3f %13.3f dtSat=%12.3f varPos=%7.3f varClk=%7.3f ephPosValid=%1X %s ephClkValid=%1X %s",
-			obs.time.to_string(6).c_str(),
+			obs.time.to_string().c_str(),
 			obs.Sat.id().c_str(),
 			obs.rSatCom[0],
 			obs.rSatCom[1],

@@ -7,7 +7,7 @@
 using std::string;
 using std::map;
 
-#include "trace.hpp"
+#include "common/trace.hpp"
 
 struct ReceiverMap;
 struct KFState;
@@ -29,7 +29,9 @@ void mincon(
 	MinconStatistics*	minconStatistics_ptr0	= nullptr,
 	MinconStatistics*	minconStatistics_ptr1	= nullptr,
 	bool				commentSinex			= false,
-	KFState*			kfStateTransform_ptr	= nullptr);
+	KFState*			kfStateTransform_ptr	= nullptr,
+	bool				estimateTransform		= true,
+	bool				outputPrePost			= true);
 
 void outputMinconStatistics(
 	Trace&				trace,

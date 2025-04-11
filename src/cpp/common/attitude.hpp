@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 /** Persistent data for yaw model
 */

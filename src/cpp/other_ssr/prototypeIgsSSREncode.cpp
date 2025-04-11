@@ -1,10 +1,10 @@
 
-#include "rtcmEncoder.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "otherSSR.hpp"
-#include "satSys.hpp"
-#include "ssr.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "other_ssr/otherSSR.hpp"
+#include "common/satSys.hpp"
+#include "common/ssr.hpp"
 
 map<SatSys,SSRClk>	last_clock;
 
@@ -109,7 +109,7 @@ vector<uint8_t>  encodeIGS_ORB(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding orbit.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -172,7 +172,7 @@ vector<uint8_t>  encodeIGS_CLK(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding clock.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -245,7 +245,7 @@ vector<uint8_t>  encodeIGS_CMB(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding combined.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -318,7 +318,7 @@ vector<uint8_t>  encodeIGS_HRC(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding HR clock.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -408,7 +408,7 @@ vector<uint8_t>  encodeIGS_COD(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 
 	i = setbituInc(buf,i,bitl,0);
@@ -509,7 +509,7 @@ vector<uint8_t>  encodeIGS_PHS(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 
 	i = setbituInc(buf,i,bitl,0);
@@ -566,7 +566,7 @@ vector<uint8_t>  encodeIGS_URA(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding URA.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 	i = setbituInc(buf, i, bitl, 0);
 
@@ -661,7 +661,7 @@ vector<uint8_t>  encodeIGS_ATM(
 	if (bitl > 7 )
 	{
 		BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Ionosphere.\n";
-		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen << "\n";
 	}
 
 	i = setbituInc(buf,i,bitl,0);

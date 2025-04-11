@@ -1,6 +1,6 @@
 #pragma once
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
 #include <string>
 #include <map>

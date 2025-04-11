@@ -7,8 +7,8 @@
 using std::string;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
 
 /** Structure for variables related to the International Geomagnetic Reference Field
 * 13th Generation International Geomagnetic Reference Field Schmidt semi-normalised spherical harmonic coefficients, degree n=1,13
@@ -18,11 +18,11 @@ struct GeomagMainField
 {
 	GeomagMainField()
 	{
-		
+
 	};
-	
-    int         year;										///< model epoch
-    int         maxDegree		= 13;						///< maximum degree and order
+
+    int			year;										///< model epoch
+    int			maxDegree		= 13;						///< maximum degree and order
 	MatrixXd	gnm				= MatrixXd::Zero(14, 14);	///< SH coefcients gnm
 	MatrixXd	hnm				= MatrixXd::Zero(14, 14);	///< SH coefcients hnm
 };
@@ -31,12 +31,8 @@ struct GeomagMainField
 */
 struct GeomagSecularVariation : GeomagMainField
 {
-    int         yearEnd;									///< end of validity period == year+5
+    int			yearEnd;									///< end of validity period == year+5
 };
-
-//todo aaron global
-extern map<short int, GeomagMainField>	igrfMFMap;	// igrfMFMap[year]
-extern GeomagSecularVariation			igrfSV;
 
 void readIGRF(
 	string filename);
@@ -45,13 +41,13 @@ double decimalYear(
 	GTime time);
 
 bool getSHCoef(
-	GTime				time, 
+	GTime				time,
 	GeomagMainField&	igrfMF);
 
 VectorEnu getGeomagIntensity(
-	GTime				time, 
+	GTime				time,
 	const VectorPos&	pos);
 
 VectorEcef getGeomagIntensityEcef(
-	GTime				time, 
+	GTime				time,
 	const VectorPos&	pos);

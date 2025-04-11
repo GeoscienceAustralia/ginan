@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include "packetStatistics.hpp"
-#include "observations.hpp"
-#include "rtcmEncoder.hpp"
-#include "rtcmTrace.hpp"
-#include "streamObs.hpp"
-#include "acsConfig.hpp"
-#include "gTime.hpp"
-#include "enums.h"
+#include "common/packetStatistics.hpp"
+#include "common/observations.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/rtcmTrace.hpp"
+#include "common/streamObs.hpp"
+#include "common/acsConfig.hpp"
+#include "common/gTime.hpp"
+#include "common/enums.h"
 
 struct SignalInfo
 {
@@ -74,18 +74,18 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 	ObsList decodeMSM(
 		vector<unsigned char>&	message);
 
-	string rtcm_filename;	//todo aaron rename
+	string recordFilename;
 
 	void recordFrame(
 		vector<unsigned char>&	data,
 		unsigned int			crcRead)
 	{
-		if (rtcm_filename.empty())
+		if (recordFilename.empty())
 		{
 			return;
 		}
 
-		std::ofstream ofs(rtcm_filename, std::ofstream::app);
+		std::ofstream ofs(recordFilename, std::ofstream::app);
 
 		if (!ofs)
 		{
@@ -178,7 +178,7 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 
 					if (timeStamp < firstTime)
 					{
-						std::cout << "unexpected time here" << std::endl;
+						std::cout << "unexpected time here" << "\n";
 						exit(1);
 					}
 

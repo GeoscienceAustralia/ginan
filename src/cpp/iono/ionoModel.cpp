@@ -7,13 +7,12 @@
 using std::string;
 using std::map;
 
-#include "ionoModel.hpp"
-#include "testUtils.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "enums.h"
+#include "iono/ionoModel.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/enums.h"
 
 
 /* Global parameters */
@@ -212,7 +211,6 @@ void filterIonosphere(
 		if (obs.ionExclude)											{	continue;	}
 		if (obs.stecType <= 0)										{	continue;	}
 		if (stationList[rec.id][sys] < MIN_NSAT_REC)				{	continue;	}
-		if (obs.stecVar > SQR(recOpts.iono_sigma_limit)) 			{	continue;	}
 
 		/************ Ionosphere Measurements ************/
 		KFKey obsKey;
@@ -293,21 +291,20 @@ void filterIonosphere(
 	kfState.stateTransition(trace, time);
 
 	//combine the measurement list into a single design matrix, measurement vector, and measurement noise vector
-	KFMeas combinedMeas = kfState.combineKFMeasList(kfMeasEntryList);
+	KFMeas kfMeas(kfState, kfMeasEntryList);
 
 	//if there are uninitialised state values, estimate them using least squares
 	if (kfState.lsqRequired)
 	{
-		kfState.lsqRequired = false;
-		trace << std::endl << "-------INITIALISING IONO USING LEAST SQUARES--------" << std::endl;
+		trace << "\n" << "-------INITIALISING IONO USING LEAST SQUARES--------" << "\n";
 
-		kfState.leastSquareInitStates(std::cout, combinedMeas, true);
+		kfState.leastSquareInitStates(std::cout, kfMeas, true);
 	}
 	else
 	{
-		trace << std::endl << "------- DOING IONO KALMAN FILTER --------" << std::endl;
+		trace << "\n" << "------- DOING IONO KALMAN FILTER --------" << "\n";
 
-		kfState.filterKalman(trace, combinedMeas, false);
+		kfState.filterKalman(trace, kfMeas, "/IONO", false);
 	}
 
 	kfState.outputStates(trace, "/ION");
@@ -324,8 +321,8 @@ double getSSRIono(
 {
 	double ionoDelay = 0;
 
-	if (getCmpSSRIono (trace, time, nav.ssrAtm, rRec,		ionoDelay, variance, Sat))		return ionoDelay;
-	if (getIGSSSRIono (trace, time, nav.ssrAtm, rRec, azel,	ionoDelay, variance))			return ionoDelay;
+	if (getCmpSSRIono(trace, time, nav.ssrAtm, rRec,		ionoDelay, variance, Sat))		return ionoDelay;
+	if (getIGSSSRIono(trace, time, nav.ssrAtm, rRec, azel,	ionoDelay, variance))			return ionoDelay;
 
 	variance = -1;
 

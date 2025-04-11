@@ -10,7 +10,7 @@ using std::vector;
 using std::map;
 
 
-#include "enums.h"
+#include "common/enums.h"
 
 #define RAW_SBAS_PRN_OFFSET	119
 #define RAW_QZSS_PRN_OFFSET	192
@@ -22,7 +22,7 @@ using std::map;
 #define NSATGAL   	36						///< potential number of Galileo satellites, PRN goes from 1 to this number
 #define NSATQZS   	7						///< potential number of QZSS satellites, PRN goes from 1 to this number
 #define NSATLEO		78                  	///< potential number of LEO satellites, PRN goes from 1 to this number
-#define NSATBDS   	61						///< potential number of Beidou satellites, PRN goes from 1 to this number
+#define NSATBDS   	62						///< potential number of Beidou satellites, PRN goes from 1 to this number
 #define NSATSBS   	39						///< potential number of SBAS satellites, PRN goes from 1 to this number
 
 /** Object holding satellite id, and providing related functions
@@ -39,6 +39,14 @@ struct SatSys
 	, prn(_prn)
 	{
 
+	}
+
+	/** Uninitialised sat for comparisons
+	*/
+	static SatSys noSat()
+	{
+		SatSys nothing;
+		return nothing;
 	}
 
 	struct SatData
@@ -113,11 +121,11 @@ struct SatSys
 	string id() const
 	{
 		char cstring[5];
-		
+
 		getId(cstring);
-		
+
 		string str = cstring;
-		
+
 		if (str != "-00")
 			return str;
 		else
@@ -129,22 +137,22 @@ struct SatSys
 	operator string() const
 	{
 		return id();
-	}	
-	
+	}
+
 	static E_Sys sysFromChar(
 		char sysChar)
 	{
 		switch (sysChar)
 		{
-			case 'G': return E_Sys::GPS;	
-			case 'R': return E_Sys::GLO;	
-			case 'E': return E_Sys::GAL;	
-			case 'J': return E_Sys::QZS;	
-			case 'C': return E_Sys::BDS;	
-			case 'L': return E_Sys::LEO;	
-			case 'I': return E_Sys::IRN;	
-			case 'S': return E_Sys::SBS;	
-			default:  return E_Sys::NONE;	
+			case 'G': return E_Sys::GPS;
+			case 'R': return E_Sys::GLO;
+			case 'E': return E_Sys::GAL;
+			case 'J': return E_Sys::QZS;
+			case 'C': return E_Sys::BDS;
+			case 'L': return E_Sys::LEO;
+			case 'I': return E_Sys::IRN;
+			case 'S': return E_Sys::SBS;
+			default:  return E_Sys::NONE;
 		}
 	}
 
@@ -159,22 +167,22 @@ struct SatSys
 		{
 			prn = prn_;
 			if (1 <= prn && prn <= NSATGPS) {	sys = E_Sys::GPS;	return;}
-			
+
 			prn = prn_ - RAW_SBAS_PRN_OFFSET;
 			if (1 <= prn && prn <= NSATSBS) {	sys = E_Sys::SBS;	return;}
-			
+
 			prn = prn_ - RAW_QZSS_PRN_OFFSET;
 			if (1 <= prn && prn <= NSATQZS) {	sys = E_Sys::QZS;	return;}
-			
+
 			prn = prn_;							sys = E_Sys::NONE;	return;
 		}
-		
+
 		int found = sscanf(id, "%c%d", &code, &prn_);
 		if (found > 0)
 		{
 			sys = sysFromChar(code);
 		}
-		
+
 		if (found > 1)
 			prn = prn_;
 	}

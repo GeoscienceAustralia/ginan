@@ -10,15 +10,16 @@
 #include <fstream>
 #include <string>
 #include <cmath>
+#include <omp.h>
 
-#include "acceleration.hpp"
-#include "coordinates.hpp"
-#include "constants.hpp"
-#include "iers2010.hpp"
-#include "planets.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "sofa.h"
+#include "orbprop/acceleration.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/constants.hpp"
+#include "orbprop/iers2010.hpp"
+#include "orbprop/planets.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "3rdparty/sofa/src/sofa.h"
 
 HfOceanEop hfEop;
 
@@ -27,11 +28,11 @@ const GTime time2010	= GEpoch{2010, E_Month::JAN, 1,		0,	0,	0};
 void IERS2010::PMGravi(
 	GTime	time, 		///< Time
 	double	ut1_utc,	///< Input ut1_utc value
-	double&	x,			///< Polar motion in the x direction (micro arc seconds)  
-	double&	y,			///< Polar mothin in the y direction (micro arc seconds) 
+	double&	x,			///< Polar motion in the x direction (micro arc seconds)
+	double&	y,			///< Polar mothin in the y direction (micro arc seconds)
 	double&	ut1,		///< ut1 variation (micro seconds)
 	double&	lod)		///< lod variation (micro seconds)
-{	
+{
 	Eigen::Array<double,10,10> pmLibration; /** Tab5.1a IERS 2010, keeping only short periods */
 	pmLibration <<
 
@@ -47,7 +48,7 @@ void IERS2010::PMGravi(
 	1,  1, 0,  0,  0,  0,   0.8,  -0.4,    0.4,    0.8;
 
 	Eigen::Array<double,11,10> utLibration; /** Tab5.1b IERS 2010 */
-	utLibration << 
+	utLibration <<
 		2,	-2,	0,	-2,	 0,	-2,  0.05, -0.03, -0.3, -0.6,
 		2,	 0,	0,	-2,	-2,	-2,  0.06, -0.03, -0.4, -0.7,
 		2,	-1,	0,	-2,	 0, -2,  0.35, -0.20, -2.4, -4.2,
@@ -70,7 +71,7 @@ void IERS2010::PMGravi(
 	for (auto pnlib : pmLibration.rowwise())
 	{
 		double arg = (pnlib.segment(0,6) * fundArgs).sum();
-		
+
 		x += sin(arg) * pnlib(6) + cos(arg)* pnlib(7);
 		y += sin(arg) * pnlib(8) + cos(arg)* pnlib(9);
 	}
@@ -87,12 +88,12 @@ void IERS2010::PMGravi(
 void IERS2010::PMUTOcean(
 	GTime	time,
 	double	ut1_utc,
-	double&	x, 
-	double&	y, 
+	double&	x,
+	double&	y,
 	double&	ut1)
 {
-	Eigen::Array<double,71,12> data; 
-	data << 
+	Eigen::Array<double,71,12> data;
+	data <<
 	1,-1, 0,-2,-2,-2,  -0.05,   0.94,  -0.94,  -0.05,  0.396, -0.078,
 	1,-2, 0,-2, 0,-1,   0.06,   0.64,  -0.64,   0.06,  0.195, -0.059,
 	1,-2, 0,-2, 0,-2,   0.30,   3.42,  -3.42,   0.30,  1.034, -0.314,
@@ -168,7 +169,7 @@ void IERS2010::PMUTOcean(
 	x	= 0;
 	y	= 0;
 	ut1	= 0;
-	
+
 	FundamentalArgs fundArgs(time, ut1_utc);
 	for (auto pnlib : data.rowwise())
 	{
@@ -203,16 +204,16 @@ Array6d IERS2010::doodson(
 	GTime	time,
 	double	ut1_utc)
 {
-	FundamentalArgs fundArgs(time, ut1_utc);	
+	FundamentalArgs fundArgs(time, ut1_utc);
 
 	Array6d Doodson;
 	Doodson(4) = -1 * fundArgs(5);	//todo aaron, change to use named parameters, remove setBeta function
 	Doodson(1) = fundArgs(3) + fundArgs(5);
-	Doodson(0) = fundArgs(0) - Doodson(1); 
+	Doodson(0) = fundArgs(0) - Doodson(1);
 	Doodson(2) = Doodson(1) - fundArgs(4);
 	Doodson(3) = Doodson(1) - fundArgs(1);
 	Doodson(5) = Doodson(1) - fundArgs(4) - fundArgs(2);
-	
+
 	return Doodson;
 }
 
@@ -231,21 +232,21 @@ void IERS2010::solidEarthTide1(
 					0.29525,	0.29470,	0.29801,	0,			0,
 					0.093,		0.093,		0.093,		0.094,		0,
 					-0.00087,	-0.00079,	-0.00057,	0,			0;
-	
+
 	double GMe = GM_values[E_ThirdBody::EARTH];
 
 	for (auto body: {E_ThirdBody::SUN, E_ThirdBody::MOON})
 	{
 		Vector3d	position	= Vector3d::Zero();
 		double		GM			= 0;
-		if		(body == E_ThirdBody::SUN)		{		position = ITRFSun;			GM = GM_values[body];		} 	
+		if		(body == E_ThirdBody::SUN)		{		position = ITRFSun;			GM = GM_values[body];		}
 		else if (body == E_ThirdBody::MOON)		{		position = ITRFMoon;		GM = GM_values[body];		}
-		
+
 		// BOOST_LOG_TRIVIAL(debug) << position << " " << GM ;
 		Legendre leg(3);
 		leg.calculate(position.z()/position.norm());
 		double phi = atan2(position.y(), position.x());
-		
+
 		// Do deg 2 and 3
 		for (int ideg = 2; ideg <= 3;		ideg++)
 		for (int iord = 0; iord <= ideg;	iord++)
@@ -255,7 +256,7 @@ void IERS2010::solidEarthTide1(
 			Cnm(ideg, iord) += cst * GM/GMe * pow(RE_WGS84/position.norm(), ideg+1) * leg.Pnm(ideg, iord) * cos(iord * phi);
 			Snm(ideg, iord) += cst * GM/GMe * pow(RE_WGS84/position.norm(), ideg+1) * leg.Pnm(ideg, iord) * sin(iord * phi);
 		}
-		
+
 		// Special case deg4
 		for (int iord = 0; iord <=2; iord ++)
 		{
@@ -268,7 +269,7 @@ void IERS2010::solidEarthTide1(
 
 
 void IERS2010::solidEarthTide2(
-	GTime		time,			///< Time	
+	GTime		time,			///< Time
 	double		ut1_utc,		///< Input ut1_utc value
 	MatrixXd&	Cnm,			///< Effect of solidEarth Tides on C coefficient
 	MatrixXd&	Snm)			///< Effect of solidEarth Tides on S coefficient
@@ -277,79 +278,79 @@ void IERS2010::solidEarthTide2(
 	Eigen::Array< double, 21, 8> tab65b;
 	Eigen::Array< double,  2, 7> tab65c;
 	tab65a <<
-		1.0e0, -3.0e0,  0.0e0,  2.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0, -3.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0, -2.0e0,  0.0e0,  1.0e0, -1.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0, -2.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,   -0.7e0,    0.1e0, 
-		1.0e0, -2.0e0,  2.0e0, -1.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0, -1.0e0,  0.0e0,  0.0e0, -1.0e0,  0.0e0,   -1.3e0,    0.1e0, 
-		1.0e0, -1.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   -6.8e0,    0.6e0, 
-		1.0e0, -1.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  0.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  0.0e0,  0.0e0, -1.0e0, -1.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  0.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,    0.4e0,    0.0e0, 
-		1.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,    1.3e0,   -0.1e0, 
-		1.0e0,  0.0e0,  0.0e0,  1.0e0,  1.0e0,  0.0e0,    0.3e0,    0.0e0, 
-		1.0e0,  0.0e0,  2.0e0, -1.0e0,  0.0e0,  0.0e0,    0.3e0,    0.0e0, 
-		1.0e0,  0.0e0,  2.0e0, -1.0e0,  1.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  1.0e0, -3.0e0,  0.0e0,  0.0e0,  1.0e0,   -1.9e0,    0.1e0, 
-		1.0e0,  1.0e0, -2.0e0,  0.0e0, -1.0e0,  0.0e0,    0.5e0,    0.0e0, 
-		1.0e0,  1.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,  -43.4e0,    2.9e0, 
-		1.0e0,  1.0e0, -1.0e0,  0.0e0,  0.0e0, -1.0e0,    0.6e0,    0.0e0, 
-		1.0e0,  1.0e0, -1.0e0,  0.0e0,  0.0e0,  1.0e0,    1.6e0,   -0.1e0, 
-		1.0e0,  1.0e0,  0.0e0, -2.0e0, -1.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  1.0e0,  0.0e0,  0.0e0, -2.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  1.0e0,  0.0e0,  0.0e0, -1.0e0,  0.0e0,   -8.8e0,    0.5e0, 
-		1.0e0,  1.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,  470.9e0,  -30.2e0, 
-		1.0e0,  1.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,   68.1e0,   -4.6e0, 
-		1.0e0,  1.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,   -1.6e0,    0.1e0, 
-		1.0e0,  1.0e0,  1.0e0, -1.0e0,  0.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  1.0e0,  1.0e0,  0.0e0, -1.0e0, -1.0e0,   -0.1e0,    0.0e0, 
-		1.0e0,  1.0e0,  1.0e0,  0.0e0,  0.0e0, -1.0e0,  -20.6e0,   -0.3e0, 
-		1.0e0,  1.0e0,  1.0e0,  0.0e0,  0.0e0,  1.0e0,    0.3e0,    0.0e0, 
-		1.0e0,  1.0e0,  1.0e0,  0.0e0,  1.0e0, -1.0e0,   -0.3e0,    0.0e0, 
-		1.0e0,  1.0e0,  2.0e0, -2.0e0,  0.0e0,  0.0e0,   -0.2e0,    0.0e0, 
-		1.0e0,  1.0e0,  2.0e0, -2.0e0,  1.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0,  1.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,   -5.0e0,    0.3e0, 
-		1.0e0,  1.0e0,  2.0e0,  0.0e0,  1.0e0,  0.0e0,    0.2e0,    0.0e0, 
-		1.0e0,  1.0e0,  3.0e0,  0.0e0,  0.0e0, -1.0e0,   -0.2e0,    0.0e0, 
-		1.0e0,  2.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,   -0.5e0,    0.0e0, 
-		1.0e0,  2.0e0, -2.0e0,  1.0e0,  1.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0,  2.0e0,  0.0e0, -1.0e0, -1.0e0,  0.0e0,    0.1e0,    0.0e0, 
-		1.0e0,  2.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,   -2.1e0,    0.1e0, 
-		1.0e0,  2.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   -0.4e0,    0.0e0, 
-		1.0e0,  3.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,   -0.2e0,    0.0e0, 
-		1.0e0,  3.0e0,  0.0e0, -2.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0,  3.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   -0.6e0,    0.0e0, 
-		1.0e0,  3.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,   -0.4e0,    0.0e0, 
-		1.0e0,  3.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,   -0.1e0,    0.0e0, 
-		1.0e0,  4.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0, 
+		1.0e0, -3.0e0,  0.0e0,  2.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0, -3.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0, -2.0e0,  0.0e0,  1.0e0, -1.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0, -2.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,   -0.7e0,    0.1e0,
+		1.0e0, -2.0e0,  2.0e0, -1.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0, -1.0e0,  0.0e0,  0.0e0, -1.0e0,  0.0e0,   -1.3e0,    0.1e0,
+		1.0e0, -1.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   -6.8e0,    0.6e0,
+		1.0e0, -1.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  0.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  0.0e0,  0.0e0, -1.0e0, -1.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  0.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,    0.4e0,    0.0e0,
+		1.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,    1.3e0,   -0.1e0,
+		1.0e0,  0.0e0,  0.0e0,  1.0e0,  1.0e0,  0.0e0,    0.3e0,    0.0e0,
+		1.0e0,  0.0e0,  2.0e0, -1.0e0,  0.0e0,  0.0e0,    0.3e0,    0.0e0,
+		1.0e0,  0.0e0,  2.0e0, -1.0e0,  1.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  1.0e0, -3.0e0,  0.0e0,  0.0e0,  1.0e0,   -1.9e0,    0.1e0,
+		1.0e0,  1.0e0, -2.0e0,  0.0e0, -1.0e0,  0.0e0,    0.5e0,    0.0e0,
+		1.0e0,  1.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,  -43.4e0,    2.9e0,
+		1.0e0,  1.0e0, -1.0e0,  0.0e0,  0.0e0, -1.0e0,    0.6e0,    0.0e0,
+		1.0e0,  1.0e0, -1.0e0,  0.0e0,  0.0e0,  1.0e0,    1.6e0,   -0.1e0,
+		1.0e0,  1.0e0,  0.0e0, -2.0e0, -1.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  1.0e0,  0.0e0,  0.0e0, -2.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  1.0e0,  0.0e0,  0.0e0, -1.0e0,  0.0e0,   -8.8e0,    0.5e0,
+		1.0e0,  1.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,  470.9e0,  -30.2e0,
+		1.0e0,  1.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,   68.1e0,   -4.6e0,
+		1.0e0,  1.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,   -1.6e0,    0.1e0,
+		1.0e0,  1.0e0,  1.0e0, -1.0e0,  0.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  1.0e0,  1.0e0,  0.0e0, -1.0e0, -1.0e0,   -0.1e0,    0.0e0,
+		1.0e0,  1.0e0,  1.0e0,  0.0e0,  0.0e0, -1.0e0,  -20.6e0,   -0.3e0,
+		1.0e0,  1.0e0,  1.0e0,  0.0e0,  0.0e0,  1.0e0,    0.3e0,    0.0e0,
+		1.0e0,  1.0e0,  1.0e0,  0.0e0,  1.0e0, -1.0e0,   -0.3e0,    0.0e0,
+		1.0e0,  1.0e0,  2.0e0, -2.0e0,  0.0e0,  0.0e0,   -0.2e0,    0.0e0,
+		1.0e0,  1.0e0,  2.0e0, -2.0e0,  1.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0,  1.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,   -5.0e0,    0.3e0,
+		1.0e0,  1.0e0,  2.0e0,  0.0e0,  1.0e0,  0.0e0,    0.2e0,    0.0e0,
+		1.0e0,  1.0e0,  3.0e0,  0.0e0,  0.0e0, -1.0e0,   -0.2e0,    0.0e0,
+		1.0e0,  2.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,   -0.5e0,    0.0e0,
+		1.0e0,  2.0e0, -2.0e0,  1.0e0,  1.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0,  2.0e0,  0.0e0, -1.0e0, -1.0e0,  0.0e0,    0.1e0,    0.0e0,
+		1.0e0,  2.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,   -2.1e0,    0.1e0,
+		1.0e0,  2.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   -0.4e0,    0.0e0,
+		1.0e0,  3.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,   -0.2e0,    0.0e0,
+		1.0e0,  3.0e0,  0.0e0, -2.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0,  3.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   -0.6e0,    0.0e0,
+		1.0e0,  3.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,   -0.4e0,    0.0e0,
+		1.0e0,  3.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,   -0.1e0,    0.0e0,
+		1.0e0,  4.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,   -0.1e0,    0.0e0,
 		1.0e0,  4.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   -0.1e0,    0.0e0;
 
 	tab65b <<
-		0.0e0,  0.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,  16.6e0,  -6.7e0,  
-		0.0e0,  0.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,  -0.1e0,   0.1e0,  
-		0.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0, -1.0e0,  -1.2e0,   0.8e0,  
-		0.0e0,  0.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,  -5.5e0,   4.3e0,  
-		0.0e0,  0.0e0,  2.0e0,  0.0e0,  1.0e0,  0.0e0,   0.1e0,  -0.1e0,  
-		0.0e0,  0.0e0,  3.0e0,  0.0e0,  0.0e0, -1.0e0,  -0.3e0,   0.2e0,  
-		0.0e0,  1.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,  -0.3e0,   0.7e0,  
-		0.0e0,  1.0e0,  0.0e0, -1.0e0, -1.0e0,  0.0e0,   0.1e0,  -0.2e0,  
-		0.0e0,  1.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,  -1.2e0,   3.7e0,  
-		0.0e0,  1.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   0.1e0,  -0.2e0,  
-		0.0e0,  1.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,   0.1e0,  -0.2e0,  
-		0.0e0,  2.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,   0.0e0,   0.6e0,  
-		0.0e0,  2.0e0,  0.0e0, -2.0e0,  0.0e0,  0.0e0,   0.0e0,   0.3e0,  
-		0.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   0.6e0,   6.3e0,  
-		0.0e0,  2.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,   0.2e0,   2.6e0,  
-		0.0e0,  2.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,   0.0e0,   0.2e0,  
-		0.0e0,  3.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,   0.1e0,   0.2e0,  
-		0.0e0,  3.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,   0.4e0,   1.1e0,  
-		0.0e0,  3.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   0.2e0,   0.5e0,  
+		0.0e0,  0.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,  16.6e0,  -6.7e0,
+		0.0e0,  0.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,  -0.1e0,   0.1e0,
+		0.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0, -1.0e0,  -1.2e0,   0.8e0,
+		0.0e0,  0.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,  -5.5e0,   4.3e0,
+		0.0e0,  0.0e0,  2.0e0,  0.0e0,  1.0e0,  0.0e0,   0.1e0,  -0.1e0,
+		0.0e0,  0.0e0,  3.0e0,  0.0e0,  0.0e0, -1.0e0,  -0.3e0,   0.2e0,
+		0.0e0,  1.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,  -0.3e0,   0.7e0,
+		0.0e0,  1.0e0,  0.0e0, -1.0e0, -1.0e0,  0.0e0,   0.1e0,  -0.2e0,
+		0.0e0,  1.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,  -1.2e0,   3.7e0,
+		0.0e0,  1.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   0.1e0,  -0.2e0,
+		0.0e0,  1.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,   0.1e0,  -0.2e0,
+		0.0e0,  2.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,   0.0e0,   0.6e0,
+		0.0e0,  2.0e0,  0.0e0, -2.0e0,  0.0e0,  0.0e0,   0.0e0,   0.3e0,
+		0.0e0,  2.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   0.6e0,   6.3e0,
+		0.0e0,  2.0e0,  0.0e0,  0.0e0,  1.0e0,  0.0e0,   0.2e0,   2.6e0,
+		0.0e0,  2.0e0,  0.0e0,  0.0e0,  2.0e0,  0.0e0,   0.0e0,   0.2e0,
+		0.0e0,  3.0e0, -2.0e0,  1.0e0,  0.0e0,  0.0e0,   0.1e0,   0.2e0,
+		0.0e0,  3.0e0,  0.0e0, -1.0e0,  0.0e0,  0.0e0,   0.4e0,   1.1e0,
+		0.0e0,  3.0e0,  0.0e0, -1.0e0,  1.0e0,  0.0e0,   0.2e0,   0.5e0,
 		0.0e0,  4.0e0, -2.0e0,  0.0e0,  0.0e0,  0.0e0,   0.1e0,   0.2e0,
 		0.0e0,  4.0e0,  0.0e0, -2.0e0,  0.0e0,  0.0e0,   0.1e0,   0.1e0;
 
-	tab65c <<    
+	tab65c <<
 		2.0e0, -1.0e0,  0.0e0,  1.0e0,  0.0e0,  0.0e0,   -0.3e0,
 		2.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,  0.0e0,   -1.2e0;
 
@@ -388,15 +389,15 @@ void IERS2010::solidEarthTide2(
 
 void IERS2010::poleSolidEarthTide(
 	MjDateTT		mjd,
-	const double	xp, 
-	const double	yp, 
-	MatrixXd&		Cnm, 
+	const double	xp,
+	const double	yp,
+	MatrixXd&		Cnm,
 	MatrixXd&		Snm)
 {
 	double xpv;
 	double ypv;
-	meanPole(mjd, xpv, ypv);
-	
+	secularPole(mjd, xpv, ypv);
+
 	double m1 = +(xp / AS2R - xpv / 1000);
 	double m2 = -(yp / AS2R - ypv / 1000);
 	Cnm(2, 1) += -1.333e-9 * (m1 + 0.0115 * m2);
@@ -406,14 +407,14 @@ void IERS2010::poleSolidEarthTide(
 
 void IERS2010::poleOceanTide(
 	MjDateTT		mjd,
-	const double	xp, 
-	const double	yp, 
-	MatrixXd&		Cnm, 
+	const double	xp,
+	const double	yp,
+	MatrixXd&		Cnm,
 	MatrixXd&		Snm)
 {
 	double xpv;
 	double ypv;
-	meanPole(mjd, xpv, ypv);
+	secularPole(mjd, xpv, ypv);
 
 	double m1 = +(xp / AS2R - xpv / 1000);
 	double m2 = -(yp / AS2R - ypv / 1000);
@@ -422,10 +423,10 @@ void IERS2010::poleOceanTide(
 }
 
 
-void IERS2010::meanPole(
-	const MjDateTT&	mjd, 
-	double&			xpv, 
-	double&			ypv) 
+void IERS2010::secularPole(
+	const MjDateTT&	mjd,
+	double&			xpv,
+	double&			ypv)
 {
 	double t = mjd.to_j2000() / 365.25;
 	xpv = 55.0	+ 1.677 * t;
@@ -455,7 +456,7 @@ Vector3d IERS2010::relativity(
 	double rsun = posEarth.norm();
 
 	Matrix3d S = dU.transpose() * U;
-	
+
 	Vector3d anglevel;
 	anglevel(0) = S(2, 1);
 	anglevel(1) = S(0, 2);
@@ -465,10 +466,10 @@ Vector3d IERS2010::relativity(
 
 	// 1st term (Schwarzchild)
 	Vector3d acc1 = GMe / (SQR(CLIGHT)  * pow(rsat, 3)) * ((2 * (beta + gamma) * GMe / rsat - gamma * velSat.dot(velSat)) * posSat +	2 * (1 + gamma) * posSat.dot(velSat) * velSat);
-	
+
 	// 2nt term (Lense-Thirring)
 	Vector3d acc2 = (1 + gamma) * GMe / (SQR(CLIGHT) * pow(rsat, 3)) *	(	3 / SQR(rsat) * posSat.cross(velSat) * posSat.dot(J) + velSat.cross(J)	) ;
-	
+
 	//3rd (de Sitter .aka. geodesic preciession)
 	Vector3d acc3 = (1 + 2 * gamma) * (velEarth.cross((-1 * GMs * posEarth) / (SQR(CLIGHT) * pow(rsun, 3)))).cross(velSat);
 
@@ -477,18 +478,18 @@ Vector3d IERS2010::relativity(
 
 
 void HfOceanEop::read(
-	const string& filename) 
+	const string& filename)
 {
 	std::ifstream file(filename);
-	
+
 	if (!file)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "HF Ocean eop file open error " << filename << std::endl;
-		
+		<< "HF Ocean eop file open error " << filename;
+
 		return;
 	}
-	
+
 	string line;
 
 	while (std::getline(file, line))
@@ -497,15 +498,15 @@ void HfOceanEop::read(
 		{
 			continue;
 		}
-		
+
 		std::istringstream iss(line);
 		HfOceanEOPData data;
 		iss >> data.name;
-		for (int i = 0; i < 6; i++) 
+		for (int i = 0; i < 6; i++)
 		{
 			iss >> data.mFundamentalArgs[i];
 		}
-		
+
 		iss >> data.doodson;
 		iss >> data.period;
 		iss >> data.xSin;
@@ -516,32 +517,58 @@ void HfOceanEop::read(
 		iss >> data.ut1Cos;
 		iss >> data.lodSin;
 		iss >> data.lodCos;
-		
-		HfOcean_vector.push_back(data);
+
+		hfOceanDataVec.push_back(data);
 	}
-	
+
 	initialized = true;
 }
 
 void HfOceanEop::compute(
-	Array6d&	fundamentalArgs,
-	double&		x, 
-	double&		y,
-	double&		ut1,
-	double&		lod)
+    Array6d& fundamentalArgs,
+    double& x,
+    double& y,
+    double& ut1,
+    double& lod)
 {
-	x	= 0;
-	y	= 0;
-	ut1	= 0;
-	lod	= 0;
-	
-	for (auto& hfdata : HfOcean_vector)
-	{
-		double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
-		
-		x		+= hfdata.xCos		* cos(theta) + hfdata.xSin		* sin(theta);
-		y		+= hfdata.yCos		* cos(theta) + hfdata.ySin		* sin(theta);
-		ut1		+= hfdata.ut1Cos	* cos(theta) + hfdata.ut1Sin	* sin(theta);
-		lod		+= hfdata.lodCos	* cos(theta) + hfdata.lodSin	* sin(theta);
-	}
+    // Initialize output values
+    x = 0;
+    y = 0;
+    ut1 = 0;
+    lod = 0;
+
+    // Parallelize the loop and avoid atomic by using local copies
+    #pragma omp parallel
+    {
+        // Thread-local accumulators
+        double thread_x = 0;
+        double thread_y = 0;
+        double thread_ut1 = 0;
+        double thread_lod = 0;
+
+        // Perform computations in parallel
+        #pragma omp for
+        for (size_t i = 0; i < hfOceanDataVec.size(); ++i)
+        {
+            auto& hfdata = hfOceanDataVec[i];
+            double theta = (fundamentalArgs * hfdata.mFundamentalArgs).sum();
+            double cosTheta = cos(theta);
+            double sinTheta = sin(theta);
+
+            // Accumulate results in thread-local variables
+            thread_x += hfdata.xCos * cosTheta + hfdata.xSin * sinTheta;
+            thread_y += hfdata.yCos * cosTheta + hfdata.ySin * sinTheta;
+            thread_ut1 += hfdata.ut1Cos * cosTheta + hfdata.ut1Sin * sinTheta;
+            thread_lod += hfdata.lodCos * cosTheta + hfdata.lodSin * sinTheta;
+        }
+
+        // Combine the thread-local results into the global ones
+        #pragma omp critical
+        {
+            x += thread_x;
+            y += thread_y;
+            ut1 += thread_ut1;
+            lod += thread_lod;
+        }
+    }
 }

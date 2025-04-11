@@ -5,12 +5,12 @@
 
 using std::map;
 
-#include "eigenIncluder.hpp"
+#include "common/eigenIncluder.hpp"
 
-#include "linearCombo.hpp"
-#include "common.hpp"
-#include "acsQC.hpp"
-#include "enums.h"
+#include "common/linearCombo.hpp"
+#include "common/common.hpp"
+#include "common/acsQC.hpp"
+#include "common/enums.h"
 
 /** Object containing persistent status parameters of individual signals
 */
@@ -32,7 +32,6 @@ struct SigStat
 	SlipStat slip;
 
 	unsigned int	phaseRejectCount	= 0;
-	unsigned int	phaseOutageCount	= 0;
 };
 
 struct IonoStat
@@ -83,7 +82,7 @@ struct SatStat : IonoStat, QC, AzEl
 	double  	mapWetGrads[2]	= {};		///< troposphere wet mapping function
 	VectorEcef	e;							///< Line-of-sight unit vector
 
-	int ionoOutageCount		= 0;			///< Count of epochs without measurements reffering to this satellite's ionosphere state
+	GTime lastIonTime;
 
 	double		dIono		= 0;			///< TD ionosphere residual
 	double		sigmaIono	= 0;			///< TD ionosphere residual noise

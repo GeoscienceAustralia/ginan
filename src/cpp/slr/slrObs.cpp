@@ -9,22 +9,23 @@
 #include <sstream>
 #include <string>
 
-#include "observations.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "slr.hpp"
+#include "common/observations.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "slr/slr.hpp"
 
 using std::ifstream;
 using std::ofstream;
 using std::string;
-using std::endl;
 
 using namespace boost::algorithm;
 
 constexpr int MIN_LINE_LEN_SATID	= 106;
 constexpr int MIN_LINE_LEN_SLROBS	= 162;
+
+map<string, int>	cdpIdMap;
 
 /** Read sat ID file
 */
@@ -76,7 +77,7 @@ vector<CrdSession> readCrdFile(
 	if (!fileStream)
 	{
 		BOOST_LOG_TRIVIAL(error)
-		<< "Error opening crd file " << filepath << std::endl;
+		<< "Error opening crd file " << filepath << "\n";
 
 		return crdSessions;
 	}
@@ -125,7 +126,7 @@ vector<CrdSession> readCrdFile(
 		else if	(recordType ==	"H8") {	crdSessions.push_back(crdSession);	crdSession = {};											} // End of session
 		else if	(recordType ==	"H9") {																									} // End of file (ignore)
 		else if	(recordType[0]=='9' ) {																									} // User-defined (ignore)
-		else BOOST_LOG_TRIVIAL(warning) << "Warning: Unrecognised CRD recordType in file " << filepath << " - " << recordType;
+		else BOOST_LOG_TRIVIAL(warning) << "Warning: Unrecognised CRD recordType in file " << filepath << " - '" << recordType << "'";
 	}
 
 	for (auto it = crdSessions.begin(); it != crdSessions.end();  )
@@ -224,7 +225,7 @@ SatSys ilrsIdToSatSys(
 	auto it = satIdMap.find(ilrsId);
 	if (it == satIdMap.end())
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error - SatId not found in ilrsIdToSatSys(): " << ilrsId;
+		BOOST_LOG_TRIVIAL(error) << "Error - SatId not found in " << __FUNCTION__ << ": " << ilrsId;
 		return Sat;
 	}
 
@@ -256,7 +257,7 @@ void readCrd(
 		obsHeader.ilrsId	=							crdSession.h3.ilrs_id;
 		obsHeader.cosparId		= ilrsIdToCosparId	(obsHeader.ilrsId);
 		obsHeader.Sat			= ilrsIdToSatSys	(obsHeader.ilrsId);
-		obsHeader.wavelength	= crdSession.c0.xmit_wavelength;
+		obsHeader.wavelengthNm	= crdSession.c0.xmit_wavelength;
 
 		if	( crdSession.h4.refraction_app_ind		!= false
 			||crdSession.h4.CofM_app_ind			!= false
@@ -326,7 +327,7 @@ void readCrd(
 			switch(obs.epochEvent)
 			{
 				case E_CrdEpochEvent::REC_TX:
-					obs.timeTx				= obsTime;
+					obs.timeTx.bigTime		= obsTime.bigTime;
 					obs.twoWayTimeOfFlight	= record.time_of_flight;
 					break;
 				case E_CrdEpochEvent::REC_RX:
@@ -334,6 +335,8 @@ void readCrd(
 					obs.twoWayTimeOfFlight	= record.time_of_flight;
 					break;
 				case E_CrdEpochEvent::SAT_BN:
+					obs.timeTx.bigTime		= obsTime.bigTime - record.time_of_flight / 2;
+					obs.twoWayTimeOfFlight	= record.time_of_flight;
 				case E_CrdEpochEvent::SAT_RX:
 				case E_CrdEpochEvent::SAT_TX:
 				case E_CrdEpochEvent::REC_TX_SAT_RX:
@@ -351,21 +354,46 @@ void readCrd(
 
 /** Outputs a tabular file with SLR observations in time-order, for 1 receiver
 */
-void	outputSortedSlrObsPerRec(
+void outputSortedSlrObsPerRec(
 	string							filepath,	///< slr_obs file to write
 	map<GTime, shared_ptr<LObs>>&	obsMap)		///< Output observation list
 {
 	ofstream 	filestream(filepath);
 	if (!filestream)
 		return;
-	filestream << "      Date       Time  Site_ID  CPD_ID   BigTime                    Sat_Name     ILRS_ID  PRN  2-Way_Measurement      Pressure  Temperature  Humidity  Wave_Length" << endl;
-	filestream << "                                         [s (GPS)]                                                           [s]  [hPa (mbar)]          [K]       [%]         [nm]" << endl;
+
+	tracepdeex(0, filestream, "%21s  %-7s %7s %27s  %-11s %8s %4s %18s %13s %12s %9s %12s\n",
+			"DateTime",
+			"Site_ID",
+			"CDP_ID",
+			"BigTime",
+			"Sat_Name",
+			"ILRS_ID",
+			"PRN",
+			"2-Way_Measurement",
+			"Pressure",
+			"Temperature",
+			"Humidity",
+			"Wave_Length");
+	tracepdeex(0, filestream, "%21s  %-7s %7s %27s  %-11s %8s %4s %18s %13s %12s %9s %12s\n",
+			" ",
+			" ",
+			" ",
+			"[s (GPS)]",
+			" ",
+			" ",
+			" ",
+			"[s]",
+			"[hPa (mbar)]",
+			"[K]",
+			"[%]",
+			"[nm]");
 
 	for (auto& [time, slrObs_ptr] : obsMap)
 	{
 		auto& obs = *slrObs_ptr;
 
-		tracepdeex(0, filestream, "%s  %-7s %7d %27.12lf  %-11s %8d %4s %18.12f %13.2f %12.2f %9.1f %12.3f\n",
+		tracepdeex(0, filestream, "%21s  %-7s %7d %27.12lf  %-11s %8d %4s %18.12f %13.2f %12.2f %9.1f %12.3f\n",
 			obs.timeTx.to_string(1),
 			obs.recName,
 			obs.recCdpId,
@@ -377,7 +405,7 @@ void	outputSortedSlrObsPerRec(
 			obs.pressure,
 			obs.temperature,
 			obs.humidity * 100,
-			obs.wavelength);
+			obs.wavelengthNm);
 	}
 }
 
@@ -438,11 +466,13 @@ int readSlrObs(
 	obs.pressure			= stod(	line.substr(113,	13));
 	obs.temperature			= stod(	line.substr(127,	12));
 	obs.humidity			= stod(	line.substr(140,	9)) / 100;
-	obs.wavelength			= stod(	line.substr(150,	12));
+	obs.wavelengthNm		= stod(	line.substr(150,	12));
 
 	obs.cosparId			= ilrsIdToCosparId	(obs.ilrsId);
 	obs.Sat					= ilrsIdToSatSys	(obs.ilrsId);
 	obs.time				= obs.timeTx + obs.twoWayTimeOfFlight / 2;
+
+	cdpIdMap[obs.recName]	= obs.recCdpId;
 
 	obsList.push_back((shared_ptr<LObs>)obs);
 

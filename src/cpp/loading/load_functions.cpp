@@ -5,18 +5,18 @@
  *
  */
 
-#include "load_functions.h"
+#include "loading/load_functions.h"
 
 #include <boost/multi_array.hpp>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 
-#include "loading.h"
-#include "tide.h"
-#include "input_otl.h"
-#include "boost_ma_type.h"
-#include "utils.h"
+#include "loading/loading.h"
+#include "loading/tide.h"
+#include "loading/input_otl.h"
+#include "loading/boost_ma_type.h"
+#include "loading/utils.h"
 
 /** Compute the loading of a single point
  */
@@ -54,8 +54,8 @@ void load_1_point(
 		// *greenEW_it *= sin(azimuth);
 		if (*greenZ_it != *greenZ_it)
 		{
-			std::cout << " nan detected for " << *lat_ptr << " " <<*lon_ptr << std::endl;
-			std::cout << dist << "  " << azimuth << std::endl;
+			std::cout << " nan detected for " << *lat_ptr << " " <<*lon_ptr << "\n";
+			std::cout << dist << "  " << azimuth << "\n";
 			exit(0);
 		}
 		greenZ_it++;

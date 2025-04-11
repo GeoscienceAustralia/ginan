@@ -25,23 +25,23 @@
 using std::vector;
 
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "ephPrecise.hpp"
-#include "ephemeris.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "planets.hpp"
-#include "satStat.hpp"
-#include "antenna.hpp"
-#include "common.hpp"
-#include "sinex.hpp"
-#include "trace.hpp"
-#include "enums.h"
-#include "ppp.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/ephPrecise.hpp"
+#include "common/ephemeris.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "orbprop/planets.hpp"
+#include "common/satStat.hpp"
+#include "common/antenna.hpp"
+#include "common/common.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
+#include "pea/ppp.hpp"
 
 
 /** exclude meas of eclipsing satellite (block IIA)
@@ -49,6 +49,9 @@ using std::vector;
 void testEclipse(
 	ObsList&	obsList)
 {
+	if (obsList.empty())
+		return;
+
 	/* unit vector of sun direction (ecef) */
 	VectorEcef rsun;
 	planetPosEcef(obsList.front()->time, E_ThirdBody::SUN, rsun);
@@ -95,6 +98,7 @@ void testEclipse(
 
 struct SatGeom
 {
+	SatSys		Sat;				///< Satellite
 	VectorEcef	rSat;				///< Satellite position (ECEF)
 	VectorEcef	vSat;				///< Satellite velocity (ECEF)
 	VectorEcef	vSatPrime;			///< Satellite velocity (ECEF + Earth rotation component)
@@ -119,68 +123,70 @@ SatGeom satOrbitGeometry(
 	auto& rSun		= satGeom.rSun;
 	auto& rMoon		= satGeom.rMoon;
 	auto& eNorm		= satGeom.eNorm;
-	auto& beta		= satGeom.beta;
-	auto& betaRate	= satGeom.betaRate;
-	auto& mu		= satGeom.mu;
-	auto& muRate	= satGeom.muRate;
 	auto& time		= satPos.posTime;
 
 	rSat			= satPos.rSatCom;
 	vSat			= satPos.satVel;
 
-	planetPosEcef(time, E_ThirdBody::SUN,	rSun);
-	planetPosEcef(time, E_ThirdBody::MOON,	rMoon);			//todo aaron roll this into loop
-	vSatPrime		= vSat;
-	vSatPrime[0]	-= OMGE * rSat[1];
-	vSatPrime[1]	+= OMGE * rSat[0];
-	Vector3d n		= rSat.cross(vSatPrime);					//orbit-axis
-	Vector3d p		= rSun.cross(n);							//ascension?
-	Vector3d eSat	= rSat.	normalized();
-	Vector3d eSun	= rSun.	normalized();
-	eNorm			= n.	normalized();						//orbit-axis
-	Vector3d ep		= p.	normalized();						//ascension?
-	beta			= asin(eNorm.dot(eSun));					//angle between sun and orbital plane
-	double E		= acos(eSat	.dot(ep));						//angle between sat and ascension node?
-	if (eSat.dot(eSun) <= 0)	mu = PI / 2 - E;				//sat on dark side
-	else						mu = PI / 2 + E;				//sat on noon side
-	wrapPlusMinusPi(beta);
-	wrapPlusMinusPi(mu);
-
-	// Beta & mu rates
-	double dt = 1;
 	ERPValues erpv = getErp(nav.erp, time);
+
 	FrameSwapper frameSwapper(time, erpv);
-	VectorEci rSatEci;
+
 	VectorEci vSatEci;
-	rSatEci	= frameSwapper(rSat, &vSat, &vSatEci);
+	VectorEci rSatEci = frameSwapper(rSat, &vSat, &vSatEci);
 
-	VectorEcef	rSat2;
-	VectorEcef	vSat2;
-	propagateEllipse(nullStream, time, dt, rSatEci, vSatEci, rSat2, &vSat2);
+	double	beta[2];
+	double	mu	[2];
+	int		DT = 1;
 
-	VectorEcef	rSun2;
-	planetPosEcef(time + dt, E_ThirdBody::SUN, rSun2);
-	Vector3d vSatPrime2 = vSat2;
-	vSatPrime2[0]	-= OMGE * rSat2[1];
-	vSatPrime2[1]	+= OMGE * rSat2[0];
-	n				= rSat2.cross(vSatPrime2);					//orbit-axis
-	p				= rSun2.cross(n);							//ascension?
-	eSat			= rSat2.	normalized();
-	eSun			= rSun2.	normalized();
-	Vector3d eNorm2	= n.	normalized();						//orbit-axis
-	ep				= p.	normalized();						//ascension?
-	double beta2	= asin(eNorm2.dot(eSun));					//angle between sun and orbital plane
-	E				= acos(eSat	.dot(ep));						//angle between sat and ascension node?
-	double mu2;
-	if (eSat.dot(eSun) <= 0)	mu2 = PI / 2 - E;				//sat on dark side
-	else						mu2 = PI / 2 + E;				//sat on noon side
+	//do dt = 1, 0, so that the final results end up in the right place
+	for (int dt : {DT, 0})
+	{
+		SatPos satPosDt;
+		satPosDt.Sat = satPos.Sat;
 
-	double dBeta	= beta2	- beta;
-	double dMu		= mu2	- mu;
+		propagateEllipse(nullStream, time, dt, rSatEci, vSatEci, satPosDt);
+
+		rSat = satPosDt.rSatCom;
+		vSat = satPosDt.satVel;
+
+		VectorEcef vSatPrime = vSat;
+		vSatPrime[0]		-= OMGE * rSat[1];
+		vSatPrime[1]		+= OMGE * rSat[0];
+
+		planetPosEcef(time + dt, E_ThirdBody::MOON,	rMoon);
+		planetPosEcef(time + dt, E_ThirdBody::SUN,	rSun);
+
+		Vector3d n		= rSat.cross(vSatPrime);				//orbit-axis
+		Vector3d p		= rSun.cross(n);						//ascension?
+
+		Vector3d	eSat	= rSat.	normalized();
+		Vector3d	eSun	= rSun.	normalized();
+					eNorm	= n.	normalized();				//orbit-axis
+		Vector3d	ep		= p.	normalized();				//ascension?
+
+		beta[dt]	= asin(eNorm.dot(eSun));					//angle between sun and orbital plane
+
+		double E	= acos(eSat	.dot(ep));						//angle between sat and ascension node?
+
+		if (eSat.dot(eSun) <= 0)	mu[dt] = PI / 2 - E;		//sat on dark side
+		else						mu[dt] = PI / 2 + E;		//sat on noon side
+
+		wrapPlusMinusPi(beta[dt]);
+		wrapPlusMinusPi(mu	[dt]);
+	}
+
+	double dBeta	= beta	[1] - beta	[0];
+	double dMu		= mu	[1] - mu	[0];
+
 	wrapPlusMinusPi(dBeta);
 	wrapPlusMinusPi(dMu);
-	betaRate	= dBeta	/ dt;
-	muRate		= dMu	/ dt;
+
+	satGeom.beta		= beta	[0];
+	satGeom.mu			= mu	[0];
+	satGeom.betaRate	= dBeta	/ DT;
+	satGeom.muRate		= dMu	/ DT;
+	satGeom.Sat			= satPos.Sat;
 
 	return satGeom;
 }
@@ -343,22 +349,18 @@ bool inEclipse(
 	Vector3d&	rMoon)		///< Moon position (ECEF)
 {
 	double visibility = sunVisibility(rSat, rSun, rMoon);
+
 	if (visibility == 0)	return true;
 	else					return false;
 }
 
-void satSunMoonPos(
-	GTime		eciTime,	///< Time of rSatEci0/vSatEci0
-	VectorEci&	rSatEci0,	///< Satellite position (ECI) at eciTime
-	VectorEci&	vSatEci0,	///< Satellite position (ECI) at eciTime
-	double		dt,			///< dt between eciTime & requested time of rSat/rSun/rMoon
-	VectorEcef&	rSat,		///< Satellite position (ECEF)
+void sunMoonPos(
+	GTime		time,		///< Time of
 	VectorEcef&	rSun,		///< Sun position (ECEF)
 	VectorEcef&	rMoon)		///< Moon position (ECEF)
 {
-	propagateEllipse(nullStream, eciTime, dt, rSatEci0, vSatEci0, rSat);
-	planetPosEcef(eciTime + dt, E_ThirdBody::SUN,	rSun);
-	planetPosEcef(eciTime + dt, E_ThirdBody::MOON,	rMoon);
+	planetPosEcef(time, E_ThirdBody::SUN,	rSun);
+	planetPosEcef(time, E_ThirdBody::MOON,	rMoon);
 }
 
 /** Finds time when eclipse started, prior (default) to this point in time
@@ -367,15 +369,19 @@ void satSunMoonPos(
 GTime findEclipseBoundaries(
 	GTime		time,					///< Solution time
 	SatGeom&	satGeom,				///< Satellite geometry
-	bool		searchForward,			///< Search forward in time
-	double		precision = 1)			///< Precision of boundary timing (sec), must be > 0
+	bool		searchForward)			///< Search forward in time
 {
-	VectorEcef rSat	= satGeom.rSat;
-	VectorEcef vSat	= satGeom.vSat;
-	VectorEcef rSun	= satGeom.rSun;
+	double precision = 1;
+
+	VectorEcef rSat		= satGeom.rSat;
+	VectorEcef vSat		= satGeom.vSat;
+	VectorEcef rSun		= satGeom.rSun;
 	VectorEcef rMoon	= satGeom.rMoon;
+
 	ERPValues erpv = getErp(nav.erp, time);
+
 	FrameSwapper frameSwapper(time, erpv);
+
 	VectorEci rSatEci0;
 	VectorEci vSatEci0;
 	rSatEci0	= frameSwapper(rSat, &vSat, &vSatEci0);
@@ -383,27 +389,42 @@ GTime findEclipseBoundaries(
 	double dt = 0;
 	if (searchForward)
 	{
-		double start = 0;
+		double start	= 0;
 		double interval = 0.5 * 60 * 60; // Eclipses are ~0.8-1.5hrs in length
-		double end = interval;
+		double end		= interval;
 
 		// Find rough 1/2hr interval that eclipse falls within
 		while (inEclipse(rSat, rSun, rMoon))
 		{
 			start = end;
 			end += interval;
-			satSunMoonPos(time, rSatEci0, vSatEci0, end, rSat, rSun, rMoon);
+
+			SatPos satPos;
+			satPos.Sat = satGeom.Sat;
+
+			propagateEllipse(nullStream, time, end, rSatEci0, vSatEci0, satPos);
+
+			rSat = satPos.rSatCom;
+
+			sunMoonPos(time + end, rSun, rMoon);
 		}
 
 		// Binary search to nearest second
 		while (start <= end)
 		{
-			double mid = start + (end - start) / 2.0;
-			satSunMoonPos(time, rSatEci0, vSatEci0, mid, rSat, rSun, rMoon);
-			if (inEclipse(rSat, rSun, rMoon))
-				start = mid + precision;
-			else
-				end = mid - precision;
+			double mid = start + (end - start) / 2;
+
+			SatPos satPos;
+			satPos.Sat = satGeom.Sat;
+
+			propagateEllipse(nullStream, time, mid, rSatEci0, vSatEci0, satPos);
+
+			rSat = satPos.rSatCom;
+
+			sunMoonPos(time + mid, rSun, rMoon);
+
+			if (inEclipse(rSat, rSun, rMoon))		start	= mid + precision;
+			else									end		= mid - precision;
 		}
 		dt = end;
 	}
@@ -412,7 +433,15 @@ GTime findEclipseBoundaries(
 		while (inEclipse(rSat, rSun, rMoon))
 		{
 			dt -= precision;
-			satSunMoonPos(time, rSatEci0, vSatEci0, dt, rSat, rSun, rMoon);
+
+			SatPos satPos;
+			satPos.Sat = satGeom.Sat;
+
+			propagateEllipse(nullStream, time, dt, rSatEci0, vSatEci0, satPos);
+
+			rSat = satPos.rSatCom;
+
+			sunMoonPos(time + dt, rSun, rMoon);
 		}
 	}
 
@@ -526,7 +555,10 @@ bool satYawGpsIIA(
 	bool maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
 	if (maxYawRateFound == false)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__ << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+		<< ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+
 		return false;
 	}
 
@@ -808,7 +840,10 @@ bool satYawGlo(
 	bool maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
 	if (maxYawRateFound == false)
 	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__ << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+		BOOST_LOG_TRIVIAL(warning)
+		<< "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+		<< ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
+
 		return false;
 	}
 
@@ -1010,6 +1045,7 @@ bool satYawBds3(
 	double alpha	= PI - mu;					wrapPlusMinusPi(alpha);
 	double beta0	= 3 * D2R;
 	double mu0		= 6 * D2R;
+
 	if	( ( abs(beta)	<= beta0)
 		&&( abs(alpha)	<= mu0
 		  ||abs(mu)		<= mu0))
@@ -1018,35 +1054,36 @@ bool satYawBds3(
 			||beta	== 0)
 		{
 			attStatus.modelYaw = nominalYawGps(SGN(beta) * beta0, mu);
+			return true;
 		}
-		else
+
+		if (attStatus.startTime == GTime::noTime()) // start of switchover period
 		{
-			if (attStatus.startTime == GTime::noTime()) // start of switchover period
+			double	currBeta	= beta;
+			double	currAlpha	= alpha;
+			double	currMu		= mu;
+			GTime	currTime	= time;
+			while	( ( abs(currBeta)	<= beta0)
+					&&( abs(currAlpha)	<= mu0
+						||abs(currMu)		<= mu0))
 			{
-				double	currBeta	= beta;
-				double	currAlpha	= alpha;
-				double	currMu		= mu;
-				GTime	currTime	= time;
-				while	( ( abs(currBeta)	<= beta0)
-						&&( abs(currAlpha)	<= mu0
-						  ||abs(currMu)		<= mu0))
-				{
-					currTime += -1;
-					currBeta	= beta	+ betaRate	* (currTime - time).to_double();	wrapPlusMinusPi(currBeta);
-					currMu		= mu	+ muRate	* (currTime - time).to_double();	wrapPlusMinusPi(currMu);
-					currAlpha	= PI - currMu;											wrapPlusMinusPi(currAlpha);
-				}
-				attStatus.startTime	= currTime;
-				attStatus.startYaw	= nominalYawGpsAtTime(satGeom, time, currTime);
+				currTime += -1;
+				currBeta	= beta	+ betaRate	* (currTime - time).to_double();	wrapPlusMinusPi(currBeta);
+				currMu		= mu	+ muRate	* (currTime - time).to_double();	wrapPlusMinusPi(currMu);
+				currAlpha	= PI - currMu;											wrapPlusMinusPi(currAlpha);
 			}
-			attStatus.modelYaw = smoothedYaw(attStatus.startYaw, attStatus.startTime, time, tMax);
+			attStatus.startTime	= currTime;
+			attStatus.startYaw	= nominalYawGpsAtTime(satGeom, time, currTime);
 		}
+
+		attStatus.modelYaw = smoothedYaw(attStatus.startYaw, attStatus.startTime, time, tMax);
 	}
 	else
 	{
 		attStatus.startTime	= GTime::noTime();
 		attStatus.startYaw	= 0;
 	}
+
 	return true;
 }
 
@@ -1347,35 +1384,43 @@ bool preciseAttitude(
 	Quaterniond	quatNow = quat1.slerp(frac, quat2);
 
 	Matrix3d body2Ecef = Matrix3d::Identity();
-	if		(entry1.frame == +E_ObxFrame::ECI)
+	switch (entry1.frame)
 	{
-		Matrix3d eci2Body = quatNow.toRotationMatrix();
+		case E_ObxFrame::ECI:
+		{
+			Matrix3d eci2Body = quatNow.toRotationMatrix();
 
-		Matrix3d body2Eci = eci2Body.transpose();
+			Matrix3d body2Eci = eci2Body.transpose();
 
-		ERPValues erpv = getErp(nav.erp, time);
+			ERPValues erpv = getErp(nav.erp, time);
 
-		Matrix3d i2tMatrix	= Matrix3d::Identity();
+			Matrix3d i2tMatrix;
+			eci2ecef(time, erpv, i2tMatrix);
 
-		eci2ecef(time, erpv, i2tMatrix);
+			body2Ecef = i2tMatrix * body2Eci;
 
-		body2Ecef = i2tMatrix * body2Eci;
-	}
-	else if	(entry1.frame == +E_ObxFrame::ECEF)
-	{
-		Matrix3d ecef2Body = quatNow.toRotationMatrix();
+			break;
+		}
+		case E_ObxFrame::ECEF:
+		{
+			Matrix3d ecef2Body = quatNow.toRotationMatrix();
 
-		body2Ecef = ecef2Body.transpose();
-	}
-	else if	(entry1.frame == +E_ObxFrame::BCRS)
-	{
+			body2Ecef = ecef2Body.transpose();
 
-	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(error)
-		<< "Unknown frame type in " << __FUNCTION__ << ": " << entry1.frame._to_string();
-		return false;
+			break;
+		}
+		case E_ObxFrame::BCRS:
+		{
+
+
+			break;
+		}
+		default:
+		{
+			BOOST_LOG_TRIVIAL(error)
+			<< "Error: Unknown frame type in " << __FUNCTION__ << ": " << entry1.frame._to_string();
+			return false;
+		}
 	}
 
 	attStatus.eXBody = body2Ecef.col(0);
@@ -1523,7 +1568,7 @@ bool basicRecAttitude(
 	Receiver&	rec,				///< Receiver position (ECEF)
 	AttStatus&	attStatus)			///< Attitude status
 {
-	VectorPos pos = ecef2pos(rec.sol.sppRRec);
+	VectorPos pos = ecef2pos(rec.aprioriPos);
 
 	Matrix3d E;
 	pos2enu(pos, E.data());

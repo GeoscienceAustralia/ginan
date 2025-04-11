@@ -8,27 +8,29 @@
 
 using std::map;
 
-#include "rinexNavWrite.hpp"
-#include "rinexObsWrite.hpp"
-#include "rinexClkWrite.hpp"
-#include "ephPrecise.hpp"
-#include "GNSSambres.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "ephemeris.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "algebra.hpp"
-#include "rinex.hpp"
-#include "enums.h"
+#include "pea/inputsOutputs.hpp"
+#include "common/rinexNavWrite.hpp"
+#include "common/rinexObsWrite.hpp"
+#include "common/rinexClkWrite.hpp"
+#include "common/ephPrecise.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/ephemeris.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/algebra.hpp"
+#include "common/sinex.hpp"
+#include "common/rinex.hpp"
+#include "common/enums.h"
 
 /* macro defintions */
 #define             VERSION             3.00
 
 struct ClockEntry
 {
-	string			id		= "";		// Either station of satellite.
-	string			monid	= "";		// Monument identification, receiver.
+	string			id;					// Either station of satellite.
+	string			monid;				// Monument identification, receiver.
 	Vector3d		recPos	= {};		// Receiver position.
 	double	 		clock	= 0;		// Mean clock delta reference.
 	double	 		sigma	= 0;		// Standard deviation.
@@ -36,12 +38,15 @@ struct ClockEntry
 	vector<int>		clkIndices;
 };
 
-typedef std::vector<ClockEntry> ClockList;
+struct ClockList : vector<ClockEntry>
+{
+
+};
 
 void outputRinexClocksBody(
-	string&		filename,	    ///< Path to output file.
-	ClockList&	clkEntryList,	   ///< List of data to print.
-	GTime&		time)		    ///< Epoch time.
+	string&			filename,	    ///< Path to output file.
+	ClockList&		clkEntryList,	///< List of data to print.
+	const GTime&	time)		    ///< Epoch time.
 {
 	std::ofstream clockFile(filename, std::ofstream::app);
 
@@ -175,7 +180,7 @@ void getKalmanRecClks(
 void getPreciseRecClks(
 	ClockList&  	clkEntryList,
 	ReceiverMap*	receiverMap_ptr,
-	GTime& 			time)
+	const GTime& 	time)
 {
 	if (receiverMap_ptr == nullptr)
 	{
@@ -212,7 +217,7 @@ void getPreciseRecClks(
 
 void getSatClksFromEph(
 	ClockList&  		clkEntryList,
-	GTime& 				time,
+	const GTime& 		time,
 	map<E_Sys, bool>&	outSys,
 	vector<E_Source>	ephType)
 {
@@ -364,7 +369,7 @@ void outputClocksSet(
 	string				filename,
 	vector<E_Source>	clkDataRecSrcs,
 	vector<E_Source>	clkDataSatSrcs,
-	GTime&				time,
+	const GTime&		time,
 	map<E_Sys, bool>&	outSys,
 	KFState&			kfState,
 	ReceiverMap*		receiverMap_ptr)
@@ -449,10 +454,10 @@ map<string, map<E_Sys, bool>> getSysOutputFilenames(
 
 void outputClocks(
 	string				filename,
+	const GTime&		time,
+	KFState&			kfState,
 	vector<E_Source>	clkDataRecSrcs,
 	vector<E_Source>	clkDataSatSrcs,
-	GTime&				time,
-	KFState&			kfState,
 	ReceiverMap*		receiverMap_ptr)
 {
 	auto filenameSysMap = getSysOutputFilenames(filename, time);

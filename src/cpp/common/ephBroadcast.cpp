@@ -1,13 +1,13 @@
 
-#include "eigenIncluder.hpp"
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "acsConfig.hpp"
-#include "trace.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "common/acsConfig.hpp"
+#include "common/trace.hpp"
+#include "common/gTime.hpp"
 
 
-#define STD_BRDCCLK		30.0				///< error of broadcast clock (m)
+#define STD_BRDCCLK		1.5					///< error of broadcast clock (m)
 
 #define J2_GLO			1.0826257E-3		///< 2nd zonal harmonic of geopot   ref [2]
 
@@ -55,10 +55,10 @@ EPHTYPE* selSysEphFromMap(
 	auto it = sysEphMap.lower_bound(time);
 	if (it == sysEphMap.end())
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris (EOP/ION): %s sys=%s", time.to_string(0).c_str(), sys._to_string());
+		tracepdeex(5, trace, "\nno broadcast ephemeris (EOP/ION): %s sys=%s", time.to_string().c_str(), sys._to_string());
 		if (sysEphMap.empty() == false)
 		{
-			tracepdeex(5, trace, " last is %s", sysEphMap.begin()->first.to_string(0).c_str());
+			tracepdeex(5, trace, " last is %s", sysEphMap.begin()->first.to_string().c_str());
 		}
 		return nullptr;
 	}
@@ -107,7 +107,7 @@ EPHTYPE* selSatEphFromMap(
 			return &eph;
 		}
 
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s with iode=%3d", time.to_string(0).c_str(), Sat.id().c_str(), iode);
+		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s with iode=%3d", time.to_string().c_str(), Sat.id().c_str(), iode);
 
 		return nullptr;
 	}
@@ -115,10 +115,10 @@ EPHTYPE* selSatEphFromMap(
 	auto it = satEphMap.lower_bound(time + tmax);
 	if (it == satEphMap.end())
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE+ ", time.to_string(0).c_str(), Sat.id().c_str());
+		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE+ ", time.to_string().c_str(), Sat.id().c_str());
 		if (satEphMap.empty() == false)
 		{
-			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string(0).c_str());
+			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string().c_str());
 		}
 
 		return nullptr;
@@ -128,7 +128,7 @@ EPHTYPE* selSatEphFromMap(
 
 	if (fabs((eph.toe - time).to_double()) > tmax)
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE-", time.to_string(0).c_str(), Sat.id().c_str());
+		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE-", time.to_string().c_str(), Sat.id().c_str());
 
 		return nullptr;
 	}
@@ -299,7 +299,7 @@ void eph2Pos(
 
 	if (n >= MAX_ITER_KEPLER)
 	{
-        printf("kepler iteration overflow sat=%s\n",eph.Sat.id().c_str());
+        printf("kepler iteration overflow sat=%s\n", eph.Sat.id().c_str());
 		return;
 	}
 
@@ -463,7 +463,7 @@ bool satClkBroadcast(
 
 	if (eph_ptr == nullptr)
 	{
-		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string(2));
+		tracepdeex(2, trace, "\nCould not find Broadcast Ephemeris for sat: %s, %s", Sat.id().c_str(), teph.to_string().c_str());
 		return false;
 	}
 
@@ -502,8 +502,9 @@ bool satPosBroadcast(
 	int&			iode,
 	Navigation&		nav)
 {
-	Vector3d	rSat_1;
-	double		tt = 1E-3;
+	Vector3d	rSat1;
+	Vector3d	rSat2;
+	double		tt = 10e-3;
 
 //	trace(4, "%s: time=%s sat=%2d iode=%d\n",__FUNCTION__,time.to_string(3).c_str(),obs.Sat,iode);
 
@@ -515,14 +516,14 @@ bool satPosBroadcast(
 
 	if (eph_ptr == nullptr)
 	{
-		tracepdeex(2,trace, "Could not find Broadcast Ephemeris for sat: %s, %s\n", Sat.id().c_str(), teph.to_string(2));
+		tracepdeex(2, trace, "\nCould not find Broadcast Ephemeris for sat: %s, %s", Sat.id().c_str(), teph.to_string().c_str());
 		return false;
 	}
 
 	auto& eph = *eph_ptr;
 
-	eph2Pos(time, 		eph, 	rSat, 		&ephVar);
-	eph2Pos(time + tt,	eph, 	rSat_1);
+	eph2Pos(time - tt, eph, rSat1, &ephVar);
+	eph2Pos(time + tt, eph, rSat2);
 
 	if (eph.svh == E_Svh::SVH_OK)
 	{
@@ -532,7 +533,8 @@ bool satPosBroadcast(
 	iode	= eph.iode;
 
 	/* satellite velocity and clock drift by differential approx */
-	satVel = (rSat_1 - rSat) / tt;
+	rSat	= (rSat2 + rSat1) /  2;
+	satVel	= (rSat2 - rSat1) / (2 * tt);
 
 	return true;
 }

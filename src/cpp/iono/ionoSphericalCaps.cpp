@@ -1,9 +1,9 @@
 
-#include "coordinates.hpp"
-#include "ionoModel.hpp"
-#include "observations.hpp"
-#include "common.hpp"
-#include "acsConfig.hpp"
+#include "orbprop/coordinates.hpp"
+#include "iono/ionoModel.hpp"
+#include "common/observations.hpp"
+#include "common/common.hpp"
+#include "common/acsConfig.hpp"
 
 #define LEG_ITER_NUM 100
 #define LEG_EPSILON0 (1.e-7) // Legendre function accuracy

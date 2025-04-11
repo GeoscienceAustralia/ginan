@@ -1,19 +1,35 @@
 
 // #pragma GCC optimize ("O0")
 
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "instrument.hpp"
-#include "GNSSambres.hpp"
-#include "testUtils.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "receiver.hpp"
-#include "satStat.hpp"
-#include "trace.hpp"
-#include "sinex.hpp"
-#include "acsQC.hpp"
-#include "ppp.hpp"
+#include "architectureDocs.hpp"
+
+/** Use linear combinations of primary signals to detect jumps in carrier phase observations
+ */
+Architecture Cycle_Slip_Detection__()
+{
+
+}
+
+/** Perform basic quality checks on observations
+ */
+Architecture Preprocessing__()
+{
+	DOCS_REFERENCE(Cycle_Slip_Detection__);
+	DOCS_REFERENCE(SPP__);
+}
+
+#include "common/observations.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "ambres/GNSSambres.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/receiver.hpp"
+#include "common/satStat.hpp"
+#include "common/trace.hpp"
+#include "common/sinex.hpp"
+#include "common/acsQC.hpp"
+#include "pea/ppp.hpp"
 
 
 void outputObservations(
@@ -30,20 +46,20 @@ void outputObservations(
 			continue;
 		}
 
-		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string(2).c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
+		tracepdeex(4, trace, "\n%s %5s %5s %14.4f %14.4f", obs.time.to_string().c_str(), obs.Sat.id().c_str(), sig.code._to_string(), sig.L, sig.P);
 
 		traceJson(4, jsonTrace, obs.time,
 		{
-			{"data", __FUNCTION__},
+			{"data", "observations"},
 			{"Sat", obs.Sat.id()},
 			{"Rec", obs.mount},
 			{"Sig", sig.code._to_string()}
 		},
 		{
 			{"SNR", sig.snr},
-			// {"L", sig.L},
-			// {"P", sig.P},
-			// {"D", sig.D},
+			{"L",	sig.L},
+			{"P",	sig.P},
+			{"D",	sig.D},
 			// {"LLI", sig.lli},
 		});
 	}
@@ -55,6 +71,7 @@ void obsVariances(
 	for (auto& obs			: only<GObs>(obsList))
 	if (obs.satNav_ptr)
 	if (obs.satStat_ptr)
+	if (obs.exclude == false)
 	if (acsConfig.process_sys[obs.Sat.sys])
 	{
 		auto& recOpts = acsConfig.getRecOpts(obs.mount);
@@ -78,8 +95,11 @@ void obsVariances(
 			case E_NoiseModel::ELEVATION_DEPENDENT:		{	satElScaling = 1 / sin(el);		break;	}
 		}
 
-		for (auto& [ft, sig]	: obs.sigs)
+		for (auto& [ft, sig] : obs.sigs)
 		{
+			if (sig.P == 0)
+				continue;
+
 			string sigName = sig.code._to_string();
 
 			auto& satOpts = acsConfig.getSatOpts(obs.Sat,	{sigName});
@@ -142,10 +162,14 @@ void recordSlips(
 }
 
 void preprocessor(
-	Network&	net,
+	Trace&		trace,
 	Receiver&	rec,
-	bool		realEpoch)
+	bool		realEpoch,
+	KFState*	kfState_ptr,	///< Optional pointer to filter to take ephemerides from
+	KFState*	remote_ptr)		///< Optional pointer to filter to take ephemerides from
 {
+	DOCS_REFERENCE(Preprocessing__);
+
 	if	( (acsConfig.process_preprocessor == false)
 		||(acsConfig.preprocOpts.preprocess_all_data == true	&& realEpoch == true)
 		||(acsConfig.preprocOpts.preprocess_all_data == false	&& realEpoch == false))
@@ -153,12 +177,9 @@ void preprocessor(
 		return;
 	}
 
-	Instrument instrument(__FUNCTION__);
-
-	auto trace		= getTraceFile(rec);
 	auto jsonTrace	= getTraceFile(rec, true);
 
-	acsConfig.getRecOpts(rec.id);
+	auto& recOpts = acsConfig.getRecOpts(rec.id);
 
 	auto& obsList = rec.obsList;
 
@@ -171,14 +192,22 @@ void preprocessor(
 	start_time.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
 
 	double tol;
-	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;		//todo aaron this should be the other tolerance?
+	if (acsConfig.assign_closest_epoch)			tol = acsConfig.epoch_interval / 2;		//todo aaron this should be the epoch_tolerance?
 	else										tol = 0.5;
 
+	GTime time = obsList.front()->time;
 	if	(  acsConfig.start_epoch.is_not_a_date_time() == false
-		&& obsList.front()->time < (GTime) start_time - tol)
+		&& time < (GTime) start_time - tol)
 	{
 		return;
 	}
+
+	getRecSnx(rec.id, time, rec.snx);
+
+	bool dummy;
+	updateAprioriRecPos(trace, rec, recOpts, dummy, remote_ptr);
+
+	VectorPos pos = ecef2pos(rec.aprioriPos);
 
 	//prepare and connect navigation objects to the observations
 	for (auto& obs : only<GObs>(obsList))
@@ -201,34 +230,28 @@ void preprocessor(
 			continue;
 		}
 
+		auto& satNav	= nav.satNavMap[obs.Sat];
+		auto& satStat	= rec.satStatMap[obs.Sat];
+
 		obs.rec_ptr		= &rec;
-		obs.satNav_ptr	= &nav.satNavMap[obs.Sat];
+		obs.satNav_ptr	= &satNav;
+		obs.satStat_ptr = &satStat;
 
-		E_NavMsgType nvtyp = acsConfig.used_nav_types[obs.Sat.sys];
-		if (obs.Sat.sys == +E_Sys::GLO)		obs.satNav_ptr->eph_ptr = seleph<Geph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);
-		else								obs.satNav_ptr->eph_ptr = seleph<Eph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);
+		updateLamMap(obs.time, obs);
 
-		updatenav(obs);
+		satPosClk(trace, obs.time, obs, nav, satOpts.posModel.sources, satOpts.clockModel.sources, kfState_ptr, remote_ptr, E_OffsetType::APC);
 
-		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
-	}
-
-	for (auto& obs : only<LObs>(obsList))		//todo aaron merge these above below - lobs, gobs use satobs
-	{
-		if (acsConfig.process_sys[obs.Sat.sys] == false)
+		Vector3d rSat = obs.rSatApc;
+		if (rSat.isZero())
 		{
+			obs.failureRSat = true;
+
 			continue;
 		}
 
-		obs.satNav_ptr	= &nav.satNavMap[obs.Sat];
+		double r = geodist(rSat, rec.aprioriPos, satStat.e);
 
-		E_NavMsgType nvtyp = acsConfig.used_nav_types[obs.Sat.sys];
-		if (obs.Sat.sys == +E_Sys::GLO)		obs.satNav_ptr->eph_ptr	= seleph<Geph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);
-		else								obs.satNav_ptr->eph_ptr	= seleph<Eph>	(trace, obs.time, obs.Sat, nvtyp, ANY_IODE, nav);
-
-		updatenav(obs);
-
-		obs.satStat_ptr = &rec.satStatMap[obs.Sat];
+		satazel(pos, satStat.e, satStat);
 	}
 
 	clearSlips(obsList);
@@ -245,7 +268,7 @@ void preprocessor(
 		obs.satStat_ptr->lc_new = {};
 	}
 	obs2lcs		(trace,	obsList);
-
+	obsVariances(		obsList);
 	detectslips	(trace,	obsList);
 
 	recordSlips(rec);

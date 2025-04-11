@@ -5,13 +5,11 @@
 
 using std::deque;
 
-#include "streamRtcm.hpp"
-#include "ephemeris.hpp"
-#include "acsConfig.hpp"
-#include "mongoRead.hpp"
-#include "common.hpp"
-
-using bsoncxx::types::b_date;
+#include "common/streamRtcm.hpp"
+#include "common/ephemeris.hpp"
+#include "common/acsConfig.hpp"
+#include "common/mongoRead.hpp"
+#include "common/common.hpp"
 
 short int			currentSSRIod = 0;	//todo aaron, sketchy global?
 map<SatSys, int>	lastBrdcIode;
@@ -89,8 +87,9 @@ SsrOutMap mongoReadOrbClk(
 
 		getMongoCollection(mongo, SSR_DB);
 
-	// 	std::cout << "\nTrying to get things for " << targetTime.to_string(0) << std::endl;
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)referenceTime).bigTime)};
+	// 	std::cout << "\nTrying to get things for " << targetTime.to_string(0) << "\n";
+
+		b_date btime = bDate(referenceTime);
 
 		bool changeIod = false;
 		auto sats = getSysSats(targetSys);
@@ -120,7 +119,7 @@ SsrOutMap mongoReadOrbClk(
 				auto docSort	= document{}	<< SSR_EPOCH 		<< sortDir
 												<< finalize;
 
-	// 			fout << bsoncxx::to_json(doc) << std::endl;
+	// 			fout << bsoncxx::to_json(doc) << "\n";
 
 				auto findOpts 	= mongocxx::options::find{};
 				findOpts.limit(2);
@@ -170,7 +169,7 @@ SsrOutMap mongoReadOrbClk(
 
 						clkValues.iode		= doc[SSR_IODE		].get_int32();
 
-	// 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string(0) << std::endl;
+	// 					std::cout << Sat.id() << " less:" << less << " brdc:" << broadcast << "   " << clkValues.time.to_string(0) << "\n";
 
 						if (less)	clkVec	.push_front	(clkValues);
 						else		clkVec	.push_back	(clkValues);
@@ -182,19 +181,19 @@ SsrOutMap mongoReadOrbClk(
 
 	// 	for (auto& a : clkBroadcastVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final cbrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final cbrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 	// 	for (auto& a : clkPreciseVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final cprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final cprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 	// 	for (auto& a : ephBroadcastVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final ebrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final ebrdcs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 	// 	for (auto& a : ephPreciseVec)
 	// 	{
-	// 		std::cout << Sat.id() << "Final eprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << std::endl;
+	// 		std::cout << Sat.id() << "Final eprecs:" << " iode: " << a.iode <<  " "<< a.time.to_string(0) << "\n";
 	// 	}
 
 			//try to find a set of things that straddle the reference time, with the same iode
@@ -650,7 +649,7 @@ SSRAtm mongoReadCmpAtmosphere(
 
 		getMongoCollection(mongo, SSR_DB);
 
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
+		b_date btime = bDate(time);
 
 		auto regDoc		= document{}	<< SSR_DATA		<< CMP_ATM_META
 										<< finalize;
@@ -856,7 +855,7 @@ SSRAtm mongoReadCmpAtmosphere(
 					{
 						string keyStr = "ionoPoly_" + std::to_string(i);
 						regData.stecData[sat][tatm].poly[i] = satDoc[keyStr].get_double();
-						tracepdeex (6,std::cout,"\n   Mongo_ionP  %s %2d %s %1d %8.4f", tatm.to_string(0), regId, sat.id().c_str(), i, regData.stecData[sat][tatm].poly[i]);
+						tracepdeex (6,std::cout,"\n   Mongo_ionP  %s %2d %s %1d %8.4f", tatm.to_string().c_str(), regId, sat.id().c_str(), i, regData.stecData[sat][tatm].poly[i]);
 					}
 
 					if (regData.ionoGrid)
@@ -864,7 +863,7 @@ SSRAtm mongoReadCmpAtmosphere(
 					{
 						string keyStr = "ionoGrid_" + std::to_string(ind);
 						regData.stecData[sat][tatm].grid[ind] = satDoc[keyStr].get_double();
-						tracepdeex (6,std::cout,"\n   Mongo_ionG  %s %2d %s %1d %8.4f", tatm.to_string(0), regId, sat.id().c_str(), ind, regData.stecData[sat][tatm].grid[ind]);
+						tracepdeex (6,std::cout,"\n   Mongo_ionG  %s %2d %s %1d %8.4f", tatm.to_string().c_str(), regId, sat.id().c_str(), ind, regData.stecData[sat][tatm].grid[ind]);
 					}
 				}
 			}
@@ -894,7 +893,7 @@ SSRAtm mongoReadIGSIonosphere(
 
 		getMongoCollection(mongo, SSR_DB);
 
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
+		b_date btime = bDate(time);
 
 		// Find the latest document according to t0_time.
 		auto docSys		= document{}	<< SSR_DATA		<< IGS_ION_META
@@ -969,211 +968,6 @@ SSRAtm mongoReadIGSIonosphere(
 	return ssrAtm;
 }
 
-KFState mongoReadFilter(
-	const	GTime&		time,
-	const	SatSys&		Sat,
-	const	string&		str,
-	const	vector<KF>&	types)
-{
-	KFState kfState;
-
-	for (auto instance : {E_Mongo::PRIMARY, E_Mongo::SECONDARY})
-	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
-
-		if (mongo_ptr == nullptr)
-			continue;
-
-		auto& mongo = *mongo_ptr;
-
-		getMongoCollection(mongo, REMOTE_DATA_DB);
-
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
-
-		for (auto& type : types)
-		{
-			// Find the latest document according to t0_time.
-			auto docSys		= document{};
-
-											docSys << REMOTE_DATA		<< type._to_string();
-			if (str.empty() == false)		docSys << REMOTE_STR		<< str;
-			if (Sat.prn)					docSys << REMOTE_SAT		<< Sat.id();
-			if (time != GTime::noTime())	docSys << REMOTE_EPOCH		<< btime;
-
-			auto findOpts 	= mongocxx::options::find{};
-	// 		if	( Sat.prn	!= 0
-	// 			&&time		!= GTime::noTime())
-	// 		{
-	// 			findOpts.limit(1);
-	// 		}
-
-			auto cursor  	= coll.find(docSys.view(), findOpts);
-
-			for (auto doc : cursor)
-			{
-		// 		PTime updated;
-		// 		auto tp					= doc[REMOTE_UPDATED		].get_date();
-		// 		updated.bigTime 		= std::chrono::system_clock::to_time_t(tp);
-
-				PTime time;
-				auto tp2				= doc[REMOTE_EPOCH			].get_date();
-				time.bigTime			= std::chrono::system_clock::to_time_t(tp2);
-
-
-	// 			Vector6d inertialState = Vector6d::Zero();
-
-	// 			for (int i = 0; i < 3; i++)
-				{
-	// 				inertialState(i + 0) = doc[REMOTE_POS + std::to_string(i)].get_double();
-	// 				inertialState(i + 3) = doc[REMOTE_VEL + std::to_string(i)].get_double();
-				}
-
-				string sat = doc[REMOTE_SAT].get_utf8().value.to_string();
-
-				SatSys Sat(sat.c_str());
-	//
-	// 			predictedPosMap[Sat][time] = inertialState;
-			}
-		}
-	}
-
-	return kfState;
-}
-
-map<SatSys, map<GTime, Vector6d>> mongoReadOrbits(
-	GTime	time,
-	SatSys	Sat,
-	bool	remote,
-	double*	var_ptr)
-{
-	map<SatSys, map<GTime, Vector6d>> predictedPosMap;
-
-	for (auto instance : {E_Mongo::PRIMARY, E_Mongo::SECONDARY})
-	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
-
-		if (mongo_ptr == nullptr)
-			continue;
-
-		auto& mongo = *mongo_ptr;
-
-		getMongoCollection(mongo, REMOTE_DATA_DB);
-
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
-
-		// Find the latest document according to t0_time.
-		auto docSys		= document{};
-
-										docSys << REMOTE_DATA		<< REMOTE_ORBIT;
-		if (Sat.prn)					docSys << REMOTE_SAT		<< Sat.id();
-		if (time != GTime::noTime())	docSys << REMOTE_EPOCH		<< btime;
-
-		auto findOpts 	= mongocxx::options::find{};
-		if	( Sat.prn	!= 0
-			&&time		!= GTime::noTime())
-		{
-			findOpts.limit(1);
-		}
-
-		auto cursor  	= coll.find(docSys.view(), findOpts);
-
-		for (auto doc : cursor)
-		{
-	// 		PTime updated;
-	// 		auto tp					= doc[REMOTE_UPDATED		].get_date();
-	// 		updated.bigTime 		= std::chrono::system_clock::to_time_t(tp);
-
-			PTime time;
-			auto tp2				= doc[REMOTE_EPOCH			].get_date();
-			time.bigTime			= std::chrono::system_clock::to_time_t(tp2);
-
-			Vector6d inertialState = Vector6d::Zero();
-
-			for (int i = 0; i < 3; i++)
-			{
-				inertialState(i + 0) = doc[REMOTE_POS + std::to_string(i)].get_double();
-				inertialState(i + 3) = doc[REMOTE_VEL + std::to_string(i)].get_double();
-			}
-
-			if (var_ptr)
-			{
-				*var_ptr = doc[REMOTE_VAR].get_double();
-			}
-
-			string sat = doc[REMOTE_SAT].get_utf8().value.to_string();
-
-			SatSys Sat(sat.c_str());
-
-			predictedPosMap[Sat][time] = inertialState;
-		}
-
-	}
-
-	return predictedPosMap;
-}
-
-map<string, map<GTime, tuple<double, double>>> mongoReadClocks(
-	GTime	time,
-	string	str,
-	bool	remote)
-{
-	map<string, map<GTime, tuple<double, double>>> predictedClkMap;
-
-	for (auto instance : {E_Mongo::PRIMARY, E_Mongo::SECONDARY})
-	{
-		Mongo* mongo_ptr = mongo_ptr_arr[instance];
-
-		if (mongo_ptr == nullptr)
-			continue;
-
-		auto& mongo = *mongo_ptr;
-
-		getMongoCollection(mongo, REMOTE_DATA_DB);
-
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
-
-		// Find the latest document according to t0_time.
-		auto docSys		= document{};
-
-										docSys << REMOTE_DATA		<< REMOTE_CLOCK;
-		if (str.empty() == false)		docSys << REMOTE_SAT		<< str;
-		if (time != GTime::noTime())	docSys << REMOTE_EPOCH		<< btime;
-
-		auto findOpts 	= mongocxx::options::find{};
-		if	( str.empty()	== false
-			&&time			!= GTime::noTime())
-		{
-			findOpts.limit(1);
-		}
-
-		auto cursor  	= coll.find(docSys.view(), findOpts);
-
-		for (auto doc : cursor)
-		{
-	// 		PTime updated;
-	// 		auto tp					= doc[REMOTE_UPDATED		].get_date();
-	// 		updated.bigTime 		= std::chrono::system_clock::to_time_t(tp);
-			PTime time;
-			auto tp2				= doc[REMOTE_EPOCH			].get_date();
-			time.bigTime			= std::chrono::system_clock::to_time_t(tp2);
-
-
-			tuple<double, double> clocks;
-
-			auto& [clock, drift] = clocks;
-
-			clock = doc[REMOTE_CLK]			.get_double();
-			drift = doc[REMOTE_CLK_DRIFT]	.get_double();
-
-			string str = doc[REMOTE_STR].get_utf8().value.to_string();
-
-			predictedClkMap[str][time] = clocks;
-		}
-	}
-
-	return predictedClkMap;
-}
-
 void mongoReadFilter(
 	KFState&				kfState,
 	GTime					time,
@@ -1190,59 +984,97 @@ void mongoReadFilter(
 
 		auto& mongo = *mongo_ptr;
 
-		// Is this intentionally different to the current value of REMOTE_DATA_DB ("Remote")?
-		getMongoCollection(mongo, "REMOTE");
+		getMongoCollection(mongo, STATES_DB);
 
-		b_date btime{std::chrono::system_clock::from_time_t((time_t)((PTime)time).bigTime)};
+		b_date btime = bDate(time);
 
-		// Find the latest document according to t0_time.
-		auto docMatch		= document{};
-		auto docSort		= document{};
-		auto docGroup		= document{};
+		// get latest available from collection before next step
 
-		if (types.empty() == false)
+		auto docMatch	= document();
+		auto docSort	= document();
+		auto docProject	= document();
+		auto docGroup	= document{};
+
+										docMatch	<< MONGO_TYPE		<< MONGO_AVAILABLE;
+		if (time != GTime::noTime())	docMatch	<< MONGO_EPOCH
+													<< open_document
+														<< "$lte" << btime
+													<< close_document;
+
+
+		docSort		<< MONGO_EPOCH		<< -1;
+		docSort		<< MONGO_UPDATED	<< -1;
+
+		docProject	<< "_id"		<< 0;
+		docProject	<< MONGO_TYPE	<< 0;
+
+		auto findOpts 	= mongocxx::options::find();
+		findOpts.sort		(docSort	.view());
+		findOpts.projection	(docProject	.view());
+//
+		auto matchTemplate = coll.find_one(docMatch.view(), findOpts);
+
+		if (!matchTemplate)
 		{
-			auto array = docMatch << "$or"
+			continue;
+		}
+
+		//start a new match
+		auto docMatch2		= document();
+		auto docProject2	= document();
+
+		docProject2	<< MONGO_EPOCH		<< 0;
+		docProject2	<< MONGO_UPDATED	<< 0;
+		docProject2	<< MONGO_SERIES		<< 0;
+		docProject2	<< MONGO_DX			<< 0;
+		docProject2	<< "_id"			<< 0;
+
+		if (std::find(types.begin(), types.end(), +KF::ALL) == types.end())
+		{
+			auto array = docMatch2 << "$or"
 									<< open_array;
 
 			for (auto& type : types)
 			{
 				array	<< open_document
-							<< "State"	<< type._to_string()
+							<< MONGO_STATE	<< type._to_string()
 						<< close_document;
 			}
 
 			array	<< close_array;
 		}
-										docMatch << "Series"		<< "";
-		if (str.empty() == false)		docMatch << "Site"			<< str;
-		if (Sat.empty() == false)		docMatch << "Sat"			<< Sat;
-		if (time != GTime::noTime())	docMatch << "Epoch"					//todo aaron, convert these to #defines
-													<< open_document
-														<< "$lte" << btime
-													<< close_document;
 
-		docSort		<< "Epoch" << 1;
-		docGroup	<< "_id"
-						<< open_document
-							<< "State"	<< "$State"
-							<< "Sat"	<< "$Sat"
-							<< "Site"	<< "$Site"
-						<< close_document
-					<< "Epoch"	<< open_document << "$last" << "$Epoch"	<< close_document			//todo aaron, different epochs could be sketchy since theres only one state time and no guarantee all results are from same epoch?
-					<< "x"		<< open_document << "$last" << "$x"		<< close_document
-					<< "sigma"	<< open_document << "$last" << "$sigma" << close_document
-					<< "Num"	<< open_document << "$last" << "$Num"	<< close_document;
+		auto updateDoc = matchTemplate->view();
+
+
+		PTime pTime;
+		auto time		= updateDoc[MONGO_EPOCH].get_date();
+		pTime.bigTime	= std::chrono::system_clock::to_time_t(time);
+
+		kfState.time = pTime;
+
+		time			= updateDoc[MONGO_UPDATED].get_date();
+		pTime.bigTime	= std::chrono::system_clock::to_time_t(time);
+
+		std::cout <<  "\n" << bsoncxx::to_json(updateDoc) << "\n";
+
+										docMatch2 << MONGO_EPOCH		<< updateDoc[MONGO_EPOCH]	.get_date();
+										docMatch2 << MONGO_UPDATED		<< updateDoc[MONGO_UPDATED]	.get_date();
+										docMatch2 << MONGO_SERIES		<< "_predicted";
+		if (str.empty() == false)		docMatch2 << MONGO_STR			<< str;
+		if (Sat.empty() == false)		docMatch2 << MONGO_SAT			<< Sat;
+
+		// std::cout <<  "\n" << bsoncxx::to_json(docMatch2.view()) << "\n";
 
 		mongocxx::pipeline p;
-		p.match	(docMatch	.view());
-		p.sort	(docSort	.view());
-		p.group	(docGroup	.view());
+		p.match		(docMatch2	.view());
+		p.project	(docProject2.view());
+		// p.group	(docGroup	.view());
 
-	// 	std::cout <<  std::endl << bsoncxx::to_json(docMatch);
-	// 	std::cout <<  std::endl << bsoncxx::to_json(docGroup);
+	// 	std::cout <<  "\n" << bsoncxx::to_json(docMatch);
+	// 	std::cout <<  "\n" << bsoncxx::to_json(docGroup);
 
-		auto cursor = coll.aggregate(p, mongocxx::options::aggregate{});
+		auto cursor = coll.aggregate(p);
 
 		vector<double> x;
 		vector<double> P;
@@ -1256,33 +1088,24 @@ void mongoReadFilter(
 
 		for (auto doc : cursor)
 		{
-	// 		std::cout <<  std::endl << bsoncxx::to_json(doc);
+			// std::cout << bsoncxx::to_json(doc) <<  "\n";
 
 			KFKey kfKey;
-			kfKey.type	= KF::_from_string(	doc["_id"]["State"]	.get_utf8().value.to_string().c_str());
-			kfKey.Sat	= SatSys(			doc["_id"]["Sat"]	.get_utf8().value.to_string().c_str());
-			kfKey.str	= 					doc["_id"]["Site"]	.get_utf8().value.to_string();
+			kfKey.type	= KF::_from_string(	doc[MONGO_STATE].get_utf8().value.to_string().c_str());
+			kfKey.Sat	= SatSys(			doc[MONGO_SAT]	.get_utf8().value.to_string().c_str());
+			kfKey.str	= 					doc[MONGO_STR]	.get_utf8().value.to_string();
 
 			int i = 0;
-			for (auto thing : doc["Num"].get_array().value)
+			for (auto thing : doc[MONGO_NUM].get_array().value)
 			{
-				kfKey.num	= 		doc["Num"]	.get_array().value[i].get_int32();
+				kfKey.num	= 		doc[MONGO_NUM]	.get_array().value[i].get_int32();
 
-				x.push_back(		doc["x"]	.get_array().value[i].get_double());
-				P.push_back(SQR(	doc["sigma"].get_array().value[i].get_double()));
+				x.push_back(		doc[MONGO_X]	.get_array().value[i].get_double());
+				P.push_back(SQR(	doc[MONGO_SIGMA].get_array().value[i].get_double()));
 
 				kfState.kfIndexMap[kfKey] = index;
 				index++;
 				i++;
-			}
-
-			PTime pTime;
-			auto time		= doc["Epoch"].get_date();
-			pTime.bigTime	= std::chrono::system_clock::to_time_t(time);
-			GTime gTime = pTime;
-			if (gTime > kfState.time)
-			{
-				kfState.time = gTime;
 			}
 		}
 
@@ -1296,6 +1119,4 @@ void mongoReadFilter(
 			kfState.P(i,i)	= P[i];
 		}
 	}
-
-// 	kfState.outputStates(std::cout);
 }

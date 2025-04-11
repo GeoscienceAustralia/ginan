@@ -1,19 +1,38 @@
 
 // #pragma GCC optimize ("O0")
 
+#include "architectureDocs.hpp"
+
+/** Persistant formatted storage and inter-process communication.
+ * A mongodb database is mainly used for storage of filter states and measurements.
+ * This data is primarily used for later analysis and plotting using the python utility.
+ *
+ * Typically the data is stored in States and Measurements collections, with pseudo-indexes collections to allow other applications to see at-a-glance which elements are available for retrieval, without searching the whole db.
+ *
+ * The database's States collection is used as a method of inter-process communication, providing simple configuration of cross-network data passing, integrity and backup.
+ * It is used for recording clocks and orbits from a POD process, which are then sampled and formatted as RTCM SSR outputs
+ * - This allows separation of the estimation of parameters, and the generation and transmission of RTCM messages.
+ *
+ * The states collection may also be used to pass current or predicted values to another Pea instance, allowing several filters to run in a fast/slow configuration.
+ * In this case the states entries are marked with the time of update/prediction, and other db entries are used to signify validity of complete sets of db entries using the 'updated' time.
+ */
+Database Mongo_Database__()
+{
+
+}
 
 
-#include "observations.hpp"
-#include "rtcmEncoder.hpp"
-#include "instrument.hpp"
-#include "acsConfig.hpp"
-#include "satStat.hpp"
-#include "common.hpp"
-#include "mongo.hpp"
+
+#include "pea/inputsOutputs.hpp"
+#include "common/observations.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/acsConfig.hpp"
+#include "common/satStat.hpp"
+#include "common/common.hpp"
+#include "common/mongo.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
-
 
 using bsoncxx::types::b_date;
 
@@ -72,6 +91,15 @@ void newMongoDatabase(
 					<< finalize,
 				{});
 
+		auto opts = mongocxx::options::index();
+		opts.sparse(true);
+
+		db[STATES_DB].create_index(
+				document{}
+					<< MONGO_TYPE	<< 1
+					<< finalize,
+				opts);
+
 		auto logInstances = mongoInstances(acsConfig.mongoOpts.output_logs);
 		if (std::find(logInstances.begin(), logInstances.end(), instance) != logInstances.end())
 		{
@@ -88,8 +116,26 @@ void newMongoDatabase(
 	}
 	catch (...)
 	{
-		BOOST_LOG_TRIVIAL(error) << "Error: Mongo connection failed - check if service is running at " << config.uri;
-		exit(1);
+		BOOST_LOG_TRIVIAL(fatal) << "Error: Mongo connection failed - check if service is running at " << config.uri;
+	}
+}
+
+void checkValidDbname(
+	string& new_database)
+{
+	if (new_database.empty())
+	{
+		BOOST_LOG_TRIVIAL(fatal) << "Error: Mongo database name is empty";
+	}
+	string old_database = new_database;
+	bool invalid = false;
+	for (string invalidChar : {"/", "\\", ".", "$", "*", "<", ">", ":", "|", "?"})
+	{
+		invalid |=  replaceString(new_database, invalidChar, "", false);
+	}
+	if (invalid)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Error: Mongo database name contains invalid characters, new database is: " << new_database << " previously: " << old_database;
 	}
 }
 
@@ -107,6 +153,7 @@ bool startNewMongoDb(
 	}
 
 	auto& mongo = *mongo_ptr;
+	checkValidDbname(new_database);
 
 	replaceString(new_database, "<RECEIVER>", id);
 	replaceTimes (new_database, logptime);
@@ -126,8 +173,12 @@ bool startNewMongoDb(
 	return true;
 }
 
+
+
 void mongoooo()
 {
+	DOCS_REFERENCE(Mongo_Database__);
+
 	auto instances = mongoInstances(acsConfig.mongoOpts.enable);
 
 	for (auto instance : instances)
@@ -146,6 +197,14 @@ void mongoooo()
 		}
 		catch (...) {} // just eat any exception
 	}
+}
+
+string formatSeries(const string series)
+{
+	string formatted = series;
+	formatted[0] = '_';
+	std::transform(formatted.begin(), formatted.end(), formatted.begin(), ::tolower);
+	return formatted;
 }
 
 void MongoLogSinkBackend::consume(

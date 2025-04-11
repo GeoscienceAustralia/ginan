@@ -3,17 +3,17 @@
 
 #include <math.h>
 
-#include "observations.hpp"
-#include "navigation.hpp"
-#include "coordinates.hpp"
-#include "acsConfig.hpp"
-#include "constants.hpp"
-#include "satStat.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "gTime.hpp"
-#include "trace.hpp"
-#include "enums.h"
+#include "common/observations.hpp"
+#include "common/navigation.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/acsConfig.hpp"
+#include "common/constants.hpp"
+#include "common/satStat.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/gTime.hpp"
+#include "common/trace.hpp"
+#include "common/enums.h"
 
 
 #define VAR_IONO    	SQR(60.0)       // init variance iono-delay

@@ -5,7 +5,7 @@
  *
  */
 
-#include "tide.h"
+#include "loading/tide.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <netcdf>

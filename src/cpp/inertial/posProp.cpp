@@ -9,13 +9,12 @@
 using std::deque;
 using std::map;
 
-#include "eigenIncluder.hpp"
-#include "acceleration.hpp"
-#include "coordinates.hpp"
-#include "ubxDecoder.hpp"
-#include "instrument.hpp"
-#include "posProp.hpp"
-#include "planets.hpp"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/acceleration.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/ubxDecoder.hpp"
+#include "inertial/posProp.hpp"
+#include "orbprop/planets.hpp"
 
 void propLinear(
 	double 			dt,
@@ -58,9 +57,9 @@ void propLinear(
 
 	Vector3d a = accAccl + accCF;
 
-// 	std::cout << std::endl << "                                      " << accCF	.transpose();
-// 	std::cout << std::endl << "                                      " << accAccl		.transpose();
-// 	std::cout << std::endl << "Using " << a.transpose();
+// 	std::cout << "\n" << "                                      " << accCF	.transpose();
+// 	std::cout << "\n" << "                                      " << accAccl		.transpose();
+// 	std::cout << "\n" << "Using " << a.transpose();
 
 	Vector3d gyroBody;
 	{
@@ -69,11 +68,11 @@ void propLinear(
 		auto& [foundTime, gyro] = *it;
 
 		gyroBody = ((gyro - gyroBias).array() * gyroScale.array()).matrix() * PI / 180;
-// 	std::cout << std::endl << "                                      " << gyro	.transpose();
-// 	std::cout << std::endl << "                                      " << gyroBias		.transpose();
+// 	std::cout << "\n" << "                                      " << gyro	.transpose();
+// 	std::cout << "\n" << "                                      " << gyroBias		.transpose();
 	}
 
-// 	std::cout << std::endl << "Guyo " << gyroBody.transpose();
+// 	std::cout << "\n" << "Guyo " << gyroBody.transpose();
 	Quaterniond qBody(Eigen::AngleAxis(gyroBody.norm() * dt, gyroBody.normalized()));
 
 	Vector3d 	rPlus = r + v * dt;
@@ -187,7 +186,7 @@ void InertialIntegrator::operator()(
 			Vector4d deltaQ = (q - q__) - (q_ - q0); 		A.col(index).segment(6, 4) = deltaQ / dt / offset;
 		}
 
-// 		std::cout << std::endl << "A" << std::endl << A << std::endl;
+// 		std::cout << "\n" << "A" << "\n" << A << "\n";
 
 		derivative.posVelQuatSTM	= A * inertialInit.posVelQuatSTM;
 
@@ -202,8 +201,6 @@ void integrateInertials(
 	double				integrationPeriod,
 	double 				dtRequested)
 {
-	Instrument instrument(__FUNCTION__);
-
 	if	( inertials.empty()
 		||integrationPeriod == 0)
 	{
@@ -223,7 +220,7 @@ void integrateInertials(
 	{
 		double newDt = integrationPeriod / steps;
 
-		BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt ;
+		BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt;
 
 		dt = newDt;
 	}
@@ -286,8 +283,6 @@ Inertials prepareInertials(
 	Trace&			trace,
 	const KFState&	kfState)
 {
-	Instrument instrument(__FUNCTION__);
-
 	Inertials inertials;
 
 	for (auto& [kfKey, index] : kfState.kfIndexMap)
@@ -335,12 +330,10 @@ Inertials prepareInertials(
 void applyInertials(
 	Trace&			trace,
 	Inertials&		inertials,
-	const KFState&	kfState,
+	KFState&		kfState,
 	GTime			time,
 	double			tgap)
 {
-	Instrument instrument(__FUNCTION__);
-
 	for (auto& inertial : inertials)
 	{
 		if (inertial.exclude)
@@ -402,12 +395,10 @@ void applyInertials(
 /** Use models to predict orbital motion and prepare state transition equations to implement those predictions in the filter
  */
 void predictInertials(
-	Trace&			trace,
-	const KFState&	kfState,
-	GTime			time)
+	Trace&		trace,
+	KFState&	kfState,
+	GTime		time)
 {
-	Instrument instrument(__FUNCTION__);
-
 	double tgap = (time - kfState.time).to_double();
 
 	if (tgap == 0)
@@ -422,7 +413,7 @@ void predictInertials(
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING INERTIALS        --------" << std::endl;
+	BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING INERTIALS        --------" << "\n";
 
 	InertialIntegrator integrator;
 	integrator.timeInit				= kfState.time;

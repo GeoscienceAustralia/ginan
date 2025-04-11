@@ -4,11 +4,9 @@
 #include <algorithm>
 #include <math.h>
 
-
-#include "instrument.hpp"
-#include "testUtils.hpp"
-#include "acsConfig.hpp"
-#include "common.hpp"
+#include "common/testUtils.hpp"
+#include "common/acsConfig.hpp"
+#include "common/common.hpp"
 
 
 void ErrorExit::consume(
@@ -30,7 +28,7 @@ void ErrorExit::consume(
 
 	if (logLevel <= acsConfig.fatal_level)
 	{
-		std::cout << std::endl << "Message met fatal_message_level condition for exit.\nExiting...\n\n";
+		std::cout << "\n" << "Message met fatal_message_level condition for exit.\nExiting...\n\n";
 		exit(0);
 	}
 }
@@ -53,15 +51,14 @@ void exitOnErrors()
 size_t bucket = 0;
 #include <malloc.h>
 
-#include "streamParser.hpp"
-#include "streamNtrip.hpp"
-#include "navigation.hpp"
-#include "streamRtcm.hpp"
-#include "acsConfig.hpp"
-#include "receiver.hpp"
-#include "biases.hpp"
+#include "common/streamParser.hpp"
+#include "common/streamNtrip.hpp"
+#include "common/navigation.hpp"
+#include "common/streamRtcm.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
+#include "common/biases.hpp"
 
-extern ReceiverMap	receiverMap;
 
 static void* plumber_hook(size_t size, const void* caller);
 static void* plumber_hook(size_t size, const void* caller)

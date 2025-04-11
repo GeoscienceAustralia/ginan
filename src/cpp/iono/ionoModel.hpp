@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "biases.hpp"
-#include "gTime.hpp"
+#include "common/biases.hpp"
+#include "common/gTime.hpp"
 
 #define STEC2DELAY  4.48397972589608
 
@@ -28,7 +28,9 @@ void filterIonosphere(
 	ReceiverMap&	receiverMap,
 	GTime 			time);
 
-void ionosphereSsrUpdate(Trace& trace, KFState& kfState);
+void ionosphereSsrUpdate(
+	Trace&		trace,
+	KFState&	kfState);
 
 bool queryBiasDCB(
 	Trace&		trace,
@@ -39,7 +41,7 @@ bool queryBiasDCB(
 	double&		bias,
 	double&		var);
 
-bool ionexFileWrite(
+void ionexFileWrite(
 	Trace&		trace,
 	string		filename,
 	GTime		time,

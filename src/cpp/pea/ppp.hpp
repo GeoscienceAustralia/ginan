@@ -7,34 +7,58 @@ using std::map;
 
 
 
-#include "algebra.hpp"
+#include "common/algebra.hpp"
 
-//forward declarations
 struct PhaseCenterData;
+struct FrameSwapper;
+struct Observation;
 struct ReceiverMap;
+struct AttStatus;
 struct Receiver;
 struct Solution;
-struct gptgrid_t;
-struct AttStatus;
+struct KFState;
 struct ObsList;
 struct GTime;
 struct Vmf3;
 struct GObs;
 
 
+double relativity2(
+	VectorEcef&		rSat,
+	VectorEcef&		rRec);
 
+double recAntDelta(
+	VectorEcef&		e,
+	Receiver&		rec);
 
-void removeUnmeasuredAmbiguities(
+tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d> tideDelta(
 	Trace&				trace,
-	KFState&			kfState,
-	map<KFKey, bool>	measuredStates);
+	GTime				time,
+	Receiver&			rec,
+	VectorEcef&			rRec,
+	ReceiverOptions&	recOpts);
+
+void eopAdjustment(
+	GTime&			time,
+	VectorEcef&		e,
+	ERPValues&		erpv,
+	FrameSwapper&	frameSwapper,
+	Receiver&		rec,
+	VectorEcef&		rRec,
+	KFMeasEntry&	measEntry,
+	KFState&		kfState);
+
+double netResidualAndChainOutputs(
+	Trace&			trace,
+	Observation&	obs,
+	KFMeasEntry&	measEntry);
 
 void outputPppNmea(
 	Trace&		trace,
 	KFState&	kfState,
 	string		id);
 
-void SPP(
+void spp(
 	Trace&		trace,
 	ObsList&	obsList,
 	Solution&	sol,
@@ -51,7 +75,7 @@ void pppCorrections(
 	Vector3d&	rRec,
 	Receiver&	rec);
 
-void PPP(
+void ppp(
 	Trace&			trace,
 	ReceiverMap&	receiverMap,
 	KFState&		kfState,
@@ -62,7 +86,7 @@ void phaseWindup(
 	Receiver&	rec,
 	double&		phw);
 
-int ionoModel(
+bool ionoModel(
 	GTime&		time,
 	VectorPos&	pos,
 	AzEl&		azel,
@@ -76,132 +100,97 @@ int ionoModel(
 void outputApriori(
 	ReceiverMap& receiverMap);
 
+void updateAprioriRecPos(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverOptions&	recOpts,
+	bool&				sppUsed,
+	KFState*			remote_ptr	= nullptr);
+
+void updateAprioriRecClk(
+	Trace&				trace,
+	Receiver&			rec,
+	ReceiverOptions&	recOpts,
+	GTime&				time,
+	KFState&			kfState,
+	KFState*			remote_ptr	= nullptr);
+
 void selectAprioriSource(
+	Trace&		trace,
 	Receiver&	rec,
 	GTime&		time,
-	bool&		sppUsed);
+	bool&		sppUsed,
+	KFState&	kfState,
+	KFState*	remote_ptr	= nullptr);
+
+void selectAprioriSource(
+	SatSys&		Sat,
+	GTime&		time,
+	KFState&	kfState,
+	KFState*	remote_ptr	= nullptr);
 
 void postFilterChecks(
-	KFMeas&	kfMeas);
+	const	GTime&	time,
+			KFMeas&	kfMeas);
 
-bool deweightMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool pseudoMeasTest(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool deweightStationMeas(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool countSignalErrors(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool incrementPhaseSignalError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
-
-bool incrementReceiverError(
-	Trace&		trace,
-	KFState&	kfState,
-	KFMeas&		kfMeas,
-	int			index,
-	bool		postFit);
+bool deweightMeas(				RejectCallbackDetails	rejectDetails);
+bool pseudoMeasTest(			RejectCallbackDetails	rejectDetails);
+bool deweightStationMeas(		RejectCallbackDetails	rejectDetails);
+bool incrementPhaseSignalError(	RejectCallbackDetails	rejectDetails);
+bool incrementReceiverErrors(	RejectCallbackDetails	rejectDetails);
+bool incrementSatelliteErrors(	RejectCallbackDetails	rejectDetails);
+bool rejectByState(				RejectCallbackDetails	rejectDetails);
+bool clockGlitchReaction(		RejectCallbackDetails	rejectDetails);
+bool satelliteGlitchReaction(	RejectCallbackDetails	rejectDetails);
 
 bool resetPhaseSignalError(
-	KFMeas&		kfMeas,
-	int			index);
-
-bool resetPhaseSignalOutage(
-	KFMeas&		kfMeas,
-	int			index);
+	const	GTime&		time,			KFMeas&		kfMeas,
+			int			index);
 
 bool resetIonoSignalOutage(
-	KFMeas&		kfMeas,
-	int			index);
-
-bool rejectByState(
-			Trace&		trace,
-			KFState&	kfState,
+	const	GTime&		time,
 			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit);
+			int			index);
 
-bool clockGlitchReaction(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit);
-
-bool orbitGlitchReaction(
-			Trace&		trace,
-			KFState&	kfState,
-			KFMeas&		kfMeas,
-	const	KFKey&		kfKey,
-			bool		postFit);
-
-
-
-void receiverPPP(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList,
-	const	KFState&			remoteState);
+void receiverUducGnss(
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList,
+	KFState&			remoteState);
 
 void orbitPseudoObs(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 void initPseudoObs(
-			Trace&				pppTrace,
-			KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
+	Trace&				pppTrace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 void filterPseudoObs(
-			Trace&				pppTrace,
-			KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
+	Trace&				pppTrace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 void receiverPseudoObs(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList,
-			ReceiverMap&		receiverMap,
-			MatrixXd*			R_ptr = nullptr);
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList,
+	ReceiverMap&		receiverMap);
 
 
 void readPseudosFromFile(
 	string&		file);
 
 void receiverSlr(
-			Trace&				pppTrace,
-			Receiver&			rec,
-	const	KFState&			kfState,
-			KFMeasEntryList&	kfMeasEntryList);
-
+	Trace&				pppTrace,
+	Receiver&			rec,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
 
 bool satQuat(
 	SatPos&				satPos,
@@ -233,6 +222,11 @@ void ambgPseudoObs(
 	KFState&			kfState,
 	KFMeasEntryList&	kfMeasEntryList);
 
+void phasePseudoObs(
+	Trace&				trace,
+	KFState&			kfState,
+	KFMeasEntryList&	kfMeasEntryList);
+
 void ionoPseudoObs(
 	Trace&				trace,
 	ReceiverMap&		receiverMap,
@@ -251,10 +245,19 @@ void satClockPivotPseudoObs(
 	KFMeasEntryList&	kfMeasEntryList);
 
 KFState propagateUncertainty(
-	Trace&			trace,
-	KFState&		kfState);
+	Trace&		trace,
+	KFState&	kfState);
 
 void explainMeasurements(
 	Trace&		trace,
 	KFMeas&		meas,
 	KFState&	kfState);
+
+void addRejectDetails(
+	const	GTime&					time,
+			Trace&					trace,
+			KFState&				kfState,
+	const	KFKey&					key,
+	const	string&					action,
+	const	string&					reason,
+			vector<ArbitraryKVP>	details = {});

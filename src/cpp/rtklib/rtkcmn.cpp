@@ -7,49 +7,73 @@
 #include <algorithm>
 #include <string>
 
-#include "eigenIncluder.hpp"
-#include "coordinates.hpp"
-#include "navigation.hpp"
-#include "constants.hpp"
-#include "algebra.hpp"
-#include "common.hpp"
-#include "enums.h"
+#include "common/eigenIncluder.hpp"
+#include "orbprop/coordinates.hpp"
+#include "common/navigation.hpp"
+#include "common/constants.hpp"
+#include "common/algebra.hpp"
+#include "common/common.hpp"
+#include "common/enums.h"
 
-void updatenav(
-	SatPos& satPos)
+void updateLamMap(
+	const	GTime&	time,
+			SatPos&	satPos)
 {
-	int sys = satPos.Sat.sys;
+	E_Sys sys = satPos.Sat.sys;
 	if (satPos.satNav_ptr == nullptr)
 	{
 		return;
 	}
 
-	auto& satNav = *satPos.satNav_ptr;
+	auto& lamMap = satPos.satNav_ptr->lamMap;
 
-	if	( (sys == +E_Sys::GLO)
-		&&(satNav.eph_ptr != nullptr))
+	if (sys == +E_Sys::GLO)
 	{
-		auto& geph = *static_cast<Geph*>(satNav.eph_ptr);
+		int freqNum = 100;
 
-		satNav.lamMap[G1]	= CLIGHT / (FREQ1_GLO + DFRQ1_GLO * geph.frq);
-		satNav.lamMap[G2]	= CLIGHT / (FREQ2_GLO + DFRQ2_GLO * geph.frq);
-		satNav.lamMap[G3]	= CLIGHT / (FREQ3_GLO);
-		satNav.lamMap[G4]	= CLIGHT / (FREQ4_GLO);
-		satNav.lamMap[G6]	= CLIGHT / (FREQ6_GLO);
+		auto it = nav.gloFreqMap.find(satPos.Sat);
+		if (it != nav.gloFreqMap.end())
+		{
+			auto& [sat, freq] = *it;
+
+			freqNum = freq;
+		}
+		else
+		{
+			auto* eph_ptr = seleph<Geph>(nullStream, time, satPos.Sat, acsConfig.used_nav_types[sys], ANY_IODE, nav);
+
+			if (eph_ptr)
+			{
+				auto& geph = *static_cast<Geph*>(eph_ptr);
+
+				freqNum = geph.frq;
+			}
+		}
+
+		if (freqNum > 20)
+		{
+			return;
+		}
+
+		lamMap[G1]	= CLIGHT / (FREQ1_GLO + DFRQ1_GLO * freqNum);
+		lamMap[G2]	= CLIGHT / (FREQ2_GLO + DFRQ2_GLO * freqNum);
+		lamMap[G3]	= CLIGHT / (FREQ3_GLO);
+		lamMap[G4]	= CLIGHT / (FREQ4_GLO);
+		lamMap[G6]	= CLIGHT / (FREQ6_GLO);
 	}
 	else
 	{
-		satNav.lamMap[F1]	= CLIGHT / FREQ1; /* L1/E1/B1 */
-		satNav.lamMap[F2]	= CLIGHT / FREQ2; /* L2 */
-		satNav.lamMap[F5]	= CLIGHT / FREQ5; /* L5/E5a/B2a */
-		satNav.lamMap[F6]	= CLIGHT / FREQ6; /* E6/L6 */
-		satNav.lamMap[F7]	= CLIGHT / FREQ7; /* E5b/B2/B2b */
-		satNav.lamMap[F8]	= CLIGHT / FREQ8; /* E5a+b/B2a+b */
+		lamMap[F1]	= CLIGHT / FREQ1; /* L1/E1/B1 */
+		lamMap[F2]	= CLIGHT / FREQ2; /* L2 */
+		lamMap[F5]	= CLIGHT / FREQ5; /* L5/E5a/B2a */
+		lamMap[F6]	= CLIGHT / FREQ6; /* E6/L6 */
+		lamMap[F7]	= CLIGHT / FREQ7; /* E5b/B2/B2b */
+		lamMap[F8]	= CLIGHT / FREQ8; /* E5a+b/B2a+b */
 
 		if	(sys == +E_Sys::BDS)
 		{
-			satNav.lamMap[B1]	= CLIGHT / FREQ1_CMP; /* B2-1 */
-			satNav.lamMap[B3]	= CLIGHT / FREQ3_CMP; /* B3 */
+			lamMap[B1]	= CLIGHT / FREQ1_CMP; /* B2-1 */
+			lamMap[B3]	= CLIGHT / FREQ3_CMP; /* B3 */
 		}
 	}
 }
@@ -92,10 +116,10 @@ double sagnac(
 
 /** satellite azimuth/elevation angle
  */
-double satazel(
-	const	VectorPos&	pos,	///< geodetic position {lat,lon,h} (rad,m)
-	const	VectorEcef&	e,		///< receiver-to-satellilte unit vector (ecef)
-			AzEl&		azel)	///< azimuth/elevation {az,el} (rad) (nullptr: no output)
+void satazel(
+	const	VectorPos&	pos,	///< geodetic position
+	const	VectorEcef&	e,		///< receiver-to-satellilte unit vector
+			AzEl&		azel)	///< azimuth/elevation {az,el} (rad)
 {
 	azel.az = 0;
 	azel.el = PI/2;
@@ -112,53 +136,24 @@ double satazel(
 
 		azel.el = asin(enu.u());
 	}
-
-	return azel.el;
 }
 
-/* compute dops ----------------------------------------------------------------
-* compute DOP (dilution of precision)
-* args   : int    ns        I   number of satellites
-*          double *azel     I   satellite azimuth/elevation angle (rad)
-*          double elmin     I   elevation cutoff angle (rad)
-*          double *dop      O   DOPs {GDOP,PDOP,HDOP,VDOP}
-* notes  : dop[0]-[3] return 0 in case of dop computation error
-*-----------------------------------------------------------------------------*/
-void dops(
-	int				ns,
-	const double*	azel,
-	double			elmin,
-	double*			dop)
+/** compute DOP (dilution of precision)
+*/
+Dops dopCalc(
+	const vector<AzEl>&	azels)		///< satellite azimuth/elevation angles
 {
 	vector<double> H;
 	H.reserve(64);
 	int n = 0;
 
-	for (int i = 0; i < 4; i++)
-		dop[i] = 0;
-
-	for (int i = 0; i < ns; i++)
+	for (auto& azel : azels)
 	{
-		double az = azel[0+i*2];
-		double el = azel[1+i*2];
+		double cosel = cos(azel.el);
+		double sinel = sin(azel.el);
 
-		if (el * R2D < elmin)
-		{
-			fprintf(stderr,"dops(): below elevation mask azel %f elmin %f \n", el * R2D, elmin);
-			continue;
-		}
-
-		if (el <= 0)
-		{
-			printf("dops(): el below zero\n");
-			continue;
-		}
-
-		double cosel = cos(el);
-		double sinel = sin(el);
-
-		H.push_back(cosel * sin(az));
-		H.push_back(cosel * cos(az));
+		H.push_back(cosel * sin(azel.az));
+		H.push_back(cosel * cos(azel.az));
 		H.push_back(sinel);
 		H.push_back(1);
 		n++;
@@ -166,8 +161,8 @@ void dops(
 
 	if (n < 4)
 	{
-		fprintf(stderr,"dops(): Can not calculate the dops less than 4 sats\n");
-		return;
+		fprintf(stderr, "%s: Can not calculate the dops, less than 4 sats\n", __FUNCTION__);
+		return Dops();
 	}
 
 	auto H_mat = MatrixXd::Map(H.data(), 4, n).transpose();
@@ -175,14 +170,13 @@ void dops(
 
 	auto Q_inv = Q_mat.inverse();
 
-	dop[0] = SQRT(Q_inv(0,0) + Q_inv(1,1) + Q_inv(2,2) + Q_inv(3,3)	);	/* GDOP */
-	dop[1] = SQRT(Q_inv(0,0) + Q_inv(1,1) + Q_inv(2,2)				);	/* PDOP */
-	dop[2] = SQRT(Q_inv(0,0) + Q_inv(1,1)							);	/* HDOP */
-	dop[3] = SQRT(							Q_inv(2,2)				);	/* VDOP */
+	Dops dops;
+	dops.gdop = SQRT(Q_inv(0,0) + Q_inv(1,1) +	Q_inv(2,2) + Q_inv(3,3)	);
+	dops.pdop = SQRT(Q_inv(0,0) + Q_inv(1,1) +	Q_inv(2,2)				);
+	dops.hdop = SQRT(Q_inv(0,0) + Q_inv(1,1)							);
+	dops.vdop = SQRT(							Q_inv(2,2)				);
 
-//     {
-//         fprintf(stderr,"%s: error could not calculate the inverse\n",__FUNCTION__);
-//     }
+	return dops;
 }
 
 /** Low pass filter values

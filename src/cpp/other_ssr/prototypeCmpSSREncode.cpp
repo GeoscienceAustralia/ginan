@@ -2,12 +2,12 @@
 
 using std::tuple;
 
-#include "rtcmEncoder.hpp"
-#include "constants.hpp"
-#include "acsConfig.hpp"
-#include "otherSSR.hpp"
-#include "satSys.hpp"
-#include "ssr.hpp"
+#include "common/rtcmEncoder.hpp"
+#include "common/constants.hpp"
+#include "common/acsConfig.hpp"
+#include "other_ssr/otherSSR.hpp"
+#include "common/satSys.hpp"
+#include "common/ssr.hpp"
 
 int currentIOD = -1;
 map<int,	SatSys>							currentSatMap;
@@ -1350,7 +1350,7 @@ vector<uint8_t> encodeGridInfo(
 			case 1: bitlen+= 31; break;
 			case 2: bitlen+= 31; break;
 			default:
-				std::cout << "Unknown gridtype for region: " << regID << std::endl;
+				std::cout << "Unknown gridtype for region: " << regID << "\n";
 				regData.gridType = -1;
 				continue;
 		}
