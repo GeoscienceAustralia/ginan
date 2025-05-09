@@ -139,7 +139,9 @@ bool deweightStationMeas(		RejectCallbackDetails	rejectDetails);
 bool incrementPhaseSignalError(	RejectCallbackDetails	rejectDetails);
 bool incrementReceiverErrors(	RejectCallbackDetails	rejectDetails);
 bool incrementSatelliteErrors(	RejectCallbackDetails	rejectDetails);
-bool rejectByState(				RejectCallbackDetails	rejectDetails);
+bool incrementStateErrors(		RejectCallbackDetails	rejectDetails);
+bool rejectWorstMeasByState(	RejectCallbackDetails	rejectDetails);
+bool rejectAllMeasByState(		RejectCallbackDetails	rejectDetails);
 bool clockGlitchReaction(		RejectCallbackDetails	rejectDetails);
 bool satelliteGlitchReaction(	RejectCallbackDetails	rejectDetails);
 

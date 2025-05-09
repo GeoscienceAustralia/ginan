@@ -269,7 +269,8 @@ processing_options:
         max_rec_latency:              1
 
     gnss_general:
-        minimise_sat_clock_offsets: true
+        minimise_sat_clock_offsets:
+            enable: true
         pivot_receiver:             <AUTO>
         sys_options:
             gps:

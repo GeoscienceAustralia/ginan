@@ -3713,11 +3713,12 @@ bool ACSConfig::parse(
                 {
                     auto error_accumulation = stringsToYamlObject(model_error_handling, { "0! error_accumulation" }, "Any receivers or satellites that are consistently getting many measurement rejections may be reinitialiased");
 
-                    tryGetFromYaml(errorAccumulation.enable, error_accumulation, { "! enable" }, "Enable reinitialisation of receivers upon many rejections");
-                    tryGetFromYaml(errorAccumulation.receiver_error_count_threshold, error_accumulation, { "! receiver_error_count_threshold" }, "Number of errors for a receiver to be considered in error for a single epoch");
+                    tryGetFromYaml(errorAccumulation.enable, error_accumulation, { "! enable" }, "Enable reinitialisation of receivers, satellites, or individual states upon many rejections");
+                    tryGetFromYaml(errorAccumulation.receiver_error_count_threshold, error_accumulation, { "! receiver_error_count_threshold" }, "Number of referencing measurement errors for a receiver to be considered as a receiver error for a single epoch");
                     tryGetFromYaml(errorAccumulation.receiver_error_epochs_threshold, error_accumulation, { "! receiver_error_epochs_threshold" }, "Number of consecutive epochs with receiver in error before it is removed and reinitialised");
-                    tryGetFromYaml(errorAccumulation.satellite_error_count_threshold, error_accumulation, { "! satellite_error_count_threshold" }, "Number of errors for a satellite to be considered in error for a single epoch");
+                    tryGetFromYaml(errorAccumulation.satellite_error_count_threshold, error_accumulation, { "! satellite_error_count_threshold" }, "Number of referencing measurement errors for a satellite to be considered as a satellite error for a single epoch");
                     tryGetFromYaml(errorAccumulation.satellite_error_epochs_threshold, error_accumulation, { "! satellite_error_epochs_threshold" }, "Number of consecutive epochs with satellite in error before it is reinitialised using the orbit_errors configs");
+                    tryGetFromYaml(errorAccumulation.state_error_count_threshold, error_accumulation, { "! state_error_count_threshold" }, "Number of referencing measurement errors for a state to be considered as a state error for a single epoch");
                 }
 
 				{
@@ -3790,11 +3791,11 @@ bool ACSConfig::parse(
 
                         tryGetFromYaml(filterOpts.prefitOpts.max_iterations, prefit, { "! max_iterations" }, "Maximum number of measurements to exclude using prefit checks before attempting to filter");
                         tryGetFromYaml(filterOpts.prefitOpts.sigma_check, prefit, { "@ sigma_check" }, "Enable sigma check");
+                        tryGetFromYaml(filterOpts.prefitOpts.omega_test, prefit, { "@ omega_test" }, "Enable omega-test");
                         bool found = tryGetFromYaml(filterOpts.prefitOpts.state_sigma_threshold, prefit, { "@ sigma_threshold" }, "Sigma threshold");
                         tryGetFromYaml(filterOpts.prefitOpts.meas_sigma_threshold, prefit, { "@ sigma_threshold" }, "Sigma threshold");
                         tryGetFromYaml(filterOpts.prefitOpts.state_sigma_threshold, prefit, { "@ state_sigma_threshold" }, "Sigma threshold for states");
                         tryGetFromYaml(filterOpts.prefitOpts.meas_sigma_threshold, prefit, { "@ meas_sigma_threshold" }, "Sigma threshold for measurements");
-                        tryGetFromYaml(filterOpts.prefitOpts.omega_test, prefit, { "@ omega_test" }, "Enable omega-test");
 
                         if (found)
                         {
@@ -3807,6 +3808,7 @@ bool ACSConfig::parse(
 
                         tryGetFromYaml(filterOpts.postfitOpts.max_iterations, postfit, { "! max_iterations" }, "Maximum number of measurements to exclude using postfit checks while iterating filter");
                         tryGetFromYaml(filterOpts.postfitOpts.sigma_check, postfit, { "@ sigma_check" }, "Enable sigma check");
+                        tryGetFromYaml(filterOpts.postfitOpts.omega_test, postfit, {"@ omega_test" }, "Enable omega-test");
                         bool found = tryGetFromYaml(filterOpts.postfitOpts.state_sigma_threshold, postfit, { "@ sigma_threshold" }, "Sigma threshold");
                         tryGetFromYaml(filterOpts.postfitOpts.meas_sigma_threshold, postfit, { "@ sigma_threshold" }, "Sigma threshold");
                         tryGetFromYaml(filterOpts.postfitOpts.state_sigma_threshold, postfit, { "@ state_sigma_threshold" }, "Sigma threshold for states");
@@ -3881,7 +3883,6 @@ bool ACSConfig::parse(
                 tryGetFromYaml(pppOpts.filter_reset_enable, ppp_filter, { "@ periodic_reset", "@ enable" }, "Enable periodic reset of filter states");
                 tryGetFromYaml(pppOpts.reset_interval, ppp_filter, { "@ periodic_reset", "@ interval" }, "Interval between reset of filter states");
                 tryGetFromYaml(pppOpts.reset_epochs, ppp_filter, { "@ periodic_reset", "@ times" }, "Time to reset filter states in seconds of day [GPST]");
-
                 tryGetEnumVec(pppOpts.reset_states, ppp_filter, { "@ periodic_reset", "@ states" }, "States to remove for periodic reset");
 
                 // 				ionospheric_component

@@ -110,7 +110,8 @@ const
 void KFState::initFilterEpoch(
 		Trace& trace)
 {
-	initNoiseMap.clear();
+	initNoiseMap	.clear();
+	errorCountMap	.clear();
 
 	for (auto& [key1, mapp]	: stateTransitionMap)
 	{
@@ -404,6 +405,7 @@ void KFState::removeState(
 	gaussMarkovTauMap.		erase(removeKey);
 	gaussMarkovMuMap.		erase(removeKey);
 	exponentialNoiseMap.	erase(removeKey);
+	errorCountMap.			erase(removeKey);
 
 	//do pseudo state removal after state transition is complete,
 	//outage limits should stay with the non-pseudo states, and shouldnt be deleted with the non-pseudo
@@ -926,10 +928,10 @@ void KFState::preFitSigmaCheck(
 	auto& kfMeas	= callbackDetails.kfMeas;
 	auto& trace		= callbackDetails.trace;
 
-	auto		v = kfMeas.V.segment(begH, numH);
-	auto		R = kfMeas.R.block(begH, begH, numH, numH);
-	auto		H = kfMeas.H.block(begH, begX, numH, numX);
-	auto		P = this-> P.block(begX, begX, numX, numX);
+	auto	v	= kfMeas.V.segment(begH, numH);
+	auto	R	= kfMeas.R.block(begH, begH, numH, numH);
+	auto	H	= kfMeas.H.block(begH, begX, numH, numX);
+	auto	P	= this-> P.block(begX, begX, numX, numX);
 
 	ArrayXd		measRatios	= ArrayXd::Zero(numH);
 	ArrayXd		stateRatios	= ArrayXd::Zero(numX);
@@ -943,11 +945,10 @@ void KFState::preFitSigmaCheck(
 		auto		measVariances	= ((H*P*H.transpose()).diagonal() + R.diagonal()).array();
 
 		measRatios	= measVariations	/ measVariances;
-		measRatios	= measRatios.isFinite()	.select(measRatios,		0);
 	}
 	else if (prefitOpts.omega_test)
 	{
-// 		trace << "\n" << "DOING W-test: ";
+// 		trace << "\n" << "DOING OMEGA-TEST: ";
 
 		MatrixXd	Qinv	= (H*P*H.transpose() + R).inverse();
 		MatrixXd	H_Qinv	= H.transpose() * Qinv;
@@ -960,10 +961,11 @@ void KFState::preFitSigmaCheck(
 		auto		stateDenominator	= (H_Qinv * H)	.diagonal().array();
 
 		measRatios	= measNumerator		/ measDenominator;
-		measRatios	= measRatios.isFinite()	.select(measRatios,		0);	//set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
 		stateRatios	= stateNumerator	/ stateDenominator;
-		stateRatios	= stateRatios.isFinite().select(stateRatios,	0);
 	}
+
+	measRatios	= measRatios	.isFinite().select(measRatios,	0);	//set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
+	stateRatios	= stateRatios	.isFinite().select(stateRatios,	0);
 
 	statistics.sumOfSquares	= measRatios.sum();
 	statistics.averageRatio	= measRatios.mean();
@@ -985,21 +987,29 @@ void KFState::preFitSigmaCheck(
 	auto& [stateKey, dummy] = *it;
 
 	//if any are outside the expected values, flag an error
-	if	( maxStateRatio > maxMeasRatio
-		&&maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
+	if		( maxStateRatio * 0.95 > maxMeasRatio
+			&&maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
 	{
 		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
 
-		callbackDetails.kfKey = stateKey;
-	}
+		auto mask = (H.col(stateIndex).array() != 0);	// Mask out referencing measurements, i.e. non-zero values in column stateIndex of H
+		measRatios.array() *= mask.cast<double>();		// Set measRatios of non-referencing measurements to 0
 
-	if	(maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
+		maxMeasRatio = measRatios.maxCoeff(&measIndex);
+		measChunkIndex = measIndex + begH;
+
+		trace << "\n" << "Worst ref meas error is: "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
+
+		callbackDetails.kfKey		= stateKey;
+		callbackDetails.measIndex	= measChunkIndex;
+	}
+	else if	( maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
 	{
 		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey							<< "\n";;
 
-		callbackDetails.measIndex = measChunkIndex;
+		callbackDetails.measIndex	= measChunkIndex;
 	}
 }
 
@@ -1036,6 +1046,8 @@ void outputResiduals(
 void KFState::postFitSigmaChecks(
 	RejectCallbackDetails&	callbackDetails,
 	VectorXd&				dx,				///< The innovations from filtering to recalculate the deltas.
+	MatrixXd&				Qinv,			///< Inverse of innovation covariance matrix
+	MatrixXd&				QinvH,			///< Qinv*H matrix for omega test
 	KFStatistics&			statistics,		///< Test statistics
 	int						begX,			///< Index of first state element to process
 	int						numX,			///< Number of state elements to process
@@ -1045,19 +1057,42 @@ void KFState::postFitSigmaChecks(
 	auto& kfMeas	= callbackDetails.kfMeas;
 	auto& trace		= callbackDetails.trace;
 
-	auto						H	= kfMeas.H.block(begH, begX, numH, numX);
+	auto	v	= kfMeas.V.segment(begH, numH);
+	auto	VV	= kfMeas.VV.segment(begH, numH);
+	auto	R	= kfMeas.R.block(begH, begH, numH, numH);
+	auto	H	= kfMeas.H.block(begH, begX, numH, numX);
+	auto	P	= this-> P.block(begX, begX, numX, numX);
 
-	//use 'array' for component-wise calculations
-	auto		measVariations		= kfMeas.VV	.segment(begH, numH).array().square();	//delta squared
-	auto		stateVariations		= dx		.segment(begX, numX).array().square();
+	ArrayXd		measRatios	= ArrayXd::Zero(numH);
+	ArrayXd		stateRatios	= ArrayXd::Zero(numX);
 
-	auto		measVariances		= (kfMeas.	R.block(begH, begH, numH, numH)).diagonal().array();
-	auto		stateVariances		= 			P.block(begX, begX, numX, numX)	.diagonal().array();
+	if (postfitOpts.sigma_check)
+	{
+		//use 'array' for component-wise calculations
+		auto		measVariations		= VV						.array().square();	//delta squared
+		auto		stateVariations		= dx.segment(begX, numX)	.array().square();
 
-	ArrayXd		measRatios			= measVariations	/ measVariances;
-				measRatios			= measRatios.isFinite()	.select(measRatios,		0);
-	ArrayXd		stateRatios			= stateVariations	/ stateVariances;
-				stateRatios			= stateRatios.isFinite().select(stateRatios,	0);
+		auto		measVariances		= R							.diagonal().array();
+		auto		stateVariances		= P							.diagonal().array();
+
+		measRatios	= measVariations	/ measVariances;
+		stateRatios	= stateVariations	/ stateVariances;
+	}
+	else if (postfitOpts.omega_test)
+	{
+		//use 'array' for component-wise calculations
+		auto		measNumerator		= (Qinv * v)				.array().square();		//weighted residuals squared
+		auto		stateNumerator		= (QinvH.transpose() * v)	.array().square();
+
+		auto		measDenominator		=  Qinv						.diagonal().array();	//weights
+		auto		stateDenominator	= (QinvH.transpose() * H)	.diagonal().array();
+
+		measRatios	= measNumerator		/ measDenominator;
+		stateRatios	= stateNumerator	/ stateDenominator;
+	}
+
+	measRatios	= measRatios	.isFinite().select(measRatios,	0);	//set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
+	stateRatios	= stateRatios	.isFinite().select(stateRatios,	0);
 
 	statistics.sumOfSquares	= measRatios.sum();
 	statistics.averageRatio	= measRatios.mean();
@@ -1079,21 +1114,29 @@ void KFState::postFitSigmaChecks(
 	auto& [stateKey, dummy] = *it;
 
 	//if any are outside the expected values, flag an error
-	if	( maxStateRatio > maxMeasRatio
-		&&maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
+	if		( maxStateRatio * 0.95 > maxMeasRatio
+			&&maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
 	{
 		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
 		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
 
-		callbackDetails.kfKey = stateKey;
-	}
+		auto mask = (H.col(stateIndex).array() != 0);	// Mask out referencing measurements, i.e. non-zero values in column stateIndex of H
+		measRatios.array() *= mask.cast<double>();		// Set measRatios of non-referencing measurements to 0
 
-	if	(maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
+		maxMeasRatio = measRatios.maxCoeff(&measIndex);
+		measChunkIndex = measIndex + begH;
+
+		trace << "\n" << "Worst ref meas error is: "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
+
+		callbackDetails.kfKey		= stateKey;
+		callbackDetails.measIndex	= measChunkIndex;
+	}
+	else if	( maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
 	{
 		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
 		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey							<< "\n";
 
-		callbackDetails.measIndex = measChunkIndex;
+		callbackDetails.measIndex	= measChunkIndex;
 	}
 }
 
@@ -1114,9 +1157,9 @@ double KFState::stateChiSquare(
 		numX -= 1;
 	}
 
-	auto		w  = dx.segment(begX, numX);
-	MatrixXd	P  = this->P.block(begX, begX, numX, numX);
-	// MatrixXd	dP = this->P.block(begX, begX, numX, numX) - Pp.block(begX, begX, numX, numX);	//Ref: Li et al. (2020) - Robust Kalman Filtering Based on Chi-square Increment and Its Application - https://www.mdpi.com/2072-4292/12/4/732/pdf
+	auto		w	= dx.segment(begX, numX);
+	auto		P	= this->P.block(begX, begX, numX, numX);
+	// MatrixXd	dP	= this->P.block(begX, begX, numX, numX) - Pp.block(begX, begX, numX, numX);	//Ref: Li et al. (2020) - Robust Kalman Filtering Based on Chi-square Increment and Its Application - https://www.mdpi.com/2072-4292/12/4/732/pdf
 
 	double		chiSq = w.transpose() * P.inverse() * w;
 	// double		chiSq = w.transpose() * dP.inverse() * w;	//Ref: Li et al. (2020) - Robust Kalman Filtering Based on Chi-square Increment and Its Application - https://www.mdpi.com/2072-4292/12/4/732/pdf
@@ -1139,15 +1182,15 @@ double KFState::measChiSquare(
 	int			begH,		///< Index of first measurement to process
 	int			numH)		///< Number of measurements to process
 {
-	auto		w = dx.segment(begX, numX);
-	auto		H = kfMeas.H.block(begH, begX, numH, numX);
-	VectorXd	v = kfMeas.V.segment(begH, numH) - H * w;
-	auto		R = kfMeas.R.block(begH, begH, numH, numH);
+	auto	w	= dx.segment(begX, numX);
+	auto	H	= kfMeas.H.block(begH, begX, numH, numX);
+	auto	VV	= kfMeas.VV.segment(begH, numH);
+	auto	R	= kfMeas.R.block(begH, begH, numH, numH);
 
-	double		chiSq = (v.array().square() / R.diagonal().array()).sum();
+	double		chiSq = (VV.array().square() / R.diagonal().array()).sum();
 
 	trace << "\n" << "DOING MEASUREMENT CHI-SQUARE TEST:";
-	// for (int i = 0; i < numH; i++)	trace << "v(+): "	<< v(i) << "\tR: "		<< R(i, i) << "\n";
+	// for (int i = 0; i < numH; i++)	trace << "v(+): "	<< VV(i) << "\tR: "		<< R(i, i) << "\n";
 
 	return chiSq;
 }
@@ -1162,11 +1205,11 @@ double KFState::innovChiSquare(
 	int			begH,		///< Index of first measurement to process
 	int			numH)		///< Number of measurements to process
 {
-	auto		H = kfMeas.H.block(begH, begX, numH, numX);
-	auto		v = kfMeas.V.segment(begH, numH);
-	auto		R = kfMeas.R.block(begH, begH, numH, numH);
-	auto		P = this->P.block(begX, begX, numX, numX);
-	MatrixXd	Q = R + H * P * H.transpose();
+	auto		H	= kfMeas.H.block(begH, begX, numH, numX);
+	auto		v	= kfMeas.V.segment(begH, numH);
+	auto		R	= kfMeas.R.block(begH, begH, numH, numH);
+	auto		P	= this->P.block(begX, begX, numX, numX);
+	MatrixXd	Q	= R + H * P * H.transpose();
 
 	double		chiSq = v.transpose() * Q.inverse() * v;
 
@@ -1181,9 +1224,11 @@ double KFState::innovChiSquare(
 bool KFState::kFilter(
 	Trace&			trace,		///< Trace to output to
 	KFMeas&			kfMeas,		///< Measurements, noise, and design matrices
-	VectorXd&		xp,   		///< Post-update state vector
-	MatrixXd&		Pp,   		///< Post-update covariance of states
+	VectorXd&		xp,			///< Post-update state vector
+	MatrixXd&		Pp,			///< Post-update covariance of states
 	VectorXd&		dx,			///< Post-update state innovation
+	MatrixXd&		Qinv,		///< Inverse of innovation covariance matrix
+	MatrixXd&		QinvH,		///< Qinv*H matrix for omega test
 	int				begX,		///< Index of first state element to process
 	int				numX,		///< Number of state elements to process
 	int				begH,		///< Index of first measurement to process
@@ -1193,17 +1238,21 @@ bool KFState::kFilter(
 	auto& v			= kfMeas.V;
 	auto& H			= kfMeas.H;
 	auto& H_star	= kfMeas.H_star;
-	auto& noise		= kfMeas.uncorrelatedNoise.asDiagonal();
 
-	auto subH = H.block(begH, begX, numH, numX);
+	auto noise		= kfMeas.uncorrelatedNoise.asDiagonal();	// todo Eugene: check chunking indices
+	auto subR		= R		.block(begH, begH, numH, numH);
+	auto subH		= H		.block(begH, begX, numH, numX);
+	auto subP		= P		.block(begX, begX, numX, numX);
+	auto subV		= v		.segment(begH, numH);
+	auto subH_star	= H_star.middleRows(begH, numH);			// todo Eugene: check chunking indices
 
-	auto		HRH_star	= H_star	* noise * H_star.transpose();
-	auto		HP			= subH		* P.block(begX, begX, numX, numX);
-	MatrixXd	Q			= HP		* subH.transpose()
-							+ R.block(begH, begH, numH, numH);
+	MatrixXd	I			= MatrixXd::Identity(numH, numH);
+	MatrixXd	HRH_star	= subH_star	* noise	* subH_star	.transpose();
+	MatrixXd	HP			= subH				* subP;
+	MatrixXd	Q			= HP				* subH		.transpose() + subR;
 
-	MatrixXd K;
-	MatrixXd HRHQ_star;
+	MatrixXd	K;
+	MatrixXd	HRHQ_star;
 
 	bool repeat = true;
 	while (repeat)
@@ -1220,9 +1269,11 @@ bool KFState::kFilter(
 			{
 				auto QQ = Q.triangularView<Eigen::Upper>().transpose();
 				LDLT<MatrixXd> solver;
-				if	( 						(				solver.compute(QQ),						solver.info() != Eigen::ComputationInfo::Success)
-					||						(K			=	solver.solve(HP)		.transpose(),	solver.info() != Eigen::ComputationInfo::Success)
-					||(advanced_postfits &&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
+				if	( 								(				solver.compute(QQ),						solver.info() != Eigen::ComputationInfo::Success)
+					||								(K			=	solver.solve(HP)		.transpose(),	solver.info() != Eigen::ComputationInfo::Success)
+					||(postfitOpts.omega_test 	&&	(Qinv		=	solver.solve(I),						solver.info() != Eigen::ComputationInfo::Success))
+					||(postfitOpts.omega_test 	&&	(QinvH		=	solver.solve(subH),						solver.info() != Eigen::ComputationInfo::Success))
+					||(advanced_postfits		&&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
 				{
 					xp = x;
 					Pp = P;
@@ -1231,10 +1282,10 @@ bool KFState::kFilter(
 					BOOST_LOG_TRIVIAL(error) << "Error: Failed to calculate kalman gain, see trace file for matrices";
 
 					trace << "\n" << "Kalman Filter Error1";
-					trace << "\n" << "Q:" << "\n" << Q;
-					trace << "\n" << "H:" << "\n" << H;
-					trace << "\n" << "R:" << "\n" << R;
-					trace << "\n" << "P:" << "\n" << P;
+					trace << "\n" << "Q: " << "\n" << Q;
+					trace << "\n" << "H: " << "\n" << subH;
+					trace << "\n" << "R: " << "\n" << subR;
+					trace << "\n" << "P: " << "\n" << subP;
 
 					return false;
 				}
@@ -1245,9 +1296,11 @@ bool KFState::kFilter(
 			{
 				auto QQ = Q.triangularView<Eigen::Upper>().transpose();
 				LLT<MatrixXd> solver;
-				if	( 						(				solver.compute(QQ),						solver.info() != Eigen::ComputationInfo::Success)
-					||						(K			=	solver.solve(HP)		.transpose(),	solver.info() != Eigen::ComputationInfo::Success)
-					||(advanced_postfits &&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
+				if	( 								(				solver.compute(QQ),						solver.info() != Eigen::ComputationInfo::Success)
+					||								(K			=	solver.solve(HP)		.transpose(),	solver.info() != Eigen::ComputationInfo::Success)
+					||(postfitOpts.omega_test 	&&	(Qinv		=	solver.solve(I),						solver.info() != Eigen::ComputationInfo::Success))
+					||(postfitOpts.omega_test 	&&	(QinvH		=	solver.solve(subH),						solver.info() != Eigen::ComputationInfo::Success))
+					||(advanced_postfits		&&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
 				{
 					inverter = E_Inverter::LDLT;
 					continue;
@@ -1257,8 +1310,9 @@ bool KFState::kFilter(
 			}
 			case E_Inverter::INV:
 			{
-				MatrixXd Qinv = Q.inverse();
-				K = P * H.transpose() * Qinv;
+				Qinv	= Q.inverse();
+				QinvH	= Qinv * subH;
+				K		= HP.transpose() * Qinv;
 
 				if (advanced_postfits)
 				{
@@ -1272,43 +1326,44 @@ bool KFState::kFilter(
 
 	if (advanced_postfits)
 	{
-		kfMeas.VV = HRHQ_star * v;
+		kfMeas.VV.segment(begH, numH) = HRHQ_star * subV;
 	}
 
-	dx.segment(begX, numX)	= K * v.segment(begH, numH);
+	dx.segment(begX, numX)	= K * subV;
 	xp.segment(begX, numX)	= x. segment(begX, numX)
 							+ dx.segment(begX, numX);
 
-// 	trace << "\n" << "h "	<< "\n" << subH;
-// 	trace << "\n" << "hp "	<< "\n" << HP;
+// 	trace << "\n" << "H "	<< "\n" << subH;
+// 	trace << "\n" << "Hp "	<< "\n" << HP;
 // 	trace << "\n" << "Q "	<< "\n" << Q;
 // 	trace << "\n" << "K "	<< "\n" << K;
-// 	trace << "\n" << "X "	<< "\n" << x. segment(begX, numX);
-// 	trace << "\n" << "DX"	<< "\n" << dx.segment(begX, numX);
+// 	trace << "\n" << "x "	<< "\n" << x. segment(begX, numX);
+// 	trace << "\n" << "dx"	<< "\n" << dx.segment(begX, numX);
 // 	trace << "\n" << "xp"	<< "\n" << xp.segment(begX, numX);
 
+	MatrixXd	subPp;
 	if (joseph_stabilisation)
 	{
-		MatrixXd IKH = MatrixXd::Identity(P.rows(), P.cols()) - K * H;
-		Pp = IKH * P * IKH.transpose() + K * R * K.transpose();
+		MatrixXd IKH = MatrixXd::Identity(numX, numX) - K * subH;
+		subPp = IKH * subP * IKH.transpose() + K * subR * K.transpose();
 	}
 	else
 	{
-		Pp.block(begX, begX, numX, numX) = P.block(begX, begX, numX, numX) - K * HP;
+		subPp = subP - K * HP;
 	}
 
-	Pp.block(begX, begX, numX, numX) = (Pp.block(begX, begX, numX, numX) +	Pp.block(begX, begX, numX, numX).transpose()).eval() / 2;
+	Pp.block(begX, begX, numX, numX) = (subPp +	subPp.transpose()).eval() / 2;
 
 
 	bool error = xp.segment(begX, numX).array().isNaN().any();
 	if (error)
 	{
-		std::cout << "\n" << "x:" << "\n" << x << "\n";
-		std::cout << "\n" << "xp:" << "\n" << xp << "\n";
-		std::cout << "\n" << "R :" << "\n" << R << "\n";
-		std::cout << "\n" << "K :" << "\n" << K << "\n";
-		std::cout << "\n" << "P :" << "\n" << P << "\n";
-		std::cout << "\n" << "v :" << "\n" << v << "\n";
+		std::cout << "\n" << "x :" << "\n" << x.segment(begX, numX);
+		std::cout << "\n" << "xp:" << "\n" << xp.segment(begX, numX);
+		std::cout << "\n" << "R :" << "\n" << subR;
+		std::cout << "\n" << "K :" << "\n" << K;
+		std::cout << "\n" << "P :" << "\n" << subP;
+		std::cout << "\n" << "v :" << "\n" << subV;
 		std::cout << "\n";
 		std::cout << "NAN found. Exiting...";
 		std::cout << "\n";
@@ -1655,10 +1710,10 @@ void KFState::filterKalman(
 			preFitSigmaCheck(rejectCallbackDetails, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
 
 			bool stopIterating = true;
-			if (rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Prefit check failed state test"		<< "\n";	doStateRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
-			if (rejectCallbackDetails.measIndex >= 0)	{	stringBuffer << "\n" << "Prefit check failed measurement test"	<< "\n";	doMeasRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
+			if		(rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Prefit check failed state test"		<< "\n";	doStateRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
+			else if	(rejectCallbackDetails.measIndex >= 0)	{	stringBuffer << "\n" << "Prefit check failed measurement test"	<< "\n";	doMeasRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
 
-			if (stopIterating)							{	stringBuffer << "\n" << "Prefit check passed"					<< "\n";																				}
+			if (stopIterating)								{	stringBuffer << "\n" << "Prefit check passed"					<< "\n";																				}
 			else
 			{
 				if (i == prefitOpts.max_iterations - 1)
@@ -1708,12 +1763,15 @@ void KFState::filterKalman(
 			BOOST_LOG_TRIVIAL(info) << " ------- FILTERING CHUNK " << fc.id << "         --------\n";
 		}
 
+		MatrixXd Qinv	= MatrixXd::Identity(fc.numH, fc.numH);
+		MatrixXd QinvH	= MatrixXd::Ones(fc.numH, fc.numX);
+
 		statisticsMap["Observations"] += fc.numH;
 
 		KFStatistics statistics;
 		for (int i = 0; i < postfitOpts.max_iterations; i++)
 		{
-			bool pass = kFilter(trace, kfMeas, xp, Pp, dx, fc.begX, fc.numX, fc.begH, fc.numH);
+			bool pass = kFilter(trace, kfMeas, xp, Pp, dx, Qinv, QinvH, fc.begX, fc.numX, fc.begH, fc.numH);
 
 			if (pass == false)
 			{
@@ -1735,7 +1793,8 @@ void KFState::filterKalman(
 				outputResiduals(ss, kfMeas, i, suffix, fc.begH, fc.numH);
 			}
 
-			if (postfitOpts.sigma_check == false)
+			if	( postfitOpts.sigma_check	== false
+				&&postfitOpts.omega_test	== false)
 			{
 				break;
 			}
@@ -1745,13 +1804,13 @@ void KFState::filterKalman(
 			RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
 			rejectCallbackDetails.postFit = true;
 
-			postFitSigmaChecks(rejectCallbackDetails, dx, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
+			postFitSigmaChecks(rejectCallbackDetails, dx, Qinv, QinvH, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
 
 			bool stopIterating = true;
-			if (rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Postfit check failed state test"		<< "\n";	doStateRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
-			if (rejectCallbackDetails.measIndex >= 0)	{	stringBuffer << "\n" << "Postfit check failed measurement test"	<< "\n";	doMeasRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
+			if		(rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Postfit check failed state test"		<< "\n";	doStateRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
+			else if	(rejectCallbackDetails.measIndex >= 0)	{	stringBuffer << "\n" << "Postfit check failed measurement test"	<< "\n";	doMeasRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
 
-			if (stopIterating)							{	stringBuffer << "\n" << "Postfit check passed"					<< "\n";																				}
+			if (stopIterating)								{	stringBuffer << "\n" << "Postfit check passed"					<< "\n";																				}
 			else
 			{
 				if (i == postfitOpts.max_iterations - 1)

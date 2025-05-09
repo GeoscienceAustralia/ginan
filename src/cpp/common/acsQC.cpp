@@ -740,6 +740,7 @@ void detectslip(
 	{
 		/* set slip flag for L5 (introduce new ambiguity for L5) */
 		satStat.sigStatMap[ft2string(frq3)].slip.LLI = true;
+        satStat.sigStatMap[ft2string(frq3)].savedSlip.LLI = true;
 		cycleslip2(trace, satStat, lc_new, obs);
 
 		/* update averaged MW noise when no cycle slip */
@@ -800,6 +801,7 @@ void detectslip(
 		for (auto& [key, sigStat] : satStat.sigStatMap)
 		{
 			sigStat.slip.LLI = true;
+            sigStat.savedSlip.LLI = true;
 		}
 
 		tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --  re-tracking   --\n", week, tow, id, satStat.el * R2D);
@@ -811,6 +813,7 @@ void detectslip(
 		for (auto& [key, sigStat] : satStat.sigStatMap)
 		{
 			sigStat.slip.LLI = true;
+            sigStat.savedSlip.LLI = true;
 		}
 
 		tracepdeex(1, trace, "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --single frequency--\n", week, tow, id, satStat.el * R2D);

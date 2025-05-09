@@ -376,6 +376,8 @@ struct KFState_ : FilterOptions
 	map<KFKey, map<KFKey, double>>						pseudoStateMap;			///< Map of pseudo states, and a further map of their coefficients
 	map<KFKey, KFKey>									pseudoParentMap;		///< Map from ordinary states to their combined pseudo state parent.
 
+	map<KFKey, int>										errorCountMap;
+
 	vector<StateRejectCallback> 						stateRejectCallbacks;
 	vector<MeasRejectCallback> 							measRejectCallbacks;
 
@@ -570,6 +572,8 @@ struct KFState : KFState_
 	void	postFitSigmaChecks(
 		RejectCallbackDetails&	callbackDetails,
 		VectorXd&				dx,
+		MatrixXd&				Qinv,
+		MatrixXd&				QinvH,
 		KFStatistics&			statistics,
 		int						begX,
 		int						numX,
@@ -608,6 +612,8 @@ struct KFState : KFState_
 		VectorXd&		xp,
 		MatrixXd&		Pp,
 		VectorXd&		dx,
+		MatrixXd&		Qinv,
+		MatrixXd&		QinvH,
 		int				begX	=  0,
 		int				numX	= -1,
 		int				begH	=  0,

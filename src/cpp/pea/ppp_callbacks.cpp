@@ -53,8 +53,9 @@ bool deweightMeas(
 						 {description + "Ratio",	abs(residual / preSigma)}
 					});
 
-	kfMeas.R.row(measIndex) *= deweightFactor;
-	kfMeas.R.col(measIndex) *= deweightFactor;
+	kfMeas.R		.row(measIndex) *= deweightFactor;
+	kfMeas.R		.col(measIndex) *= deweightFactor;
+	kfMeas.H_star	.row(measIndex) *= deweightFactor;
 
 	map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
 
@@ -125,8 +126,9 @@ bool deweightStationMeas(
 
 		addRejectDetails(kfState.time, trace, kfState, key, "Station Meas Deweighted", postFit ? "Postfit" : "Prefit");
 
-		kfMeas.R.row(i) *= deweightFactor;
-		kfMeas.R.col(i) *= deweightFactor;
+		kfMeas.R		.row(i) *= deweightFactor;
+		kfMeas.R		.col(i) *= deweightFactor;
+		kfMeas.H_star	.row(i) *= deweightFactor;
 
 		map<string, void*>& metaDataMap = kfMeas.metaDataMaps[i];
 
@@ -236,7 +238,6 @@ bool incrementSatelliteErrors(
 	auto& trace		= rejectDetails.trace;
 	auto& kfState	= rejectDetails.kfState;
 	auto& kfMeas	= rejectDetails.kfMeas;
-	auto& kfKey		= rejectDetails.kfKey;
 	auto& measIndex	= rejectDetails.measIndex;
 
 	if (acsConfig.errorAccumulation.enable == false)
@@ -265,6 +266,32 @@ bool incrementSatelliteErrors(
 	snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", kfMeas.obsKeys[measIndex].Sat.id().c_str(), "", "");
 
 	trace << "\n" << kfState.time << "\tIncrementing satelliteErrorCount  on\t" << idStr << "\tto " << satelliteErrorCount;
+
+	return true;
+}
+
+/** Count all errors on an individual state
+ */
+bool incrementStateErrors(
+	RejectCallbackDetails	rejectDetails)
+{
+	auto& trace		= rejectDetails.trace;
+	auto& kfState	= rejectDetails.kfState;
+	auto& kfKey		= rejectDetails.kfKey;
+
+	if (acsConfig.errorAccumulation.enable == false)
+	{
+		return true;
+	}
+
+	if (kfState.errorCountMap.find(kfKey) == kfState.errorCountMap.end())
+	{
+		kfState.errorCountMap[kfKey] = 0;
+	}
+
+	kfState.errorCountMap[kfKey]++;
+
+	trace << "\n" << kfState.time << "\tIncrementing stateErrorCount      on\t" << kfKey << "\tto " << kfState.errorCountMap[kfKey];
 
 	return true;
 }
@@ -318,9 +345,35 @@ bool resetIonoSignalOutage(
 	return true;
 }
 
-/** Reject measurements attached to worst state using measurement reject callback list
+/** Reject worst measurement attached to worst state using measurement reject callback list
  */
-bool rejectByState(
+bool rejectWorstMeasByState(
+	RejectCallbackDetails	rejectDetails)
+{
+	auto& trace		= rejectDetails.trace;
+	auto& kfState	= rejectDetails.kfState;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfKey		= rejectDetails.kfKey;
+	auto& measIndex	= rejectDetails.measIndex;
+
+	if	( acsConfig.errorAccumulation.enable
+		&&kfState.errorCountMap[kfKey] >= acsConfig.errorAccumulation.state_error_count_threshold)
+	{
+		trace << "\n" << "High state error counts: " << kfKey;
+
+		return true;
+	}
+
+	trace << "\n" << "Suspected bad state " << kfKey << " - try rejecting worst referencing measurement " << kfMeas.obsKeys[measIndex] << "\n";
+
+	kfState.doMeasRejectCallbacks(rejectDetails);
+
+	return false;
+}
+
+/** Reject all measurements attached to worst state using measurement reject callback list
+ */
+bool rejectAllMeasByState(
 	RejectCallbackDetails	rejectDetails)
 {
 	auto& trace		= rejectDetails.trace;

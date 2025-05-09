@@ -643,6 +643,7 @@ void addRejectDetails(
 			},
 			details);
 }
+
 /** Remove ambiguity states from filter when they deemed old or bad
  * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
  * resolution of cycle-slips
@@ -797,19 +798,16 @@ void removeBadSatellites(
 		satNav.satelliteErrorEpochs	= 0;
 
 		for (auto [key, index] : kfState.kfIndexMap)
-		if	( key.Sat == Sat
-			&&key.str.empty())	// Eugene: consider if remove other states
+		if (key.Sat == Sat)
 		{
 			kfState.removeState(key);
 
 			trace << "\n" << "State removed due to high satellite error counts: " << key;
-			// trace << "\n" << "Satellite relaxed due to high satellite error counts: " << Sat.id();
 		}
 
 		kfState.statisticsMap["Sat error resets"]++;
 	}
 }
-
 
 void removeBadReceivers(
 	Trace&			trace,			///< Trace to output to

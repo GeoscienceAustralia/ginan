@@ -844,7 +844,7 @@ void updateAvgOrbits(
 	}
 }
 
-/** Prepare Satellite clocks to minimise residuals to broadcast clocks.
+/** Prepare satellite clocks to minimise residuals to broadcast clocks.
  * Provide a weak tiedown using mu values, which the state will attempt to exponentially decay toward using the configured tau value in stateTransition
  */
 void updateAvgClocks(
@@ -882,29 +882,33 @@ void updateAvgClocks(
 			continue;
 		}
 
+		auto& satOpts = acsConfig.getSatOpts(Sat);
+
+		// Restore tau value from config
+		InitialState init = initialStateFromConfig(satOpts.clk);
+
 		double satClkBrdc	= satPosBrdc.satClk * CLIGHT;
 		double satClkKf		= satPosKf	.satClk * CLIGHT;
 		double satClkDiff	= satClkBrdc - satClkKf;
 
-		//Exclude satellite clock from alignment if diff between estimated and broadcast satellite clock offsets > 10 m
 		if (abs(satClkDiff) > acsConfig.minimise_sat_clock_offsets.max_offset)
 		{
+			// Exclude this satellite clock from alignment if diff between estimated and broadcast satellite clock offsets > 10 m
 			trace	<< "\nLarge clock diff > " << acsConfig.minimise_sat_clock_offsets.max_offset << " (m), excluding satellite from braodcast clock alignment:"
 					<< "\tSat: "				<< Sat.id()
 					<< "\tBrdc sat clock (m): "	<< satClkBrdc
 					<< "\tKf sat clock (m): "	<< satClkKf
 					<< "\tDiff: "				<< satClkDiff;
 
-			continue;
+			init.tau = -1;	// Disable FOGM so that this satellite clock won't be tied down to old mu value		// Eugene: What if the clock doesn't jump
+		}
+		else
+		{
+			// Align this satellite clock with broadcast ephemeris
+			init.mu = satClkBrdc;
 		}
 
-		auto& satOpts = acsConfig.getSatOpts(Sat);
-
-		InitialState init = initialStateFromConfig(satOpts.clk);
-
-		init.mu = satClkBrdc;
-
-		//update the mu value
+		//update tau & mu values
 		kfState.addKFState(key, init);
 	}
 }
@@ -1252,19 +1256,22 @@ bool isIntervalReset(double epoch, double prev_epoch, double reset_interval) {
     bool reset_epoch = std::fmod(epoch, reset_interval) == 0;
     bool prev_epoch_reset = std::fmod(prev_epoch, reset_interval) == 0;
     bool reset_between_epochs = int(prev_epoch / reset_interval) < int(epoch / reset_interval);
+
     return reset_epoch || (!prev_epoch_reset && reset_between_epochs);
 }
 
 bool isSpecificTimeReset(double epoch, double prev_epoch, const std::vector<double>& resetTimes) {
-    double seconds_in_day = 86400; \
+    double seconds_in_day = 86400;
     double epoch_mod = std::fmod(epoch, seconds_in_day);
     double prev_epoch_mod = std::fmod(prev_epoch, seconds_in_day);
+
     for (double resetTime : resetTimes) {
         double reset_mod = std::fmod(resetTime, seconds_in_day);
         bool reset_epoch = epoch_mod ==  reset_mod;
         bool prev_epoch_reset = prev_epoch_mod == reset_mod;
         bool reset_between_epochs = (prev_epoch_mod < reset_mod && epoch_mod > reset_mod) ||
-        (prev_epoch_mod > epoch_mod && reset_mod == 0 );
+        (prev_epoch_mod > epoch_mod && reset_mod == 0);
+
         if (reset_epoch || reset_between_epochs) {
             return true;
         }
@@ -1297,6 +1304,7 @@ void updatePseudoPulses(
         time2yds(tsync, yds, E_TimeSys::GPST);
         double sod = yds[2];
         double prev_epoch = sod - acsConfig.epoch_interval;
+
         bool resetEpochInterval = isIntervalReset(sod, prev_epoch, satOpts.pseudoPulses.interval);
         bool resetEpochSpecific = isSpecificTimeReset(sod, prev_epoch, satOpts.pseudoPulses.epochs);
 
@@ -1304,11 +1312,11 @@ void updatePseudoPulses(
         {
             return;
         }
+
 		if (key.num < 3)	kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.pos_proc_noise)});
 		else				kfState.setExponentialNoise(key, {SQR(satOpts.pseudoPulses.vel_proc_noise)});
 	}
 }
-
 
 
 void resetFilterbyConfig(
@@ -1331,6 +1339,7 @@ void resetFilterbyConfig(
     time2yds(tsync, yds, E_TimeSys::GPST);
     double sod = yds[2];
     double prev_epoch = sod - acsConfig.epoch_interval;
+
     bool resetEpochInterval = isIntervalReset(sod, prev_epoch, acsConfig.pppOpts.reset_interval);
     bool resetEpochSpecific = isSpecificTimeReset(sod, prev_epoch, acsConfig.pppOpts.reset_epochs);
 
@@ -1398,7 +1407,6 @@ void updateFilter(
 	updateAvgOrbits		(trace, 				tsync,	kfState);
 	updateAvgIonosphere	(trace,					tsync,	kfState);
 	updatePseudoPulses	(trace,							kfState);
-    // exit(0);
 }
 
 void perRecMeasurements(

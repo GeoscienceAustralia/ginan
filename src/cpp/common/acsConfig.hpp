@@ -437,6 +437,7 @@ struct ErrorAccumulationHandler
 	int		receiver_error_epochs_threshold		= 4;
 	int		satellite_error_count_threshold		= 4;
 	int		satellite_error_epochs_threshold	= 1;
+	int		state_error_count_threshold			= 4;
 };
 
 
@@ -605,15 +606,16 @@ struct PrefitOptions
 {
 	int			max_iterations	 		= 2;
 	bool		sigma_check				= true;
+	bool		omega_test				= false;
 	double		state_sigma_threshold	= 4;
 	double		meas_sigma_threshold	= 4;
-	bool		omega_test				= false;
 };
 
 struct PostfitOptions
 {
 	int			max_iterations	 		= 2;
 	bool		sigma_check				= true;
+	bool		omega_test				= false;
 	double		state_sigma_threshold	= 4;
 	double		meas_sigma_threshold	= 4;
 };
@@ -689,7 +691,7 @@ struct PppOptions : FilterOptions
 	/// @todo: rename to reset_states_
 	bool			filter_reset_enable		= false;
 	int				reset_interval			= 0;
-    vector<double>  reset_epochs		    = {};
+	vector<double>	reset_epochs			= {};
 	vector<KF>		reset_states			= {KF::ALL};
 };
 
@@ -1109,7 +1111,7 @@ struct OrbitOptions
 	{
 		bool	enable			= false;
 		int		interval		= 0;
-        vector<double> epochs   ={};
+        vector<double> epochs   = {};
 		double	pos_proc_noise	= 10;
 		double	vel_proc_noise	= 5;
 	} pseudoPulses;
