@@ -11,17 +11,12 @@ import numpy as np
 from time import sleep
 from pathlib import Path
 from typing import Tuple, Union
-from copy import deepcopy
 from urllib.parse import urlparse
 from contextlib import contextmanager
 from datetime import datetime, timedelta, date
 
-from gn_functions import (
-    GPSDate,
-    gpswkD2dt,
-    decompress_file,
-    download_url,
-)
+from gnssanalysis.gn_datetime import GPSDate
+from gnssanalysis.gn_download import download_product_from_cddis, download_url, decompress_file
 
 API_URL = "https://data.gnss.ga.gov.au/api"
 
@@ -274,106 +269,6 @@ def download_file_from_cddis(
                 # Add some backoff time (exponential random as it appears to be contention based?)
                 sleep(random.uniform(0.0, 2.0**retries))
     return download_filepath
-
-
-def download_product_from_cddis(
-    download_dir: Path,
-    start_epoch: datetime,
-    end_epoch: datetime,
-    file_ext: str,
-    limit: int = None,
-    long_filename: bool = False,
-    analysis_center: str = "IGS",
-    solution_type: str = "ULT",
-    sampling_rate: str = "15M",
-    project_type: str = "OPS",
-    timespan: timedelta = timedelta(days=2),
-    if_file_present: str = "prompt_user",
-) -> None:
-    """
-    Download the file/s from CDDIS based on start and end epoch, to the
-    provided the download directory (download_dir)
-    """
-    # DZ: Download the correct IGS FIN ERP files
-    if file_ext == "ERP" and analysis_center == "IGS" and solution_type == "FIN":  # get the correct start_epoch
-        start_epoch = GPSDate(str(start_epoch))
-        start_epoch = gpswkD2dt(f"{start_epoch.gpswk}0")
-        timespan = timedelta(days=7)
-    # Details for debugging purposes:
-    logging.debug("Attempting CDDIS Product download/s")
-    logging.debug(f"Start Epoch - {start_epoch}")
-    logging.debug(f"End Epoch - {end_epoch}")
-
-    reference_start = deepcopy(start_epoch)
-    product_filename, gps_date, reference_start = generate_product_filename(
-        reference_start,
-        file_ext,
-        long_filename=long_filename,
-        analysis_center=analysis_center,
-        timespan=timespan,
-        solution_type=solution_type,
-        sampling_rate=sampling_rate,
-        project=project_type,
-    )
-    logging.debug(
-        f"Generated filename: {product_filename}, with GPS Date: {gps_date.gpswkD} and reference: {reference_start}"
-    )
-    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-        try:
-            ftps.cwd(f"gnss/products/{gps_date.gpswk}")
-        except ftplib.all_errors as e:
-            logging.info(f"{reference_start} too recent")
-            logging.info(f"ftp_lib error: {e}")
-            product_filename, gps_date, reference_start = generate_product_filename(
-                reference_start,
-                file_ext,
-                shift=-6,
-                long_filename=long_filename,
-                analysis_center=analysis_center,
-                timespan=timespan,
-                solution_type=solution_type,
-                sampling_rate=sampling_rate,
-                project=project_type,
-            )
-            ftps.cwd(f"gnss/products/{gps_date.gpswk}")
-
-            all_files = ftps.nlst()
-            if not (product_filename in all_files):
-                logging.info(f"{product_filename} not in gnss/products/{gps_date.gpswk} - too recent")
-                raise FileNotFoundError
-
-        # reference_start will be changed in the first run through while loop below
-        reference_start -= timedelta(hours=24)
-        count = 0
-        remain = end_epoch - reference_start
-        while remain.total_seconds() > timespan.total_seconds():
-            if count == limit:
-                remain = timedelta(days=0)
-            else:
-                product_filename, gps_date, reference_start = generate_product_filename(
-                    reference_start,
-                    file_ext,
-                    shift=24,  # Shift at the start of the loop - speeds up total download time
-                    long_filename=long_filename,
-                    analysis_center=analysis_center,
-                    timespan=timespan,
-                    solution_type=solution_type,
-                    sampling_rate=sampling_rate,
-                    project=project_type,
-                )
-                download_filepath = check_whether_to_download(
-                    filename=product_filename, download_dir=download_dir, if_file_present=if_file_present
-                )
-                if download_filepath:
-                    download_file_from_cddis(
-                        filename=product_filename,
-                        ftp_folder=f"gnss/products/{gps_date.gpswk}",
-                        output_folder=download_dir,
-                        if_file_present=if_file_present,
-                        note_filetype=file_ext,
-                    )
-                count += 1
-                remain = end_epoch - reference_start
 
 
 def check_whether_to_download(

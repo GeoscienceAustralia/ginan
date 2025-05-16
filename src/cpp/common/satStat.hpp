@@ -25,6 +25,8 @@ struct SigStat
 			unsigned GF		: 1;	///< Slip detected by geometry free combination
 			unsigned MW		: 1;	///< Slip detected by Melbourne Wubenna combination
 			unsigned SCDIA	: 1;	///< Slip detected DIA
+            unsigned retrack: 1;    ///< Slip detected by retrack
+            unsigned singleFreq: 1; ///< single frequency data
 		};
 	};
 

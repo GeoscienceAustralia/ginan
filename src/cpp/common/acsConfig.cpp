@@ -3738,9 +3738,11 @@ bool ACSConfig::parse(
                     tryGetFromYaml(ambErrors.phase_reject_limit, ambiguities, { "! phase_reject_limit" }, "Maximum number of phase measurements to reject before the ambiguity associated with the measurement is reset.");
 
                     tryGetFromYaml(ambErrors.resetOnSlip.LLI, ambiguities, { "@ reset_on",		"@ lli" }, "Reset ambiguities if LLI   test is detecting a slip");
+                    tryGetFromYaml(ambErrors.resetOnSlip.retrack, ambiguities, { "@ reset_on",		"@ retrack" }, "Reset ambiguities on retrack   test is detecting a slip");
                     tryGetFromYaml(ambErrors.resetOnSlip.GF, ambiguities, { "@ reset_on",		"@ gf" }, "Reset ambiguities if GF    test is detecting a slip");
                     tryGetFromYaml(ambErrors.resetOnSlip.MW, ambiguities, { "@ reset_on",		"@ mw" }, "Reset ambiguities if MW    test is detecting a slip");
                     tryGetFromYaml(ambErrors.resetOnSlip.SCDIA, ambiguities, { "@ reset_on",		"@ scdia" }, "Reset ambiguities if SCDIA test is detecting a slip");
+                    tryGetFromYaml(ambErrors.resetOnSlip.single_freq, ambiguities, { "@ reset_on",		"@ single_freq" }, "Reset ambiguities on signle frequency detection");
                 }
 
                 {
@@ -3761,6 +3763,8 @@ bool ACSConfig::parse(
                     tryGetFromYaml(exclude.system, exclusions, { "@ system" }, "Exclude measurements that have been excluded by system configs");
                     tryGetFromYaml(exclude.svh, exclusions, { "@ svh" }, "Exclude measurements that are not specified as healthy");
                     tryGetFromYaml(exclude.LLI, exclusions, { "@ lli" }, "Exclude measurements that fail LLI slip test in preprocessor");
+                    tryGetFromYaml(exclude.retrack, exclusions, { "@ retrack" }, "Exclude measurements that fail retrack slip test in preprocessor");
+                    tryGetFromYaml(exclude.single_freq, exclusions, { "@ single_freq" }, "Exclude measurements on signle frequency");
                     tryGetFromYaml(exclude.GF, exclusions, { "@ gf" }, "Exclude measurements that fail GF  slip test in preprocessor");
                     tryGetFromYaml(exclude.MW, exclusions, { "@ mw" }, "Exclude measurements that fail MW  slip test in preprocessor");
                     tryGetFromYaml(exclude.SCDIA, exclusions, { "@ scdia" }, "Exclude measurements that fail SCDIA    test in preprocessor");

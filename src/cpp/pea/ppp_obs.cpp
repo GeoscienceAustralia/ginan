@@ -1650,9 +1650,11 @@ void receiverUducGnss(
                         auto& ast = autoSenderTemplate;
 
                         if (acsConfig.exclude.LLI && preprocSigStat.slip.LLI) { tracepdeex(2, trace, " - LLI slip excluded");	ast.pushValueKVP(2, { "excludeSlip","LLI" });		continue; }
+                        if (acsConfig.exclude.retrack && preprocSigStat.slip.retrack) { tracepdeex(2, trace, " - Retrack slip excluded");	ast.pushValueKVP(2, { "excludeSlip","retrack" });		continue; }
                         if (acsConfig.exclude.GF && preprocSigStat.slip.GF) { tracepdeex(2, trace, " - GF slip excluded");	ast.pushValueKVP(2, { "excludeSlip","GF" });		continue; }
                         if (acsConfig.exclude.MW && preprocSigStat.slip.MW) { tracepdeex(2, trace, " - MW slip excluded");	ast.pushValueKVP(2, { "excludeSlip","MW" });		continue; }
                         if (acsConfig.exclude.SCDIA && preprocSigStat.slip.SCDIA) { tracepdeex(2, trace, " - SCDIA slip excluded");	ast.pushValueKVP(2, { "excludeSlip","SCDIA" });		continue; }
+                        if (acsConfig.exclude.single_freq && preprocSigStat.slip.singleFreq) { tracepdeex(2, trace, " - single freqency data excluded");	ast.pushValueKVP(2, { "excludeSlip","singleFreq" });		continue; }
                     }
 
                     auto& satOpts = acsConfig.getSatOpts(obs.Sat, { sigName });

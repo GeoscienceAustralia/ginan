@@ -715,6 +715,8 @@ void removeBadAmbiguities(
 		//reset slipping signals
 		if 	(  preprocSigStat.savedSlip.any
 			&& (  (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)
+                ||(acsConfig.ambErrors.resetOnSlip.retrack		&& preprocSigStat.savedSlip.retrack)
+                ||(acsConfig.ambErrors.resetOnSlip.single_freq && preprocSigStat.savedSlip.singleFreq)
 				||(acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)
 				||(acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)
 				||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)))
@@ -725,6 +727,8 @@ void removeBadAmbiguities(
 			if (acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)			details.push_back({"GF",	true});
 			if (acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)			details.push_back({"MW",	true});
 			if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)		details.push_back({"SCDIA",	true});
+			if (acsConfig.ambErrors.resetOnSlip.retrack	&& preprocSigStat.savedSlip.retrack)	details.push_back({"retrack",	true});
+			if (acsConfig.ambErrors.resetOnSlip.single_freq	&& preprocSigStat.savedSlip.singleFreq)	details.push_back({"singleFreq",	true});
 
 			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "PREPROC", details);
 
@@ -738,6 +742,8 @@ void removeBadAmbiguities(
 			if	(sigStat.savedSlip.any
 				&&( (  acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)
 					||(acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)
+                    ||(acsConfig.ambErrors.resetOnSlip.retrack	&& sigStat.savedSlip.retrack)
+                    ||(acsConfig.ambErrors.resetOnSlip.single_freq	&& sigStat.savedSlip.singleFreq)
 					||(acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)
 					||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)))
 			{
@@ -747,6 +753,8 @@ void removeBadAmbiguities(
 				if (acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)			details.push_back({"GF",	true});
 				if (acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)			details.push_back({"MW",	true});
 				if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)			details.push_back({"SCDIA",	true});
+                if (acsConfig.ambErrors.resetOnSlip.single_freq	&& sigStat.savedSlip.singleFreq)			details.push_back({"singleFreq",	true});
+				if (acsConfig.ambErrors.resetOnSlip.retrack	&& sigStat.savedSlip.retrack)		details.push_back({"retrack",	true});
 
 				addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "PREPROC", details);
 

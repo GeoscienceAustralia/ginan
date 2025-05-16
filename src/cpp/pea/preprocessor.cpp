@@ -153,6 +153,8 @@ void recordSlips(
 		if	(	sigStat.slip.any
 			&&( (acsConfig.exclude.LLI		&& sigStat.slip.LLI)
 			  ||(acsConfig.exclude.GF		&& sigStat.slip.GF)
+              ||(acsConfig.exclude.retrack	&& sigStat.slip.retrack)
+              ||(acsConfig.exclude.single_freq	&& sigStat.slip.singleFreq)
 			  ||(acsConfig.exclude.MW		&& sigStat.slip.MW)
 			  ||(acsConfig.exclude.SCDIA	&& sigStat.slip.SCDIA)))
 		{

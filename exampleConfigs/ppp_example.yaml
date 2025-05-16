@@ -227,6 +227,7 @@ processing_options:
                 lli:    true # LLI test
                 mw:     true # MW test
                 scdia:  true # SCDIA test
+                retrack: true 
 
 estimation_parameters:
     global_models:

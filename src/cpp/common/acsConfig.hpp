@@ -378,13 +378,15 @@ struct PreprocOptions
 
 struct SlipOptions
 {
-	bool LLI		= true;
+	bool LLI		= false;
 	bool GF			= true;
 	bool MW			= true;
 	bool SCDIA		= true;
+    bool retrack    = false;
+    bool single_freq = true;
 };
 
-struct ExcludeOptions : SlipOptions
+struct ExcludeOptions
 {
 	bool bad_spp	= true;
 	bool config		= true;
@@ -393,6 +395,13 @@ struct ExcludeOptions : SlipOptions
 	bool outlier	= true;
 	bool system		= true;
 	bool svh		= true;
+    // copy of the slip options
+    bool LLI		= true;
+	bool GF			= true;
+	bool MW			= true;
+	bool SCDIA		= true;
+    bool retrack    = true;
+    bool single_freq = true;
 };
 
 struct AmbiguityErrorHandler

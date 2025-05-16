@@ -18,5 +18,5 @@ pytest>=7.1.2
 scipy>=1.7.3
 statsmodels>=0.13.2
 hatanaka>=2.8.1
-gnssanalysis>=0.0.28
+gnssanalysis>=0.0.57
 beautifulsoup4

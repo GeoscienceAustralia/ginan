@@ -78,7 +78,7 @@ outputs:
     outputs_root: ./outputs/<CONFIG>
 
     metadata:
-        config_description:         pod_example_<BRANCH>
+        config_description:         pod_example_<BRANCH>_<HASH>
         analysis_agency:            GAA
         analysis_centre:            Geoscience Australia -----FILE NOT FOR OPERATIONAL USE-----
         analysis_software:          Ginan v3.0
@@ -95,9 +95,9 @@ outputs:
         receiver_filename:      <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
         network_filename:       <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE
         output_residuals:       true
-        output_residual_chain:  true
+        output_residual_chain:  false
         output_config:          true
-        output_json:            true
+        output_json:            false
 
     network_statistics:
         output:     true                                # (bool) Enable exporting network statistics data to file
@@ -328,23 +328,25 @@ processing_options:
         state_deweighting:
             deweight_factor: 10000
         ambiguities:
-            outage_reset_limit: 300
-
             phase_reject_limit: 2
             reset_on:
                 gf:     true
                 lli:    true
                 mw:     true
                 scdia:  true
+                retrack: true
+                single_freq: true
         exclusions:
             gf:         true
-            lli:        true
+            lli:        false
             mw:         true
             scdia:      true
             eclipse:    false
+            retrack:    false
+            single_freq: true
         ionospheric_components:
             outage_reset_limit: 300
-        orbit_errors:
+        satellite_errors:
             enable:                         false
             pos_process_noise:              10
             vel_process_noise:              1
