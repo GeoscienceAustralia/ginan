@@ -561,7 +561,7 @@ struct KFState : KFState_
 		MatrixXd&	stm,
 		MatrixXd&	procNoise);
 
-	void	preFitSigmaCheck(
+	void	preFitSigmaChecks(
 		RejectCallbackDetails&	callbackDetails,
 		KFStatistics&			statistics,
 		int						begX,
@@ -624,7 +624,7 @@ struct KFState : KFState_
 		KFMeas&		kfMeas,
 		VectorXd&	xp);
 
-	void 	outputStates(
+	void	outputStates(
 		Trace&			trace,
 		string			suffix	= "",
 		int				begX	=  0,
@@ -657,7 +657,7 @@ struct KFState : KFState_
 		Trace&			trace,
 		KFMeas&			kfMeas,
 		bool			initCovars	= false,
-		VectorXd*		dx			= nullptr,
+		VectorXd*		dx_ptr		= nullptr,
 		bool			innovReady	= false);
 
 	VectorXd getSubState(

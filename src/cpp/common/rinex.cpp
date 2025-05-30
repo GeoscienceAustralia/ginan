@@ -316,7 +316,7 @@ void decodeObsH(
 	{
 		// ver.3.02
 		p = buff + 4;
-		for (int i = 0; i < 8; i++, p += 8)
+		for (int i = 0; i < 8; i++, p += 7)
 		{
 			if (sscanf(p, "R%2d %2d", &prn, &fcn) < 2)
 				continue;
@@ -1896,4 +1896,3 @@ int readRnx(
 
 	return 0;
 }
-

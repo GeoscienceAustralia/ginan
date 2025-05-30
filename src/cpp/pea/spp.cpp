@@ -64,7 +64,7 @@ bool prange(
 	E_FType f_1;
 	E_FType f_2;
 	E_FType f_3;
-	if (!satFreqs(sys,f_1,f_2,f_3))
+	if (!satFreqs(sys, f_1, f_2, f_3))
 		return false;
 
 	if	( obs.sigs[f_1].P	== 0
@@ -94,7 +94,7 @@ bool prange(
 			return false;
 		}
 
-		double gamma= SQR(lam[f_2]) / SQR(lam[f_1]); /* f1^2/f2^2 */
+		double gamma = SQR(lam[f_2]) / SQR(lam[f_1]); /* f1^2/f2^2 */
 
 		double& B2		= obs.sigs[f_2].biases	[CODE];
 		double& var2	= obs.sigs[f_2].biasVars[CODE];
@@ -383,10 +383,10 @@ E_Solution estpos(
 
 	auto& recOpts = acsConfig.getRecOpts(id);
 
-	tracepdeex(5, trace, "\n ---- STARTING SPP LSQ ----");
+	tracepdeex(5, trace, "\n\n ---- STARTING SPP LSQ ----");
 	for (iter = 0; iter < acsConfig.sppOpts.max_lsq_iterations; iter++)
 	{
-		tracepdeex(5, trace, "\nSPP It: %d", iter);
+		tracepdeex(4, trace, "\n\nSPP Iteration: %d", iter);
 		kfState.initFilterEpoch(trace);
 
 		Vector3d	rRec	= Vector3d::Zero();
@@ -420,7 +420,7 @@ E_Solution estpos(
 			{
 				obs.failureExclude = true;
 
-				tracepdeex(5, trace, "\n%s spp exclusion : %x", obs.Sat.id().c_str(), obs.exclude);
+				tracepdeex(5, trace, "\n%s SPP exclusion : %x", obs.Sat.id().c_str(), obs.exclude);
 				continue;
 			}
 
@@ -581,6 +581,8 @@ E_Solution estpos(
 			obs.sppCodeResidual	= res;
 		}
 
+		tracepdeex(2, trace, "\n");
+
 		//force reinitialisation of everything by least squares
 		kfState.P.setIdentity();
 		kfState.P *= -1;
@@ -604,7 +606,7 @@ E_Solution estpos(
 
 			printFailures(id, obsList);
 
-			tracepdeex(5, trace, "\nlack of valid measurements, END OF SPP LSQ");
+			tracepdeex(5, trace, "\nLack of valid measurements, END OF SPP LSQ");
 			return E_Solution::NONE;
 		}
 
@@ -622,6 +624,7 @@ E_Solution estpos(
 			kfMeas.V = kfMeas.Y;
 			outputResiduals(trace, kfMeas, iter, (string)"/" + description, 0, kfMeas.H.rows());
 		}
+
 		adjustment = dx.norm();
 		tracepdeex(4, trace, "\nSPP dx: %15.4f\n", adjustment);
 
@@ -684,7 +687,7 @@ E_Solution estpos(
 
 				if (kfState.chiQCPass == false)
 				{
-					tracepdeex(4, trace, " - Bad chiQC");
+					tracepdeex(4, trace, "\n - Bad chiQC");
 
 					return E_Solution::SINGLE_X;
 				}
@@ -693,7 +696,7 @@ E_Solution estpos(
 			bool dopPass = validateDOP(trace, obsList, recOpts.elevation_mask_deg, &sol.dops);
 			if (dopPass == false)
 			{
-				tracepdeex(4, trace, " - Bad DOP %f", sol.dops.gdop);
+				tracepdeex(4, trace, "\n - Bad DOP %f", sol.dops.gdop);
 
 				return E_Solution::SINGLE_X;
 			}
@@ -880,14 +883,14 @@ void spp(
 		}
 	}
 
-	tracepdeex(3,trace,	"\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string().c_str(), obsList.size());
+	tracepdeex(3, trace, "\n%s  : tobs=%s n=%zu", __FUNCTION__, obsList.front()->time.to_string().c_str(), obsList.size());
 
 	//estimate receiver position with pseudorange
 	sol.status = estpos(trace, obsList, sol, id, kfState_ptr, (string) "SPP/" + id);	//todo aaron, remote too?
 
 	if (sol.status != +E_Solution::SINGLE)
 	{
-		trace << "\n" << "Spp error with " << sol.numMeas << " measurements.";
+		trace << "\n\n" << "SPP error with " << sol.numMeas << " measurements.";
 
 		//Receiver Autonomous Integrity Monitoring
 		if	( sol.numMeas >= 6		//need 6 so that 6-1 is still overconstrained, otherwise they all pass equally.
@@ -899,8 +902,8 @@ void spp(
 
 	if	(sol.status != +E_Solution::SINGLE)
 	{
-		BOOST_LOG_TRIVIAL(debug)	<< "SPP failed for " << id;
-		trace						<< "SPP failed for " << id;
+		BOOST_LOG_TRIVIAL(debug)	<< obsList.front()->time << "\tSPP failed for " << id;
+		trace << "\n"				<< obsList.front()->time << "\tSPP failed for " << id;
 	}
 
 	//set observations that were valid
@@ -909,8 +912,8 @@ void spp(
 		if	( sol.status != +E_Solution::SINGLE
 			&&sol.status != +E_Solution::SINGLE_X)
 		{
-			//all measurements are bad if we cant get spp
-			// printf("\n all spp bad");
+			//all measurements are bad if we cant get SPP
+			// printf("\n all SPP bad");
 			obs.excludeBadSPP = true;
 			continue;
 		}
@@ -921,7 +924,7 @@ void spp(
 			continue;
 		}
 
-		// printf("\n %s spp bad", obs.Sat.id().c_str());
+		// printf("\n %s SPP bad", obs.Sat.id().c_str());
 		obs.excludeBadSPP = true;
 	}
 

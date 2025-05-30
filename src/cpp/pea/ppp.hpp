@@ -146,7 +146,8 @@ bool clockGlitchReaction(		RejectCallbackDetails	rejectDetails);
 bool satelliteGlitchReaction(	RejectCallbackDetails	rejectDetails);
 
 bool resetPhaseSignalError(
-	const	GTime&		time,			KFMeas&		kfMeas,
+	const	GTime&		time,
+			KFMeas&		kfMeas,
 			int			index);
 
 bool resetIonoSignalOutage(

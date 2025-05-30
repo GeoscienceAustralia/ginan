@@ -19,11 +19,11 @@ using std::ostringstream;
 bool deweightMeas(
 	RejectCallbackDetails	rejectDetails)
 {
-	auto& trace			= rejectDetails.trace;
-	auto& kfState		= rejectDetails.kfState;
-	auto& kfMeas		= rejectDetails.kfMeas;
-	auto& measIndex		= rejectDetails.measIndex;
-	auto& postFit		= rejectDetails.postFit;
+	auto& trace		= rejectDetails.trace;
+	auto& kfMeas	= rejectDetails.kfMeas;
+	auto& kfState	= rejectDetails.kfState;
+	auto& measIndex	= rejectDetails.measIndex;
+	auto& postFit	= rejectDetails.postFit;
 
 	if (acsConfig.measErrors.enable == false)
 	{

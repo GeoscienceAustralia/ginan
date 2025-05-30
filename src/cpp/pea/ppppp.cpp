@@ -679,7 +679,7 @@ void mergeCorrelated(
 	}
 }
 
-/** Prepare receiver clocks using spp values to minimise pre-fit residuals
+/** Prepare receiver clocks using SPP values to minimise pre-fit residuals
  */
 void updateRecClocks(
 	Trace&			trace,			///< Trace to output to

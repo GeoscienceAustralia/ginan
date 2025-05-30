@@ -495,8 +495,6 @@ void mincon(
 	{
 		if (kfStateTrans.lsqRequired)
 		{
-			kfStateTrans.lsqRequired = false;
-
 			trace <<  "\n------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
 
 			kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &kfStateTrans.dx);

@@ -22,7 +22,7 @@ struct Solution
 	int					numMeas			= 0;					///< number of valid satellites
 	KFState				sppState;								///< SPP filter object
 	Dops				dops;									///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
-	VectorEcef			sppRRec;								///< Position vector from spp
+	VectorEcef			sppRRec;								///< Position vector from SPP
 };
 
 struct RinexStation

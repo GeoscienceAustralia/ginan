@@ -83,7 +83,7 @@ struct RawSig
 	bool			LLI		= false;			///< Loss of lock indicator
 	double			snr		= 0;				///< Signal to Noise ratio (dB-Hz)
 
-	bool			invalid	= false;
+	bool			invalid	= false;	//Eugene: not used?
 
 	bool operator < (const RawSig& b) const
 	{

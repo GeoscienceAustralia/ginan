@@ -1347,7 +1347,7 @@ ObsList RtcmDecoder::decodeMSM(
 		double fine_pseudorange		= getbitsIncScale(data, i,	nbcd, sccd, &failure);
 		if (failure)
 		{
-			sig.invalid = true;
+			sig.invalid = true;	//Eugene: not used?
 			continue;
 		}
 
@@ -1362,7 +1362,7 @@ ObsList RtcmDecoder::decodeMSM(
 		double fine_phase_range		= getbitsIncScale(data, i,	nbph, scph, &failure);
 		if (failure)
 		{
-			sig.invalid = true;
+			sig.invalid = true;	//Eugene: not used?
 
 			continue;
 		}

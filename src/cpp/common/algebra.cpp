@@ -291,7 +291,7 @@ const
 
 	if (variance_ptr)
 	{
-		*variance_ptr	= P(index,index);
+		*variance_ptr	= P(index, index);
 	}
 
 	if (adjustment_ptr)
@@ -319,7 +319,7 @@ bool KFState::getKFSigma(
 		return false;
 	}
 
-	sigma = sqrt(P(index,index));
+	sigma = sqrt(P(index, index));
 	return true;
 }
 
@@ -917,7 +917,7 @@ void KFState::stateTransition(
 * Ref: Wang et al. (1997) - On Quality Control in Hydrographic GPS Surveying
 * &  Wieser et al. (2004) - Failure Scenarios to be Considered with Kinematic High Precision Relative GNSS Positioning - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.573.9628&rep=rep1&type=pdf
 */
-void KFState::preFitSigmaCheck(
+void KFState::preFitSigmaChecks(
 	RejectCallbackDetails&	callbackDetails,
 	KFStatistics&			statistics,		///< Test statistics
 	int						begX,			///< Index of first state element to process
@@ -970,8 +970,6 @@ void KFState::preFitSigmaCheck(
 	statistics.sumOfSquares	= measRatios.sum();
 	statistics.averageRatio	= measRatios.mean();
 
-	//if any are outside the expected value, flag an error
-
 	Eigen::ArrayXd::Index stateIndex;
 	Eigen::ArrayXd::Index measIndex;
 
@@ -990,8 +988,8 @@ void KFState::preFitSigmaCheck(
 	if		( maxStateRatio * 0.95 > maxMeasRatio
 			&&maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
 	{
-		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
-		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
+		trace << "\n" << time << "\tLARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
+		trace << "\n" << time << "\tLargest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
 
 		auto mask = (H.col(stateIndex).array() != 0);	// Mask out referencing measurements, i.e. non-zero values in column stateIndex of H
 		measRatios.array() *= mask.cast<double>();		// Set measRatios of non-referencing measurements to 0
@@ -1006,8 +1004,8 @@ void KFState::preFitSigmaCheck(
 	}
 	else if	( maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
 	{
-		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
-		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey							<< "\n";;
+		trace << "\n" << time << "\tLARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
+		trace << "\n" << time << "\tLargest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey							<< "\n";;
 
 		callbackDetails.measIndex	= measChunkIndex;
 	}
@@ -1021,7 +1019,7 @@ void outputResiduals(
 	int				begH,			///< Index of first measurement to process
 	int				numH)			///< Number of measurements to process
 {
-	tracepdeex(0, trace, "\n\n");
+	tracepdeex(0, trace, "\n");
 
 	string name = "RESIDUALS";
 	name += suffix;
@@ -1032,7 +1030,7 @@ void outputResiduals(
 	{
 		char var[32];
 
-		double sigma = sqrt(kfMeas.R(i,i));
+		double sigma = sqrt(kfMeas.R(i, i));
 
 		if		(sigma	== 0 || (fabs(sigma)	> 0.0001	&& fabs(sigma)	< 1e7))		snprintf(var,	sizeof(var),	"%16.7f",	sigma);
 		else																			snprintf(var,	sizeof(var),	"%16.3e",	sigma);
@@ -1045,7 +1043,7 @@ void outputResiduals(
 */
 void KFState::postFitSigmaChecks(
 	RejectCallbackDetails&	callbackDetails,
-	VectorXd&				dx,				///< The innovations from filtering to recalculate the deltas.
+	VectorXd&				dx,				///< The state innovations from filtering
 	MatrixXd&				Qinv,			///< Inverse of innovation covariance matrix
 	MatrixXd&				QinvH,			///< Qinv*H matrix for omega test
 	KFStatistics&			statistics,		///< Test statistics
@@ -1097,8 +1095,6 @@ void KFState::postFitSigmaChecks(
 	statistics.sumOfSquares	= measRatios.sum();
 	statistics.averageRatio	= measRatios.mean();
 
-	//if any are outside the expected values, flag an error
-
 	Eigen::ArrayXd::Index stateIndex;
 	Eigen::ArrayXd::Index measIndex;
 
@@ -1117,8 +1113,8 @@ void KFState::postFitSigmaChecks(
 	if		( maxStateRatio * 0.95 > maxMeasRatio
 			&&maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
 	{
-		trace << "\n" << "LARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
-		trace << "\n" << "Largest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
+		trace << "\n" << time << "\tLARGE STATE   ERROR OF : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey;
+		trace << "\n" << time << "\tLargest meas  error is : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex]		<< "\n";
 
 		auto mask = (H.col(stateIndex).array() != 0);	// Mask out referencing measurements, i.e. non-zero values in column stateIndex of H
 		measRatios.array() *= mask.cast<double>();		// Set measRatios of non-referencing measurements to 0
@@ -1133,8 +1129,8 @@ void KFState::postFitSigmaChecks(
 	}
 	else if	( maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
 	{
-		trace << "\n" << "LARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
-		trace << "\n" << "Largest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey							<< "\n";
+		trace << "\n" << time << "\tLARGE MEAS    ERROR OF : "	<< maxMeasRatio		<< "\tAT " << measChunkIndex	<< " :\t" << kfMeas.obsKeys[measChunkIndex];
+		trace << "\n" << time << "\tLargest state error is : "	<< maxStateRatio	<< "\tAT " << stateChunkIndex	<< " :\t" << stateKey							<< "\n";
 
 		callbackDetails.measIndex	= measChunkIndex;
 	}
@@ -1145,7 +1141,7 @@ void KFState::postFitSigmaChecks(
 double KFState::stateChiSquare(
 	Trace&		trace,      ///< Trace file to output to
 	MatrixXd&	Pp,   		///< Post-update covariance of states
-	VectorXd&	dx,			///< The innovations from filtering to recalculate the deltas.
+	VectorXd&	dx,			///< The state innovations from filtering
 	int			begX,		///< Index of first state element to process
 	int			numX,		///< Number of states elements to process
 	int			begH,		///< Index of first measurement to process
@@ -1176,7 +1172,7 @@ double KFState::stateChiSquare(
 double KFState::measChiSquare(
 	Trace&		trace,      ///< Trace file to output to
 	KFMeas&		kfMeas,		///< Measurements, noise, and design matrix
-	VectorXd&	dx,			///< The innovations from filtering to recalculate the deltas.
+	VectorXd&	dx,			///< The state innovations from filtering
 	int			begX,		///< Index of first state element to process
 	int			numX,		///< Number of states elements to process
 	int			begH,		///< Index of first measurement to process
@@ -1226,7 +1222,7 @@ bool KFState::kFilter(
 	KFMeas&			kfMeas,		///< Measurements, noise, and design matrices
 	VectorXd&		xp,			///< Post-update state vector
 	MatrixXd&		Pp,			///< Post-update covariance of states
-	VectorXd&		dx,			///< Post-update state innovation
+	VectorXd&		dx,			///< Post-update state innovation	// Eugene: change name to avoid interference
 	MatrixXd&		Qinv,		///< Inverse of innovation covariance matrix
 	MatrixXd&		QinvH,		///< Qinv*H matrix for omega test
 	int				begX,		///< Index of first state element to process
@@ -1281,7 +1277,7 @@ bool KFState::kFilter(
 
 					BOOST_LOG_TRIVIAL(error) << "Error: Failed to calculate kalman gain, see trace file for matrices";
 
-					trace << "\n" << "Kalman Filter Error1";
+					trace << "\n" << "Kalman Filter Error";
 					trace << "\n" << "Q: " << "\n" << Q;
 					trace << "\n" << "H: " << "\n" << subH;
 					trace << "\n" << "R: " << "\n" << subR;
@@ -1318,9 +1314,11 @@ bool KFState::kFilter(
 				{
 					HRHQ_star = HRH_star * Qinv;
 				}
+
 				break;
 			}
 		}
+
 		repeat = false;
 	}
 
@@ -1358,11 +1356,11 @@ bool KFState::kFilter(
 	bool error = xp.segment(begX, numX).array().isNaN().any();
 	if (error)
 	{
-		std::cout << "\n" << "x :" << "\n" << x.segment(begX, numX);
 		std::cout << "\n" << "xp:" << "\n" << xp.segment(begX, numX);
+		std::cout << "\n" << "x :" << "\n" << x.segment(begX, numX);
+		std::cout << "\n" << "P :" << "\n" << subP;
 		std::cout << "\n" << "R :" << "\n" << subR;
 		std::cout << "\n" << "K :" << "\n" << K;
-		std::cout << "\n" << "P :" << "\n" << subP;
 		std::cout << "\n" << "v :" << "\n" << subV;
 		std::cout << "\n";
 		std::cout << "NAN found. Exiting...";
@@ -1707,7 +1705,7 @@ void KFState::filterKalman(
 			RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
 			rejectCallbackDetails.postFit = false;
 
-			preFitSigmaCheck(rejectCallbackDetails, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
+			preFitSigmaChecks(rejectCallbackDetails, statistics, fc.begX, fc.numX, fc.begH, fc.numH);
 
 			bool stopIterating = true;
 			if		(rejectCallbackDetails.kfKey.type)		{	stringBuffer << "\n" << "Prefit check failed state test"		<< "\n";	doStateRejectCallbacks	(rejectCallbackDetails);	stopIterating = false;	}
@@ -1741,7 +1739,7 @@ void KFState::filterKalman(
 	if	(  prefitOpts.sigma_check
 		|| prefitOpts.omega_test)
 	{
-		trace << "\n" << "Sum-of-squared test statistics (prefit): "	<< testStatistics.sumOfSquaresPre;
+		trace << "\n" << "Sum-of-squared test statistics (prefit): " << testStatistics.sumOfSquaresPre << "\n";
 	}
 
 	VectorXd	xp = x;
@@ -1782,7 +1780,7 @@ void KFState::filterKalman(
 
 			if (advanced_postfits == false)
 			{
-				kfMeas.VV.segment(fc.begH, fc.numH) = kfMeas.V.segment(fc.begH,fc.numH)
+				kfMeas.VV.segment(fc.begH, fc.numH) = kfMeas.V.segment(fc.begH, fc.numH)
 													- kfMeas.H.block(fc.begH, fc.begX, fc.numH, fc.numX) * dx.segment(fc.begX, fc.numX);
 			}
 
@@ -1843,7 +1841,7 @@ void KFState::filterKalman(
 	}
 
 	if (postfitOpts.sigma_check)
-		trace << "\n" << "Sum-of-squared test statistics (postfit): " << testStatistics.sumOfSquaresPost;
+		trace << "\n" << "Sum-of-squared test statistics (postfit): " << testStatistics.sumOfSquaresPost << "\n";
 
 	if (chiSquareTest.enable)
 	{
@@ -1928,12 +1926,12 @@ void KFState::leastSquareInitStates(
 	Trace&			trace,				///< Trace file for output
 	KFMeas&			kfMeas,				///< Measurement object
 	bool			initCovars,			///< Option to also initialise off-diagonal covariance values
-	VectorXd*		dx,					///< Optional output of state deltas
+	VectorXd*		dx_ptr,				///< Optional output of adjustments
 	bool			innovReady)			///< Perform conversion between V & Y
 {
 	lsqRequired = false;
 
-	chiQCPass = false;
+	chiQCPass = false;	// Eugene: can also do this for filterKalman
 
 	if (innovReady)
 	{
@@ -1943,13 +1941,13 @@ void KFState::leastSquareInitStates(
 	vector<int> newStateIndicies;
 
 	//find all the states that aren't initialised, they need least squaring.
-	for (auto& [key, i] : kfIndexMap)
+	for (auto& [key, index] : kfIndexMap)
 	{
 		if	( (key.type != KF::ONE)
-			&&(P(i,i) < 0))
+			&&(P(index, index) < 0))
 		{
 			//this is a new state and needs to be evaluated using least squares
-			newStateIndicies.push_back(i);
+			newStateIndicies.push_back(index);
 		}
 	}
 
@@ -1957,77 +1955,79 @@ void KFState::leastSquareInitStates(
 	auto subsetA = kfMeas.H(all, newStateIndicies);
 
 	//find the subset of measurements that are required for the initialisation
-	auto usedMeas = subsetA.rowwise().any();
+	auto usedMeasMask = subsetA.rowwise().any();
 
-	map<int, bool> pseudoMeasStates;
+	vector<int> pseudoMeasStateIndicies;
 	vector<int> leastSquareMeasIndicies;
 
-	for (int meas = 0; meas < usedMeas.rows(); meas++)
+	for (int measIndex = 0; measIndex < usedMeasMask.rows(); measIndex++)
 	{
 		//if not used, dont worry about it
-		if (usedMeas(meas) == 0)
+		if (usedMeasMask(measIndex) == 0)
 		{
 			continue;
 		}
 
 		//this measurement is used to calculate a new state.
 		//copy it to a new design matrix
-		leastSquareMeasIndicies.push_back(meas);
+		leastSquareMeasIndicies.push_back(measIndex);
 
 		//remember make a pseudo measurement of anything it references that is already set
-		for (int state = 0; state < kfMeas.H.cols(); state++)
+		for (int stateIndex = 0; stateIndex < kfMeas.H.cols(); stateIndex++)
 		{
-			if	( (kfMeas.H(meas, state)	!=	0)
-				&&(P(state,state)			>=	0))
+			if	( (kfMeas.H(measIndex, stateIndex)	!=	0)
+				&&(P(stateIndex, stateIndex)		>=	0))
 			{
-				pseudoMeasStates[state] = true;
+				pseudoMeasStateIndicies.push_back(stateIndex);
 			}
 		}
 	}
 
-	int newMeasCount = leastSquareMeasIndicies.size() + pseudoMeasStates.size();
+	int lsqMeasCount	= leastSquareMeasIndicies.size();
+	int pseudoMeasCount	= pseudoMeasStateIndicies.size();
+	int totalMeasCount	= lsqMeasCount + pseudoMeasCount;
 
 	//Create new measurement objects with larger size, (using all states for now)
 	KFMeas	leastSquareMeas;
 
-	leastSquareMeas.Y = VectorXd::Zero(newMeasCount);
-	leastSquareMeas.R = MatrixXd::Zero(newMeasCount, newMeasCount);
-	leastSquareMeas.H = MatrixXd::Zero(newMeasCount, kfMeas.H.cols());
+	leastSquareMeas.Y = VectorXd::Zero(totalMeasCount);
+	leastSquareMeas.R = MatrixXd::Zero(totalMeasCount, totalMeasCount);
+	leastSquareMeas.H = MatrixXd::Zero(totalMeasCount, kfMeas.H.cols());
 	//VV
 	//V
 
-	int measCount = leastSquareMeasIndicies.size();
-
 	//copy in the required measurements from the old set
-	leastSquareMeas.Y.head			(measCount)				= kfMeas.Y(leastSquareMeasIndicies);
-	leastSquareMeas.R.topLeftCorner	(measCount, measCount)	= kfMeas.R(leastSquareMeasIndicies, leastSquareMeasIndicies);
-	leastSquareMeas.H.topRows		(measCount)				= kfMeas.H(leastSquareMeasIndicies, all);
+	leastSquareMeas.Y.head			(lsqMeasCount)					= kfMeas.Y(leastSquareMeasIndicies);
+	leastSquareMeas.R.topLeftCorner	(lsqMeasCount, lsqMeasCount)	= kfMeas.R(leastSquareMeasIndicies, leastSquareMeasIndicies);
+	leastSquareMeas.H.topRows		(lsqMeasCount)					= kfMeas.H(leastSquareMeasIndicies, all);
 
 	//append any new pseudo measurements to the end
-	for (auto& [state, boool] : pseudoMeasStates)
+	for (int i = 0; i < pseudoMeasCount; i++)
 	{
-		leastSquareMeas.Y(measCount)				= x(state);
-		leastSquareMeas.R(measCount, measCount)		= P(state, state);
-		leastSquareMeas.H(measCount, state)			= 1;
-		measCount++;
+		int measIndex	= lsqMeasCount + i;
+		int stateIndex	= pseudoMeasStateIndicies[i];
+
+		leastSquareMeas.Y(measIndex)				= x(stateIndex);
+		leastSquareMeas.R(measIndex, measIndex)		= P(stateIndex, stateIndex);
+		leastSquareMeas.H(measIndex, stateIndex)	= 1;
 	}
 
 	//find the subset of states required for these measurements
-	vector<int> usedCols;
-	auto usedStates = leastSquareMeas.H.colwise().any();
-	for (int i = 0; i < usedStates.cols(); i++)
+	vector<int> usedStateIndicies;
+	auto usedStateMask = leastSquareMeas.H.colwise().any();
+	for (int i = 0; i < usedStateMask.cols(); i++)
 	{
-		if (usedStates(i) != 0)
+		if (usedStateMask(i) != 0)
 		{
-			usedCols.push_back(i);
+			usedStateIndicies.push_back(i);
 		}
 	}
 
 	//create a new meaurement object using only the required states.
 	KFMeas	leastSquareMeasSubs;
-	leastSquareMeasSubs.Y = leastSquareMeas.Y;
-	leastSquareMeasSubs.R = leastSquareMeas.R;
-	leastSquareMeasSubs.H = leastSquareMeas.H(all, usedCols);
+	leastSquareMeasSubs.Y		= leastSquareMeas.Y;
+	leastSquareMeasSubs.R		= leastSquareMeas.R;
+	leastSquareMeasSubs.H		= leastSquareMeas.H(all, usedStateIndicies);
 
 	//invert measurement noise matrix to get a weight matrix
 	leastSquareMeasSubs.W = (1 / leastSquareMeasSubs.R.diagonal().array()).matrix();
@@ -2087,14 +2087,14 @@ void KFState::leastSquareInitStates(
 	if (chiSquareTest.enable)
 		chiQC(trace, leastSquareMeasSubs, x1);
 
-	if (dx)
+	if (dx_ptr)
 	{
-		(*dx) = x1;
+		(*dx_ptr) = x1;	// Eugene: check if works for innovReady == false
 	}
 
-	for (int i = 0; i < usedCols.size(); i++)
+	for (int i = 0; i < usedStateIndicies.size(); i++)
 	{
-		int stateRowIndex = usedCols[i];
+		int stateRowIndex = usedStateIndicies[i];
 
 		if (P(stateRowIndex, stateRowIndex) >= 0)
 		{
@@ -2102,30 +2102,32 @@ void KFState::leastSquareInitStates(
 		}
 
 		double newStateVal = x1(i);
-		double newStateCov = Qinv(i,i);
+		double newStateCov = Qinv(i, i);
 
-		if (dx)
+		dx(stateRowIndex)					=	newStateVal;
+
+		if (dx_ptr)
 		{
 			x(stateRowIndex)				+=	newStateVal;
-			P(stateRowIndex,stateRowIndex)	=	newStateCov;
-			kfMeas.VV						=	kfMeas.Y - H * *dx;
+			P(stateRowIndex, stateRowIndex)	=	newStateCov;
+			kfMeas.VV						=	kfMeas.Y - H * dx;
 		}
 		else
 		{
 			x(stateRowIndex)				= newStateVal;
-			P(stateRowIndex,stateRowIndex)	= newStateCov;
+			P(stateRowIndex, stateRowIndex)	= newStateCov;
 		}
 
 		if (initCovars)
 		{
 			for (int j = 0; j < i; j++)
 			{
-				int stateColIndex = usedCols[j];
+				int stateColIndex = usedStateIndicies[j];
 
-				newStateCov = Qinv(i,j);
+				newStateCov = Qinv(i, j);
 
-				P(stateRowIndex,stateColIndex)	= newStateCov;
-				P(stateColIndex,stateRowIndex)	= newStateCov;
+				P(stateRowIndex, stateColIndex)	= newStateCov;
+				P(stateColIndex, stateRowIndex)	= newStateCov;
 			}
 		}
 	}
@@ -2260,7 +2262,7 @@ void KFState::outputStates(
 		int			begX,	///< Index of first state element to process
 		int			numX)   ///< Number of state elements to process
 {
-	tracepdeex(1, output, "\n\n");
+	tracepdeex(1, output, "\n");
 
 	string name = "STATES";
 	name += suffix;
@@ -2370,7 +2372,7 @@ void KFState::outputConditionNumber(
 void KFState::outputCorrelations(
 			Trace&		trace)
 {
-	tracepdeex(2, trace, "\n\n");
+	tracepdeex(2, trace, "\n");
 
 	Block block(trace, "CORRELATIONS");
 
@@ -2435,7 +2437,7 @@ void KFState::outputMeasurements(
 		Trace&		trace,
 		KFMeas&		meas)
 {
-	tracepdeex(2, trace, "\n\n");
+	tracepdeex(2, trace, "\n");
 
 	Block block(trace, "MEASUREMENTS");
 
@@ -2475,7 +2477,7 @@ void KFState::outputMeasurements(
 
 		for (int j = 1; j < meas.H.cols(); j++)
 		{
-			double a = meas.H(i,j);
+			double a = meas.H(i, j);
 
 			if (fabs(a) > 0.001)		tracepdeex(2, trace, "%6.2f ", a);
 			else						tracepdeex(2, trace, "%6.2s ", "");
