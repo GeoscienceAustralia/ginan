@@ -407,7 +407,7 @@ struct KFState_ : FilterOptions
  */
 struct KFState : KFState_
 {
-	recursive_mutex kfStateMutex;
+	mutable recursive_mutex kfStateMutex;
 
 	static const KFKey oneKey;			///< KFStates generally contain a ONE state as the first element, used for converting matrix additions to matrix multiplications.
 
