@@ -37,9 +37,7 @@ sys_meta = {
 }
 
 
-def str_to_list(
-    input: str,
-) -> list[str]:
+def str_to_list(input: str) -> list[str]:
     """
     Split a comma separated string to a list of sub strings
 
@@ -54,60 +52,93 @@ def str_to_list(
     return output
 
 
+def filter_svs_list(svs: list[str], dataframe: pd.DataFrame) -> list[str]:
+    """
+    Filter out the unavailable satellites from the given satellite list
+
+    :param list[str] svs: Satellite list to filter
+    :param pd.DataFrame dataframe: The Pandas DataFrame containing orbit/clock differences or statistics
+    :return list[str]: A new satellite list containing only available satellites
+    """
+    svs_new = sorted(list(dataframe.index.get_level_values("Satellite").intersection(svs)))
+    if not svs_new:
+        logging.error("No data found for given satellites")
+    return svs_new
+
+
 def download_ref_products(
     ref_dir: Path,
     ref_prefix: str,
-    product_types: list[str],
+    product_type: str,
     start_epoch: datetime,
     end_epoch: datetime,
     sampling_rate: dict = {},
-) -> None:
+    if_file_present: str = "dont_replace",
+) -> list[Path]:
     """
     Download reference products for orbits and clocks comparison
 
     :param Path ref_dir: Directory to download reference products to
     :param str ref_prefix: Prefix of reference products, e.g. IGS0OPSRAP
-    :param list[str] product_types: Product types to download, SP3 and/or CLK
+    :param str product_type: Product type to download, SP3 or CLK
     :param datetime start_epoch: Start of epoch time
     :param datetime end_epoch: End of epoch time
     :param dict sampling_rate: Dictionary of sampling rates for SP3 and CLK products in seconds,
             will be determined and saved based on the prefix if not specified
-    :return None
+    :return list[Path]: Return list of paths of downloaded files
     """
     logging.info("Downloading reference products ...")
 
     analysis_center = ref_prefix[0:3]
+    version = ref_prefix[3]
     project_type = ref_prefix[4:7]
     solution_type = ref_prefix[7:10]
 
-    timespan = timedelta(days=2) if solution_type == "ULT" else timedelta(days=1)
+    days = 2 if solution_type == "ULT" else 1
 
-    for product in product_types:
-        if product not in sampling_rate.keys() or not sampling_rate[product]:
-            sampling_rate[product] = ga.gn_download.generate_sampling_rate(
-                file_ext=product,
-                analysis_center=analysis_center,
-                solution_type=solution_type,
-            )
+    if product_type not in sampling_rate.keys() or not sampling_rate[product_type]:
+        sampling_rate[product_type] = ga.gn_download.generate_sampling_rate(
+            file_ext=product_type, analysis_center=analysis_center, solution_type=solution_type
+        )
 
-        try:
-            ga.gn_download.download_product_from_cddis(
-                download_dir=ref_dir,
-                start_epoch=start_epoch,
-                end_epoch=max(start_epoch + timespan, end_epoch),
-                file_ext=product,
-                long_filename=True,
-                analysis_center=analysis_center,
-                project_type=project_type,
-                solution_type=solution_type,
-                timespan=timespan,
-                sampling_rate=sampling_rate[product],
-                if_file_present="dont_replace",
-            )
-        except Exception as error:
-            logging.error(f"Fail to download products: {error}")
+    download_filepaths = []
+    try:
+        download_filepaths = ga.gn_download.download_product_from_cddis(
+            download_dir=ref_dir,
+            start_epoch=start_epoch,
+            end_epoch=(end_epoch + timedelta(days - 1)),
+            file_ext=product_type,
+            long_filename=True,
+            analysis_center=analysis_center,
+            version=version,
+            project_type=project_type,
+            solution_type=solution_type,
+            timespan=timedelta(days),
+            sampling_rate=sampling_rate[product_type],
+            if_file_present=if_file_present,
+        )
+        logging.info("Reference products downloaded\n")
+    except Exception as error:
+        logging.error(f"Fail to download products: {error}\n")
 
-    logging.info("Reference products downloaded\n")
+    return download_filepaths
+
+
+def search_input_file_case_insensitively(input_path: Path) -> Union[Path, None]:
+    """
+    Search an input file case-insensitively
+
+    :param Path input_path: Path of the input file to search
+    :return Union[Path, None]: None if the input file does not exist otherwise the real path which matches the input file case-insensitively
+    """
+    matched_input_path = None
+
+    for file in input_path.parent.iterdir():
+        if file.is_file() and file.name.lower() == input_path.name.lower():
+            matched_input_path = file
+            break
+
+    return matched_input_path
 
 
 def generate_input_paths(
@@ -118,6 +149,7 @@ def generate_input_paths(
     yrdoys: list[str],
     sampling_rate: dict,
     product_type: str,
+    orb_ref_frame: str = "ECF",
 ) -> list[list[Path]]:
     """
     Generate a list of input path pairs of test file (file to analyse) and reference product
@@ -134,45 +166,46 @@ def generate_input_paths(
     input_paths = []
 
     file_ext = product_type
-    content_type = (
-        "ORB" if product_type == "SP3" else "CLK" if product_type == "CLK" else None
-    )
+    if product_type == "SP3" and orb_ref_frame == "ECI":
+        file_ext = file_ext + "i"
+    content_type = "ORB" if product_type == "SP3" else "CLK" if product_type == "CLK" else None
+    if not content_type:
+        return input_paths
     solution_type = ref_prefix[7:10]
     timespan = "02D" if solution_type == "ULT" else "01D"
 
-    if content_type:
-        for yrdoy in yrdoys:
-            yrdoy_ref = yrdoy
+    for yrdoy in yrdoys:
+        job_file_path = job_dir / sub_job_name / f"{sub_job_name}_{yrdoy}0000_{content_type}.{file_ext}"
+        ref_file_path = (
+            ref_dir / f"{ref_prefix}_{yrdoy}0000_{timespan}_{sampling_rate[product_type]}_{content_type}.{file_ext}"
+        )
 
-            ref_file_path = (
-                ref_dir
-                / f"{ref_prefix}_{yrdoy_ref}0000_{timespan}_{sampling_rate[product_type]}_{content_type}.{file_ext}"
-            )
+        if not ref_file_path.exists() and product_type == "SP3" and solution_type == "ULT":
+            date = datetime.strptime(yrdoy, "%Y%j")
+            earlist = date - timedelta(hours=42)  # earliest possible ultra rapid file containing overlapping data
 
-            if (
-                not ref_file_path.exists()
-                and product_type == "SP3"
-                and solution_type == "ULT"
-            ):
+            while date > earlist:
                 logging.warning(
-                    f"{ref_file_path.name} is not available, attempting the predicted half of the ultra-rapid product from previous day"
+                    f"'{ref_file_path.name}' not found, attempting an earlier ultra-rapid product for its predicted part"
                 )
 
-                date = datetime.strptime(yrdoy_ref, "%Y%j") - timedelta(days=1)
-                yrdoy_ref = date.strftime("%Y%j")
-                download_ref_products(
-                    ref_dir, ref_prefix, [product_type], date, date, sampling_rate
-                )
+                date -= timedelta(hours=6)
+                download_ref_products(ref_dir, ref_prefix, product_type, date, date + timedelta(days=1), sampling_rate)
 
-            input_paths.append(
-                [
+                yrdoy_hr = date.strftime("%Y%j%H")
+                ref_file_path = (
                     ref_dir
-                    / f"{ref_prefix}_{yrdoy_ref}0000_{timespan}_{sampling_rate[product_type]}_{content_type}.{file_ext}",
-                    job_dir
-                    / sub_job_name
-                    / f"{sub_job_name}_{yrdoy}0000_{content_type}.{file_ext.lower()}",  # todo Eugene: allow case-insensitive filenames and specifying filename format
-                ]
-            )
+                    / f"{ref_prefix}_{yrdoy_hr}00_{timespan}_{sampling_rate[product_type]}_{content_type}.{file_ext}"
+                )
+
+                if ref_file_path.exists():
+                    break
+
+        job_file_path = search_input_file_case_insensitively(job_file_path)
+        ref_file_path = search_input_file_case_insensitively(ref_file_path)
+
+        if job_file_path and ref_file_path:
+            input_paths.append([ref_file_path, job_file_path])
 
     return input_paths
 
@@ -181,6 +214,7 @@ def compare_sp3_files(
     input_paths: list[list[Path]],
     output_path: Path,
     svs: Union[dict, list[str]],
+    orb_ref_frame: str,
     orb_hlm_mode: str,
     epochwise_hlm: bool,
     clk_norm_types: list[str],
@@ -192,6 +226,7 @@ def compare_sp3_files(
     :param list[list[Path]] input_paths: A list of input path pairs of test file and reference product
     :param Path output_path: Path of the output file to write results to in CSV format
     :param Union[dict, list[str]] svs: List(s) of satellites to process
+    :param str orb_ref_frame: Reference frame of input orbits. Should either be 'ECF' or 'ECI'
     :param str orb_hlm_mode: Helmert transformation to apply to orbits. Can be None, 'ECF', or 'ECI'
     :param bool epochwise_hlm: Epochwise Helmert transformation
     :param list[str] clk_norm_types: Normalizations to apply to clocks. Available options include
@@ -206,12 +241,12 @@ def compare_sp3_files(
         ref_sp3_file = input[0]
         job_sp3_file = input[1]
 
-        logging.info(f"-- {job_sp3_file} vs {ref_sp3_file}")
+        logging.info(f"-- '{job_sp3_file}' vs '{ref_sp3_file}'")
 
         diff_df = pd.DataFrame()
         try:
             diff_df = ga.gn_diffaux.sp3_difference(
-                ref_sp3_file, job_sp3_file, svs, orb_hlm_mode, epochwise_hlm, clk_norm_types
+                ref_sp3_file, job_sp3_file, svs, orb_ref_frame, orb_hlm_mode, epochwise_hlm, clk_norm_types
             )
         except Exception as error:
             logging.error(f"Error with sp3_difference(): {error}")
@@ -225,10 +260,7 @@ def compare_sp3_files(
 
 
 def compare_clk_files(
-    input_paths: list[list[Path]],
-    output_path: Path,
-    svs: Union[dict, list[str]],
-    clk_norm_types: list[str],
+    input_paths: list[list[Path]], output_path: Path, svs: Union[dict, list[str]], clk_norm_types: list[str]
 ) -> pd.DataFrame:
     """
     Compare CLK file pairs and to calculate clock differences with common mode removed (if specified)
@@ -249,13 +281,11 @@ def compare_clk_files(
         ref_clk_file = input[0]
         job_clk_file = input[1]
 
-        logging.info(f"-- {job_clk_file} vs {ref_clk_file}")
+        logging.info(f"-- '{job_clk_file}' vs '{ref_clk_file}'")
 
         diff_df = pd.DataFrame()
         try:
-            diff_df = ga.gn_diffaux.clk_difference(
-                ref_clk_file, job_clk_file, svs, clk_norm_types
-            )
+            diff_df = ga.gn_diffaux.clk_difference(ref_clk_file, job_clk_file, svs, clk_norm_types)
         except Exception as error:
             logging.error(f"Error with clk_difference(): {error}")
             continue
@@ -267,10 +297,7 @@ def compare_clk_files(
     return clk_diff_df
 
 
-def compute_stats(
-    diff_df: pd.DataFrame,
-    output_path: Path,
-) -> pd.DataFrame:
+def compute_stats(diff_df: pd.DataFrame, output_path: Path) -> pd.DataFrame:
     """
     Compute statistics of orbit and/or clock differences, namely 'count', 'mean', 'std', 'rms',
     'min', '5%', '10%', '50%', '75%', '90%', '95%' percentiles, and 'max'.
@@ -285,10 +312,7 @@ def compute_stats(
     return stats_df
 
 
-def set_up_matplotlib(
-    font: str,
-    colormap: str,
-) -> None:
+def set_up_matplotlib(font: str, colormap: str) -> None:
     """
     Set up font and colormap for matplotlib
 
@@ -300,27 +324,24 @@ def set_up_matplotlib(
     if font in available_fonts:
         matplotlib.rcParams["font.family"] = font
     else:
-        logging.warning(
-            f"Font ['{font}'] not found, falling back to {matplotlib.rcParams['font.family']}"
-        )
+        logging.warning(f"Font ['{font}'] not found, falling back to {matplotlib.rcParams['font.family']}")
         logging.warning(f"Available fonts: {available_fonts}")
 
     available_cmaps = plt.colormaps()
     if colormap in available_cmaps:
         matplotlib.rcParams["image.cmap"] = colormap
     else:
-        logging.warning(
-            f"Colormap '{colormap}' not found, falling back to '{matplotlib.rcParams['image.cmap']}'"
-        )
+        logging.warning(f"Colormap '{colormap}' not found, falling back to '{matplotlib.rcParams['image.cmap']}'")
         logging.warning(f"Available colormaps: {plt.colormaps()}")
 
 
-def config_diff_plot(
+def configure_diff_plot(
     axes: Any,
     start_epoch: datetime,
     end_epoch: datetime,
-    norminal_ymin: float,
-    norminal_ymax: float,
+    nominal_ymin: float,
+    nominal_ymax: float,
+    fix_ylim: bool,
     xlabel: str,
     ylabel: str,
     title: str,
@@ -331,8 +352,10 @@ def config_diff_plot(
     :param Any axes: The axes object to configure
     :param datetime start_epoch: Start of epoch time (lower limit of x-axis)
     :param datetime end_epoch: End of epoch time (upper limit of x-axis)
-    :param float norminal_ymin: Nominal lower limit of y-axis
-    :param float norminal_ymax: Nominal upper limit of y-axis
+    :param float nominal_ymin: Nominal lower limit of y-axis
+    :param float nominal_ymax: Nominal upper limit of y-axis
+    :param bool fix_ylim: Fix Y-axis limit to nominal values.
+            If False, the Y-axis limits will be automatically set when any data points exceed the nominal range.
     :param str xlabel: Label of x-axis
     :param str ylabel: Label of y-axis
     :param str title: Title of the axes
@@ -340,15 +363,15 @@ def config_diff_plot(
     """
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
-    formatter.formats = ["%Y", "%m", "%Y-%j", "%H:%M", "%H:%M", "%S.%f"]
-    formatter.zero_formats = ["", "%Y", "%Y-%j", "%Y-%j", "%H:%M", "%H:%M:%S"]
+    formatter.formats = ["%Y", "%m", "%j", "%H:%M", "%H:%M", "%S.%f"]
+    formatter.zero_formats = ["", "%Y", "%Y", "%Y-%j", "%H:%M", "%H:%M"]
     formatter.offset_formats = ["", "", "", "", "%Y-%j", "%Y-%j"]
 
     axes.grid(True)
     ymin, ymax = axes.get_ylim()
-    if ymin >= norminal_ymin and ymax <= norminal_ymax:
-        ymin = norminal_ymin
-        ymax = norminal_ymax
+    if (ymin >= nominal_ymin and ymax <= nominal_ymax) or fix_ylim:
+        ymin = nominal_ymin
+        ymax = nominal_ymax
     axes.set_ylim(ymin, ymax)
     axes.set_ylabel(ylabel)
     axes.set_xlim(start_epoch, end_epoch)
@@ -363,6 +386,7 @@ def configure_rms_plot(
     xdata: npt.ArrayLike,
     nominal_ymin: float,
     nominal_ymax: float,
+    fix_ylim: bool,
     xticklabels: list[str],
     xlabel: str,
     ylabel: str,
@@ -374,8 +398,10 @@ def configure_rms_plot(
 
     :param Any axes: The axes object to configure
     :param npt.ArrayLike xdata: Data array for the x-axis
-    :param float norminal_ymin: Nominal lower limit of y-axis
-    :param float norminal_ymax: Nominal upper limit of y-axis
+    :param float nominal_ymin: Nominal lower limit of y-axis
+    :param float nominal_ymax: Nominal upper limit of y-axis
+    :param bool fix_ylim: Fix Y-axis limit to nominal values.
+            If False, the Y-axis limits will be automatically set when any data points exceed the nominal range.
     :param list[str] xticklabels: Tick labels of x-axis
     :param str xlabel: Label of x-axis
     :param str ylabel: Label of y-axis
@@ -385,8 +411,8 @@ def configure_rms_plot(
     """
     axes.grid(True)
     ymin, ymax = axes.get_ylim()
-    ymin = min(nominal_ymin, ymin)
-    ymax = max(nominal_ymax, ymax)
+    ymin = nominal_ymin if fix_ylim else min(nominal_ymin, ymin)
+    ymax = nominal_ymax if fix_ylim else max(nominal_ymax, ymax)
     axes.set_ylim([ymin, ymax])
     axes.set_ylabel(ylabel)
     axes.set_xlim([xdata[0] - 1, xdata[-1] + 1])
@@ -395,32 +421,7 @@ def configure_rms_plot(
     axes.set_xlabel(xlabel)
     axes.set_title(title)
     axes.legend(loc="upper right")
-    axes.text(
-        xdata[0] - 0.5,
-        0.95 * ymax,
-        annotation,
-        ha="left",
-        va="top",
-    )
-
-
-def filter_svs_list(
-    svs: list[str],
-    dataframe: pd.DataFrame,
-) -> list[str]:
-    """
-    Filter out the unavailable satellites from the given satellite list
-
-    :param list[str] svs: Satellite list to filter
-    :param pd.DataFrame dataframe: The Pandas DataFrame containing orbit/clock differences or statistics
-    :return list[str]: A new satellite list containing only available satellites
-    """
-    svs_new = sorted(
-        list(dataframe.index.get_level_values("Satellite").intersection(svs))
-    )
-    if not svs_new:
-        logging.error("No data found for given satellites")
-    return svs_new
+    axes.text(xdata[0] - 0.5, 0.95 * ymax, annotation, ha="left", va="top")
 
 
 def plot_orb_diff(
@@ -429,7 +430,9 @@ def plot_orb_diff(
     title: str,
     start_epoch: datetime,
     end_epoch: datetime,
-) -> Figure:
+    nominal_ylim: float,
+    fix_ylim: bool,
+) -> Union[Figure, None]:
     """
     Plot orbit differences from a Pandas DataFrame.
 
@@ -438,6 +441,9 @@ def plot_orb_diff(
     :param str title: Figure title
     :param datetime start_epoch: Start of epoch time
     :param datetime end_epoch: End of epoch time
+    :param float nominal_ylim: Nominal Y-axis plotting limit (used as ±limit) in metres.
+    :param bool fix_ylim: Fix Y-axis limit to nominal value.
+            If False, the Y-axis limit will be automatically set when any data points exceed the nominal range.
     :return Figure: The Figure object for the plot
     """
     # Filter data with given satellite list and unstack the dataframe to push the satellite PRNs
@@ -446,47 +452,43 @@ def plot_orb_diff(
     if not svs:
         return None
 
-    unstacked_diff_df = diff_df[
-        diff_df.index.get_level_values("Satellite").isin(svs)
-    ].unstack()
+    unstacked_diff_df = diff_df[diff_df.index.get_level_values("Satellite").isin(svs)].unstack()
 
     # Plot epoch-by-epoch orbit comparison results
     fig, ax = plt.subplots(nrows=3, dpi=300.0, figsize=(12, 6))
 
-    for i, dim in enumerate(
-        ["Radial", "Along-track", "Cross-track"]
-    ):  # choose dimension to plot
-        ax[i].plot(
-            unstacked_diff_df[dim].index.values,
-            unstacked_diff_df[dim].values,
-        )
+    for i, dim in enumerate(["Radial", "Along-track", "Cross-track"]):
+        ax[i].plot(unstacked_diff_df[dim].index.values, unstacked_diff_df[dim].values)
 
-    config_diff_plot(
+    configure_diff_plot(
         axes=ax[0],
         start_epoch=start_epoch,
         end_epoch=end_epoch,
-        norminal_ymin=-0.25,
-        norminal_ymax=0.25,
+        nominal_ymin=-abs(nominal_ylim),
+        nominal_ymax=+abs(nominal_ylim),
+        fix_ylim=fix_ylim,
         xlabel="",
         ylabel="Radial [m]",
         title=title,
     )
-    config_diff_plot(
+    configure_diff_plot(
         axes=ax[1],
         start_epoch=start_epoch,
         end_epoch=end_epoch,
-        norminal_ymin=-0.25,
-        norminal_ymax=0.25,
+        nominal_ymin=-abs(nominal_ylim),
+        nominal_ymax=+abs(nominal_ylim),
+        fix_ylim=fix_ylim,
         xlabel="",
         ylabel="Along-track [m]",
         title="",
     )
-    config_diff_plot(
+    configure_diff_plot(
         axes=ax[2],
         start_epoch=start_epoch,
         end_epoch=end_epoch,
-        norminal_ymin=-0.25,
-        norminal_ymax=0.25,
+        nominal_ymin=-abs(nominal_ylim),
+        nominal_ymax=+abs(nominal_ylim),
+        fix_ylim=fix_ylim,
         xlabel="Time",
         ylabel="Cross-track [m]",
         title="",
@@ -504,7 +506,9 @@ def plot_clk_diff(
     title: str,
     start_epoch: datetime,
     end_epoch: datetime,
-) -> Figure:
+    nominal_ylim: float,
+    fix_ylim: bool,
+) -> Union[Figure, None]:
     """
     Plot clock differences from a Pandas DataFrame.
 
@@ -513,6 +517,9 @@ def plot_clk_diff(
     :param str title: Figure title
     :param datetime start_epoch: Start of epoch time
     :param datetime end_epoch: End of epoch time
+    :param float nominal_ylim: Nominal Y-axis plotting limit (used as ±limit) in nanoseconds.
+    :param bool fix_ylim: Fix Y-axis limit to nominal value.
+            If False, the Y-axis limit will be automatically set when any data points exceed the nominal range.
     :return Figure: The Figure object for the plot
     """
     # Filter data with given satellite list and unstack the dataframe to push the satellite PRNs
@@ -521,24 +528,20 @@ def plot_clk_diff(
     if not svs:
         return None
 
-    unstacked_diff_df = diff_df[
-        diff_df.index.get_level_values("Satellite").isin(svs)
-    ].unstack()
+    unstacked_diff_df = diff_df[diff_df.index.get_level_values("Satellite").isin(svs)].unstack()
 
     # Plot epoch-by-epoch clock comparison results
     fig, ax = plt.subplots(dpi=300.0, figsize=(12, 3))
 
-    ax.plot(
-        unstacked_diff_df["Clock"].index.values,
-        unstacked_diff_df["Clock"].values,
-    )
+    ax.plot(unstacked_diff_df["Clock"].index.values, unstacked_diff_df["Clock"].values)
 
-    config_diff_plot(
+    configure_diff_plot(
         axes=ax,
         start_epoch=start_epoch,
         end_epoch=end_epoch,
-        norminal_ymin=-0.40,
-        norminal_ymax=0.40,
+        nominal_ymin=-abs(nominal_ylim),
+        nominal_ymax=+abs(nominal_ylim),
+        fix_ylim=fix_ylim,
         xlabel="Time",
         ylabel="Clock [ns]",
         title=title,
@@ -551,16 +554,17 @@ def plot_clk_diff(
 
 
 def plot_orb_rms(
-    stats_df: pd.DataFrame,
-    svs: list[str],
-    title: str,
-) -> Figure:
+    stats_df: pd.DataFrame, svs: list[str], title: str, nominal_ylim: float, fix_ylim: bool
+) -> Union[Figure, None]:
     """
     Plot orbit RMS errors from a Pandas DataFrame.
 
     :param pd.DataFrame stats_df: The Pandas DataFrame containing orbit statistics
     :param list[str] svs: Satellite list to plot orbit RMS errors for
     :param str title: Figure title
+    :param float nominal_ylim: Nominal Y-axis plotting limit (used as 0 to +limit) in metres.
+    :param bool fix_ylim: Fix Y-axis limit to nominal value.
+            If False, the Y-axis limit will be automatically set when any data points exceed the nominal range.
     :return Figure: The Figure object for the plot
     """
     svs = filter_svs_list(svs, stats_df)
@@ -570,13 +574,9 @@ def plot_orb_rms(
     # Extract data for Radial, Along-track, and Cross-track RMS
     rms = {}
     for sat in svs:
-        rms[sat] = {
-            dim: stats_df.loc[(sat, "rms"), dim]
-            for dim in ["Radial", "Along-track", "Cross-track"]
-        }
+        rms[sat] = {dim: stats_df.loc[(sat, "rms"), dim] for dim in ["Radial", "Along-track", "Cross-track"]}
     rms_all = {
-        dim: round(stats_df.loc[("All", "rms"), dim], 3)
-        for dim in ["Radial", "Along-track", "Cross-track"]
+        dim: round(stats_df.loc[("All", "rms"), dim], 3) for dim in ["Radial", "Along-track", "Cross-track"]
     }  # TODO Eugene: RMS/statistics by constellation
 
     # Plot Radial, Along-track, and Cross-track RMS of each satellite
@@ -585,22 +585,16 @@ def plot_orb_rms(
     bar_width = 0.2
     x = np.arange(len(svs))
 
-    for i, dim in enumerate(
-        ["Radial", "Along-track", "Cross-track"]
-    ):  # choose dimension to plot
+    for i, dim in enumerate(["Radial", "Along-track", "Cross-track"]):
         pos = x + (i - 1) * bar_width
-        ax.bar(
-            pos,
-            [rms[sat][dim] for sat in svs],
-            bar_width,
-            label=dim,
-        )
+        ax.bar(pos, [rms[sat][dim] for sat in svs], bar_width, label=dim)
 
     configure_rms_plot(
         axes=ax,
         xdata=x,
         nominal_ymin=0,
-        nominal_ymax=0.15,
+        nominal_ymax=abs(nominal_ylim),
+        fix_ylim=fix_ylim,
         xticklabels=svs,
         xlabel="Satellite",
         ylabel="RMS [m]",
@@ -614,16 +608,17 @@ def plot_orb_rms(
 
 
 def plot_clk_rms(
-    stats_df: pd.DataFrame,
-    svs: list[str],
-    title: str,
-) -> Figure:
+    stats_df: pd.DataFrame, svs: list[str], title: str, nominal_ylim: float, fix_ylim: bool
+) -> Union[Figure, None]:
     """
     Plot clock RMS errors from a Pandas DataFrame.
 
     :param pd.DataFrame stats_df: The Pandas DataFrame containing clock statistics
     :param list[str] svs: Satellite list to plot clock RMS errors for
     :param str title: Figure title
+    :param float nominal_ylim: Nominal Y-axis plotting limit (used as 0 to +limit) in nanoseconds.
+    :param bool fix_ylim: Fix Y-axis limit to nominal value.
+            If False, the Y-axis limit will be automatically set when any data points exceed the nominal range.
     :return Figure: The Figure object for the plot
     """
     svs = filter_svs_list(svs, stats_df)
@@ -648,7 +643,8 @@ def plot_clk_rms(
         axes=ax,
         xdata=x,
         nominal_ymin=0,
-        nominal_ymax=0.20,
+        nominal_ymax=abs(nominal_ylim),
+        fix_ylim=fix_ylim,
         xticklabels=svs,
         xlabel="Satellite",
         ylabel="RMS [ns]",
@@ -668,6 +664,8 @@ def plot_orbits(
     sys_svs: list[str],
     start_epoch: datetime,
     end_epoch: datetime,
+    nominal_ylim: float,
+    fix_ylim: bool,
     diff_plot_title: str,
     rms_plot_title: str,
     diff_plot_path: Path,
@@ -682,6 +680,10 @@ def plot_orbits(
     :param list[str] sys_svs: Satellite list of the satellite system to plot orbits
     :param datetime start_epoch: Start of epoch time
     :param datetime end_epoch: End of epoch time
+    :param float nominal_ylim: Nominal Y-axis plotting limit in metres.
+            Used as ±limit for orbit differences, and 0 to +limit for RMS errors.
+    :param bool fix_ylim: Fix Y-axis limits of orbit plots to nominal value.
+            If False, the Y-axis limits will be automatically set when any data points exceed the nominal ranges.
     :param str diff_plot_title: Figure title of orbit differences
     :param str rms_plot_title: Figure title of orbit RMS errors
     :param Path diff_plot_path: Path to save the orbit difference plot
@@ -691,36 +693,32 @@ def plot_orbits(
     # Plot epoch-by-epoch orbit differences
     logging.info(f"-- Orbit differences - {sys_name}")
 
-    fig = plot_orb_diff(diff_df, sys_svs, diff_plot_title, start_epoch, end_epoch)
+    fig = plot_orb_diff(diff_df, sys_svs, diff_plot_title, start_epoch, end_epoch, nominal_ylim, fix_ylim)
     if fig:
-        fig.savefig(
-            diff_plot_path,
-            bbox_inches="tight",
-        )
+        fig.savefig(diff_plot_path, bbox_inches="tight")
 
     # Plot orbit RMS errors during the whole session
     logging.info(f"-- Orbit RMS - {sys_name}")
 
-    fig = plot_orb_rms(stats_df, sys_svs, rms_plot_title)
+    fig = plot_orb_rms(stats_df, sys_svs, rms_plot_title, nominal_ylim, fix_ylim)
     if fig:
-        fig.savefig(
-            rms_plot_path,
-            bbox_inches="tight",
-        )
+        fig.savefig(rms_plot_path, bbox_inches="tight")
 
 
 def plot_clocks(
-    diff_df,
-    stats_df,
-    sys_name,
-    sys_svs,
-    start_epoch,
-    end_epoch,
-    diff_plot_title,
-    rms_plot_title,
-    diff_plot_path,
-    rms_plot_path,
-):
+    diff_df: pd.DataFrame,
+    stats_df: pd.DataFrame,
+    sys_name: str,
+    sys_svs: list[str],
+    start_epoch: datetime,
+    end_epoch: datetime,
+    nominal_ylim: float,
+    fix_ylim: bool,
+    diff_plot_title: str,
+    rms_plot_title: str,
+    diff_plot_path: Path,
+    rms_plot_path: Path,
+) -> None:
     """
     Plot clock differences and RMS errors.
 
@@ -730,6 +728,10 @@ def plot_clocks(
     :param list[str] sys_svs: Satellite list of the satellite system to plot clocks
     :param datetime start_epoch: Start of epoch time
     :param datetime end_epoch: End of epoch time
+    :param float nominal_ylim: Nominal Y-axis plotting limit in nanoseconds.
+            Used as ±limit for clock differences, and 0 to +limit for RMS errors.
+    :param bool fix_ylim: Fix Y-axis limits of clock plots to nominal value.
+            If False, the Y-axis limits will be automatically set when any data points exceed the nominal ranges.
     :param str diff_plot_title: Figure title of clock differences
     :param str rms_plot_title: Figure title of clock RMS errors
     :param Path diff_plot_path: Path to save the clock difference plot
@@ -739,22 +741,16 @@ def plot_clocks(
     # Plot epoch-by-epoch clock differences
     logging.info(f"-- Clock differences - {sys_name}")
 
-    fig = plot_clk_diff(diff_df, sys_svs, diff_plot_title, start_epoch, end_epoch)
+    fig = plot_clk_diff(diff_df, sys_svs, diff_plot_title, start_epoch, end_epoch, nominal_ylim, fix_ylim)
     if fig:
-        fig.savefig(
-            diff_plot_path,
-            bbox_inches="tight",
-        )
+        fig.savefig(diff_plot_path, bbox_inches="tight")
 
     # Plot clock RMS errors during the whole session
     logging.info(f"-- Clock RMS - {sys_name}")
 
-    fig = plot_clk_rms(stats_df, sys_svs, rms_plot_title)
+    fig = plot_clk_rms(stats_df, sys_svs, rms_plot_title, nominal_ylim, fix_ylim)
     if fig:
-        fig.savefig(
-            rms_plot_path,
-            bbox_inches="tight",
-        )
+        fig.savefig(rms_plot_path, bbox_inches="tight")
 
 
 def analyse_orbit_clock(
@@ -767,19 +763,25 @@ def analyse_orbit_clock(
     session_len: int,
     sat_sys: str,
     excluded_svs: list[str],
+    orb_ref_frame: str,
     orb_hlm_mode: str,
     epochwise_hlm: bool,
     clk_norm_types: list[str],
     rel_output_dir: Path,
+    nominal_orb_ylim: float,
+    nominal_clk_ylim: float,
+    fix_ylim: bool,
 ) -> None:
     """
     Compare orbits and clocks against reference products and plot differences and RMS errors.
 
     :param Path job_dir: Directory where data is processed
     :param Path ref_dir: Directory where reference products are placed
-    :param list[str] sub_job_list: Sub jobs (which should be the names of sub folders in the job directory) to analyse. All sub jobs will be processed when empty
+    :param list[str] sub_job_list: Sub jobs (which should be the names of sub folders in the job directory) to analyse.
+            All sub jobs will be processed when empty
     :param str ref_prefix: Prefix of reference products, e.g. 'IGS0OPSRAP'
     :param list[str] file_types: File types to analyse, 'SP3' and/or 'CLK'
+    :param datetime start_date: Start of date period (datetime) to analyse data
     :param int session_len: Length of each analysis session
     :param str sat_sys: Satellite systems of orbits and clocks to analyse
     :param list[str] excluded_svs: Satellites to exclude
@@ -788,6 +790,12 @@ def analyse_orbit_clock(
     :param list[str] clk_norm_types: Normalizations to apply to clocks. Available options include
             'epoch', 'daily', 'sv', any satellite PRN, or any combination of them
     :param Path rel_output_dir: Relative path of output directory under each sub job directory
+    :param float nominal_orb_ylim: Nominal Y-axis plotting limit in metres.
+            Used as ±limit for orbit differences, and 0 to +limit for RMS errors.
+    :param float nominal_clk_ylim: Nominal Y-axis plotting limit in nanoseconds.
+            Used as ±limit for clock differences, and 0 to +limit for RMS errors.
+    :param bool fix_ylim: Fix Y-axis limits of orbit and clock plots to nominal values.
+            If False, the Y-axis limits will be automatically set when any data points exceed the nominal ranges.
     :return None
     """
     # Set matplotlib font and colormap
@@ -802,9 +810,7 @@ def analyse_orbit_clock(
     svs = {}
     for sys in sat_sys:
         svs[sys] = [
-            f"{sys}%02d" % i
-            for i in range(1, sys_meta[sys]["max_sats"] + 1)
-            if f"{sys}%02d" % i not in excluded_svs
+            f"{sys}%02d" % i for i in range(1, sys_meta[sys]["max_sats"] + 1) if f"{sys}%02d" % i not in excluded_svs
         ]
 
     hlm = orb_hlm_mode if orb_hlm_mode else "none"
@@ -815,9 +821,10 @@ def analyse_orbit_clock(
     end_epoch = dates[-1] + timedelta(days=1)
 
     sampling_rate = {}
-    download_ref_products(
-        ref_dir, ref_prefix, file_types, start_epoch, end_epoch, sampling_rate
-    )
+    for file_type in file_types:
+        download_ref_products(ref_dir, ref_prefix, file_type, start_epoch, end_epoch, sampling_rate)
+
+    # TODO: call Ginan to convert ECEF SP3 files to ECI SP3 files
 
     if not sub_job_list:
         sub_job_list = [
@@ -834,13 +841,14 @@ def analyse_orbit_clock(
             logging.info("Comparing SP3 files ...")
 
             input_paths = generate_input_paths(
-                job_dir, ref_dir, sub_job_name, ref_prefix, yrdoys, sampling_rate, "SP3"
+                job_dir, ref_dir, sub_job_name, ref_prefix, yrdoys, sampling_rate, "SP3", orb_ref_frame
             )
 
             sp3_diff = compare_sp3_files(
                 input_paths,
                 output_dir / f"diff_{start_yrdoy}_{session_len}D_SP3_{hlm}_{norm}.csv",
                 svs,
+                orb_ref_frame,
                 orb_hlm_mode,
                 epochwise_hlm,
                 clk_norm_types,
@@ -851,9 +859,7 @@ def analyse_orbit_clock(
                 logging.info("Computing statistics of SP3 differences ...")
 
                 sp3_stats = compute_stats(
-                    sp3_diff,
-                    output_dir
-                    / f"stats_{start_yrdoy}_{session_len}D_SP3_{hlm}_{norm}.csv",
+                    sp3_diff, output_dir / f"stats_{start_yrdoy}_{session_len}D_SP3_{hlm}_{norm}.csv"
                 )
 
                 # Plot sp3 comparison results
@@ -864,14 +870,8 @@ def analyse_orbit_clock(
                     sys_svs = svs[sys]
 
                     title = f"Satellite Orbit Comparison (gnssanalysis): {sub_job_name} vs {ref_prefix}"
-                    diff_plot_path = (
-                        output_dir
-                        / f"diff_{start_yrdoy}_{session_len}D_ORB_{sys}_{hlm}.png"
-                    )
-                    rms_plot_path = (
-                        output_dir
-                        / f"rms_{start_yrdoy}_{session_len}D_ORB_{sys}_{hlm}.png"
-                    )
+                    diff_plot_path = output_dir / f"diff_{start_yrdoy}_{session_len}D_ORB_{sys}_{hlm}.png"
+                    rms_plot_path = output_dir / f"rms_{start_yrdoy}_{session_len}D_ORB_{sys}_{hlm}.png"
                     plot_orbits(
                         sp3_diff,
                         sp3_stats,
@@ -879,6 +879,8 @@ def analyse_orbit_clock(
                         sys_svs,
                         start_epoch,
                         end_epoch,
+                        nominal_orb_ylim,
+                        fix_ylim,
                         title,
                         title,
                         diff_plot_path,
@@ -886,14 +888,8 @@ def analyse_orbit_clock(
                     )
 
                     title = f"Satellite Clock Comparison (gnssanalysis): {sub_job_name} vs {ref_prefix}"
-                    diff_plot_path = (
-                        output_dir
-                        / f"diff_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
-                    )
-                    rms_plot_path = (
-                        output_dir
-                        / f"rms_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
-                    )
+                    diff_plot_path = output_dir / f"diff_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
+                    rms_plot_path = output_dir / f"rms_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
                     plot_clocks(
                         sp3_diff,
                         sp3_stats,
@@ -901,6 +897,8 @@ def analyse_orbit_clock(
                         sys_svs,
                         start_epoch,
                         end_epoch,
+                        nominal_clk_ylim,
+                        fix_ylim,
                         title,
                         title,
                         diff_plot_path,
@@ -911,25 +909,17 @@ def analyse_orbit_clock(
             # Compare clocks using gnssanalysis
             logging.info("Comparing CLK files ...")
 
-            input_paths = generate_input_paths(
-                job_dir, ref_dir, sub_job_name, ref_prefix, yrdoys, sampling_rate, "CLK"
-            )
+            input_paths = generate_input_paths(job_dir, ref_dir, sub_job_name, ref_prefix, yrdoys, sampling_rate, "CLK")
 
             clk_diff = compare_clk_files(
-                input_paths,
-                output_dir / f"diff_{start_yrdoy}_{session_len}D_CLK_{norm}.csv",
-                svs,
-                clk_norm_types,
+                input_paths, output_dir / f"diff_{start_yrdoy}_{session_len}D_CLK_{norm}.csv", svs, clk_norm_types
             )
 
             if not clk_diff.empty:
                 # Compute statistics
                 logging.info("Computing statistics of CLK differences ...")
 
-                clk_stats = compute_stats(
-                    clk_diff,
-                    output_dir / f"stats_{start_yrdoy}_{session_len}D_CLK_{norm}.csv",
-                )
+                clk_stats = compute_stats(clk_diff, output_dir / f"stats_{start_yrdoy}_{session_len}D_CLK_{norm}.csv")
 
                 # Plot clock comparison results
                 logging.info("Plotting CLK comparison results ...")
@@ -939,14 +929,8 @@ def analyse_orbit_clock(
                     sys_svs = svs[sys]
 
                     title = f"Satellite Clock Comparison (gnssanalysis): {sub_job_name} vs {ref_prefix}"
-                    diff_plot_path = (
-                        output_dir
-                        / f"diff_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
-                    )
-                    rms_plot_path = (
-                        output_dir
-                        / f"rms_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
-                    )
+                    diff_plot_path = output_dir / f"diff_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
+                    rms_plot_path = output_dir / f"rms_{start_yrdoy}_{session_len}D_CLK_{sys}_{norm}.png"
                     plot_clocks(
                         clk_diff,
                         clk_stats,
@@ -954,6 +938,8 @@ def analyse_orbit_clock(
                         sys_svs,
                         start_epoch,
                         end_epoch,
+                        nominal_clk_ylim,
+                        fix_ylim,
                         title,
                         title,
                         diff_plot_path,
@@ -964,98 +950,109 @@ def analyse_orbit_clock(
 
 
 @click.command()
-@click.option(
-    "--job-dir", required=True, help="Directory where data is processed", type=Path
-)
-@click.option(
-    "--ref-dir",
-    required=True,
-    help="Directory where reference products are placed",
-    type=Path,
-)
+@click.option("--job-dir", required=True, help="Directory where data is processed", type=Path)
+@click.option("--ref-dir", required=True, help="Directory where reference products are placed", type=Path)
 @click.option(
     "--sub-jobs",
-    required=True,
-    help="Sub jobs (which should be the names of sub folders in the job directory) to analyse. All sub jobs will be processed if not specified",
-    type=str,
+    help="Sub jobs (which should be the names of sub folders in the job directory) to analyse. All sub jobs will be processed if not specified. Default: None",
     default=None,
+    type=str,
 )
 @click.option(
     "--ref-prefix",
     required=True,
-    help="Prefix of reference products, e.g. 'IGS0OPSRAP'",
+    help="Prefix of reference products. Default: 'IGS0OPSRAP'",
     default="IGS0OPSRAP",
     type=str,
 )
 @click.option(
     "--file-types",
     required=True,
-    help="File types to analyse, 'SP3' and/or 'CLK'. Both types will be analysed if not specified",
+    help="File types to analyse, 'SP3' and/or 'CLK'. Default: 'SP3, CLK'",
     default="SP3, CLK",
     type=str,
 )
 @click.option(
     "--start-yrdoy",
-    help="Start of date period (day-of-year) to analyse data for in the format of 'YYYYDDD'. Current day will be used if not set",
+    help="Start of date period (day-of-year) to analyse data for in the format of 'YYYYDDD'. Current day will be used if not set. Default: None",
     default=None,
     type=int,
 )
 @click.option(
     "--end-yrdoy",
-    help="End of date period (day-of-year, inclusive) to analyse data for in the format of 'YYYYDDD'. Do not set for real-time mode",
+    help="End of date period (day-of-year, inclusive) to analyse data for in the format of 'YYYYDDD'. Do not set for real-time mode. Default: None",
     default=None,
     type=int,
 )
 @click.option(
     "--session-len",
     required=True,
-    help="Length of a session for each rotation period in days. If not set, no ratation (i.e. only one session) will be applied between start- and end-yrdoy",
+    help="Length of a session for each rotation period in days. If 0 or not set, no rotation (i.e. only one session) will be applied between start- and end-yrdoy. Default: 0",
     default=0,
     type=int,
 )
 @click.option(
     "--align-to-gps-week",
-    help="Align rotation period to GPS week for weekly solutions. Only effective when session length is 7 days (weekly)",
+    help="Align rotation period to GPS week for weekly solutions. Only effective when session length is 7 days (weekly). Default: False",
     default=False,
     is_flag=True,
 )
 @click.option(
     "--sat-sys",
     required=True,
-    help="Satellite system to analyse, 'G', 'R', 'E', 'C', or any combination without space, e.g. 'GREC'",
+    help="Satellite system to analyse, 'G', 'R', 'E', 'C', or any combination without space, e.g. 'GREC'. Default: 'G'",
     default="G",
     type=str,
 )
+@click.option("--exclude", help="PRNs of satellites to exclude, e.g. 'G01, G03'. Default: None", default=None, type=str)
 @click.option(
-    "--exclude",
-    help="PRNs of satellites to exclude, e.g. 'G01, G03'",
-    default=None,
+    "--orb-ref-frame",
+    help="Reference frame of input orbits, either 'ECF' or 'ECI'. Default: 'ECF'",
+    default="ECF",
     type=str,
 )
 @click.option(
     "--orb-hlm-mode",
-    help="Helmert transformation to apply to orbits, 'ECF', 'ECI', or 'none'",
+    help="Helmert transformation to apply to orbits, 'ECF', 'ECI', or 'none'. Default: None",
     default=None,
     type=str,
 )
 @click.option(
     "--epochwise-hlm",
-    help="Apply Helmert transformation to orbits epochwisely",
+    help="Apply Helmert transformation to orbits epochwisely. Default: False",
     default=False,
     is_flag=True,
 )
 @click.option(
     "--clk-norm-types",
-    help="Normalisations to apply to clocks, e.g. 'none', 'sv', 'G01', 'epoch, daily'",
+    help="Normalisations to apply to clocks, e.g. 'none', 'sv', 'G01', 'epoch, daily'. Default: None",
     default=None,
     type=str,
 )
 @click.option(
     "--rel-output-dir",
     required=True,
-    help="Relative path of output directory under each sub job directory",
+    help="Relative path of output directory under each sub job directory. Default: 'gnssanalysis'",
     default="gnssanalysis",
     type=Path,
+)
+@click.option(
+    "--nominal-orb-ylim",
+    help="Nominal Y-axis plotting limit in metres. Used as ±limit for orbit differences, and 0 to +limit for RMS errors. The Y-axis limits will be automatically set when any data points exceed the nominal ranges if '--fix-ylim' is not specified. Default: 0.5",
+    default=0.5,
+    type=float,
+)
+@click.option(
+    "--nominal-clk-ylim",
+    help="Nominal Y-axis plotting limit in nanoseconds. Used as ±limit for clock differences, and 0 to +limit for RMS errors. The Y-axis limits will be automatically set when any data points exceed the nominal ranges if '--fix-ylim' is not specified. Default: 1.5",
+    default=1.5,
+    type=float,
+)
+@click.option(
+    "--fix-ylim",
+    help="Fix Y-axis limits of orbit and clock plots to nominal values. If not specified, the Y-axis limits will be automatically set when any data points exceed the nominal ranges. Default: False",
+    default=False,
+    is_flag=True,
 )
 @click.option("--verbose", is_flag=True)
 def analyse_orbit_clock_main(
@@ -1070,10 +1067,14 @@ def analyse_orbit_clock_main(
     align_to_gps_week,
     sat_sys,
     exclude,
+    orb_ref_frame,
     orb_hlm_mode,
     epochwise_hlm,
     clk_norm_types,
     rel_output_dir,
+    nominal_orb_ylim,
+    nominal_clk_ylim,
+    fix_ylim,
     verbose,
 ):
     ga.gn_utils.configure_logging(verbose)
@@ -1083,22 +1084,14 @@ def analyse_orbit_clock_main(
     excluded_svs = str_to_list(exclude)
     if orb_hlm_mode == "none":
         orb_hlm_mode = None
-    clk_norm_types = (
-        str_to_list(clk_norm_types.replace("none", ""))
-        if clk_norm_types is not None
-        else []
-    )
+    clk_norm_types = str_to_list(clk_norm_types.replace("none", "")) if clk_norm_types is not None else []
 
     # Post-processing mode
     if end_yrdoy is not None:
-        logging.info(
-            "Orbit and clock analysis in post-processing mode as '--end-yrdoy' is set"
-        )
+        logging.info("Orbit and clock analysis in post-processing mode as '--end-yrdoy' is set")
 
         if start_yrdoy is None:
-            logging.error(
-                "'--start-yrdoy' must be specified for post-processing mode ('--end-yrdoy' is set)"
-            )
+            logging.error("'--start-yrdoy' must be specified for post-processing mode ('--end-yrdoy' is set)")
             return
         elif start_yrdoy > end_yrdoy:
             logging.error("Start date must be no later than end date")
@@ -1126,24 +1119,24 @@ def analyse_orbit_clock_main(
                 session_len,
                 sat_sys,
                 excluded_svs,
+                orb_ref_frame,
                 orb_hlm_mode,
                 epochwise_hlm,
                 clk_norm_types,
                 rel_output_dir,
+                nominal_orb_ylim,
+                nominal_clk_ylim,
+                fix_ylim,
             )
 
             start_date += timedelta(days=session_len)
 
     # Real-time mode
     else:
-        logging.info(
-            "Orbit and clock analysis in real-time mode as '--end-yrdoy' is not set"
-        )
+        logging.info("Orbit and clock analysis in real-time mode as '--end-yrdoy' is not set")
 
         if session_len <= 0:
-            logging.error(
-                "'--session-len' must be specified for real-time mode ('--end-yrdoy' is not set)"
-            )
+            logging.error("'--session-len' must be specified for real-time mode ('--end-yrdoy' is not set)")
             return
 
         if start_yrdoy is None:
@@ -1156,21 +1149,15 @@ def analyse_orbit_clock_main(
                 start_date.isoweekday() % 7
             )  # round down start date to nearest Sunday (start of a GPS week)
 
-        latency = (
-            2 * 86400
-        )  # allow 2 days of latency for reference products to be available
+        latency = 2 * 86400  # allow 2 days of latency for reference products to be available
 
         while True:
             next_start_date = start_date + timedelta(days=session_len)
             end_date = next_start_date - timedelta(seconds=1)
             now = time.time()
             seconds = next_start_date.timestamp() - now + latency
-            logging.debug(
-                f"Start time of current session: {start_date}; end time of current session: {end_date}"
-            )
-            logging.debug(
-                f"{seconds} seconds to wait (for reference products to be available) to start analysis"
-            )
+            logging.debug(f"Start time of current session: {start_date}; end time of current session: {end_date}")
+            logging.debug(f"{seconds} seconds to wait (for reference products to be available) to start analysis")
 
             if seconds > 0:
                 time.sleep(seconds)
@@ -1185,10 +1172,14 @@ def analyse_orbit_clock_main(
                 session_len,
                 sat_sys,
                 excluded_svs,
+                orb_ref_frame,
                 orb_hlm_mode,
                 epochwise_hlm,
                 clk_norm_types,
                 rel_output_dir,
+                nominal_orb_ylim,
+                nominal_clk_ylim,
+                fix_ylim,
             )
 
             start_date = next_start_date

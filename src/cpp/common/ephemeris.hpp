@@ -233,6 +233,7 @@ struct Seph : BrdcEph
 	GTime		t0;				///< reference epoch time (GPST)
 	GTime		tof;			///< time of message frame (GPST)
 	int			sva;			///< SV accuracy (URA index)
+	double		ura;			///< SV accuracy in meters
 	E_Svh		svh;			///< SV health
 	VectorEcef	pos;			///< satellite position (m) (ecef)
 	VectorEcef	vel;			///< satellite velocity (m/s) (ecef)

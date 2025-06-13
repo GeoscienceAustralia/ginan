@@ -171,6 +171,7 @@ struct IcdDecoder
 		eph.weekRollOver	= gpsBitUFromWord(words, 3,		61,		10);          	//todo aaron, these all need scaling
 		eph.code			= gpsBitUFromWord(words, 3,		71,		2);      
 		eph.sva				= gpsBitUFromWord(words, 3,		73,		4);     
+		eph.ura[0]			= svaToUra(eph.sva);
 		int svh				= gpsBitUFromWord(words, 3,		77,		6);      
 		int iodc_1			= gpsBitUFromWord(words, 3,		83,		2)	<< 8; 
 		

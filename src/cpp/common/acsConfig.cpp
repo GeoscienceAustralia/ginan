@@ -1035,6 +1035,7 @@ void ACSConfig::info(
     ss << "Inputs:\n";
 
     if (!nav_files.empty()) { ss << "\tnav_files:                       ";											for (auto& a : nav_files)						ss << a << " ";		ss << "\n"; }
+    if (!ems_files.empty()) { ss << "\tems_files:                       ";											for (auto& a : ems_files)						ss << a << " ";		ss << "\n"; }
     if (!snx_files.empty()) { ss << "\tsnx_files:                       ";											for (auto& a : snx_files)						ss << a << " ";		ss << "\n"; }
     if (!atx_files.empty()) { ss << "\tatx_files:                       ";											for (auto& a : atx_files)						ss << a << " ";		ss << "\n"; }
     if (!dcb_files.empty()) { ss << "\tdcb_files:                       ";											for (auto& a : dcb_files)						ss << a << " ";		ss << "\n"; }
@@ -2746,6 +2747,7 @@ bool configure(
         ("user_aliases,a", boost::program_options::value<vector<string>>()->multitoken(), "User definable aliases")
         ("atx_files", boost::program_options::value<vector<string>>()->multitoken(), "ANTEX files")
         ("nav_files", boost::program_options::value<vector<string>>()->multitoken(), "Navigation files")
+        ("ems_files", boost::program_options::value<vector<string>>()->multitoken(), "SBAS EMS files")
         ("snx_files", boost::program_options::value<vector<string>>()->multitoken(), "SINEX files")
         ("sp3_files", boost::program_options::value<vector<string>>()->multitoken(), "Orbit (SP3) files")
         ("clk_files", boost::program_options::value<vector<string>>()->multitoken(), "Clock (CLK) files")
@@ -2865,6 +2867,7 @@ bool configure(
     bool valid = true;
     valid &= checkValidFiles(acsConfig.snx_files, "sinex file (snx file)");
     valid &= checkValidFiles(acsConfig.nav_files, "navfiles");
+    valid &= checkValidFiles(acsConfig.ems_files, "emsfiles");
     valid &= checkValidFiles(acsConfig.sp3_files, "orbit");
     valid &= checkValidFiles(acsConfig.clk_files, "clock file (CLK file)");
     valid &= checkValidFiles(acsConfig.obx_files, "orbex file (OBX file)");
@@ -2911,7 +2914,17 @@ bool configure(
 void ACSConfig::sanityChecks()
 {
     if (ionErrors.outage_reset_limit < epoch_interval)		BOOST_LOG_TRIVIAL(warning) << "Warning: outage_reset_limit < epoch_interval, but it probably shouldnt be";
+
+    if (acsConfig.simulate_real_time == false)
+    {
+        for (int i = E_Sys::GPS; i < E_Sys::SUPPORTED; i++)
+        {
+            E_Sys sys = E_Sys::_values()[i];
+            eph_time_delay[sys] = default_eph_time_delay[sys];
+        }
+    }
 }
+
 
 bool ACSConfig::parse()
 {
@@ -2965,7 +2978,8 @@ bool ACSConfig::parse(
     {
         E_Sys	sys = E_Sys::_values()[i];
 
-        code_priorities[sys] = code_priorities_default;
+        code_priorities[sys] = default_code_priorities;
+        eph_time_delay [sys] = default_eph_time_delay[sys];
     }
 
     vector<string> yamlList;
@@ -3551,7 +3565,7 @@ bool ACSConfig::parse(
                 conditionalPrefix("<SAT_DATA_ROOT>", com_files, tryGetFromAny(com_files, commandOpts, satellite_data, { "2@ com_files" }, "List of com        files to use - retroreflector offsets from centre-of-mass for spherical sats"));
                 conditionalPrefix("<SAT_DATA_ROOT>", crd_files, tryGetFromAny(crd_files, commandOpts, satellite_data, { "2@ crd_files" }, "List of crd        files to use - SLR observation data"));
                 conditionalPrefix("<SAT_DATA_ROOT>", obx_files, tryGetFromAny(obx_files, commandOpts, satellite_data, { "1! obx_files" }, "List of orbex      files to use"));
-
+                
                 // 			rtcm_inputs
                 {
                     auto rtcm_inputs = stringsToYamlObject(satellite_data, { "! rtcm_inputs" }, docs["rtcm_inputs"]);
@@ -3572,14 +3586,16 @@ bool ACSConfig::parse(
                 }
 
                 {
-                    auto sbas_inputs = stringsToYamlObject(satellite_data, { "! sisnet_inputs" }, "Configuration for SiSNet stream input. SiSNet broadcast SBAS messages");
+                    auto sbas_inputs = stringsToYamlObject(satellite_data, { "! sbas_inputs" }, "Configuration for SBAS related input. Including SiSNet streams and EMS files");
 
+                    conditionalPrefix("<SAT_DATA_ROOT>", ems_files, tryGetFromAny(ems_files, commandOpts, sbas_inputs, { "1! ems_files" }, "List of SBAS EMS files to use"));
                     conditionalPrefix("<SAT_DATA_ROOT>", sisnet_inputs_root, tryGetFromYaml(sisnet_inputs_root, sbas_inputs, { "2@ sisnet_inputs_root" }, "Root path to be added to all other sisnet inputs (unless they are absolute)"));
 
                     conditionalPrefix("<SISNET_INPUTS_ROOT>", sisnet_inputs, tryGetFromAny(sisnet_inputs, commandOpts, sbas_inputs, { "2@ sisnet_inputs" }, "List of sisnet inputs to use for corrections"));
 
                     tryGetFromYaml(sbsInOpts.prn, sbas_inputs, { "@ sbas_prn" }, "PRN for SBAS satelite");
                     tryGetFromYaml(sbsInOpts.freq, sbas_inputs, { "@ sbas_carrier_frequency" }, "Carrier frequency of SBAS channel");
+                    tryGetFromYaml(sbs_time_delay, sbas_inputs, { "@ sbas_time_delay" }, "Time delay for SBAS corrections when simulating real-time in post-process");
                 }
             }
         }
@@ -3659,6 +3675,7 @@ bool ACSConfig::parse(
 					tryGetFromYaml(constrain_best_ambiguity_integer	[sys],	sys_options, {"@ constrain_best_ambiguity_integer" 	}, "Constrain the best ambiguity of a sys/code pair to an integer once");
 					tryGetFromYaml(constrain_clock					[sys],	sys_options, {"@ constrain_clock" 					}, "ID of a sat/rec for constraining its clock");
 					tryGetFromYaml(constrain_phase_bias				[sys],	sys_options, {"@ constrain_phase_bias" 				}, "ID of a sat/rec for constraining its phase bias");
+                    tryGetFromYaml(eph_time_delay				    [sys],	sys_options, {"@ eph_time_delay" 		}, "Time delay for Broadcast Ephmeris when simulating real-time in post-process");
 				}
 			}
 
@@ -4087,6 +4104,7 @@ bool ACSConfig::parse(
         replaceTags(erp_files);									globber(erp_files);
         replaceTags(ion_files);									globber(ion_files);
         replaceTags(nav_files);									globber(nav_files);
+        replaceTags(ems_files);									globber(ems_files);
         replaceTags(sp3_files);									globber(sp3_files);
         replaceTags(dcb_files);									globber(dcb_files);
         replaceTags(bsx_files);									globber(bsx_files);

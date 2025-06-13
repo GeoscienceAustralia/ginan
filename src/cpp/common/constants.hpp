@@ -86,10 +86,10 @@ using std::map;
 #define UGAS			8.3143   		/* universal gas constant (J/K/mol) */
 
 #define DTTOL			0.005  			/* tolerance of time difference (s) */
-#define MAXDTOE			7200.0 			/* max time difference to GPS Toe (s) */
-#define MAXDTOE_QZS		3600.0 			/* max time difference to QZS Toe (s) */
+#define MAXDTOE			14400.0 		/* max time difference to GPS Toe (s) */
+#define MAXDTOE_QZS		7200.0 			/* max time difference to QZS Toe (s) */
 #define MAXDTOE_GAL		9600.0 			/* max time difference to GAL Toe (s) */
-#define MAXDTOE_CMP		3600.0 			/* max time difference to BDS Toe (s) */
+#define MAXDTOE_CMP		7200.0 			/* max time difference to BDS Toe (s) */
 #define MAXDTOE_GLO		7200.0 			/* max time difference to GLO Toe (s) */
 #define MAXDTOE_SBS		360.0  			/* max time difference to SBAS Toe (s) */
 

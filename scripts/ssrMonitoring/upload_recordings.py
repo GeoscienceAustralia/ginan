@@ -48,11 +48,7 @@ def file_ready_to_upload(local_path: Path, time_threshold: int) -> Tuple[bool, i
 
 
 def file_up_to_date_s3(
-    s3_client: Any,
-    s3_bucket: str,
-    dest_path: Path,
-    timestamp: int,
-    no_logging: bool = False,
+    s3_client: Any, s3_bucket: str, dest_path: Path, timestamp: int, no_logging: bool = False
 ) -> bool:
     """
     Check if a file exists on S3 bucket and up-to-date by comparing last modified time against the specified timestamp.
@@ -64,9 +60,7 @@ def file_up_to_date_s3(
     :param bool no_logging: Do not log
     :return bool: True if the file is up-to-date and False otherwise
     """
-    object = s3_client.list_objects_v2(
-        Bucket=s3_bucket, Prefix=str(dest_path), MaxKeys=1
-    ).get("Contents", [])
+    object = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=str(dest_path), MaxKeys=1).get("Contents", [])
 
     if object:
         modified_time_remote = object[0]["LastModified"].timestamp()
@@ -91,12 +85,7 @@ def file_up_to_date_s3(
     return False
 
 
-def upload_file_to_s3(
-    s3_client: Any,
-    s3_bucket: str,
-    local_path: Path,
-    dest_path: Path,
-) -> bool:
+def upload_file_to_s3(s3_client: Any, s3_bucket: str, local_path: Path, dest_path: Path) -> bool:
     """
     Upload a local file to target S3 bucket.
 
@@ -115,17 +104,13 @@ def upload_file_to_s3(
         return False
 
 
-def cull_local_file(
-    local_path: Path,
-    cull_file_types: list[str],
-    excluded_files: str,
-) -> None:
-    """
+def cull_local_file(local_path: Path, cull_file_types: list[str], excluded_files: str) -> None:
+    r"""
     Delete old local files to save space.
 
     :param Path local_path: Path of the local file to upload
     :param list[str] cull_file_types: File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'
-    :param str excluded_files: Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\.txt|b\.out', '[a-z]\.txt'
+    :param str excluded_files: Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\\.txt|b\\.out', '[a-z]\\.txt'
     :return None
     """
     if re.fullmatch(excluded_files, local_path.name):
@@ -145,7 +130,7 @@ def upload_recordings(
     exclude_culls: str,
     aws_profile: str = "default",
 ) -> None:
-    """
+    r"""
     Upload SSR recordings and orbit and clock analysis outputs.
 
     :param Path job_dir: Directory where recordings and analysis outputs are saved
@@ -153,7 +138,7 @@ def upload_recordings(
     :param Path s3_root_dir: Root directory on S3 bucket for saving results
     :param int time_threshold: Number of seconds the files haven't been modified for before uploading to S3
     :param list[str] cull_file_types: File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'
-    :param str exclude_culls: Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\.txt|b\.out', '[a-z]\.txt'
+    :param str exclude_culls: Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\\.txt|b\\.out', '[a-z]\\.txt'
     :param str aws_profile: Profile of credentials for target S3 bucket in AWS credentials file '~/.aws/credentials',
             defaults to 'default'
     :return None
@@ -162,6 +147,9 @@ def upload_recordings(
 
     # S3 client
     s3_client = boto3.Session(profile_name=aws_profile).client("s3")
+
+    if not s3_root_dir:
+        s3_root_dir = job_dir.name
 
     # Upload recordings to S3 bucket and cull old files if needed
     num = 0
@@ -173,34 +161,22 @@ def upload_recordings(
             s3_dir = path.replace(str(job_dir), str(s3_root_dir))
             dest_path = Path(s3_dir) / file
 
-            logging.info(f"{local_path} --> s3://{s3_bucket}/{dest_path}")
+            logging.info(f"'{local_path}' --> 's3://{s3_bucket}/{dest_path}'")
 
             # Check last modified time of the local file
-            ready, modified_time_local = file_ready_to_upload(
-                local_path, time_threshold
-            )
-            if (
-                not ready
-            ):  # only upload files that haven't been modified within the time threshold
+            ready, modified_time_local = file_ready_to_upload(local_path, time_threshold)
+            if not ready:  # only upload files that haven't been modified within the time threshold
                 continue
 
             # Upload the file to s3 bucket if not exists or outdated on s3
-            if not file_up_to_date_s3(
-                s3_client, s3_bucket, dest_path, modified_time_local
-            ):
-                uploaded = upload_file_to_s3(
-                    s3_client, s3_bucket, local_path, dest_path
-                )
+            if not file_up_to_date_s3(s3_client, s3_bucket, dest_path, modified_time_local):
+                uploaded = upload_file_to_s3(s3_client, s3_bucket, local_path, dest_path)
                 if uploaded:
                     num = num + 1
 
             # Cull old recordings
             if file_up_to_date_s3(
-                s3_client,
-                s3_bucket,
-                dest_path,
-                modified_time_local,
-                no_logging=True,
+                s3_client, s3_bucket, dest_path, modified_time_local, no_logging=True
             ):  # confirm that the file exists on s3 before deleting
                 cull_local_file(local_path, cull_file_types, exclude_culls)
 
@@ -208,55 +184,42 @@ def upload_recordings(
 
 
 @click.command()
-@click.option(
-    "--job-dir",
-    required=True,
-    help="Directory under which files to upload",
-    type=Path,
-)
+@click.option("--job-dir", required=True, help="Directory under which files to upload", type=Path)
 @click.option(
     "--aws-profile",
     required=True,
-    help="Profile of credentials for target S3 bucket in AWS credentials file '~/.aws/credentials', 'default' will be used when no profile is specified",
+    help="Profile of credentials for target S3 bucket in AWS credentials file '~/.aws/credentials', 'default' will be used when no profile is specified. Default: 'default'",
     default="default",
     type=str,
 )
+@click.option("--s3-bucket", required=True, help="S3 bucket for uploading results", type=str)
 @click.option(
-    "--s3-bucket",
-    required=True,
-    help="S3 bucket for uploading results",
-    type=str,
-)
-@click.option(
-    "--s3-root-dir",
-    required=True,
-    help="Root directory on S3 bucket for saving results",
-    type=Path,
+    "--s3-root-dir", help="Root directory on S3 bucket for saving results. Default: None", default=None, type=Path
 )
 @click.option(
     "--time-threshold",
     required=True,
-    help="Number of seconds the files haven't been modified for before uploading to S3",
+    help="Number of seconds the files haven't been modified for before uploading to S3. Default: 86400",
     default=86400,
     type=int,
 )
 @click.option(
     "--interval",
     required=True,
-    help="Interval to check and upload recordings in seconds",
+    help="Interval to check and upload recordings in seconds. Default: 86400",
     default=86400,
     type=int,
 )
 @click.option(
     "--cull-file-types",
-    help="File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'",
+    help="File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'. Default: None",
     default=None,
     type=str,
 )
 @click.option(
     "--exclude-culls",
-    help="Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\.txt|b\.out', '[a-z]\.txt'",
-    default="pid\.json",
+    help=r"Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\.txt|b\.out', '[a-z]\.txt'. Default: 'pid\.json'",
+    default=r"pid\.json",
     type=str,
 )
 @click.option("--verbose", is_flag=True)
@@ -277,15 +240,7 @@ def upload_recordings_main(
 
     # Run the scheduled tasks indefinitely
     while True:
-        upload_recordings(
-            job_dir,
-            s3_bucket,
-            s3_root_dir,
-            time_threshold,
-            cull_file_types,
-            exclude_culls,
-            aws_profile,
-        )
+        upload_recordings(job_dir, s3_bucket, s3_root_dir, time_threshold, cull_file_types, exclude_culls, aws_profile)
 
         now = time.time()
         seconds = interval - now % interval

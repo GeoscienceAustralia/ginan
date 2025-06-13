@@ -81,6 +81,7 @@ EPHTYPE* selSatEphFromMap(
 {
 //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 
+	double tdelay = acsConfig.eph_time_delay[Sat.sys];
 	double tmax;
 	switch (Sat.sys)
 	{
@@ -92,50 +93,38 @@ EPHTYPE* selSatEphFromMap(
 		default: 			tmax = MAXDTOE;		break;
 	}
 
+	if(acsConfig.simulate_real_time && tmax < tdelay)
+	{
+		tracepdeex(2, trace, "\nSet time delay is larger than time of Validity: tmax=%f, tdelay=%f  ", tmax, tdelay);
+		return nullptr;
+	}
+
 	auto& satEphMap = ephMap[Sat][type];
 
-	if (iode >= 0)
-	{
-		for (auto& [dummy, eph] : satEphMap)
-		{
-			if	( iode != eph.iode
-				||fabs((eph.toe - time).to_double()) > tmax)
-			{
-				continue;
-			}
-
-			return &eph;
-		}
-
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s with iode=%3d", time.to_string().c_str(), Sat.id().c_str(), iode);
-
-		return nullptr;
-	}
-
 	auto it = satEphMap.lower_bound(time + tmax);
-	if (it == satEphMap.end())
+	if (acsConfig.simulate_real_time)
+		it = satEphMap.lower_bound(time - tdelay);
+
+	while (it != satEphMap.end())
 	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE+ ", time.to_string().c_str(), Sat.id().c_str());
-		if (satEphMap.empty() == false)
+		auto& [ephTime, eph] = *it;
+
+		if (fabs((eph.toe - time).to_double()) > tmax)
+			break;
+
+		if (iode >= 0 && iode != eph.iode)
 		{
-			tracepdeex(5, trace, " last is %s", satEphMap.begin()->first.to_string().c_str());
+			it++;
+			continue;
 		}
 
-		return nullptr;
+		iode = eph.iode;
+		return &eph;
 	}
 
-	auto& [ephTime, eph] = *it;
+	tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE: %f ", time.to_string().c_str(), Sat.id().c_str(), tmax);
 
-	if (fabs((eph.toe - time).to_double()) > tmax)
-	{
-		tracepdeex(5, trace, "\nno broadcast ephemeris: %s sat=%s within MAXDTOE-", time.to_string().c_str(), Sat.id().c_str());
-
-		return nullptr;
-	}
-
-	iode = eph.iode;
-
-	return &eph;
+	return nullptr;
 }
 
 
@@ -261,8 +250,6 @@ void eph2Pos(
 	Vector3d&	rSat,						///< satellite position (ecef) {x,y,z} (m)
 	double*		var_ptr			= nullptr)	///< satellite position and clock variance (m^2)
 {
-//	trace(4, __FUNCTION__ " : time=%s sat=%2d\n",time.to_string(3).c_str(),eph->Sat);
-
 	if (eph.A <= 0)
 	{
 		rSat 	= Vector3d::Zero();
@@ -305,8 +292,6 @@ void eph2Pos(
 
 	double sinE = sin(E);
 	double cosE = cos(E);
-
-//     trace(4,"kepler: sat=%2d e=%8.5f n=%2d del=%10.3e\n",eph->Sat,eph->e,n,E-Ek);
 
 	double u	= atan2(sqrt(1 - eph.e * eph.e) * sinE, cosE - eph.e) + eph.omg;
 	double r	= eph.A * (1 - eph.e * cosE);
@@ -363,7 +348,8 @@ void eph2Pos(
 
 	/* position and clock error variance */
 	if (var_ptr)
-		*var_ptr = var_uraeph(eph.sva);
+		*var_ptr = SQR(eph.ura[0]);
+		// *var_ptr = var_uraeph(eph.sva);
 }
 
 
@@ -376,8 +362,6 @@ void eph2Pos(
 	Vector3d&	rSat,			///< satellite position {x,y,z} (ecef) (m)
 	double*		var = nullptr)	///< satellite position and clock variance (m^2)
 {
-//	trace(4, __FUNCTION__ ": time=%s sat=%2d\n",time.to_string(3).c_str(),geph->Sat);
-
 	double t = (time - geph.toe).to_double();
 
 	double x[6];
@@ -411,8 +395,6 @@ void eph2Pos(
 	Vector3d&	rSat,			///< satellite position {x,y,z} (ecef) (m)
 	double*		var = nullptr)	///< satellite position and clock variance (m^2)
 {
-//	trace(4, __FUNCTION__ ": time=%s sat=%2d\n",time.to_string(3).c_str(),seph->Sat);
-
 	double t = (time - seph.t0).to_double();
 
 	for (int i = 0; i < 3; i++)
@@ -423,7 +405,8 @@ void eph2Pos(
 	}
 
 	if (var)
-		*var = var_uraeph(seph.sva);
+		*var = SQR(seph.ura);
+		// *var = var_uraeph(seph.sva);
 }
 
 
@@ -451,8 +434,6 @@ bool satClkBroadcast(
 
 	ephVar = SQR(STD_BRDCCLK);
 
-//	trace(4, "%s: time=%s sat=%2d iode=%d\n",__FUNCTION__,time.to_string(3).c_str(),obs.Sat,iode);
-
 	int sys = Sat.sys;
 
 	ephClkValid = false;
@@ -468,6 +449,8 @@ bool satClkBroadcast(
 	}
 
 	auto& eph = *eph_ptr;
+	
+	tracepdeex(5, trace, "\nSelected ephemeris sat: %s, iode=%d, teph=%s, toe=%s", Sat.id().c_str(), iode, teph.to_string().c_str(),eph.toe.to_string().c_str());
 
 	satClk	= eph2Clk(time, 		eph);
 	satClk1	= eph2Clk(time + tt,	eph);
@@ -505,8 +488,6 @@ bool satPosBroadcast(
 	Vector3d	rSat1;
 	Vector3d	rSat2;
 	double		tt = 10e-3;
-
-//	trace(4, "%s: time=%s sat=%2d iode=%d\n",__FUNCTION__,time.to_string(3).c_str(),obs.Sat,iode);
 
 	int sys = Sat.sys;
 

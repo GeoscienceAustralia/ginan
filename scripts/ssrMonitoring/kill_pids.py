@@ -17,11 +17,7 @@ import click
 import gnssanalysis as ga
 
 
-def save_pids(
-    pid_file_path: Path,
-    proc_list: dict,
-    overwrite: bool = False,
-) -> None:
+def save_pids(pid_file_path: Path, proc_list: dict, overwrite: bool = False) -> None:
     """
     Save PIDs and corresponding commmands to a JSON file.
 
@@ -37,14 +33,12 @@ def save_pids(
             for proc in proc_list:
                 json.dump(proc, pid_file)
                 pid_file.write("\n")
-        logging.info(f"PIDs of running commands saved to file {pid_file_path}")
+        logging.info(f"PIDs of running commands saved to file '{pid_file_path}'")
     except Exception as error:
         logging.error(f"Could not write PID file: {error}")
 
 
-def kill_pids(
-    pid_file_path: Path,
-) -> None:
+def kill_pids(pid_file_path: Path) -> None:
     """
     Kill running processes by their PIDs logged in a JSON file.
 
@@ -54,7 +48,7 @@ def kill_pids(
     logging.info("Killing running processes ...")
 
     if not pid_file_path.exists():
-        logging.warning(f"PID file {pid_file_path} not found")
+        logging.warning(f"PID file '{pid_file_path}' not found")
         return
 
     # Kill running commands with PIDs listed in the PID file
@@ -69,16 +63,14 @@ def kill_pids(
                 os.kill(pid, signal.SIGTERM)
                 logging.info(f"Process {pid}: '{arg}' killed")
             except ProcessLookupError as error:
-                logging.debug(
-                    f"Process {pid}: '{arg}' not exists, may have terminated: {error}"
-                )
+                logging.debug(f"Process {pid}: '{arg}' not exists, may have terminated: {error}")
             except Exception as error:
                 procs_not_killed.append(proc)
-                logging.warn(f"Could not kill {pid}: '{arg}': {error}")
+                logging.warning(f"Could not kill {pid}: '{arg}': {error}")
 
     # Overwrite the PID file with PIDs not killed
     if procs_not_killed:
-        logging.info(f"Updating {pid_file_path} with PIDs not killed")
+        logging.info(f"Updating '{pid_file_path}' with PIDs not killed")
 
     save_pids(pid_file_path, procs_not_killed, overwrite=True)
 
@@ -86,17 +78,9 @@ def kill_pids(
 
 
 @click.command()
-@click.option(
-    "--job-dir",
-    required=True,
-    help="Directory where PID file (pid.json) is saved",
-    type=Path,
-)
+@click.option("--job-dir", required=True, help="Directory where PID file (pid.json) is saved", type=Path)
 @click.option("--verbose", is_flag=True)
-def kill_pids_main(
-    job_dir,
-    verbose,
-):
+def kill_pids_main(job_dir, verbose):
     ga.gn_utils.configure_logging(verbose)
 
     pid_file_path = job_dir / "pid.json"

@@ -55,6 +55,26 @@ bool isInited(
 	return inited;
 }
 
+struct SsrInputOptions
+{
+	double			code_bias_valid_time	= 3600;		///< Valid time period of SSR code biases
+	double			phase_bias_valid_time	= 300;		///< Valid time period of SSR phase biases
+	double			global_vtec_valid_time	= 300;		///< Valid time period of SSR global Ionospheres
+	double			local_stec_valid_time	= 120;		///< Valid time period of SSR local Ionospheres
+	double			local_trop_valid_time	= 120;		///< Valid time period of SSR local Tropospheres
+	bool			one_freq_phase_bias		= false;
+};
+
+struct SbsInputOptions
+{
+	string	host;		///< hostname is passed as acsConfig.sisnet_inputs
+	string 	port;		///< port of SISNet steam
+	string	user;		///< Username for SISnet stream access
+	string	pass;		///< Password for SISnet stream access
+	int 	prn;		///< prn of SBAS satellite
+	int		freq;		///< freq (L1 or L5) of SBAS channel
+};
+
 /** Input source filenames and directories
 */
 struct InputOptions
@@ -73,6 +93,7 @@ struct InputOptions
 	vector<string>	atx_files;
 	vector<string>	snx_files;
 	vector<string>	nav_files;
+	vector<string>	ems_files;
 	vector<string>	sp3_files;
 	vector<string>	clk_files;
 	vector<string>	obx_files;
@@ -143,6 +164,11 @@ struct InputOptions
 
 	string stream_user;
 	string stream_pass;
+
+	double sbs_time_delay = 0;
+
+	SsrInputOptions				ssrInOpts;
+	SbsInputOptions				sbsInOpts;	
 };
 
 struct IonexOptions
@@ -531,7 +557,7 @@ struct GlobalOptions
 		{E_Sys::QZS, E_NavMsgType::LNAV}
 	};
 
-	vector<E_ObsCode> code_priorities_default =
+	vector<E_ObsCode> default_code_priorities =
 	{
 		E_ObsCode::L1C,
 		E_ObsCode::L1P,
@@ -580,6 +606,18 @@ struct GlobalOptions
 	map<E_Sys, bool>	constrain_best_ambiguity_integer;
 	map<E_Sys, string>	constrain_clock;
 	map<E_Sys, string>	constrain_phase_bias;
+
+	map<E_Sys, double> 	eph_time_delay;
+	map<E_Sys,double> default_eph_time_delay =
+	{
+		{E_Sys::GPS,-7200.0},
+		{E_Sys::GLO, 0.0},
+		{E_Sys::GAL, 0.0},
+		{E_Sys::QZS, 0.0},
+		{E_Sys::BDS, 0.0},
+		{E_Sys::LEO, 0.0},
+		{E_Sys::SBS, 0.0}		
+	};
 
 	bool common_sat_pco			= false;
 	bool common_rec_pco			= false;
@@ -1336,26 +1374,6 @@ struct SsrOptions
 	int				nbasis			= 0;	//not configs?
 };
 
-struct SsrInOptions
-{
-	double			code_bias_valid_time	= 3600;		///< Valid time period of SSR code biases
-	double			phase_bias_valid_time	= 300;		///< Valid time period of SSR phase biases
-	double			global_vtec_valid_time	= 300;		///< Valid time period of SSR global Ionospheres
-	double			local_stec_valid_time	= 120;		///< Valid time period of SSR local Ionospheres
-	double			local_trop_valid_time	= 120;		///< Valid time period of SSR local Tropospheres
-	bool			one_freq_phase_bias		= false;
-};
-
-struct SbsInOptions
-{
-	string	host;		///< hostname is passed as acsConfig.sisnet_inputs
-	string 	port;		///< port of SISNet steam
-	string	user;		///< Username for SISnet stream access
-	string	pass;		///< Password for SISnet stream access
-	int 	prn;		///< prn of SBAS satellite
-	int		freq;		///< freq (L1 or L5) of SBAS channel
-};
-
 struct SSRMetaOpts
 {
 	bool	itrf_datum			= true;
@@ -1453,8 +1471,6 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
 	PropagationOptions			propagationOptions;
 	PreprocOptions				preprocOpts;
 	MinimumConstraintOptions	minconOpts;
-	SsrInOptions				ssrInOpts;
-	SbsInOptions				sbsInOpts;
 	AmbROptions					ambrOpts;
 	SsrOptions					ssrOpts;
 	PppOptions					pppOpts;

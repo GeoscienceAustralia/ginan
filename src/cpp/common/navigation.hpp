@@ -23,6 +23,7 @@ using std::set;
 #include "common/gTime.hpp"
 #include "common/trace.hpp"
 #include "common/enums.h"
+#include "sbas/sbas.hpp"
 #include "common/ssr.hpp"
 #include "common/erp.hpp"
 
@@ -51,6 +52,7 @@ struct SatNav
 	map<int, double>	lamMap;
 
 	SSRMaps				receivedSSR;				///< SSR corrections
+	SBASMaps			currentSBAS;				///< current SBAS correction
 
 	VectorEci			aprioriPos;					///< Inertial satellite position at epoch time
 	double				aprioriClk		= 0;		///< Apriori clock value at epoch time
@@ -99,6 +101,7 @@ struct Navigation
 	map<SatSys,		int>																								gloFreqMap;		///< glonass frequency channel numbers
 	map<SatSys,		SatNav>																								satNavMap;
 	SSRAtm			ssrAtm;
+	SBASIono		sbsIono;																											///< current SBAS Ionosphere map
 
 	ERP		erp;						/* earth rotation parameters */
 	int		leaps	= -1;				/* leap seconds (s) */

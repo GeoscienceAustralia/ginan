@@ -17,9 +17,7 @@ import click
 import gnssanalysis as ga
 
 
-def download_rt_products(
-    product_dir: Path,
-) -> None:
+def download_rt_products(product_dir: Path) -> None:
     """
     Download latest product files, including 'igs20.atx', 'igs_satellite_metadata.snx', and yaw files
     for SSR streams recording.
@@ -33,34 +31,23 @@ def download_rt_products(
 
     # Download required products
     ga.gn_download.download_atx(download_dir=product_dir, if_file_present="replace")
-    ga.gn_download.download_satellite_metadata_snx(
-        download_dir=product_dir, if_file_present="replace"
-    )
+    ga.gn_download.download_satellite_metadata_snx(download_dir=product_dir, if_file_present="replace")
     ga.gn_download.download_yaw_files(download_dir=model_dir, if_file_present="replace")
 
     logging.info("Real-time products updated\n")
 
 
 @click.command()
-@click.option(
-    "--product-dir",
-    required=True,
-    help="Directory where product files are placed",
-    type=Path,
-)
+@click.option("--product-dir", required=True, help="Directory where product files are placed", type=Path)
 @click.option(
     "--interval",
     required=True,
-    help="Time interval to check and download products in seconds",
+    help="Time interval to check and download products in seconds. Default: 86400",
     default=86400,
     type=int,
 )
 @click.option("--verbose", is_flag=True)
-def download_rt_products_main(
-    product_dir,
-    interval,
-    verbose,
-):
+def download_rt_products_main(product_dir, interval, verbose):
     ga.gn_utils.configure_logging(verbose)
 
     # Update/Download products every <interval> seconds

@@ -1040,6 +1040,7 @@ int decodeEph(
 		eph.code	=(int)		data[20];	// GPS: codes on L2 ch
 		eph.svh		=(E_Svh)	data[24];	// sv health
 		eph.sva		=uraToSva(	data[23]);	// ura (m->index)
+		eph.ura[0]	=data[23];
 		eph.flag	=(int)		data[22];	// GPS: L2 P data flag
 
 		eph.tgd[0]	= data[25];		// TGD
@@ -1076,6 +1077,7 @@ int decodeEph(
 										// bit     6: E5b DVS
 										// bit   7-8: E5b HS
 		eph.sva		=sisaToSva(data[23]);
+		eph.ura[0]	=data[23];
 
 		eph.tgd[0]=   data[25];		// BGD E5a/E1
 		eph.tgd[1]=   data[26];		// BGD E5b/E1
@@ -1099,6 +1101,7 @@ int decodeEph(
 
 		eph.svh		=(E_Svh)data[24];		// satH1
 		eph.sva		=uraToSva(data[23]);	// ura (m->index)
+		eph.ura[0]	=data[23];
 
 		eph.tgd[0]	= data[25];			// TGD1 B1/B3
 		eph.tgd[1]	= data[26];			// TGD2 B2/B3
@@ -1224,7 +1227,7 @@ int decodeSeph(
 
 	seph.svh	= (E_Svh)data[6];
 	seph.sva	= uraToSva(data[10]);
-
+	seph.ura		= data[10];
 	return 1;
 }
 

@@ -10,6 +10,7 @@ inputs:
     snx_files:
     # - tables/igs_satellite_metadata.snx
     - tables/igs_satellite_metadata_2203_plus.snx
+    - latest/IGS0OPSSNX_20242800000_01D_01D_CRD.SNX
 
     gnss_observations:
         gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
@@ -81,8 +82,10 @@ processing_options:
             gal:
                 process:            true
             glo:
-                process:            false
+                process:            true
             bds:
-                process:            false
+                process:            true
+                code_priorities:    [ L1P, L5P, L2I, L6I, L7I, L7D ]
             qzs:
-                process:            false
+                process:            true
+
