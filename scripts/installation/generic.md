@@ -8,17 +8,14 @@ If instead you wish to build Ginan from source, there are several software depen
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
 * CMAKE     > 3.0
 * YAML      > 0.6
-* Boost     >= 1.73 (tested on 1.73). On Ubuntu 22.04 which uses gcc-11, you need Boost >= 1.74.0
+* Boost     >= 1.74
 * MongoDB
-* Mongo_C >= 1.71.1
-* Mongo_cxx >= 3.6.0
+* Mongo_C >= 1.71.1 (automatically installed with mongo-cxx-driver)
+* Mongo_cxx >= 3.9.0
 * Eigen3    > 3.4
 * netCDF4
 * Python >= 3.7
 
-If using gcc verion 11 or about, the minimum version of libraries are:
-* Boost >= 1.74.0
-* Mongo_cxx = 3.7.0
 
 ***
 ## Installing dependencies (Example with Ubuntu)
@@ -37,20 +34,6 @@ sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-
 sudo -H pip3 install wheel pandas boto3 unlzw tdqm scipy gnssanalysis
 ```
 
-Ginan requires at least version 9 of both gcc and g++, so make sure to update the gcc/g++ alternatives prior to compilation:
-(this is not required on Ubuntu 22.04)
-
-```
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-
-sudo apt update
-
-sudo apt install -y gcc-9 g++-9
-
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 51
-
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 51
-```
 
 ***
 ## Building additional dependencies
@@ -90,16 +73,16 @@ rm -rf yaml-cpp
 
 ### Boost (PEA)
 PEA relies on a number of the utilities provided by [boost](https://www.boost.org/), such as their time and logging libraries.
-NB for compilation using gcc-11, you need to change this to boost_1_74_0
+
 
 ```
 cd $dir/tmp
 
-wget -c https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.tar.gz
+wget -c https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.gz
 
-tar -xf boost_1_73_0.tar.gz
+tar -xf boost_1_83_0.tar.gz
 
-cd boost_1_73_0/
+cd boost_1_83_0/
 
 ./bootstrap.sh
 
@@ -107,7 +90,7 @@ sudo ./b2 -j2 install
 
 cd $dir/tmp
 
-sudo rm -rf boost_1_73_0 boost_1_73_0.tar.gz
+sudo rm -rf boost_1_83_0 boost_1_83_0.tar.gz
 ```
 
 ### Eigen3 (PEA)
@@ -137,49 +120,28 @@ rm -rf eigen
 
 
 ### Mongo_cxx_driver (PEA)
-Needed for json formatting and other self-descriptive markup.
+Needed for connection to the MongoDB database, which is used for realtime plotting and statistics in `GinanEDA`.
+
+Note: for later version of mongo-cxx-driver install (3.9.0 and above) it also the mongo-c driver, so it is not needed to install it separately.
 
 ```
 cd $dir/tmp
-# NB for compilation using gcc-11, you need to change this to 1.21.2
 
-wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
+curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.11.0/mongo-cxx-driver-r3.11.0.tar.gz
 
-tar -xf mongo-c-driver-1.17.1.tar.gz
+tar -xf mongo-cxx-driver-r3.11.0.tar.gz
 
-cd mongo-c-driver-1.17.1/
+cd mongo-cxx-driver-r3.11.0/build
 
-mkdir cmake-build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
 
-cd cmake-build/
+make -j 1
 
-cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_EXAMPLES=OFF ../
-
-cmake --build . -- -j 2
-
-sudo cmake --build . --target install -- -j 2
+sudo make install
 
 cd $dir/tmp
 
-NB for compilation using gcc-11, you need to change this to 3.7.0
-
-curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
-
-tar -xf mongo-cxx-driver-r3.6.0.tar.gz
-
-cd mongo-cxx-driver-r3.6.0/build
-
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_EXAMPLES=OFF ../
-
-sudo cmake --build . --target EP_mnmlstc_core -- -j 2
-
-cmake --build . -- -j 2
-
-sudo cmake --build . --target install
-
-cd $dir/tmp
-
-sudo rm -rf mongo-c-driver-1.17.1  mongo-c-driver-1.17.1.tar.gz  mongo-cxx-driver-r3.6.0  mongo-cxx-driver-r3.6.0.tar.gz
+sudo rm -rf   mongo-cxx-driver-r3.11.0  mongo-cxx-driver-r3.11.0.tar.gz
 ```
 
 ### MongoDB (PEA, optional)

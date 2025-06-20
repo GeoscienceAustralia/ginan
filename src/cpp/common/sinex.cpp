@@ -3186,13 +3186,12 @@ bool readSinex(
 			else if	(line == "+SATELLITE/ID"					)	{ parseFunction = parseSatelliteIds;			}
 			else if	(line == "+SATELLITE/YAW_BIAS_RATE"			)	{ parseFunction = parseSinexSatYawRates;		}
 			else if	(line == "+SATELLITE/ATTITUDE_MODE"			)	{ parseFunction = parseSinexSatAttMode;			}
-			else
-			{
-				BOOST_LOG_TRIVIAL(error)
-				<< "Error: unknown header line: " << line;
-
-				failure = true;
-			}
+            else
+            {
+                parseFunction = nullFunction;
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Error: unknown header line: " << line;
+            } // Skip unknown sections
 
 // 			int 	i;
 // 									failure = read_snx_matrix			(filestream, NORMAL_EQN, INFORMATION, c);			break;

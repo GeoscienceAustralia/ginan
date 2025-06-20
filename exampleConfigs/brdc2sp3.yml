@@ -1,70 +1,61 @@
 inputs:
+  inputs_root: products/
 
-    inputs_root: products/
-
-    atx_files: # Antenna models for receivers and satellites in ANTEX format
+  atx_files: # Antenna models for receivers and satellites in ANTEX format
     - igs14_2045_plus.atx
-    snx_files: # SINEX files for meta data and initial position
+  snx_files: # SINEX files for meta data and initial position
     - igs19P2062.snx
     - tables/igs_satellite_metadata_2203_plus.snx
     - tables/sat_yaw_bias_rate.snx
     - tables/qzss_yaw_modes.snx
     - tables/bds_yaw_modes.snx
-    
-    satellite_data:
-        nav_files: # broadcast navigation files
-        - brdm1990.19p
 
+  satellite_data:
+    nav_files: # broadcast navigation files
+      - brdm1990.19p
 
 outputs:
+  outputs_root: outputs/<CONFIG>/
 
-    outputs_root:            outputs/<CONFIG>/
+  metadata:
+    config_description: brdc2sp3
+    analysis_agency: GAA
+    analysis_centre: Geoscience Australia
+    analysis_program: AUSACS
+    rinex_comment: AUSNETWORK1
 
-    metadata:
-        config_description:  brdc2sp3
-        analysis_agency:     GAA
-        analysis_centre:     Geoscience Australia
-        analysis_program:    AUSACS
-        rinex_comment:       AUSNETWORK1
-
-    sp3:
-        output:              true
-        filename:            <CONFIG>-<YYYY><DDD><HH>-<SYS>.sp3
-        output_interval:     900
-        output_velocities:   true
-        # output_inertial:     true
-
+  sp3:
+    output: true
+    filename: <CONFIG>-<YYYY><DDD><HH>-<SYS>.sp3
+    output_interval: 900
+    output_velocities: true
+    # output_inertial:     true
 
 satellite_options:
-
-    global:
-        models:
-            attitude:
-                enable:      true
-                sources:     [ MODEL ]
-
+  global:
+    models:
+      attitude:
+        enable: true
+        sources: [MODEL]
 
 receiver_options:
-
-    global:
-        elevation_mask:      7    # degrees
-
+  global:
+    elevation_mask: 7 # degrees
 
 processing_options:
+  process_modes:
+    preprocessor: false
 
-    process_modes:
-        preprocessor:        false
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 23:45:00
+    epoch_interval: 900 # seconds
+    require_obs: false
 
-    epoch_control:
-        start_epoch:         2019-07-18 00:00:00
-        end_epoch:           2019-07-18 23:45:00
-        epoch_interval:      900  # seconds
-        require_obs:         false
-
-    gnss_general:
-        sys_options:
-            gps: { process:  true }
-            gal: { process:  true }
-            glo: { process:  true }
-            bds: { process:  true }
-            qzs: { process:  true }
+  gnss_general:
+    sys_options:
+      gps: { process: true }
+      gal: { process: true }
+      glo: { process: true }
+      bds: { process: true }
+      qzs: { process: true }

@@ -180,9 +180,6 @@ void writeRinexObsHeader(
 	boost::replace_all(timeDate, ":", "");
 	timeDate += " UTC";
 
-	string prog = "PEA v2";
-	string runby = "Geoscience Australia";
-
 	auto& snx = rec.snx;
 
 	tracepdeex(0, rinexStream, "%9.2f%-11s%-20s%-20s%-20s\n",
@@ -193,8 +190,8 @@ void writeRinexObsHeader(
 		"RINEX VERSION / TYPE");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
-		prog,
-		runby,
+		acsConfig.analysis_software.c_str(),
+		acsConfig.analysis_centre.c_str(),
 		timeDate.c_str(),
 		"PGM / RUN BY / DATE");
 

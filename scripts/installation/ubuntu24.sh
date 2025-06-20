@@ -26,7 +26,7 @@ if [[ "$ubuntu_version" != "24.04" ]]; then
 fi
 
 # MongoDB library version numbers
-mongo_cxx_driver_version="r3.10.2"
+mongo_cxx_driver_version="r3.11.0"
 
 echo "Updating package repositories..."
 $sudo_cmd apt update -y
@@ -60,8 +60,6 @@ $sudo_cmd apt-get install --no-install-recommends --yes \
     libnetcdf-c++4-dev \
     libzstd-dev \
     libssl-dev \
-    libmongoc-1.0-0 \
-    libmongoc-dev \
     libncurses5-dev \
     python3-pip
 

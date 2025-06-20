@@ -12,7 +12,7 @@
 #include <mongocxx/instance.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/pool.hpp>
-#include <mongocxx/stdx.hpp>
+//#include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>

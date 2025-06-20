@@ -246,7 +246,7 @@ void getSatClksFromEph(
 		ClockEntry clkEntry;
 		clkEntry.id		= Sat.id();
 		clkEntry.clock	= obs.satClk;
-		clkEntry.sigma	= sqrt(obs.satClkVar);
+		clkEntry.sigma	= sqrt(obs.satClkVar) / CLIGHT;
 		clkEntry.isRec	= false;
 
 		clkEntryList.push_back(clkEntry);
@@ -309,7 +309,7 @@ void outputRinexClocksHeader(
 		"LCL","PGM / RUN BY / DATE");
 
 	tracepdeex(0,clockFile,"%-60s%s\n","",																			"SYS / # / OBS TYPES");
-	tracepdeex(0,clockFile,"%-60s%s\n","",																			"TIME SYSTEM ID");
+	tracepdeex(0,clockFile,"%-60s%s\n","GPS",																		"TIME SYSTEM ID");
 	tracepdeex(0,clockFile,"%6d    %2s    %2s%-42s%s\n",           2,"AS","AR","",									"# / TYPES OF DATA");
 	tracepdeex(0,clockFile,"%-60s%s\n","",																			"STATION NAME / NUM");
 	tracepdeex(0,clockFile,"%-60s%s\n","",																			"STATION CLK REF");
@@ -318,7 +318,7 @@ void outputRinexClocksHeader(
 
 	// Note clkRefStation can be a zero length string.
 	tracepdeex(0,clockFile,"%-4s %-20s%35s%s\n", "", clkRefStation.c_str(),"",										"ANALYSIS CLK REF");
-	tracepdeex(0,clockFile,"%6d    %-50s%s\n", numRecs, "IGS14",													"# OF SOLN STA / TRF");
+	tracepdeex(0,clockFile,"%6d    %-50s%s\n", numRecs, acsConfig.reference_system,									"# OF SOLN STA / TRF");
 	// MM This line causes the clock combination software to crash to removing
 	//tracepdeex(0,clockFile,"%-60s%s\n",acsConfig.rinex_comment,												"COMMENT");
 

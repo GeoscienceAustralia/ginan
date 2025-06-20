@@ -67,7 +67,7 @@ void writeSp3Header(
 	sp3FileData.numEpoch_pos = sp3Stream.tellp();
 
 	//TODO Check, coordinate system and Orbit Type from example product file.
-	tracepdeex(0, sp3Stream, "%7d ORBIT IGS14 FIT %4s\n", sp3FileData.numEpoch, acsConfig.analysis_agency.c_str());
+	tracepdeex(0, sp3Stream, "%7d ORBIT %5s FIT %4s\n", sp3FileData.numEpoch, acsConfig.reference_system.c_str(), acsConfig.analysis_agency.c_str());
 
 	GWeek		week	= time;
 	GTow		tow		= time;

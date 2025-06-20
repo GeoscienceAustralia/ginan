@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-mkdir linuxDeploy
+mkdir -p linuxDeploy
 cd linuxDeploy
-wget https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20230713-1/linuxdeploy-x86_64.AppImage
+curl -L -o linuxdeploy-x86_64.AppImage  https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20230713-1/linuxdeploy-x86_64.AppImage
 
 apt update -y
 apt install -y file

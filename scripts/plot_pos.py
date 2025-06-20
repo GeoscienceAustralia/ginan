@@ -1,3 +1,5 @@
+from pathlib import Path
+import os
 import pandas as pd
 from datetime import datetime
 import plotly.graph_objects as go
@@ -98,6 +100,7 @@ def compute_statistics(data):
 
 # Setup and parse arguments
 parser = argparse.ArgumentParser(description="Plot positional data with optional smoothing and color coding.")
+parser.add_argument('--input-files', nargs='+', required=True, help='One or more input .POS files')
 parser.add_argument('--start-datetime', type=str, 
                     help="Start datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone")
 parser.add_argument('--end-datetime', type=str, 
@@ -122,10 +125,10 @@ parser.add_argument('--sigma_threshold', nargs=3, type=float,
                     help="Thresholds for sE, sN, and sU to filter data.")
 parser.add_argument('--down_sample', type=int, 
                     help="Interval in seconds for down-sampling data.")
-parser.add_argument('--save', action='store_true',
-                    help='Save requested plots as .html format files (optional).')
-parser.add_argument('files', nargs='+')
+parser.add_argument('--save-prefix', nargs='?', const='plot', default=None,
+                    help='Prefix for saving HTML figures, e.g., ./output/fig')
 args = parser.parse_args()
+input_root = Path(args.input_files[0]).stem
 
 # Parse the start and end datetime if provided
 start_datetime = parse_datetime(args.start_datetime) if args.start_datetime else None
@@ -133,7 +136,7 @@ end_datetime = parse_datetime(args.end_datetime) if args.end_datetime else None
 
 # Load and process data
 all_data = pd.DataFrame()
-for file_path in args.files:
+for file_path in args.input_files:
     file_data = parse_pos_format(file_path)
     all_data = pd.concat([all_data, file_data], ignore_index=True)
 
@@ -167,7 +170,7 @@ all_data, component_stats = compute_statistics(all_data)
 
 # Start plotting
 # Determine max sigma and color scale settings for Fig1
-title_text = f"<b>Time Series Analysis</b>: {', '.join(args.files)}<br>"
+title_text = f"<b>Time Series Analysis</b>: {', '.join(args.input_files)}<br>"
 color_scale = 'Jet' if args.colour_sigma else None  # Only set color scale if --colour_sigma is active
 max_sigma_data = np.max([all_data['sN'].max(), all_data['sE'].max(), all_data['sU'].max()])
 min_sigma_data = np.min([all_data['sN'].min(), all_data['sE'].min(), all_data['sU'].min()])
@@ -178,6 +181,12 @@ cmin = 0.0
 # Setting up the plot
 fig1 = go.Figure()
 components = ['dN', 'dE', 'Elevation'] if args.elevation else ['dN', 'dE', 'dU']
+component_colors = {
+    'dN': 'red',
+    'dE': 'green',
+    'dU': 'blue',
+    'Elevation': 'orange'
+}
 
 for component in components:
     # Correctly map the component to its sigma key
@@ -202,6 +211,7 @@ for component in components:
 
     else:
         # When not using --colour_sigma, add error bars using the sigma values
+        color = component_colors[component]
         fig1.add_trace(go.Scatter(
             x=all_data['Time'], y=all_data[component],
             mode='markers',
@@ -213,8 +223,8 @@ for component in components:
                 visible=True,  # Make error bars visible
                 color='gray'  # Color of error bars
             ),
-            marker=dict(size=5, color='blue'),
-            line=dict(color='blue'),
+            marker=dict(size=5, color=color),
+            line=dict(color=color),
             hoverinfo='text+x+y',
             text=f'{component} Sigma: ' + all_data[sigma_key].astype(str)
         ))
@@ -278,11 +288,13 @@ fig1.update_layout(
     margin=dict(t=150) 
 )
 fig1.show()
-if args.save:
-    fig1.write_html("fig1.html")
+if args.save_prefix is not None:
+    output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig1.html")
+    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    fig1.write_html(output_path)
 
 # Build the title with file names and statistics for Fig2
-title_text = f"<b>dN vs dE Analysis</b>: {', '.join(args.files)}<br>"
+title_text = f"<b>dN vs dE Analysis</b>: {', '.join(args.input_files)}<br>"
 for component in ['dN', 'dE']:
     stats = component_stats[component]
     title_text += f"<b>{component}</b>: Weighted Mean = {stats['weighted_mean']:.3f}, Std Dev = {stats['std_dev']:.3f}, RMS = {stats['rms']:.3f}<br>"
@@ -349,9 +361,10 @@ fig2.update_layout(
     showlegend=True
 )
 fig2.show()
-if args.save:
-    fig2.write_html("fig2.html")
-
+if args.save_prefix is not None:
+    output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig2.html")
+    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    fig2.write_html(output_path)
 if args.map:
     # Plotly plotting using mapbox open-street-map
 
@@ -391,9 +404,10 @@ if args.map:
     )
 
     fig3.show()
-    if args.save:
-        fig2.write_html("fig3.html")
-
+    if args.save_prefix is not None:
+        output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig3.html")
+        os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+        fig3.write_html(output_path)
 if args.heatmap:
     # Plotly plotting dN vs dE heatmap
     fig4 = go.Figure()
@@ -480,9 +494,10 @@ if args.heatmap:
     )
 
     fig4.show()
-    if args.save:
-        fig4.write_html("fig4.html")
-
+    if args.save_prefix is not None:
+        output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig4.html")
+        os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+        fig4.write_html(output_path)
 
 
 

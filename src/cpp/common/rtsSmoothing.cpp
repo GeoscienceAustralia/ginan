@@ -108,7 +108,7 @@ void rtsOutput(
 
 				if (acsConfig.mongoOpts.output_measurements)
 				{
-					mongoMeasResiduals(archiveMeas.time, archiveMeas, acsConfig.mongoOpts.queue_outputs, "/RTS");
+					mongoMeasResiduals(archiveMeas.time, archiveMeas, acsConfig.mongoOpts.queue_outputs, "/PPP_RTS");
 				}
 
 				break;

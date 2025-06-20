@@ -2110,7 +2110,7 @@ void KFState::leastSquareInitStates(
 		{
 			x(stateRowIndex)				+=	newStateVal;
 			P(stateRowIndex, stateRowIndex)	=	newStateCov;
-			kfMeas.VV						=	kfMeas.Y - H * dx;
+			kfMeas.VV						=	kfMeas.Y - H * x1;
 		}
 		else
 		{

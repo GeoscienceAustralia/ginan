@@ -298,9 +298,9 @@ SsrPBMap mongoReadPhaseBias(
 		for (auto resultDoc : cursor)
 		{
 			auto entry			= resultDoc["lastEpoch"];
-			auto strView		= entry[SSR_SAT			].get_utf8().value;
-			string satStr 		= strView.to_string();
-			SatSys Sat(satStr.c_str());
+            auto strView = entry[SSR_SAT].get_string().value;
+            std::string satStr(strView.begin(), strView.end());
+            SatSys Sat(satStr.c_str());
 
 			if (Sat.sys != targetSys)
 				continue;
@@ -327,9 +327,9 @@ SsrPBMap mongoReadPhaseBias(
 			ssrPhaseCh.signalWLIntInd 				= entry["signalWLIntInd"	].get_int32();
 			ssrPhaseCh.signalDisconCnt 				= entry["signalDisconCnt"	].get_int32();
 
-			strView									= entry[SSR_OBSCODE			].get_utf8().value;
-			string obsStr							= strView.to_string();
-			E_ObsCode obsCode						= E_ObsCode::_from_string(obsStr.c_str());
+            strView = entry[SSR_OBSCODE].get_string().value;
+            std::string obsStr(strView.begin(), strView.end());
+            E_ObsCode obsCode = E_ObsCode::_from_string(obsStr.c_str());
 
 			BiasVar biasVar;
 			biasVar.bias							= entry[SSR_BIAS			].get_double();
@@ -379,8 +379,8 @@ SsrCBMap mongoReadCodeBias(
 		for (auto resultDoc : cursor)
 		{
 			auto entry			= resultDoc["lastEpoch"];
-			auto strView		= entry[SSR_SAT		].get_utf8().value;
-			string satStr 		= strView.to_string();
+			auto strView		= entry[SSR_SAT		].get_string().value;
+			std::string satStr(strView.begin(), strView.end()); 
 			SatSys Sat(satStr.c_str());
 
 			if (Sat.sys != targetSys)
@@ -399,8 +399,8 @@ SsrCBMap mongoReadCodeBias(
 
 			ssrCodeBias.t0		= t0;
 
-			strView				= entry[SSR_OBSCODE	].get_utf8().value;
-			string obsStr 		= strView.to_string();
+			strView				= entry[SSR_OBSCODE	].get_string().value;
+			std::string obsStr(strView.begin(), strView.end());
 			E_ObsCode obsCode 	= E_ObsCode::_from_string(obsStr.c_str());
 
 			BiasVar biasVar;
@@ -811,8 +811,8 @@ SSRAtm mongoReadCmpAtmosphere(
 				for (int i=0; i<nSat; i++)
 				{
 					string keyStr		= "regSat_" + std::to_string(i);
-					auto strView		= atmDoc[keyStr].get_utf8().value;
-					string satStr 		= strView.to_string();
+					auto strView		= atmDoc[keyStr].get_string().value;
+                    std::string satStr(strView.begin(), strView.end());
 					SatSys Sat(satStr.c_str());
 
 					regSat[i] = Sat;
@@ -1091,9 +1091,9 @@ void mongoReadFilter(
 			// std::cout << bsoncxx::to_json(doc) <<  "\n";
 
 			KFKey kfKey;
-			kfKey.type	= KF::_from_string(	doc[MONGO_STATE].get_utf8().value.to_string().c_str());
-			kfKey.Sat	= SatSys(			doc[MONGO_SAT]	.get_utf8().value.to_string().c_str());
-			kfKey.str	= 					doc[MONGO_STR]	.get_utf8().value.to_string();
+            kfKey.type = KF::_from_string(std::string(doc[MONGO_STATE].get_string().value).c_str());
+            kfKey.Sat  = SatSys(std::string(doc[MONGO_SAT].get_string().value).c_str());
+            kfKey.str  = std::string(doc[MONGO_STR].get_string().value);
 
 			int i = 0;
 			for (auto thing : doc[MONGO_NUM].get_array().value)

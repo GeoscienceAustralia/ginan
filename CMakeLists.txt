@@ -178,6 +178,9 @@ find_package(bsoncxx	REQUIRED)
 set (NETCDF_CXX "YES")
 find_package(NetCDF		REQUIRED)
 
+find_package(Curses REQUIRED)
+message(STATUS "Found curses library:     " ${CURSES_LIBRARY} , ${CURSES_INCLUDE_DIR})
+
 # message(STATUS "...NETCDF     >>>>>>   ${NETCDF_LIBRARIES}     ${NETCDF_INCLUDES}" )
 # message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
 # find_package(netCDFCxx REQUIRED)

@@ -696,9 +696,6 @@ void rinexNavHeader(
 	Trace&				rinexStream,
 	const double		rnxver)
 {
-	string prog		= "PEA v2";
-	string runby	= "Geoscience Australia";
-
 	UtcTime now = timeGet();
 
 	string timeDate = now.to_string(0);
@@ -718,8 +715,8 @@ void rinexNavHeader(
 		"RINEX VERSION / TYPE");
 
 	tracepdeex(0, rinexStream, "%-20.20s%-20.20s%-20.20s%-20s\n",
-		prog.c_str(),
-		runby.c_str(),
+		acsConfig.analysis_software.c_str(),
+		acsConfig.analysis_centre.c_str(),
 		timeDate.c_str(),
 		"PGM / RUN BY / DATE");
 

@@ -1514,8 +1514,7 @@ void ppp(
 
 			auto& [id, rec] = *recIterator;
 
-			if	( 0
-				// rec.ready == false
+			if	( rec.ready == false
 				||rec.obsList.empty())
 			{
 				continue;

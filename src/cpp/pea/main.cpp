@@ -649,6 +649,8 @@ int main(
 		nav.satNavMap[Sat].id			= Sat.id();
 	}
 
+	nav.leaps = acsConfig.leap_seconds;
+
 	Network pppNet;
 	{
 		pppNet.kfState.FilterOptions::operator=(acsConfig.pppOpts);

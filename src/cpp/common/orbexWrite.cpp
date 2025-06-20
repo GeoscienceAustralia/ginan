@@ -64,7 +64,7 @@ void writeOrbexHeader(
 
 	tracepdeex(0, orbexStream, " END_TIME            %4.0f %2.0f %2.0f %2.0f %2.0f %15.12f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
 	tracepdeex(0, orbexStream, " EPOCH_INTERVAL      %9.3f\n", acsConfig.orbex_output_interval);
-	tracepdeex(0, orbexStream, " COORD_SYSTEM        %s\n", "IGS14");
+	tracepdeex(0, orbexStream, " COORD_SYSTEM        %s\n", acsConfig.reference_system);
 	tracepdeex(0, orbexStream, " FRAME_TYPE          %s\n", "ECEF");
 	tracepdeex(0, orbexStream, " ORBIT_TYPE          %s\n", "");
 	tracepdeex(0, orbexStream, " LIST_OF_REC_TYPES  ");
