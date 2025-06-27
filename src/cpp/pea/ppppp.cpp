@@ -698,6 +698,13 @@ void updateRecClocks(
 			continue;
 		}
 
+		if (rec.sol.status != +E_Solution::SINGLE)
+		{
+			trace << "\n"
+			<< "Receiver clock of " << id << " won't be adjusted due to bad SPP";
+			continue;
+		}
+
 		auto	trace	= getTraceFile(rec);
 		auto&	recOpts	= acsConfig.getRecOpts(id);
 

@@ -207,80 +207,81 @@ target_compile_definitions(pea PRIVATE
 
 #==================================================
 # Ocean tide loading
+if (NetCDF_FOUND)
+	add_library(otl
+			STATIC
+			loading/loading.cpp
+			loading/tide.cpp
+			loading/utils.cpp
+			loading/load_functions.cpp
+			loading/loadgrid.cpp
+			)
 
-add_library(otl
-		STATIC
-		loading/loading.cpp
-		loading/tide.cpp
-		loading/utils.cpp
-		loading/load_functions.cpp
-		loading/loadgrid.cpp
-		)
-
-add_executable(make_otl_blq
-		loading/make_otl_blq.cpp
-		)
-
-
-add_executable(interpolate_loading
-		loading/interpolate_loading.cpp
-		)
-
-target_include_directories(otl PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${YAML_INCLUDE_DIRS}
-        ${Boost_INCLUDE_DIRS}
-        ${NETCDF_INCLUDES}
-        ${NETCDF_INCLUDES_CXX}
-        )
-
-target_include_directories(make_otl_blq PUBLIC
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
-
-target_include_directories(interpolate_loading PUBLIC
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
+	add_executable(make_otl_blq
+			loading/make_otl_blq.cpp
+			)
 
 
-target_link_libraries(make_otl_blq PUBLIC
-		otl
-		${NETCDF_LIBRARIES_CXX}
-		${NETCDF_LIBRARIES}
-		Boost::timer
-		Boost::program_options
-		Boost::log
-		Boost::log_setup
-		${YAML_CPP_LIBRARIES}
-		${YAML_CPP_LIB}
-		)
+	add_executable(interpolate_loading
+			loading/interpolate_loading.cpp
+			)
 
-target_link_libraries(interpolate_loading PUBLIC
-		otl
-		${NETCDF_LIBRARIES_CXX}
-		${NETCDF_LIBRARIES}
-		Boost::timer
-		Boost::program_options
-		Boost::log
-		Boost::log_setup
-		${YAML_CPP_LIBRARIES}
-		${YAML_CPP_LIB}
-		)
+	target_include_directories(otl PUBLIC
+			common
+			loading
+			${YAML_INCLUDE_DIRS}
+			${Boost_INCLUDE_DIRS}
+			${NETCDF_INCLUDES}
+			${NETCDF_INCLUDES_CXX}
+			)
+
+	target_include_directories(make_otl_blq PUBLIC
+			loading
+			${YAML_INCLUDE_DIRS}
+			${Boost_INCLUDE_DIRS}
+			${NETCDF_INCLUDES}
+			${NETCDF_INCLUDES_CXX}
+			)
+
+	target_include_directories(interpolate_loading PUBLIC
+			loading
+			${YAML_INCLUDE_DIRS}
+			${Boost_INCLUDE_DIRS}
+			${NETCDF_INCLUDES}
+			${NETCDF_INCLUDES_CXX}
+			)
 
 
-if(OpenMP_CXX_FOUND)
-	target_link_libraries(make_otl_blq			PUBLIC OpenMP::OpenMP_CXX)
-	target_link_libraries(interpolate_loading	PUBLIC OpenMP::OpenMP_CXX)
+	target_link_libraries(make_otl_blq PUBLIC
+			otl
+			${NETCDF_LIBRARIES_CXX}
+			${NETCDF_LIBRARIES}
+			Boost::timer
+			Boost::program_options
+			Boost::log
+			Boost::log_setup
+			${YAML_CPP_LIBRARIES}
+			${YAML_CPP_LIB}
+			)
+
+	target_link_libraries(interpolate_loading PUBLIC
+			otl
+			${NETCDF_LIBRARIES_CXX}
+			${NETCDF_LIBRARIES}
+			Boost::timer
+			Boost::program_options
+			Boost::log
+			Boost::log_setup
+			${YAML_CPP_LIBRARIES}
+			${YAML_CPP_LIB}
+			)
+
+
+	if(OpenMP_CXX_FOUND)
+		target_link_libraries(make_otl_blq			PUBLIC OpenMP::OpenMP_CXX)
+		target_link_libraries(interpolate_loading	PUBLIC OpenMP::OpenMP_CXX)
+	endif()
 endif()
-
 if(ENABLE_PARALLELISATION)
 	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
 endif()

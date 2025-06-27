@@ -3190,7 +3190,7 @@ bool readSinex(
             {
                 parseFunction = nullFunction;
                 BOOST_LOG_TRIVIAL(warning)
-                    << "Error: unknown header line: " << line;
+                    << "Warning: unknown header line: " << line;
             } // Skip unknown sections
 
 // 			int 	i;

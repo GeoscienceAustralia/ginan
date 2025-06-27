@@ -167,16 +167,18 @@ find_package(OpenSSL REQUIRED)
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line)
+find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer)
 
 find_package(Eigen3 3.3.0)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
 find_package(mongocxx	REQUIRED)
 find_package(bsoncxx	REQUIRED)
-
-set (NETCDF_CXX "YES")
-find_package(NetCDF		REQUIRED)
+set(NETCDF_CXX "YES")
+find_package(NetCDF)
+if (NOT NetCDF_FOUND)
+	message(STATUS "NetCDF library not found, skip compiling loading packages.")
+endif()
 
 find_package(Curses REQUIRED)
 message(STATUS "Found curses library:     " ${CURSES_LIBRARY} , ${CURSES_INCLUDE_DIR})

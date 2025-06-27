@@ -61,6 +61,7 @@ $sudo_cmd apt-get install --no-install-recommends --yes \
     libzstd-dev \
     libssl-dev \
     libncurses5-dev \
+    libopenblas-dev \
     python3-pip
 
 
@@ -87,4 +88,3 @@ $sudo_cmd apt update
 $sudo_cmd apt-get install -y mongodb-org
 
 echo "Installation completed"
-
