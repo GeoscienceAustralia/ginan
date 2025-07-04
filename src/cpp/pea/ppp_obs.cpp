@@ -745,6 +745,11 @@ inline static void pppIonStec(COMMON_PPP_ARGS)
 */
 inline static void pppIonStec2(COMMON_PPP_ARGS)
 {
+    if (acsConfig.pppOpts.ionoOpts.use_if_combo)
+    {
+        return;
+    }
+
     double ionosphere_m = 0;
     double varIono = 0;
     double freq = CLIGHT / lambda;
@@ -818,6 +823,11 @@ inline static void pppIonStec2(COMMON_PPP_ARGS)
 */
 inline static void pppIonStec3(COMMON_PPP_ARGS)
 {
+    if (acsConfig.pppOpts.ionoOpts.use_if_combo)
+    {
+        return;
+    }
+
     double ionosphere_m = 0;
     double varIono = 0;
     double freq = CLIGHT / lambda;
@@ -1501,8 +1511,6 @@ void checkModels(
 
     if (acsConfig.minimise_sat_clock_offsets.enable && nav.ephMap.empty()) { BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_clock_offsets` configured, but no broadcast ephemerides are available"; }
     if (acsConfig.minimise_sat_orbit_offsets && nav.ephMap.empty()) { BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_orbit_offsets` configured, but no broadcast ephemerides are available"; }
-    if (acsConfig.pppOpts.ionoOpts.use_if_combo && recOpts.ionospheric_component2) { BOOST_LOG_TRIVIAL(warning) << "Warning: `ionospheric_components: use_2nd_order` configured, but can not be used in conjunction with `use_if_combo`"; }
-    if (acsConfig.pppOpts.ionoOpts.use_if_combo && recOpts.ionospheric_component3) { BOOST_LOG_TRIVIAL(warning) << "Warning: `ionospheric_components: use_3rd_order` configured, but can not be used in conjunction with `use_if_combo`"; }
 }
 
 
@@ -1688,7 +1696,7 @@ void receiverUducGnss(
 
                     KFMeasEntry measEntry(&kfState);
 
-                    measEntry.metaDataMap["obs_ptr"] = &obs;
+                    measEntry.metaDataMap["pppObs_ptr"] = &obs;
 
                     {
                         measEntry.metaDataMap["satelliteErrorCount"] = &satNav.satelliteErrorCount;
@@ -1818,6 +1826,9 @@ void receiverUducGnss(
                         recOrbitPosKey.num = i;
                         recOrbitPosKey.comment = posInit.comment;
 
+                        recOrbitVelKey.num = i + 3;
+                        recOrbitVelKey.comment = velInit.comment;
+
                         E_Source found = kfState.getKFValue(recOrbitPosKey, rRecInertial[i], &recOrbitVars[i]);
 
                         if (found)
@@ -1830,18 +1841,15 @@ void receiverUducGnss(
                             continue;
                         }
 
+                        if (posInit.x == 0)		posInit.x = rRecInertial[i];
+
                         if (found == +E_Source::REMOTE
                             && posInit.use_remote_sigma)
                         {
                             posInit.P = recOrbitVars[i];
                         }
 
-                        if (posInit.x == 0)		posInit.x = rRecInertial[i];
-
                         recOrbitVars[i] = -1;
-
-                        recOrbitVelKey.num = i + 3;
-                        recOrbitVelKey.comment = velInit.comment;
 
                         delayedInits.push_back([recOrbitPosKey, posInit, i, &measEntry]
                         (Vector3d satStat_e, Vector3d eSatInertial)
@@ -1896,8 +1904,10 @@ void receiverUducGnss(
                         satOrbitPosKey.num = i;
                         satOrbitPosKey.comment = posInit.comment;
 
-                        double dummyPos = 0;
+                        satOrbitVelKey.num = i + 3;
+                        satOrbitVelKey.comment = velInit.comment;
 
+                        double dummyPos = 0;
                         E_Source found = kfState.getKFValue(satOrbitPosKey, dummyPos, &satOrbitVars[i]);
 
                         if (posInit.estimate == false)
@@ -1905,19 +1915,16 @@ void receiverUducGnss(
                             continue;
                         }
 
+                        if (posInit.x == 0)		posInit.x = obs.rSatEci0[i];
+                        if (velInit.x == 0)		velInit.x = obs.vSatEci0[i];
+
                         if (found == +E_Source::REMOTE
                             && posInit.use_remote_sigma)
                         {
                             posInit.P = satOrbitVars[i];
                         }
 
-                        if (posInit.x == 0)		posInit.x = obs.rSatEci0[i];
-                        if (velInit.x == 0)		velInit.x = obs.vSatEci0[i];
-
                         satOrbitVars[i] = -1;
-
-                        satOrbitVelKey.num = i + 3;
-                        satOrbitVelKey.comment = velInit.comment;
 
                         delayedInits.push_back([satOrbitPosKey, satOrbitVelKey, posInit, velInit, i, &obs, &measEntry]
                         (Vector3d satStat_e, Vector3d eSatInertial)

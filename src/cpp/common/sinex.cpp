@@ -2104,7 +2104,7 @@ void writeSnxAprioriFromReceivers(
 					"m", //sst.unit.c_str(),
 					'3',//sst.constraint,
 					rec.aprioriPos(i),// sst.param,
-					rec.aprioriVar(i));
+					rec.aprioriPosVar(i));
 
 			index++;
 		}

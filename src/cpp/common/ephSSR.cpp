@@ -227,7 +227,7 @@ bool satPosSSR(
 	int&			iodeClk		= satPos.iodeClk;
 	int&			iodePos		= satPos.iodePos;
 	double&			posVar		= satPos.posVar;
-	double&			clkVar		= satPos.satClkVar;
+	double&			satClkVar	= satPos.satClkVar;
 
 //     tracepdeex(4, trace, __FUNCTION__ ": time=%s sat=%2d\n", time.to_string().c_str(), satPos.Sat);
 	ephPosValid = false;
@@ -289,8 +289,8 @@ bool satPosSSR(
 		iodeClk = iodEph;
 
 		bool pass = true;
-		pass &= satPosBroadcast(trace, time, teph, Sat, rSat0,		satVel,		posVar, ephPosValid, iodePos, nav);
-		pass &= satClkBroadcast(trace, time, teph, Sat, satClk0,	satClkVel,	clkVar, ephClkValid, iodeClk, nav);
+		pass &= satPosBroadcast(trace, time, teph, Sat, rSat0,		satVel,		posVar, 	ephPosValid, iodePos, nav);
+		pass &= satClkBroadcast(trace, time, teph, Sat, satClk0,	satClkVel,	satClkVar,	ephClkValid, iodeClk, nav);
 
 		if (pass == false)
 		{
@@ -339,7 +339,8 @@ bool satPosSSR(
 		ura = ssrUra.ura;
 	}
 
-	clkVar = var_urassr(ura);
+	double clkVar = var_urassr(ura);
+	satClkVar = clkVar / SQR(CLIGHT);
 	posVar = 0;
 
 	tracepdeex(3, trace, "\nSSR_EPH %s    %s    %13.3f %13.3f %13.3f %11.3f ", time.to_string().c_str(), Sat.id().c_str(), rSat[0], rSat[1], rSat[2], 1e9*satClk);

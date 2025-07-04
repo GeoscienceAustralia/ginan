@@ -107,7 +107,7 @@ void minimumTest(
 				for (int i = 0; i < 3; i++)
 				{
 					rec.snx.pos[i] = a[i];
-					rec.aprioriVar(i) = 1;
+					rec.aprioriPosVar(i) = 1;
 				}
 
 				rec.minconApriori = a;

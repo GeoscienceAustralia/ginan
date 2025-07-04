@@ -27,8 +27,6 @@ using std::set;
 #include "common/ssr.hpp"
 #include "common/erp.hpp"
 
-#define MAXDTE      900.0           /* max time difference to ephem time (s) */
-
 struct TECPoint
 {
 	double data = 0;		///< TEC grid data (tecu)
@@ -107,6 +105,7 @@ struct Navigation
 	int		leaps	= -1;				/* leap seconds (s) */
 	double	glo_cpbias[4];				/* glonass code-phase bias {1C,1P,2C,2P} (m) */
 
+    double  pclkInterval    = 900;
 
 	struct jpl_eph_data*			jplEph_ptr = nullptr;
 
@@ -127,7 +126,6 @@ namespace boost::serialization
 // 		ar & nav.ephMap;
 	}
 }
-
 
 extern map<E_Sys, E_NavMsgType> defNavMsgType;
 

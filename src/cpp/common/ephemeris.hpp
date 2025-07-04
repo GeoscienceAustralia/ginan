@@ -464,7 +464,7 @@ bool satClkBroadcast(
 	SatSys			Sat,
 	double&			satClk,
 	double&			satClkVel,
-	double&			ephVar,
+	double&			clkVar,
 	bool&			ephClkValid,
 	int&			obsIode,
 	Navigation&		nav);

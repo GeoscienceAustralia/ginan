@@ -928,21 +928,22 @@ void KFState::preFitSigmaChecks(
 	auto& kfMeas	= callbackDetails.kfMeas;
 	auto& trace		= callbackDetails.trace;
 
-	auto	v	= kfMeas.V.segment(begH, numH);
+	auto	V	= kfMeas.V.segment(begH, numH);
 	auto	R	= kfMeas.R.block(begH, begH, numH, numH);
 	auto	H	= kfMeas.H.block(begH, begX, numH, numX);
 	auto	P	= this-> P.block(begX, begX, numX, numX);
 
 	ArrayXd		measRatios	= ArrayXd::Zero(numH);
 	ArrayXd		stateRatios	= ArrayXd::Zero(numX);
+	MatrixXd	HPH_ = H * P * H.transpose();
 
 	if (prefitOpts.sigma_check)
 	{
 // 		trace << "\n" << "DOING PRE SIGMA CHECK: ";
 
 		//use 'array' for component-wise calculations
-		auto		measVariations	= v.array().square();	//delta squared
-		auto		measVariances	= ((H*P*H.transpose()).diagonal() + R.diagonal()).array();
+		auto		measVariations	= V.array().square();	//delta squared
+		auto		measVariances	= (HPH_.diagonal() + R.diagonal()).array();
 
 		measRatios	= measVariations	/ measVariances;
 	}
@@ -950,12 +951,12 @@ void KFState::preFitSigmaChecks(
 	{
 // 		trace << "\n" << "DOING OMEGA-TEST: ";
 
-		MatrixXd	Qinv	= (H*P*H.transpose() + R).inverse();
+		MatrixXd	Qinv	= (HPH_ + R).inverse();
 		MatrixXd	H_Qinv	= H.transpose() * Qinv;
 
 		//use 'array' for component-wise calculations
-		auto		measNumerator		= (Qinv * v)	.array().square();		//weighted residuals squared
-		auto		stateNumerator		= (H_Qinv * v)	.array().square();
+		auto		measNumerator		= (Qinv * V)	.array().square();		//weighted residuals squared
+		auto		stateNumerator		= (H_Qinv * V)	.array().square();
 
 		auto		measDenominator		=  Qinv			.diagonal().array();	//weights
 		auto		stateDenominator	= (H_Qinv * H)	.diagonal().array();
@@ -1055,7 +1056,7 @@ void KFState::postFitSigmaChecks(
 	auto& kfMeas	= callbackDetails.kfMeas;
 	auto& trace		= callbackDetails.trace;
 
-	auto	v	= kfMeas.V.segment(begH, numH);
+	auto	V	= kfMeas.V.segment(begH, numH);
 	auto	VV	= kfMeas.VV.segment(begH, numH);
 	auto	R	= kfMeas.R.block(begH, begH, numH, numH);
 	auto	H	= kfMeas.H.block(begH, begX, numH, numX);
@@ -1079,8 +1080,8 @@ void KFState::postFitSigmaChecks(
 	else if (postfitOpts.omega_test)
 	{
 		//use 'array' for component-wise calculations
-		auto		measNumerator		= (Qinv * v)				.array().square();		//weighted residuals squared
-		auto		stateNumerator		= (QinvH.transpose() * v)	.array().square();
+		auto		measNumerator		= (Qinv * V)				.array().square();		//weighted residuals squared
+		auto		stateNumerator		= (QinvH.transpose() * V)	.array().square();
 
 		auto		measDenominator		=  Qinv						.diagonal().array();	//weights
 		auto		stateDenominator	= (QinvH.transpose() * H)	.diagonal().array();
@@ -1202,12 +1203,12 @@ double KFState::innovChiSquare(
 	int			numH)		///< Number of measurements to process
 {
 	auto		H	= kfMeas.H.block(begH, begX, numH, numX);
-	auto		v	= kfMeas.V.segment(begH, numH);
+	auto		V	= kfMeas.V.segment(begH, numH);
 	auto		R	= kfMeas.R.block(begH, begH, numH, numH);
 	auto		P	= this->P.block(begX, begX, numX, numX);
 	MatrixXd	Q	= R + H * P * H.transpose();
 
-	double		chiSq = v.transpose() * Q.inverse() * v;
+	double		chiSq = V.transpose() * Q.inverse() * V;
 
 	trace << "\n" << "DOING INNOVATION CHI-SQUARE TEST:";
 	// for (int i = 0; i < numH; i++)	trace << "v(-): "	<< v(i) << "\tS: "		<< Q(i, i) << "\n";
@@ -1231,7 +1232,7 @@ bool KFState::kFilter(
 	int				numH)		///< Number of measurements to process
 {
 	auto& R			= kfMeas.R;
-	auto& v			= kfMeas.V;
+	auto& V			= kfMeas.V;
 	auto& H			= kfMeas.H;
 	auto& H_star	= kfMeas.H_star;
 
@@ -1239,7 +1240,7 @@ bool KFState::kFilter(
 	auto subR		= R		.block(begH, begH, numH, numH);
 	auto subH		= H		.block(begH, begX, numH, numX);
 	auto subP		= P		.block(begX, begX, numX, numX);
-	auto subV		= v		.segment(begH, numH);
+	auto subV		= V		.segment(begH, numH);
 	auto subH_star	= H_star.middleRows(begH, numH);			// todo Eugene: check chunking indices
 
 	MatrixXd	I			= MatrixXd::Identity(numH, numH);
@@ -1298,6 +1299,8 @@ bool KFState::kFilter(
 					||(postfitOpts.omega_test 	&&	(QinvH		=	solver.solve(subH),						solver.info() != Eigen::ComputationInfo::Success))
 					||(advanced_postfits		&&	(HRHQ_star	=	solver.solve(HRH_star)	.transpose(),	solver.info() != Eigen::ComputationInfo::Success)))
 				{
+					BOOST_LOG_TRIVIAL(warning) << "Warning: Innovation covariance matrix not invertible with LLT inverter, trying LDLT inverter instead";
+
 					inverter = E_Inverter::LDLT;
 					continue;
 				}
@@ -1307,6 +1310,16 @@ bool KFState::kFilter(
 			case E_Inverter::INV:
 			{
 				Qinv	= Q.inverse();
+
+				if	( Qinv.array().isNaN().any()
+					||Qinv.array().isInf().any())
+				{
+					BOOST_LOG_TRIVIAL(warning) << "Warning: Innovation covariance matrix not invertible with INV inverter, trying LDLT inverter instead";
+
+					inverter = E_Inverter::LDLT;
+					continue;
+				}
+
 				QinvH	= Qinv * subH;
 				K		= HP.transpose() * Qinv;
 
@@ -1361,7 +1374,7 @@ bool KFState::kFilter(
 		std::cout << "\n" << "P :" << "\n" << subP;
 		std::cout << "\n" << "R :" << "\n" << subR;
 		std::cout << "\n" << "K :" << "\n" << K;
-		std::cout << "\n" << "v :" << "\n" << subV;
+		std::cout << "\n" << "V :" << "\n" << subV;
 		std::cout << "\n";
 		std::cout << "NAN found. Exiting...";
 		std::cout << "\n";
@@ -1372,30 +1385,147 @@ bool KFState::kFilter(
 	return true;
 }
 
+/** Least squares estimator.
+*/
+bool KFState::leastSquare(
+	Trace&			trace,		///< Trace to output to
+	KFMeas&			kfMeas,		///< Measurements, noise, and design matrices
+	VectorXd&		xp,			///< Post-fit parameter vector
+	MatrixXd&		Pp)			///< Post-fit covariance of parameters
+{
+	//invert measurement noise matrix to get a weight matrix
+	ArrayXd	weights = 1 / kfMeas.R.diagonal().array();			// Eugene to check if R is diagonal
+			weights = weights.isFinite().select(weights, 0);	// Set weight to 0 if corresponding variance is 0
+	kfMeas.W = weights.matrix();
+
+	auto& H	= kfMeas.H;
+	auto& Y	= kfMeas.Y;
+
+	int numX = H.cols();
+	int numH = H.rows();
+
+	if	( numX == 0
+		||numH == 0)
+	{
+		trace << "\n" << "EMPTY DESIGN MATRIX DURING LEAST SQUARES";
+		return false;
+	}
+
+	if (numH < numX)
+	{
+		trace << "\n" << "Insufficient measurements for least squares " << numH <<  " < " << numX;
+		return false;
+	}
+
+	//calculate least squares solution
+	MatrixXd I		= MatrixXd::Identity(numX, numX);
+	MatrixXd W		= kfMeas.W.asDiagonal();
+	MatrixXd H_W	= H.transpose() * W;
+	MatrixXd N		= H_W * H;
+
+	bool repeat = true;
+	while (repeat)
+	{
+		switch (inverter)
+		{
+			default:
+			{
+				BOOST_LOG_TRIVIAL(warning) << "Warning: least squares inverter type " << inverter << " not supported, reverting";
+				inverter = E_Inverter::LDLT;
+				continue;
+			}
+			case E_Inverter::LDLT:
+			{
+				auto NN = N.triangularView<Eigen::Upper>().transpose();
+				LDLT<MatrixXd> solver;
+				if	( (			solver.compute(NN),		solver.info() != Eigen::ComputationInfo::Success)
+					||(Pp	=	solver.solve(I),		solver.info() != Eigen::ComputationInfo::Success))
+				{
+					BOOST_LOG_TRIVIAL(error) << "Error: Failed to solve normal equation, see trace file for matrices";
+
+					trace << "\n" << "Least Squares Error";
+					trace << "\n" << "N: " << "\n" << N;
+					trace << "\n" << "H: " << "\n" << H;
+					trace << "\n" << "W: " << "\n" << W;
+
+					return false;
+				}
+
+				break;
+			}
+			case E_Inverter::LLT:
+			{
+				auto NN = N.triangularView<Eigen::Upper>().transpose();
+				LLT<MatrixXd> solver;
+				if	( (			solver.compute(NN),		solver.info() != Eigen::ComputationInfo::Success)
+					||(Pp	=	solver.solve(I),		solver.info() != Eigen::ComputationInfo::Success))
+				{
+					BOOST_LOG_TRIVIAL(warning) << "Warning: Normal matrix not invertible with LLT inverter, trying LDLT inverter instead";
+
+					inverter = E_Inverter::LDLT;
+					continue;
+				}
+
+				break;
+			}
+			case E_Inverter::INV:
+			{
+				Pp	= N.inverse();
+
+				if	( Pp.array().isNaN().any()
+					||Pp.array().isInf().any())
+				{
+					BOOST_LOG_TRIVIAL(warning) << "Warning: Normal matrix not invertible with INV inverter, trying LDLT inverter instead";
+
+					inverter = E_Inverter::LDLT;
+					continue;
+				}
+
+				break;
+			}
+		}
+
+		repeat = false;
+	}
+
+	xp	= Pp * H_W * Y;
+
+// 	std::cout << "N : " << "\n" << N;
+	bool error = xp.array().isNaN().any();
+	if (error)
+	{
+		std::cout << "\n" << "xp:" << "\n" << xp << "\n";
+		std::cout << "\n" << "P :" << "\n" << P << "\n";
+		std::cout << "\n" << "W :" << "\n" << W << "\n";
+		std::cout << "\n" << "H :" << "\n" << H << "\n";
+		std::cout << "\n";
+		std::cout << "NAN found. Exiting....";
+		std::cout	<< "\n";
+
+		exit(-1);
+	}
+
+	return true;
+}
+
 /** Perform chi squared quality control.
 */
-bool KFState::chiQC(
+void KFState::chiQC(
 	Trace&		trace,      ///< Trace to output to
-	KFMeas&		kfMeas,		///< Measurements, noise, and design matrix
-	VectorXd&	xp)         ///< Post filtered state vector
+	KFMeas&		kfMeas)		///< Measurements, noise, and design matrix
 {
-	auto& H = kfMeas.H;
-	auto W = kfMeas.W(all, 0);
+	auto&	VV		= kfMeas.VV;
+	auto	W		= kfMeas.W.asDiagonal();
 
-	VectorXd&	y		= kfMeas.Y;
-	VectorXd	v		= y - H * xp;
-	double		v_Wv	= v.transpose() * W.asDiagonal() * v;
-
-	//trace << "\n" << "chiqcV" << v.rows() << "\n";
-
-	dof = v.rows() - (x.rows() - 1);	//ignore KF::ONE element -> -1
-	chi = v_Wv;
-
+	dof = VV.rows() - (x.rows() - 1);	//ignore KF::ONE element -> -1
 	if (dof < 1)
 	{
 		chiQCPass = true;
-		return true;
+		return;
 	}
+
+	chi2		= VV.transpose() * W * VV;
+	chi2PerDof	= chi2 / dof;
 
 	boost::math::normal normDist;
 
@@ -1403,23 +1533,17 @@ bool KFState::chiQC(
 
 	boost::math::chi_squared chiSqDist(dof);
 
-	double thres = quantile(complement(chiSqDist, alpha));
+	qc = quantile(complement(chiSqDist, alpha));
 
 	/* chi-square validation */
-	if (chi > thres)
+	if (chi2 > qc)
 	{
-		tracepdeex(5, trace, "\nChiSquare error detected: dof:%d chi:%f thres:%f", dof, chi, thres);
-
-// 		auto variations	= v.array().square();
-// 		Eigen::MatrixXf::Index index;
-// 		trace << " -> LARGEe ERROR OF " << sqrt(variations.maxCoeff(&index)) << " AT " << index;
-
 		chiQCPass = false;
-		return false;
+		return;
 	}
 
 	chiQCPass = true;
-	return true;
+	return;
 }
 
 /** Combine a list of KFMeasEntrys into a single KFMeas object for used in the filter
@@ -2029,70 +2153,34 @@ void KFState::leastSquareInitStates(
 	leastSquareMeasSubs.R		= leastSquareMeas.R;
 	leastSquareMeasSubs.H		= leastSquareMeas.H(all, usedStateIndicies);
 
-	//invert measurement noise matrix to get a weight matrix
-	leastSquareMeasSubs.W = (1 / leastSquareMeasSubs.R.diagonal().array()).matrix();
+	int usedStateCount = usedStateIndicies.size();
+	VectorXd	xp = VectorXd::Zero(usedStateCount);
+	MatrixXd	Pp = MatrixXd::Identity(usedStateCount, usedStateCount);
 
-	VectorXd w = (1 / leastSquareMeasSubs.R.diagonal().array()).matrix().col(0);
+		bool pass = leastSquare(trace, leastSquareMeasSubs, xp, Pp);
 
-	for (int i = 0; i < w.rows(); i++)
-	{
-		if (std::isinf(w(i)))
+		if (pass == false)
 		{
-			w(i) = 0;
+			trace << "LSQ FAILED" << "\n";
+			return;
 		}
-	}
-
-	if	( leastSquareMeasSubs.H.cols() == 0
-		||leastSquareMeasSubs.H.rows() == 0)
-	{
-		trace << "\n" << "EMPTY DESIGN MATRIX DURING LEAST SQUARES";
-		return;
-	}
-
-	if (leastSquareMeasSubs.R.rows() < leastSquareMeasSubs.H.cols())
-	{
-		trace << "\n" << "Insufficient measurements for least squares " << leastSquareMeasSubs.R.rows() <<  " " << x.rows();
-		return;
-	}
-	auto& H = leastSquareMeasSubs.H;
-	auto& Y = leastSquareMeasSubs.Y;
-
-// 	std::cout << "\nkfmeasY\n" << kfMeas.Y << "\n";
-// 	std::cout << "\nkfmeasV\n" << kfMeas.V << "\n";
-// 	std::cout << "\nY\n" << Y << "\n";
-
-	//calculate least squares solution
-	MatrixXd W		= w.asDiagonal();
-	MatrixXd H_W	= H.transpose() * W;
-	MatrixXd Q		= H_W * H;
-
-	MatrixXd Qinv	= Q.inverse();
-	VectorXd x1		= Qinv * H_W * Y;
-
-// 	std::cout << "Q : " << "\n" << Q;
-	bool error = x1.array().isNaN().any();
-	if (error)
-	{
-		std::cout << "\n" << "P :" << "\n" << P << "\n";
-		std::cout << "\n" << "x1:" << "\n" << x1 << "\n";
-		std::cout << "\n" << "w :" << "\n" << w << "\n";
-		std::cout << "\n" << "H :" << "\n" << H << "\n";
-		std::cout << "\n";
-		std::cout << "NAN found. Exiting....";
-		std::cout	<< "\n";
-
-		exit(-1);
-	}
 
 	if (chiSquareTest.enable)
-		chiQC(trace, leastSquareMeasSubs, x1);
+	{
+		chiQC(trace, leastSquareMeasSubs);
+
+		if (chiQCPass)	trace << "\nChi-square test passed: ";
+		else			trace << "\nChi-square test failed: ";
+
+		trace << "dof = " << dof << "\tchi^2 = " << chi2 << "\tthres = " << qc;
+	}
 
 	if (dx_ptr)
 	{
-		(*dx_ptr) = x1;	// Eugene: check if works for innovReady == false
+		(*dx_ptr) = xp;	// Eugene: check if works for innovReady == false
 	}
 
-	for (int i = 0; i < usedStateIndicies.size(); i++)
+	for (int i = 0; i < usedStateCount; i++)
 	{
 		int stateRowIndex = usedStateIndicies[i];
 
@@ -2101,8 +2189,8 @@ void KFState::leastSquareInitStates(
 			continue;
 		}
 
-		double newStateVal = x1(i);
-		double newStateCov = Qinv(i, i);
+		double newStateVal = xp(i);
+		double newStateCov = Pp(i, i);
 
 		dx(stateRowIndex)					=	newStateVal;
 
@@ -2110,7 +2198,7 @@ void KFState::leastSquareInitStates(
 		{
 			x(stateRowIndex)				+=	newStateVal;
 			P(stateRowIndex, stateRowIndex)	=	newStateCov;
-			kfMeas.VV						=	kfMeas.Y - H * x1;
+			kfMeas.VV						=	kfMeas.Y - kfMeas.H * dx;
 		}
 		else
 		{
@@ -2124,7 +2212,7 @@ void KFState::leastSquareInitStates(
 			{
 				int stateColIndex = usedStateIndicies[j];
 
-				newStateCov = Qinv(i, j);
+				newStateCov = Pp(i, j);
 
 				P(stateRowIndex, stateColIndex)	= newStateCov;
 				P(stateColIndex, stateRowIndex)	= newStateCov;

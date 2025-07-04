@@ -381,7 +381,7 @@ bool satPosClk(
 			obs.rSatCom[2],
 			obs.satClk * 1E9,
 			obs.posVar,
-			obs.satClkVar,
+			obs.satClkVar * SQR(CLIGHT),
 			obs.ephPosValid,
 			obs.posSource._to_string(),
 			obs.ephClkValid,

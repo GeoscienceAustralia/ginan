@@ -263,41 +263,52 @@ void orbitPseudoObs(
             continue;
         }
 
+        SatPos satPos;
+        satPos.Sat = obs.Sat;
+
+        satpos(trace, time, time, satPos, satOpts.posModel.sources, E_OffsetType::COM, nav);
+
+        satPos.rSatEci0 = frameSwapper(satPos.rSatCom, &satPos.satVel, &satPos.vSatEci0);
+
+        VectorEcef rSatEcef;
+        VectorEcef vSatEcef;
+
         VectorEci rSatEci;
         VectorEci vSatEci;
-
-        SatPos satPos;
 
         Matrix3d eopPartialMatrixEci = Matrix3d::Zero();
 
         if (acsConfig.eci_pseudoobs)
         {
+            if (obs.vel.isZero())
+            {
+                obs.vel = satPos.vSatEci0;
+            }
+
+            //Get framed vectors because obs is undefined
             rSatEci = obs.pos;
             vSatEci = obs.vel;
+
+            // No EOP Partials needed for ECI pseudo obs
         }
         else
         {
-            satPos.Sat = obs.Sat;
-
-            satpos(trace, time, time, satPos, satOpts.posModel.sources, E_OffsetType::COM, nav);
-
             if (obs.vel.isZero())
             {
                 obs.vel = satPos.satVel;
             }
 
             //Get framed vectors because obs is undefined
-            VectorEcef rSat = obs.pos;
-            VectorEcef vSat = obs.vel;
+            rSatEcef = obs.pos;
+            vSatEcef = obs.vel;
 
-            rSatEci = frameSwapper(rSat, &vSat, &vSatEci);
-            satPos.rSatEci0 = frameSwapper(satPos.rSatCom, &satPos.satVel, &satPos.vSatEci0);
+            rSatEci = frameSwapper(rSatEcef, &vSatEcef, &vSatEci);
 
-			if (acsConfig.pppOpts.eop.estimate[0])
-			{
-				eopPartialMatrixEci = receiverEopPartials(rSat) * frameSwapper.i2t_mat;
-			}
-		}
+            if (acsConfig.pppOpts.eop.estimate[0])
+            {
+                eopPartialMatrixEci = receiverEopPartials(satPos.rSatCom) * frameSwapper.i2t_mat;
+            }
+        }
 
         KFKey satPosKeys[3];
         KFKey satVelKeys[3];
@@ -322,75 +333,72 @@ void orbitPseudoObs(
             rateKeys[i].comment = (string)eopComments[i] + "/day";
         }
 
+        VectorEci statePosEci;
+
         for (int i = 0; i < 3; i++)
         {
             InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
             InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
-            if (posInit.estimate)
+
+            if (posInit.estimate == false)
             {
-                VectorEci statePosEci = rSatEci;
-
-                KFMeasEntry kfMeasEntry(&kfState);
-
-                kfState.getKFValue(satPosKeys[i], statePosEci[i]);
-
-                if (posInit.x == 0)		posInit.x = satPos.rSatEci0[i];
-                if (velInit.x == 0)		velInit.x = satPos.vSatEci0[i];
-
-                bool newState = false;
-                newState |= kfState.addKFState(satPosKeys[i], posInit);
-                newState |= kfState.addKFState(satVelKeys[i], velInit);
-
-                if (newState)
-                {
-                    statePosEci[i] = posInit.x;
-                }
-
-                kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
-
-                for (int num = 0; num < 3; num++)
-                {
-                    InitialState init = initialStateFromConfig(acsConfig.pppOpts.eop, num);
-                    InitialState eopRateInit = initialStateFromConfig(acsConfig.pppOpts.eop_rates, num);
-
-                    if (init.estimate == false)
-                    {
-                        continue;
-                    }
-
-                    if (init.x == 0)
-                        switch (num)
-                        {
-                        case 0:	init.x = erpv.xp * R2MAS;		eopRateInit.x = +erpv.xpr * R2MAS;	break;
-                        case 1:	init.x = erpv.yp * R2MAS;		eopRateInit.x = +erpv.ypr * R2MAS;	break;
-                        case 2:	init.x = erpv.ut1Utc * S2MTS;		eopRateInit.x = -erpv.lod * S2MTS;	break;
-                        }
-
-                    kfMeasEntry.addDsgnEntry(eopKeys[num], eopPartialMatrixEci(num, i), init);
-
-                    if (eopRateInit.estimate == false)
-                    {
-                        continue;
-                    }
-
-                    kfState.setKFTransRate(eopKeys[num], rateKeys[num], 1 / S_IN_DAY, eopRateInit);
-                }
-
-                double omc = rSatEci[i]
-                    - statePosEci[i];
-
-                kfMeasEntry.setInnov(omc);
-
-                kfMeasEntry.obsKey.comment = "ECI PseudoPos";
-                kfMeasEntry.obsKey.type = KF::ORBIT_MEAS;
-                kfMeasEntry.obsKey.Sat = obs.Sat;
-                kfMeasEntry.obsKey.num = i;
-                kfMeasEntry.metaDataMap["pseudoObs"] = (void*)true;
-
-                kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigma));
-
-                kfMeasEntryList.push_back(kfMeasEntry);
+                continue;
             }
+
+            if (posInit.x == 0)		posInit.x = satPos.rSatEci0[i];
+            if (velInit.x == 0)		velInit.x = satPos.vSatEci0[i];
+
+            statePosEci[i] = posInit.x;
+
+            kfState.getKFValue(satPosKeys[i], statePosEci[i]);
+
+            KFMeasEntry kfMeasEntry(&kfState);
+            kfMeasEntry.addDsgnEntry(satPosKeys[i], 1, posInit);
+
+            kfState.addKFState(satVelKeys[i], velInit);
+
+            for (int num = 0; num < 3; num++)
+            {
+                InitialState init = initialStateFromConfig(acsConfig.pppOpts.eop, num);
+                InitialState eopRateInit = initialStateFromConfig(acsConfig.pppOpts.eop_rates, num);
+
+                if (init.estimate == false)
+                {
+                    continue;
+                }
+
+                if (init.x == 0)
+                    switch (num)
+                    {
+                    case 0:	init.x = erpv.xp * R2MAS;		eopRateInit.x = +erpv.xpr * R2MAS;	break;
+                    case 1:	init.x = erpv.yp * R2MAS;		eopRateInit.x = +erpv.ypr * R2MAS;	break;
+                    case 2:	init.x = erpv.ut1Utc * S2MTS;	eopRateInit.x = -erpv.lod * S2MTS;	break;
+                    }
+
+                kfMeasEntry.addDsgnEntry(eopKeys[num], eopPartialMatrixEci(num, i), init);
+
+                if (eopRateInit.estimate == false)
+                {
+                    continue;
+                }
+
+                kfState.setKFTransRate(eopKeys[num], rateKeys[num], 1 / S_IN_DAY, eopRateInit);
+            }
+
+            double omc = rSatEci[i]
+                - statePosEci[i];
+
+            kfMeasEntry.setInnov(omc);
+
+            kfMeasEntry.obsKey.comment = "ECI PseudoPos";
+            kfMeasEntry.obsKey.type = KF::ORBIT_MEAS;
+            kfMeasEntry.obsKey.Sat = obs.Sat;
+            kfMeasEntry.obsKey.num = i;
+            kfMeasEntry.metaDataMap["pseudoObs"] = (void*)true;
+
+            kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigma));
+
+            kfMeasEntryList.push_back(kfMeasEntry);
         }
 
         addEmpStates(satOpts, kfState, obs.Sat);

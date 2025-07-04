@@ -140,6 +140,7 @@ void writeSp3Header(
 			//start a new line
 			tracepdeex(0, sp3Stream, "\n++       ");
 			lineEntries = 0;
+			lineNumber++;
 		}
 
 		auto it = entryList.find(Sat);
@@ -161,7 +162,7 @@ void writeSp3Header(
 			{
 				// Accuracy sigma = 2^(Accuracy) in millimeters.
 				//TODO Not sure if ceil or round is correct needs checking.
-				double val = std::ceil(std::log2(entry.sigma * 1000));
+				double val = std::ceil(std::log2(entry.sigma * CLIGHT * 1000));
 				tracepdeex(0, sp3Stream, "%3.0f", val);
 			}
 		}
@@ -248,7 +249,7 @@ void updateSp3Body(
 	{
 		writeSp3Header(sp3Stream, entryList, time, outSys, sp3FileData);
 	}
-	else
+	else    // todo Eugene: update accuracy sigmas as well
 	{
 		sp3FileData.numEpoch++;
 

@@ -2433,7 +2433,7 @@ SatelliteOptions& ACSConfig::getSatOpts(
 
             for (auto& yaml : yamls)
             {
-                stringsToYamlObject({ yaml, "" }, { "3! receiver_options" }, "Options to configure individual satellites, systems, or global configs");
+                stringsToYamlObject({ yaml, "" }, { "3! satellite_options" }, "Options to configure individual satellites, systems, or global configs");
 
                 getKalmanFromYaml(suffixOpts, { yaml, "" }, estimationDescriptorVec);
                 getOptionsFromYaml(suffixOpts, { yaml, "" }, optionsDescriptorVec);
@@ -2913,7 +2913,7 @@ bool configure(
 
 void ACSConfig::sanityChecks()
 {
-    if (ionErrors.outage_reset_limit < epoch_interval)		BOOST_LOG_TRIVIAL(warning) << "Warning: outage_reset_limit < epoch_interval, but it probably shouldnt be";
+    if (ionErrors.outage_reset_limit < epoch_interval)		BOOST_LOG_TRIVIAL(warning) << "Warning: ionospheric_components:outage_reset_limit < epoch_interval, but it probably shouldnt be";
 
     if (acsConfig.simulate_real_time == false)
     {
@@ -2921,6 +2921,15 @@ void ACSConfig::sanityChecks()
         {
             E_Sys sys = E_Sys::_values()[i];
             eph_time_delay[sys] = default_eph_time_delay[sys];
+        }
+    }
+
+    if (acsConfig.pppOpts.ionoOpts.use_if_combo)
+    {
+        for (auto& [id, recOpts] : recOptsMap)
+        {
+            if (recOpts.ionospheric_component2) {   recOpts.ionospheric_component2 = false;     BOOST_LOG_TRIVIAL(warning) << "Warning: Higher-order ionospheric corrections are not supported when use_if_combo is enabled, setting ionospheric_components:use_2nd_order to false";    }
+            if (recOpts.ionospheric_component3) {   recOpts.ionospheric_component3 = false;     BOOST_LOG_TRIVIAL(warning) << "Warning: Higher-order ionospheric corrections are not supported when use_if_combo is enabled, setting ionospheric_components:use_3rd_order to false";    }
         }
     }
 }
@@ -3565,7 +3574,7 @@ bool ACSConfig::parse(
                 conditionalPrefix("<SAT_DATA_ROOT>", com_files, tryGetFromAny(com_files, commandOpts, satellite_data, { "2@ com_files" }, "List of com        files to use - retroreflector offsets from centre-of-mass for spherical sats"));
                 conditionalPrefix("<SAT_DATA_ROOT>", crd_files, tryGetFromAny(crd_files, commandOpts, satellite_data, { "2@ crd_files" }, "List of crd        files to use - SLR observation data"));
                 conditionalPrefix("<SAT_DATA_ROOT>", obx_files, tryGetFromAny(obx_files, commandOpts, satellite_data, { "1! obx_files" }, "List of orbex      files to use"));
-                
+
                 // 			rtcm_inputs
                 {
                     auto rtcm_inputs = stringsToYamlObject(satellite_data, { "! rtcm_inputs" }, docs["rtcm_inputs"]);
@@ -3798,15 +3807,15 @@ bool ACSConfig::parse(
                 NodeStack& nodeStack,
                 FilterOptions& filterOpts)
                 {
-                    auto outlier_screening = stringsToYamlObject(nodeStack, { "! outlier_screening" }, "Statistical checks allow for detection of outliers that exceed their confidence intervals.");
+                    tryGetEnumOpt(filterOpts.inverter, nodeStack, { "@ inverter" }, "Inverter to be used within the Kalman filter update stage, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
 
                     if (std::get<1>(nodeStack).find("spp") == string::npos)
                     {
                         tryGetFromYaml(filterOpts.joseph_stabilisation, nodeStack, { "@ joseph_stabilisation" });
-                        tryGetEnumOpt(filterOpts.inverter, nodeStack, { "@ inverter" }, "Inverter to be used within the Kalman filter update stage, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
                         tryGetFromYaml(filterOpts.advanced_postfits, nodeStack, { "# advanced_postfits" }, "Use alternate calculation method to determine postfit residuals");
                     }
 
+                    auto outlier_screening = stringsToYamlObject(nodeStack, { "! outlier_screening" }, "Statistical checks allow for detection of outliers that exceed their confidence intervals.");
                     {
                         auto prefit = stringsToYamlObject(outlier_screening, { "! prefit" });
 
@@ -4183,8 +4192,6 @@ bool ACSConfig::parse(
         replaceTags(mongoOpts[E_Mongo::SECONDARY].database);
     }
 
-    sanityChecks();
-
     // 	get template options
     {
         SatSys dummySat("G00");
@@ -4217,6 +4224,8 @@ bool ACSConfig::parse(
         int level = commandOpts["yaml-defaults"].as<int>();
         outputDefaultConfiguration(level);
     }
+
+    sanityChecks();
 
     return true;
 }

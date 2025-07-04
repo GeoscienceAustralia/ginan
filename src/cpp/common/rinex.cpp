@@ -1833,6 +1833,7 @@ int readRnxClk(
 		std.offset += 5;
 	}
 
+    GTime time0;
 	while (std::getline(inputStream, line))
 	{
 		char*	buff	= &line[0];
@@ -1858,6 +1859,15 @@ int readRnxClk(
 		preciseClock.clkIndex	= index;
 
 		nav.pclkMap[idString][time] = preciseClock;
+
+        // Use minimum delta time between epochs as the data interval
+        double dt = (time - time0).to_double();
+        if (dt > 0 && dt < nav.pclkInterval)
+        {
+            nav.pclkInterval = dt;
+        }
+
+        time0 = time;
 	}
 
 	return nav.pclkMap.size() > 0;

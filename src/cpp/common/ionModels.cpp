@@ -60,6 +60,7 @@ double ionmodel(
 	if	( ion == nullptr
 		||norm(ion, 8) <= 0)
 	{
+		BOOST_LOG_TRIVIAL(warning) << "ionmodel: ionospheric model parameters are not set, using default values (2004/1/1)";
 		ion = ion_default;
 	}
 

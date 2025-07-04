@@ -293,6 +293,7 @@ void filterIonosphere(
 	//combine the measurement list into a single design matrix, measurement vector, and measurement noise vector
 	KFMeas kfMeas(kfState, kfMeasEntryList);
 
+	string suffix = "/IONO";
 	//if there are uninitialised state values, estimate them using least squares
 	if (kfState.lsqRequired)
 	{
@@ -304,10 +305,10 @@ void filterIonosphere(
 	{
 		trace << "\n" << "------- DOING IONO KALMAN FILTER --------" << "\n";
 
-		kfState.filterKalman(trace, kfMeas, "/IONO", false);
+		kfState.filterKalman(trace, kfMeas, suffix, false);
 	}
 
-	kfState.outputStates(trace, "/ION");
+	kfState.outputStates(trace, suffix);
 }
 
 

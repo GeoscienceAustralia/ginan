@@ -272,9 +272,9 @@ void mincon(
 			continue;
 		}
 
-		Vector3d	aprioriPos	= Vector3d::Zero();
-		Matrix3d	aprioriVar	= Matrix3d::Zero();
-		Matrix3d	filterVar	= Matrix3d::Zero();
+		Vector3d	aprioriPos		= Vector3d::Zero();
+		Matrix3d	aprioriPosVar	= Matrix3d::Zero();
+		Matrix3d	filterVar		= Matrix3d::Zero();
 		string		str;
 
 		if (key.type == +KF::REC_POS)
@@ -291,7 +291,7 @@ void mincon(
 			auto& recOpts	= acsConfig.getRecOpts(rec.id);
 
 			aprioriPos		= rec.minconApriori;
-			aprioriVar		= rec.aprioriVar								* SQR(recOpts.mincon_scale_apriori_sigma);
+			aprioriPosVar	= rec.aprioriPosVar								* SQR(recOpts.mincon_scale_apriori_sigma);
 			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* SQR(recOpts.mincon_scale_filter_sigma);
 			str				= rec.id;
 
@@ -310,7 +310,7 @@ void mincon(
 			auto& satOpts = acsConfig.getSatOpts(key.Sat);
 
 			aprioriPos		= satNav.aprioriPos;
-			aprioriVar		= Matrix3d::Identity()							* SQR(satOpts.mincon_scale_apriori_sigma);
+			aprioriPosVar	= Matrix3d::Identity()							* SQR(satOpts.mincon_scale_apriori_sigma);
 			filterVar		= kfStateStations.P.block(index, index, 3, 3)	* SQR(satOpts.mincon_scale_filter_sigma);
 			str				= key.Sat.id();
 
@@ -319,16 +319,16 @@ void mincon(
 
 		bool used = true;
 
-		MatrixXd noise = aprioriVar + filterVar;
+		MatrixXd noise = aprioriPosVar + filterVar;
 
-		if	( aprioriVar(0,0) <= 0
+		if	( aprioriPosVar(0,0) <= 0
 			&&acsConfig.minconOpts.transform_unweighted == false)
 		{
 			zeroAndPush(index, R, kfStateTrans, measList);
 			continue;
 		}
 
-		if	( aprioriVar(0,0) <= 0
+		if	( aprioriPosVar(0,0) <= 0
 			||aprioriPos.isZero())
 		{
 			R.row(index).setZero();
@@ -343,7 +343,7 @@ void mincon(
 			continue;
 		}
 
-		BOOST_LOG_TRIVIAL(debug) << "\n" << str << "Noises" << "\n" << aprioriVar << "\n" << filterVar;
+		BOOST_LOG_TRIVIAL(debug) << "\n" << str << "Noises" << "\n" << aprioriPosVar << "\n" << filterVar;
 
 		//get all of the position elements for this thing
 		Vector3d	filterPos = Vector3d::Zero();
@@ -493,25 +493,25 @@ void mincon(
 
 	if (estimateTransform)
 	{
+		string suffix = "/MINCON_TRANSFORM";
 		if (kfStateTrans.lsqRequired)
 		{
 			trace <<  "\n------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
 
+			string suffixLsq = suffix + "_LSQ";
 			VectorXd dx;
 			kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &dx);
 
 			kfStateTrans.dx = VectorXd::Zero(kfStateTrans.x.rows());
 
-			kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM_LSQ");
+			kfStateTrans.outputStates(trace, suffixLsq);
 		}
 
-	trace << "\n------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
+		trace << "\n------- FILTERING FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
 
-		// kfStateTrans.suffix = "/MINCON_TRANSFORM";
+		kfStateTrans.filterKalman(trace, combinedMeasCulled, suffix);
 
-		kfStateTrans.filterKalman(trace, combinedMeasCulled);
-
-		kfStateTrans.outputStates(trace, "/MINCON_TRANSFORM");
+		kfStateTrans.outputStates(trace, suffix);
 
 		if (kfStateTransform_ptr)
 		{
@@ -520,7 +520,7 @@ void mincon(
 
 		mongoStates(kfStateTrans,
 					{
-						.suffix		= "_MINCON_TRANSFORM",
+						.suffix		= suffix,
 						.instances	= acsConfig.mongoOpts.output_states,
 						.queue		= acsConfig.mongoOpts.queue_outputs
 					});

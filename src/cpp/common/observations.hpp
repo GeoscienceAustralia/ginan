@@ -196,11 +196,11 @@ struct SatPos
 	VectorEci	rSatEci0;							///< ECI  based vector of satellite          at nominal epoch
 	VectorEci	vSatEci0;							///< ECI  based vector of satellite velocity at nominal epoch
 
-	double		posVar			= 0;				///< Variance of ephemeris derived values
+	double		posVar			= 0;				///< Satellite position variances (m^2)
 
-	double		satClk			= 0;
-	double		satClkVel		= 0;
-	double		satClkVar		= 0;
+	double		satClk			= 0;				///< Satellite clock bias (s)
+	double		satClkVel		= 0;				///< Satellite clock rate (s/s)
+	double		satClkVar		= 0;				///< Satellite clock variance (s^2)
 
 	bool		sppValid		= 0;				///< Valid satellite flag
 

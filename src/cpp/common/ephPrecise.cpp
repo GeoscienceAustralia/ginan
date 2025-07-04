@@ -210,7 +210,7 @@ bool pephpos(
 		peph_it--;
 	}
 
-	auto middle0 = peph_it;
+	auto middle_it = peph_it;
 
 	//go forward a few steps to make sure we're far from the end of the map.
 	for (int i = 0; i < NMAX/2; i++)
@@ -260,7 +260,7 @@ bool pephpos(
 
 	if (vare)
 	{
-		double std = middle0->second.posStd.norm();
+		double std = middle_it->second.posStd.norm();
 
 		/* extrapolation error for orbit */
 		if      (t[0   ] > 0) std += EXTERR_EPH * SQR(t[0   ]) / 2;
@@ -291,8 +291,8 @@ bool pclkMapClk(
 	auto& [key, pclkMap] = *it;
 
 	if	( (pclkMap.size() < 2)
-		||(time	< pclkMap.begin()	->first - MAXDTE)
-		||(time	> pclkMap.rbegin()	->first + MAXDTE))
+		||(time	< pclkMap.begin()	->first - nav.pclkInterval)
+		||(time	> pclkMap.rbegin()	->first + nav.pclkInterval))   // Extrapolate for at most one data interval
 	{
 		BOOST_LOG_TRIVIAL(debug) << "no prec clock " << time.to_string() << " for " << id;
 
@@ -305,32 +305,39 @@ bool pclkMapClk(
 		pclk_it--;
 	}
 
-	auto middle0_it = pclk_it;
-
-	auto middle1_it = middle0_it;
-	if (middle0_it != pclkMap.begin())
+	auto point0_it = pclk_it;
+	auto point1_it = pclk_it;
+	if (point0_it != pclkMap.begin())
 	{
-		middle0_it--;
+		point0_it--;
+	}
+	else    // No need to check pclkMap.end() as pclkMap.size() >= 2
+	{
+		point1_it++;
 	}
 
-	auto& [time0, middle0] = *middle0_it;
-	auto& [time1, middle1] = *middle1_it;
+	auto& [time0, point0] = *point0_it;
+	auto& [time1, point1] = *point1_it;
 
 	//linear interpolation
 	double t[2];
 	double c[2];
 	t[0] = (time - time0).to_double();
 	t[1] = (time - time1).to_double();
-	c[0] = middle0.clk;
-	c[1] = middle1.clk;
+	c[0] = point0.clk;
+	c[1] = point1.clk;
+
+	double dt = t[0] - t[1];	// == (time1 - time0).to_double()
 
 	bool use0 = true;
 	bool use1 = true;
 
-	if (c[0] == INVALID_CLOCK_VALUE)		{	use0 = false;	}
-	if (c[1] == INVALID_CLOCK_VALUE)		{	use1 = false;	}
-	if (t[0] <= 0)							{	use1 = false;	}
-	if (t[1] >= 0)							{	use0 = false;	}
+	if		(c[0] == INVALID_CLOCK_VALUE)	{	use0 = false;					}
+	if		(c[1] == INVALID_CLOCK_VALUE)	{					use1 = false;	}
+
+	if		(t[0] == 0)						{					use1 = false;	}   // Use point0 if valid
+	else if	(t[1] == 0)						{	use0 = false;					}   // Use point1 if valid
+    else if (dt > nav.pclkInterval)			{	use0 = false;	use1 = false;	}   // Exclude interpolation within data gaps
 
 	if	(  use0 == false
 		&& use1 == false)
@@ -342,16 +349,14 @@ bool pclkMapClk(
 		return false;
 	}
 
-	double std = 0;
+	double clkVar = 0;
 
-	if		(use0 && use1)	{	clk = (c[1] * t[0] - c[0] * t[1]) / (t[0] - t[1]);		double inv0 = 1 / middle0.clkStd	* CLIGHT + EXTERR_CLK * fabs(t[0]);
-																						double inv1 = 1 / middle1.clkStd	* CLIGHT + EXTERR_CLK * fabs(t[1]);
-																						std			= 1 / (inv0 + inv1);											}
-	else if (use0)			{	clk = c[0];												std			= middle0.clkStd		* CLIGHT + EXTERR_CLK * fabs(t[0]);		}
-	else if (use1)			{	clk = c[1];												std			= middle1.clkStd		* CLIGHT + EXTERR_CLK * fabs(t[1]);		}
+	if		(use0 && use1)	{	clk = (c[1] * t[0] - c[0] * t[1]) / dt;		clkVar	= (SQR(point1.clkStd * t[0]) + SQR(point0.clkStd * t[1])) / SQR(dt);	}
+	else if (use0)			{	clk =  c[0];								clkVar	=  SQR(point0.clkStd);													}
+	else if (use1)			{	clk =  c[1];								clkVar	=  SQR(point1.clkStd);													}
 
 	if (varc)
-		*varc = SQR(std);
+		*varc = clkVar;
 
 	return true;
 }
@@ -463,7 +468,7 @@ bool satPosPrecise(
 	SatSys&		Sat,
 	Vector3d&	rSat,
 	Vector3d&	satVel,
-	double&		ephVar,
+	double&		posVar,
 	Navigation&	nav)
 {
 	rSat	= Vector3d::Zero();
@@ -476,7 +481,7 @@ bool satPosPrecise(
 	Vector3d rSat1 = Vector3d::Zero();
 	Vector3d rSat2 = Vector3d::Zero();
 
-	bool pass	=	pephpos(trace, time - tt,	Sat, nav, rSat1,	&ephVar)
+	bool pass	=	pephpos(trace, time - tt,	Sat, nav, rSat1,	&posVar)
 				&&	pephpos(trace, time + tt,	Sat, nav, rSat2);
 
 	if 	(pass == false)

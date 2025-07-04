@@ -424,7 +424,7 @@ bool satClkBroadcast(
 	SatSys			Sat,
 	double&			satClk,
 	double&			satClkVel,
-	double&			ephVar,
+	double&			clkVar,
 	bool&			ephClkValid,
 	int&			iode,
 	Navigation&		nav)
@@ -432,7 +432,7 @@ bool satClkBroadcast(
 	double		satClk1;
 	double		tt = 1E-3;
 
-	ephVar = SQR(STD_BRDCCLK);
+	clkVar = SQR(STD_BRDCCLK / CLIGHT);
 
 	int sys = Sat.sys;
 
@@ -529,7 +529,7 @@ bool satClkBroadcast(
 	SatSys			Sat,
 	double&			satClk,
 	double&			satClkVel,
-	double&			ephVar,
+	double&			clkVar,
 	bool&			ephClkValid,
 	int&			iode,
 	Navigation&		nav)
@@ -541,9 +541,9 @@ bool satClkBroadcast(
 	if		(  sys == +E_Sys::GPS
 			|| sys == +E_Sys::GAL
 			|| sys == +E_Sys::QZS
-			|| sys == +E_Sys::BDS)	{	return satClkBroadcast<Eph>		(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, iode, nav);	}
-	else if (  sys == +E_Sys::GLO)	{	return satClkBroadcast<Geph>	(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, iode, nav);	}
-	else if (  sys == +E_Sys::SBS)	{	return satClkBroadcast<Seph>	(trace, time, teph, Sat, satClk,	satClkVel,	ephVar, ephClkValid, iode, nav);	}
+			|| sys == +E_Sys::BDS)	{	return satClkBroadcast<Eph>		(trace, time, teph, Sat, satClk,	satClkVel,	clkVar, ephClkValid, iode, nav);	}
+	else if (  sys == +E_Sys::GLO)	{	return satClkBroadcast<Geph>	(trace, time, teph, Sat, satClk,	satClkVel,	clkVar, ephClkValid, iode, nav);	}
+	else if (  sys == +E_Sys::SBS)	{	return satClkBroadcast<Seph>	(trace, time, teph, Sat, satClk,	satClkVel,	clkVar, ephClkValid, iode, nav);	}
 	else							{	return false;																										}
 }
 

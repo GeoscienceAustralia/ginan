@@ -294,36 +294,50 @@ void selectAprioriSource(
 	auto clkModelSources = satOpts.clockModel.sources;
 
 	//remove kalman from the list to not corrupt the apriori states
-	auto brdcPosIt = std::find(posModelSources.begin(), posModelSources.end(), +E_Source::KALMAN);
-	auto brdcClkIt = std::find(clkModelSources.begin(), clkModelSources.end(), +E_Source::KALMAN);
+	auto posSource_it = std::find(posModelSources.begin(), posModelSources.end(), +E_Source::KALMAN);
+	auto clkSource_it = std::find(clkModelSources.begin(), clkModelSources.end(), +E_Source::KALMAN);
 
-	if (brdcPosIt != posModelSources.end())
+	if (posSource_it != posModelSources.end())
 	{
-		posModelSources.erase(brdcPosIt);
+		posModelSources.erase(posSource_it);
 	}
-	if (brdcClkIt != clkModelSources.end())
+	if (clkSource_it != clkModelSources.end())
 	{
-		clkModelSources.erase(brdcClkIt);
+		clkModelSources.erase(clkSource_it);
 	}
 
 	bool posPass = satpos(trace, time, time, satPos0, posModelSources, E_OffsetType::COM,	nav, &kfState, remote_ptr);
 	bool clkPass = satclk(trace, time, time, satPos0, clkModelSources,						nav, &kfState, remote_ptr);
 
-	if (posPass == false)	{	BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";	return;	}
-	if (clkPass == false)	{	BOOST_LOG_TRIVIAL(warning) << "Warning: No sat clk found for " << satPos0.Sat.id() << ".";	return;	}
-
-	ERPValues erpv = getErp(nav.erp, time);
-
-	FrameSwapper frameSwapper(time, erpv);
-
-	satNav.aprioriPos = frameSwapper(satPos0.rSatCom);
-	satNav.aprioriClk = satPos0.satClk;
-
 	tracepdeex(1, trace, "\n");
-	tracepdeex(1, trace, "\nSelecting apriori pos (ECI) at %s, found %-10s: [%f, %f, %f]",	time.to_string(), satPos0.posSource._to_string(), satNav.aprioriPos.x(), satNav.aprioriPos.x(), satNav.aprioriPos.x());
-	tracepdeex(1, trace, "\nSelecting apriori clk (m)   at %s, found %-10s: %f",			time.to_string(), satPos0.clkSource._to_string(), satNav.aprioriClk * CLIGHT);
 
-	updateSatAtts(satPos0);
+	if (posPass)
+	{
+		ERPValues erpv = getErp(nav.erp, time);
+
+		FrameSwapper frameSwapper(time, erpv);
+
+		satNav.aprioriPos = frameSwapper(satPos0.rSatCom);
+
+		tracepdeex(1, trace, "\nSelecting apriori pos (ECI) at %s, found %-10s: [%f, %f, %f]",	time.to_string(), satPos0.posSource._to_string(), satNav.aprioriPos.x(), satNav.aprioriPos.x(), satNav.aprioriPos.x());
+
+		updateSatAtts(satPos0);
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
+	}
+
+	if (clkPass)
+	{
+		satNav.aprioriClk = satPos0.satClk;
+
+		tracepdeex(1, trace, "\nSelecting apriori clk (m)   at %s, found %-10s: %f",			time.to_string(), satPos0.clkSource._to_string(), satNav.aprioriClk * CLIGHT);
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat clk found for " << satPos0.Sat.id() << ".";
+	}
 }
 
 void updateAprioriRecPos(
@@ -565,11 +579,11 @@ void selectAprioriSource(
 		Matrix3d varianceXYZ = E.transpose()	* enuNoise * E;
 
 
-		rec.aprioriVar 		= varianceXYZ;
+		rec.aprioriPosVar 	= varianceXYZ;
 	}
 	else
 	{
-		rec.aprioriVar		= rec.snx.var.asDiagonal();
+		rec.aprioriPosVar	= rec.snx.var.asDiagonal();
 	}
 
 	if (rec.sol.sppRRec.norm() < 0.001)

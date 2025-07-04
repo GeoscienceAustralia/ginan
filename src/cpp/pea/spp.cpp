@@ -76,11 +76,12 @@ bool prange(
 	//get a bias if the default invalid value is still present
 	double& B1		= obs.sigs[f_1].biases	[CODE];
 	double& var1	= obs.sigs[f_1].biasVars[CODE];
+	bool passB1		= true;
 	if (isnan(B1))
 	{
 		B1		= 0;
 		var1	= 0;
-		getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.sigs[f_1].code, CODE, B1, var1, kfState_ptr);
+		passB1	= getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.sigs[f_1].code, CODE, B1, var1, kfState_ptr);
 	}
 
 	double P1	= obs.sigs[f_1].P - B1;
@@ -98,12 +99,12 @@ bool prange(
 
 		double& B2		= obs.sigs[f_2].biases	[CODE];
 		double& var2	= obs.sigs[f_2].biasVars[CODE];
-
+		bool passB2		= true;
 		if (isnan(B2))
 		{
 			B2		= 0;
 			var2	= 0;
-			getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.sigs[f_2].code, CODE, B2, var2, kfState_ptr);
+			passB2	= getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.sigs[f_2].code, CODE, B2, var2, kfState_ptr);
 		}
 
 		double P2	= obs.sigs[f_2].P - B2;
@@ -118,20 +119,13 @@ bool prange(
 			return false;
 		}
 
-		double varP1 = 0;
-
-		//get a bias if the default invalid value is still present
-		if (isnan(obs.sigs[f_1].biases[CODE]))
+		if (passB1 == false)
 		{
-			bool pass = getBias(trace, obs.time, obs.Sat.id(), obs.Sat, obs.sigs[f_1].code, CODE, obs.sigs[f_1].biases[CODE], varP1, kfState_ptr);
-			if (pass == false)
-			{
-				BOOST_LOG_TRIVIAL(warning)
-				<< "Warning: Bias not found in " << __FUNCTION__ << " for " << obs.Sat.id();
-			}
+			BOOST_LOG_TRIVIAL(warning)
+			<< "Warning: Bias not found in " << __FUNCTION__ << " for " << obs.Sat.id() << " on " << obs.sigs[f_1].code._to_string();
 		}
 
-		PC = P1 - obs.sigs[f_1].biases[CODE];
+		PC = P1;
 	}
 
 	range	= PC;
@@ -362,12 +356,13 @@ E_Solution estpos(
 	KFState*	kfState_ptr = nullptr,	///< Optional kfstate pointer to retrieve ppp values from
 	string		description = "SPP")	///< Description to prepend to clarify outputs
 {
-	int numMeas = 0;
-
 	if (obsList.empty())
 	{
 		return E_Solution::NONE;
 	}
+
+	int numMeas = 0;
+	string suffix = (string)"/" + description;
 
 	auto& kfState = sol.sppState;
 	if (acsConfig.sppOpts.always_reinitialise)
@@ -560,7 +555,7 @@ E_Solution estpos(
 				vMeas *= 3;
 
 			double var	= vMeas
-						+ obs.satClkVar
+						+ obs.satClkVar * SQR(CLIGHT)
 						+ obs.posVar
 						+ vBias
 						+ vion
@@ -569,11 +564,15 @@ E_Solution estpos(
 			var *= SQR(acsConfig.sppOpts.sigma_scaling);
 
 			codeMeas.obsKey.Sat = obs.Sat;
+			codeMeas.obsKey.str = id;
+			codeMeas.obsKey.num = 0;	// todo Eugene: get sig code from prange
+			codeMeas.obsKey.type = KF::CODE_MEAS;
+			codeMeas.obsKey.comment = "SPP It " + std::to_string(iter);	// todo Eugene: use sig code
 
 			codeMeas.setValue(res);
 			codeMeas.setNoise(var);
 
-			codeMeas.metaDataMap["obs_ptr"] = (void*) &obs;
+			codeMeas.metaDataMap["sppObs_ptr"] = &obs;
 
 			kfMeasEntryList.push_back(codeMeas);
 
@@ -594,7 +593,20 @@ E_Solution estpos(
 
 		//combine the measurement list into a single matrix
 		numMeas = kfMeasEntryList.size();
+		sol.numMeas	= numMeas;
+
 		KFMeas kfMeas(kfState, kfMeasEntryList);
+
+		if	( kfMeas.H.cols() == 0)
+		{
+			BOOST_LOG_TRIVIAL(info)
+			<< __FUNCTION__ << ": no valid states on " << id << " after " << iter << " iterations";
+
+			printFailures(id, obsList);
+
+			tracepdeex(5, trace, "\nno valid states, END OF SPP LSQ");
+			return E_Solution::NONE;
+		}
 
 		if	( numMeas < kfMeas.H.cols() - 1
 			||numMeas == 0)
@@ -622,7 +634,7 @@ E_Solution estpos(
 		if (traceLevel >= 4)
 		{
 			kfMeas.V = kfMeas.Y;
-			outputResiduals(trace, kfMeas, iter, (string)"/" + description, 0, kfMeas.H.rows());
+			outputResiduals(trace, kfMeas, iter, suffix, 0, kfMeas.H.rows());
 		}
 
 		adjustment = dx.norm();
@@ -655,7 +667,7 @@ E_Solution estpos(
 			{
 				trace << "\n" << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : " << kfMeas.obsKeys[measIndex];
 
-				GObs& badObs = *(GObs*) kfMeas.metaDataMaps[measIndex]["obs_ptr"];
+				GObs& badObs = *(GObs*) kfMeas.metaDataMaps[measIndex]["sppObs_ptr"];
 
 				badObs.excludeOutlier = true;
 				continue;
@@ -664,26 +676,21 @@ E_Solution estpos(
 
 		if (adjustment < 1E-4)
 		{
-			double dtRec_m = 0;
-			kfState.getKFValue({KF::REC_SYS_BIAS, SatSys(E_Sys::GPS), id}, dtRec_m);
-
-			sol.numMeas	= numMeas;
-			sol.sppTime	= obsList.front()->time - dtRec_m / CLIGHT;
-
 			if (traceLevel >= 4)
 			{
-				kfState.outputStates(trace, (string)"/" + description);
+				kfState.outputStates(trace, suffix);
 			}
 
-			if (kfState.chiSquareTest.enable)
+			if (kfState.chiSquareTest.enable)	// todo Eugene: use meas chi-square test in algebra
 			{
-				double a = sqrt( kfState.P(1,1) + kfState.P(2,2) + kfState.P(3,3)	) * kfState.chi / kfState.dof;
-				double b = sqrt( kfState.P(4,4)										) * kfState.chi / kfState.dof;
+				double a = sqrt( kfState.P(1,1) + kfState.P(2,2) + kfState.P(3,3)	) * kfState.chi2PerDof;
+				double b = sqrt( kfState.P(4,4)										) * kfState.chi2PerDof;
 
-				tracepdeex(4, trace, "chi2stats: chi = %10f\n",							kfState.chi);
-				tracepdeex(4, trace, "chi2stats: dof = %10f\n",							kfState.dof);
-				tracepdeex(5, trace, "chi2stats: sqrt(var_pos) * chi^2/dof = %10f\n",	a);
-				tracepdeex(5, trace, "chi2stats: sqrt(var_dclk)* chi^2/dof = %10f\n",	b);
+				tracepdeex(4, trace, "\nchi2stats: chi^2     = %10f",					kfState.chi2);
+				tracepdeex(4, trace, "\nchi2stats: dof       = %10f",					kfState.dof);
+				tracepdeex(4, trace, "\nchi2stats: chi^2/dof = %10f",					kfState.chi2PerDof);
+				tracepdeex(5, trace, "\nchi2stats: sqrt(var_pos) * chi^2/dof = %10f",	a);
+				tracepdeex(5, trace, "\nchi2stats: sqrt(var_dclk)* chi^2/dof = %10f",	b);
 
 				if (kfState.chiQCPass == false)
 				{
@@ -709,6 +716,12 @@ E_Solution estpos(
 	if (iter >= acsConfig.sppOpts.max_lsq_iterations)
 	{
 		BOOST_LOG_TRIVIAL(debug) << "SPP failed to converge after " << iter << " iterations for " << id << " - " << description;
+
+		if (traceLevel >= 4)
+		{
+			// Still output states if fails to converge
+			kfState.outputStates(trace, suffix);
+		}
 	}
 
 	return E_Solution::NONE;
@@ -928,11 +941,11 @@ void spp(
 		obs.excludeBadSPP = true;
 	}
 
-	sol.sppState.outputStates(trace, "/SPP/" + id);
-
 	//copy states to often-used vectors
 	for (short i = 0; i	< 3; i++)							{										sol.sppState.getKFValue({KF::REC_POS,		{},		id, i},	sol.sppRRec[i]);	}
 	for (short i = E_Sys::GPS; i < +E_Sys::SUPPORTED; i++)	{	E_Sys sys = E_Sys::_values()[i];	sol.sppState.getKFValue({KF::REC_SYS_BIAS,	{sys},	id},	sol.dtRec_m[sys]);	}
+
+	sol.sppTime	= obsList.front()->time - sol.dtRec_m[E_Sys::GPS] / CLIGHT;
 
 	tracepdeex(3, trace, "\n%s  sol: %f %f %f",	__FUNCTION__, sol.sppRRec[0], sol.sppRRec[1], sol.sppRRec[2]);
 	tracepdeex(3, trace, "\n%s  clk: %f\n", 	__FUNCTION__, sol.dtRec_m[E_Sys::GPS]);

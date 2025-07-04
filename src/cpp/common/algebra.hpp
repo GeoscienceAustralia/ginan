@@ -386,8 +386,10 @@ struct KFState_ : FilterOptions
 	map<string, string>									metaDataMap;
 
 	bool		chiQCPass				= false;
-	double		chi						= 0;
+	double		chi2					= 0;
 	int			dof						= 0;
+	double		chi2PerDof				= INFINITY;
+	double		qc						= 0;
 
 	string		id						= "KFState";
 
@@ -619,10 +621,15 @@ struct KFState : KFState_
 		int				begH	=  0,
 		int				numH	= -1);
 
-	bool		chiQC(
+	bool leastSquare(
+		Trace&			trace,
+		KFMeas&			kfMeas,
+		VectorXd&		xp,
+		MatrixXd&		Pp);
+
+	void	chiQC(
 		Trace&		trace,
-		KFMeas&		kfMeas,
-		VectorXd&	xp);
+		KFMeas&		kfMeas);
 
 	void	outputStates(
 		Trace&			trace,
@@ -687,7 +694,7 @@ struct KFState : KFState_
 */
 struct KFMeasEntry
 {
-	KFState*	kfState_ptr	= nullptr;			///< Pointer to filter object that measurements are referencing
+	KFState*	kfState_ptr	= nullptr;		///< Pointer to filter object that measurements are referencing
 
 	double		valid		= true;			///< Optional parameter to invalidate a measurement (to avoid needing to delete it and reshuffle a vector)
 	double		value		= 0;			///< Value of measurement (for linear systems)

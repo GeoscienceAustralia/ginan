@@ -750,6 +750,8 @@ struct SppOptions : FilterOptions
 	double		sigma_scaling		= 1;
 	bool		raim				= true;
 
+	E_Inverter	inverter			= E_Inverter::INV;
+
 	E_IonoMode 	iono_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
 };
 

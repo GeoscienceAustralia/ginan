@@ -315,7 +315,7 @@ void receiverSlr(
 
 		KFMeasEntry measEntry(&kfState);
 
-		measEntry.metaDataMap["obs_ptr"]	= &obs;
+		measEntry.metaDataMap["slrObs_ptr"]	= &obs;
 
 		measEntry.obsKey.Sat	= obs.Sat;
 		measEntry.obsKey.str	= rec.id;
