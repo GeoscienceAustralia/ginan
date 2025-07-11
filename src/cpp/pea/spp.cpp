@@ -593,7 +593,6 @@ E_Solution estpos(
 
 		//combine the measurement list into a single matrix
 		numMeas = kfMeasEntryList.size();
-		sol.numMeas	= numMeas;
 
 		KFMeas kfMeas(kfState, kfMeasEntryList);
 
@@ -676,6 +675,8 @@ E_Solution estpos(
 
 		if (adjustment < 1E-4)
 		{
+			sol.numMeas	= numMeas;
+
 			if (traceLevel >= 4)
 			{
 				kfState.outputStates(trace, suffix);

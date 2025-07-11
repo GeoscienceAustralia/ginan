@@ -3807,10 +3807,11 @@ bool ACSConfig::parse(
                 NodeStack& nodeStack,
                 FilterOptions& filterOpts)
                 {
-                    tryGetEnumOpt(filterOpts.inverter, nodeStack, { "@ inverter" }, "Inverter to be used within the Kalman filter update stage, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
+				    tryGetEnumOpt(filterOpts.lsq_inverter, nodeStack, { "@ lsq_inverter" }, "Inverter to be used within the least squares estimater, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
 
-                    if (std::get<1>(nodeStack).find("spp") == string::npos)
+                    if (std::get<1>(nodeStack).find("spp") == string::npos) // Skip setting joseph_stabilisation and advanced_postfits for SPP
                     {
+                        tryGetEnumOpt(filterOpts.inverter, nodeStack, { "@ inverter" }, "Inverter to be used within the Kalman filter update stage, which may provide different performance outcomes in terms of processing time and accuracy and stability.");
                         tryGetFromYaml(filterOpts.joseph_stabilisation, nodeStack, { "@ joseph_stabilisation" });
                         tryGetFromYaml(filterOpts.advanced_postfits, nodeStack, { "# advanced_postfits" }, "Use alternate calculation method to determine postfit residuals");
                     }
@@ -3859,7 +3860,7 @@ bool ACSConfig::parse(
                         tryGetFromYaml(filterOpts.chiSquareTest.sigma_threshold, chi_sqaure, { "@ sigma_threshold" }, "Chi-square test threshold in terms of 'times of sigma'");
                     }
 
-                    if (std::get<1>(nodeStack).find("spp") == string::npos)
+                    if (std::get<1>(nodeStack).find("spp") == string::npos) // Skip setting RTS options for SPP
                     {
                         auto rts = stringsToYamlObject(nodeStack, { "@ rts" }, "RTS allows reverse smoothing of estimates such that early estimates can make use of later data.");
 

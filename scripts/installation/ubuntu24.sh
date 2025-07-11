@@ -87,4 +87,9 @@ echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gp
 $sudo_cmd apt update
 $sudo_cmd apt-get install -y mongodb-org
 
+$sudo_cmd echo "/usr/local/lib" > /etc/ld.so.conf.d/usr-local-lib.conf
+$sudo_cmd chown root:root /etc/ld.so.conf.d/usr-local-lib.conf
+$sudo_cmd chmod 644 /etc/ld.so.conf.d/usr-local-lib.conf
+$sudo_cmd ldconfig
+
 echo "Installation completed"

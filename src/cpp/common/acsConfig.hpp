@@ -695,6 +695,7 @@ struct FilterOptions : RtsOptions
 
 	bool		joseph_stabilisation	= false;
 
+	E_Inverter	lsq_inverter		    = E_Inverter::INV;
 	E_Inverter	inverter				= E_Inverter::LDLT;
 
 	PrefitOptions		prefitOpts;
@@ -749,8 +750,6 @@ struct SppOptions : FilterOptions
 	double		max_gdop			= 30;
 	double		sigma_scaling		= 1;
 	bool		raim				= true;
-
-	E_Inverter	inverter			= E_Inverter::INV;
 
 	E_IonoMode 	iono_mode  			= E_IonoMode::IONO_FREE_LINEAR_COMBO;
 };

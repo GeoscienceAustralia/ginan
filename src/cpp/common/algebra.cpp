@@ -1426,12 +1426,12 @@ bool KFState::leastSquare(
 	bool repeat = true;
 	while (repeat)
 	{
-		switch (inverter)
+		switch (lsq_inverter)
 		{
 			default:
 			{
-				BOOST_LOG_TRIVIAL(warning) << "Warning: least squares inverter type " << inverter << " not supported, reverting";
-				inverter = E_Inverter::LDLT;
+				BOOST_LOG_TRIVIAL(warning) << "Warning: least squares inverter type " << lsq_inverter << " not supported, reverting";
+				lsq_inverter = E_Inverter::LDLT;
 				continue;
 			}
 			case E_Inverter::LDLT:
@@ -1462,7 +1462,7 @@ bool KFState::leastSquare(
 				{
 					BOOST_LOG_TRIVIAL(warning) << "Warning: Normal matrix not invertible with LLT inverter, trying LDLT inverter instead";
 
-					inverter = E_Inverter::LDLT;
+					lsq_inverter = E_Inverter::LDLT;
 					continue;
 				}
 
@@ -1477,7 +1477,7 @@ bool KFState::leastSquare(
 				{
 					BOOST_LOG_TRIVIAL(warning) << "Warning: Normal matrix not invertible with INV inverter, trying LDLT inverter instead";
 
-					inverter = E_Inverter::LDLT;
+					lsq_inverter = E_Inverter::LDLT;
 					continue;
 				}
 

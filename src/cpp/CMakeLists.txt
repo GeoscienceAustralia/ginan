@@ -174,8 +174,6 @@ add_executable(pea
 add_dependencies(pea updateGit)
 
 target_include_directories(pea PUBLIC
-
-
 		configurator
 		../Architecture/
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -227,8 +225,7 @@ if (NetCDF_FOUND)
 			)
 
 	target_include_directories(otl PUBLIC
-			common
-			loading
+            ${CMAKE_CURRENT_SOURCE_DIR}
 			${YAML_INCLUDE_DIRS}
 			${Boost_INCLUDE_DIRS}
 			${NETCDF_INCLUDES}
@@ -236,7 +233,7 @@ if (NetCDF_FOUND)
 			)
 
 	target_include_directories(make_otl_blq PUBLIC
-			loading
+            ${CMAKE_CURRENT_SOURCE_DIR}
 			${YAML_INCLUDE_DIRS}
 			${Boost_INCLUDE_DIRS}
 			${NETCDF_INCLUDES}
@@ -244,7 +241,7 @@ if (NetCDF_FOUND)
 			)
 
 	target_include_directories(interpolate_loading PUBLIC
-			loading
+            ${CMAKE_CURRENT_SOURCE_DIR}
 			${YAML_INCLUDE_DIRS}
 			${Boost_INCLUDE_DIRS}
 			${NETCDF_INCLUDES}
