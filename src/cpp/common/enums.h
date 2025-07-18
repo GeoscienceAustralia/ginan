@@ -12,7 +12,7 @@ public:                                      	\
 
 typedef enum
 {
-    FTYPE_NONE,
+    NONE,
 
     /* Base carrier frequencies */
     F1 = 1,		 	//  1575.42  MHz: GPS L1, GAL E1,  BDS B1,  QZS L1,  SBS L1,

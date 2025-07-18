@@ -1872,7 +1872,7 @@ void KFState::filterKalman(
 
 
 	statisticsMap["States"] = x.rows();
-
+	BOOST_LOG_TRIVIAL(info) << " ------- FILTERING BY CHUNK " << filterChunkMap.size() << "         --------\n";
 	for (auto& [id, fc] : filterChunkMap)
 	{
 		if (fc.numH == 0)

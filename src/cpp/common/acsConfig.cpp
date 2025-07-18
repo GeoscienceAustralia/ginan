@@ -2344,10 +2344,51 @@ void getOptionsFromYaml(
     for (E_ObsCode2 obsCode2 : E_ObsCode2::_values())
     {
         {
-        } {
-            auto& thing = recOpts.rinex23Conv.codeConv[obsCode2];	setInited(recOpts, thing, tryGetEnumOpt(thing, recNode, { "@ rinex2", "@ rnx_code_conversions",	obsCode2._to_string() }));
-        } {
-            auto& thing = recOpts.rinex23Conv.phasConv[obsCode2];	setInited(recOpts, thing, tryGetEnumOpt(thing, recNode, { "@ rinex2", "@ rnx_phase_conversions",	obsCode2._to_string() }));
+            auto& thing = recOpts.rinex23Conv.codeConv[obsCode2];	setInited(recOpts, thing, tryGetEnumOpt(thing, recNode, { "@ rinex2", "@ rnx_code_conversions",	std::string(obsCode2._to_string()) }));
+        }
+        {
+            // Handle phase conversions as arrays
+            auto& thing = recOpts.rinex23Conv.phasConv[obsCode2];
+            vector<string> yamlPath = { "@ rinex2", "@ rnx_phase_conversions", std::string(obsCode2._to_string()) };
+
+            auto [phaseNode, stack] = stringsToYamlObject(recNode, yamlPath, "");
+
+            if (phaseNode.IsDefined())
+            {
+                thing.clear();
+                if (phaseNode.IsSequence())
+                {
+                    // Handle array of values
+                    for (auto item : phaseNode)
+                    {
+                        try
+                        {
+                            string codeStr = item.as<string>();
+                            E_ObsCode obsCode = E_ObsCode::_from_string(codeStr.c_str());
+                            thing.push_back(obsCode);
+                        }
+                        catch (...)
+                        {
+                            // Skip invalid enum values
+                        }
+                    }
+                }
+                else
+                {
+                    // Handle single value (backward compatibility)
+                    try
+                    {
+                        string codeStr = phaseNode.as<string>();
+                        E_ObsCode obsCode = E_ObsCode::_from_string(codeStr.c_str());
+                        thing.push_back(obsCode);
+                    }
+                    catch (...)
+                    {
+                        // Skip invalid enum values
+                    }
+                }
+                setInited(recOpts, thing, !thing.empty());
+            }
         }
     }
 }
@@ -3909,7 +3950,6 @@ bool ACSConfig::parse(
 
                 tryGetFromYaml(pppOpts.chunk_size, ppp_filter, { "@ chunking", "@ size" });
                 tryGetFromYaml(pppOpts.receiver_chunking, ppp_filter, { "@ chunking", "@ by_receiver" }, "Split large filter and measurement matrices blockwise by receiver ID to improve processing speed");
-                tryGetFromYaml(pppOpts.satellite_chunking, ppp_filter, { "@ chunking", "@ by_satellite" }, "Split large filter and measurement matrices blockwise by satellite ID to improve processing speed");
 
                 tryGetFromYaml(pppOpts.filter_reset_enable, ppp_filter, { "@ periodic_reset", "@ enable" }, "Enable periodic reset of filter states");
                 tryGetFromYaml(pppOpts.reset_interval, ppp_filter, { "@ periodic_reset", "@ interval" }, "Interval between reset of filter states");

@@ -33,7 +33,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 {
 	{	E_Sys::GPS,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1C,	F1	},
 			{E_ObsCode::L1S,	F1	},
 			{E_ObsCode::L1L,	F1	},
@@ -63,7 +63,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
 	{	E_Sys::GLO,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1C,	G1	},
 			{E_ObsCode::L1P,	G1	},
 
@@ -86,7 +86,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
 	{	E_Sys::GAL,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1A,	F1	},
 			{E_ObsCode::L1B,	F1	},
 			{E_ObsCode::L1C,	F1	},
@@ -115,7 +115,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
 	{	E_Sys::BDS,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1D,	F1	},
 			{E_ObsCode::L1P,	F1	},
 			{E_ObsCode::L1X,	F1	},
@@ -156,7 +156,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
 	{	E_Sys::QZS,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1C,	F1	},
 			{E_ObsCode::L1E,	F1	},
 			{E_ObsCode::L1S,	F1	},
@@ -188,7 +188,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 		{
 			/* NavIC F1 in the works... */
 
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L5A,	F5	},
 			{E_ObsCode::L5B,	F5	},
 			{E_ObsCode::L5C,	F5	},
@@ -203,7 +203,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
 	{	E_Sys::SBS,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1C,	F1	},
 
 			{E_ObsCode::L5I,	F5	},
@@ -214,7 +214,7 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq =
 
     {	E_Sys::LEO,
 		{
-			{E_ObsCode::NONE,	FTYPE_NONE},
+			{E_ObsCode::NONE,	NONE},
 			{E_ObsCode::L1C,	F1	},
 			{E_ObsCode::L1S,	F1	},
 			{E_ObsCode::L1L,	F1	},

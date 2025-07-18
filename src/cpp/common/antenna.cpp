@@ -520,7 +520,7 @@ void readantexf(
 	GTime					validFrom;
 	GTime					validUntil;
 
-	E_FType	ft	= FTYPE_NONE;
+	E_FType	ft	= NONE;
 	E_Sys	sys	= E_Sys::NONE;
 
 	while (fileStream)

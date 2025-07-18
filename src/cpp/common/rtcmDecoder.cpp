@@ -1225,7 +1225,7 @@ ObsList RtcmDecoder::decodeMSM(
 		Sig sig;
 		sig.code = sigNum;
 
-		E_FType ft = FTYPE_NONE;
+		E_FType ft = NONE;
 		if (code2Freq.find(rtcmsys) != code2Freq.end())
 		{
 			if (code2Freq[rtcmsys].find(sig.code) != code2Freq[rtcmsys].end())	// must not skip unknwon/unsupported systems or signals in the list of signals -- unknown != no observation

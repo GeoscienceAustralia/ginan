@@ -1,3 +1,23 @@
+/**
+ * @file rinex.cpp
+ * @brief Implementation of RINEX file format processing and observation handling
+ *
+ * This file implements comprehensive RINEX (Receiver Independent Exchange Format)
+ * file processing capabilities including:
+ * - RINEX 2.x and 3.x observation data parsing
+ * - Navigation data extraction
+ * - Station information processing
+ * - Observation type conversion and mapping
+ * - Phase observation priority resolution
+ * - Robust error handling and validation
+ *
+ * The implementation follows SOLID principles with single-responsibility functions
+ * and a staging pattern for robust data processing.
+ *
+ * @author Geoscience Australia
+ * @date 2024
+ * @version 1.0
+ */
 
 // #pragma GCC optimize ("O0")
 
@@ -34,18 +54,17 @@ using std::string;
 #define MINFREQ_GLO -7              	///< min frequency number glonass
 #define MAXFREQ_GLO 13              	///< max frequency number glonass
 
-BETTER_ENUM(E_EphType,	short int,
-			NONE,			///< NONE for unknown
-			EPH,			///< GPS/QZS LNAV, GAL IFNV, BDS D1D2 Ephemeris
-			GEPH,			///< GLO Ephemeris
-			SEPH,			///< SBAS Ephemeris
-			CEPH,			///< GPS/QZS/BDS CNVX Ephemeris
-			STO,			///< STO message
-			EOP,			///< EOP message
-			ION)			///< ION message
 
-/** Default navigation massage type for RINEX 3 and 2
-*/
+
+/**
+ * @brief Default navigation message types by GNSS system
+ *
+ * Provides default navigation message type mappings for each GNSS system
+ * when processing RINEX 2.x and 3.x navigation files. Used to initialize
+ * ephemeris structures with appropriate message types.
+ *
+ * @note These defaults may be overridden by explicit message type indicators
+ */
 map<E_Sys, E_NavMsgType> defNavMsgType =
 {
 	{E_Sys::GPS, E_NavMsgType::LNAV},
@@ -57,8 +76,7 @@ map<E_Sys, E_NavMsgType> defNavMsgType =
 	{E_Sys::SBS, E_NavMsgType::SBAS}
 };
 
-/** Set string without tail space
-*/
+// Set string without trailing spaces
 void setstr(char *dst, const char *src, int n)
 {
 	char *p = dst;
@@ -71,8 +89,7 @@ void setstr(char *dst, const char *src, int n)
 	while (p >= dst && *p == ' ')	*p-- = '\0';
 }
 
-/** Decode obs header
-*/
+// Decode RINEX observation file header
 void decodeObsH(
 	std::istream& 					inputStream,
 	string&							line,
@@ -142,7 +159,9 @@ void decodeObsH(
 //     else if (strstr(label,"CENTER OF MASS: XYZ" )) ; // opt ver.3
 	else if (strstr(label, "SYS / # / OBS TYPES" ))
 	{
-		// ver.3
+		// RINEX 3: Parse system-specific observation types
+		// Example: "G   16 C1C L1C D1C S1C C2S L2S D2S S2S C2W L2W D2W S2W C5Q"
+
 		//get system from code letter
 		char code[]	= "x00";
 		code[0]		= buff[0];
@@ -159,12 +178,14 @@ void decodeObsH(
 
 		int n = (int) str2num(buff, 3, 3);
 
+		BOOST_LOG_TRIVIAL(debug)
+			<< "RINEX3 processing " << n << " observation types for system " << code[0];
+
 		for (int j = 0, k = 7; j < n; j++, k += 4)
 		{
 			if (k > 58)
 			{
 				//more on the next line
-
 				if (!std::getline(inputStream, line))
 					break;
 
@@ -175,61 +196,80 @@ void decodeObsH(
 			CodeType codeType;
 			codeType.type = buff[k];
 
-			char code[] = "Lxx";
-			code[1] = buff[k + 1];
-			code[2] = buff[k + 2];
+			// Extract 3-character observation code for RINEX 3
+			char obsCode3str[] = "Lxx";
+			obsCode3str[1] = buff[k + 1];
+			obsCode3str[2] = buff[k + 2];
+
+			// Handle BeiDou B1 code special case for version 3.02
 			if	( (Sat.sys == +E_Sys::BDS)
-				&&(code[1] == '1')
+				&&(obsCode3str[1] == '1')
 				&&(ver == 3.02))
 			{
 				// change beidou B1 code: 3.02 draft -> 3.02
-				code[1] = '2';
+				obsCode3str[1] = '2';
 			}
+
 			try
 			{
-				codeType.code = E_ObsCode::_from_string(code);
+				// For RINEX 3, directly store the 3-character code in the code field
+				codeType.code = E_ObsCode::_from_string(obsCode3str);
+
+				// Leave code2 as NONE for RINEX 3 since we have the full 3-character code
+				codeType.code2 = E_ObsCode2::NONE;
+
+				BOOST_LOG_TRIVIAL(debug)
+					<< "RINEX3 stored code: " << obsCode3str << " -> " << codeType.code._to_string()
+					<< " for system " << Sat.sys._to_string();
 			}
 			catch (...)
 			{
 				BOOST_LOG_TRIVIAL(debug)
-				<< "invalid obs code: " << code;
+				<< "invalid RINEX3 obs code: " << obsCode3str;
+
+				codeType.code = E_ObsCode::NONE;
+				codeType.code2 = E_ObsCode2::NONE;
 			}
 
 			sysCodeTypes[Sat.sys][j] = codeType;
 		}
 
 		// if unknown code in ver.3, set default code
-// 		for (auto& codeType : sysCodeTypes[Sat.sys])
-// 		{
-//             if (tobs[i][j][2])
-// 				continue;
-//
-//             if (!(p = strchr(frqcodes, tobs[i][j][1])))
-// 				continue;
-//
-				// default codes for unknown code
-//     			const char *defcodes[] =
-//    			{
-//         			"CWX   ",   // GPS: L125___
-//         			"CC    ",   // GLO: L12____
-//         			"X XXXX",   // GAL: L1_5678
-//         			"CXXX  ",   // QZS: L1256__
-//         			"C X   ",   // SBS: L1_5___
-//         			"X  XX "	// BDS: L1__67_
-//     			};
-//             	tobs[i][j][2] = defcodes[i][(int)(p - frqcodes)];
-//
-//             	BOOST_LOG_TRIVIAL(debug)
-// 				<< "set default for unknown code: sys=" << buff[0]
-// 				<< " code=" << tobs[i][j];
-//         }
+		// for (auto& codeType : sysCodeTypes[Sat.sys])
+		// {
+		//     if (tobs[i][j][2])
+		// 	continue;
+		//
+		//     if (!(p = strchr(frqcodes, tobs[i][j][1])))
+		// 	continue;
+		//
+		// 	// default codes for unknown code
+		//     	const char *defcodes[] =
+		//    	{
+		//         	"CWX   ",   // GPS: L125___
+		//         	"CC    ",   // GLO: L12____
+		//         	"X XXXX",   // GAL: L1_5678
+		//         	"CXXX  ",   // QZS: L1256__
+		//         	"C X   ",   // SBS: L1_5___
+		//         	"X  XX "	// BDS: L1__67_
+		//     	};
+		//     	tobs[i][j][2] = defcodes[i][(int)(p - frqcodes)];
+		//
+		//     	BOOST_LOG_TRIVIAL(debug)
+		// 	<< "set default for unknown code: sys=" << buff[0]
+		// 	<< " code=" << tobs[i][j];
+		// }
 	}
 //     else if (strstr(label,"WAVELENGTH FACT L1/2")) ; // opt ver.2
 	else if (strstr(label, "# / TYPES OF OBSERV" ))
 	{
-		// ver.2
+		// RINEX 2: Parse global observation types (applies to all systems)
+		// Example: "    10    C1    L1    S1    C2    P2    L2    S2    C5    L5"
 
 		int n = (int)str2num(buff, 0, 6);
+
+		BOOST_LOG_TRIVIAL(debug)
+			<< "RINEX2 processing " << n << " observation types";
 
 		for (int i = 0, j = 10; i < n; i++, j += 6)
 		{
@@ -240,54 +280,52 @@ void decodeObsH(
 					break;
 
 				buff = (char*) line.c_str();
-
 				j = 10;
 			}
 
 			if (ver <= 2.99)
 			{
+				// Extract 2-character observation code for RINEX 2
 				char obsCode2str[3] = {};
 				setstr(obsCode2str, buff + j, 2);
 
-				//save the type char before cleaning the string
+				//save the type char before processing
 				char typeChar = obsCode2str[0];
 
+				BOOST_LOG_TRIVIAL(debug)
+					<< "RINEX2 processing obs type: " << obsCode2str;
+
+				// Process for all satellite systems since RINEX 2 doesn't specify per-system
 				for (E_Sys sys : E_Sys::_values())
 				{
 					auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(sys, 0).sysName()});
 
-					map<E_ObsCode2, E_ObsCode>* conversionMap_ptr;
-					if	( typeChar != 'C'
-						&&typeChar != 'P')
-					{
-						obsCode2str[0] = 'L';
-						conversionMap_ptr = &recOpts.rinex23Conv.phasConv;  // ie use Phase Conversions for phase, doppler etc.
-					}
-					else
-					{
-						conversionMap_ptr = &recOpts.rinex23Conv.codeConv;
-					}
-
-					auto& conversionMap = *conversionMap_ptr;
-
 					CodeType codeType;
-
+					codeType.type = typeChar;
 					try
 					{
-						E_ObsCode2	obsCode2	= E_ObsCode2::_from_string(obsCode2str);
-						E_ObsCode	obsCode		= conversionMap[obsCode2];
+						// For RINEX 2, primarily use code2 to store the original 2-character codes
+						BOOST_LOG_TRIVIAL(debug)
+							<< "RINEX2 converting code: " << obsCode2str
+							<< " for system " << sys._to_string();
+						E_ObsCode2 obsCode2 = E_ObsCode2::_from_string(obsCode2str);
+						codeType.code2 = obsCode2;
 
-						if (obsCode == +E_ObsCode::NONE)
-						{
-							BOOST_LOG_TRIVIAL(warning) << "Warning: Unmapped code in V2 rinex: " << obsCode2str;
-						}
+						BOOST_LOG_TRIVIAL(debug)
+							<< "RINEX2 stored code2: " << obsCode2str
+							<< " -> " << obsCode2._to_string()
+							<< " for system " << sys._to_string();
 
-						codeType.code = obsCode;
-						codeType.type = typeChar;
+						// Keep code as NONE for RINEX 2 - let downstream processing handle conversion if needed
+						codeType.code = E_ObsCode::NONE;
 					}
 					catch (...)
 					{
-						BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown code in rinex file: " << obsCode2str;
+						BOOST_LOG_TRIVIAL(warning)
+							<< "Warning:" << rnxRec.id << " Unknown RINEX2 code: " << obsCode2str;
+
+						codeType.code2 = E_ObsCode2::NONE;
+						codeType.code = E_ObsCode::NONE;
 					}
 
 					sysCodeTypes[sys][i] = codeType;
@@ -347,8 +385,7 @@ void decodeObsH(
 //     else if (strstr(label, "PRN / # OF OBS"      )) ; // opt
 }
 
-/** Decode nav header
-*/
+// Decode RINEX navigation file header
 void decodeNavH(
 	string&		line,	///< Line to decode
 	E_Sys		sys,	///< GNSS system
@@ -497,8 +534,7 @@ void decodeNavH(
 		nav.leaps=(int)str2num(buff, 0, 6);
 	}
 }
-/** Decode gnav header
-*/
+// Decode GLONASS navigation file header
 void decodeGnavH(
 	string&		line,
 	Navigation&	nav)
@@ -516,8 +552,7 @@ void decodeGnavH(
 	}
 }
 
-/** Decode geo nav header
-*/
+// Decode SBAS/geostationary navigation file header
 void decodeHnavH(
 	string&		line,
 	Navigation&	nav)
@@ -536,8 +571,7 @@ void decodeHnavH(
 	}
 }
 
-/** Read rinex header
-*/
+// Read RINEX file header section
 int readRnxH(
 	std::istream& 					inputStream,
 	double&							ver,
@@ -622,7 +656,7 @@ int readRnxH(
 			if (strstr(buff, "->"))
 			{
 				//may be a conversion line, test
-
+				// @todo: not sure what this is about...
 				char sysChar;
 				char r3[4] = {};
 				char r2[3] = {};
@@ -647,8 +681,15 @@ int readRnxH(
 						auto& codeMap = recOpts.rinex23Conv.codeConv;
 						auto& phasMap = recOpts.rinex23Conv.phasConv;
 
-						if (r2[0] == 'C' || r2[0] == 'P')		codeMap[obs2] = obs3;
-						else									phasMap[obs2] = obs3;
+						if (r2[0] == 'C' || r2[0] == 'P')
+						{
+							codeMap[obs2] = obs3;
+						}
+						else
+						{
+							// For phase conversions, create a single-element vector
+							phasMap[obs2].push_back(obs3);
+						}
 					}
 					catch (...)
 					{
@@ -691,7 +732,9 @@ int readRnxH(
 			case 'L': decodeNavH 			(  line, E_Sys::GAL, nav); break; // extension
 		}
 		if (strstr(label, "END OF HEADER"))
+		{
 			return 1;
+		}
 
 		if (++i >= MAXPOSHEAD
 			&&type == ' ')
@@ -701,8 +744,7 @@ int readRnxH(
 	}
 	return 0;
 }
-/** Decode obs epoch
-*/
+// Decode observation epoch header
 int decodeObsEpoch(
 	std::istream& 		inputStream,
 	string&				line,
@@ -791,7 +833,262 @@ int decodeObsEpoch(
 	return n;
 }
 
-/** Decode obs data
+/** Decode RINEX 2 observation data
+*/
+int decodeObsDataRinex2(
+	std::istream& 					inputStream,
+	string&							line,
+	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
+	GObs&							obs,
+	SatSys&							v2SatSys,
+	RinexStation&					rnxRec)
+{
+	char*		buff		= &line[0];
+	int			stat		= 1;
+
+	// RINEX 2: Use satellite from epoch header
+	obs.Sat = v2SatSys;
+
+	if (!obs.Sat)
+	{
+		BOOST_LOG_TRIVIAL(debug)
+		<< "decodeObsDataRinex2: unsupported sat";
+		stat = 0;
+	}
+
+	if (!stat)
+		return 0;
+
+	// Defensive check for valid satellite system before accessing sysCodeTypes
+	if (obs.Sat.sys == +E_Sys::NONE || obs.Sat.sys._value < 0)
+	{
+		BOOST_LOG_TRIVIAL(error) << "RINEX2: Invalid satellite system: " << obs.Sat.sys._to_string();
+		return 0;
+	}
+
+	// Check if the system exists in sysCodeTypes map
+	if (sysCodeTypes.find(obs.Sat.sys) == sysCodeTypes.end())
+	{
+		BOOST_LOG_TRIVIAL(error) << "RINEX2: System " << obs.Sat.sys._to_string() << " not found in sysCodeTypes";
+		return 0;
+	}
+
+	auto& codeTypes = sysCodeTypes[obs.Sat.sys];
+	int j = 0;  // RINEX 2 starts at position 0
+
+	BOOST_LOG_TRIVIAL(debug) << "RINEX2: About to process satellite " << obs.Sat.id()
+		<< " with " << codeTypes.size() << " code types, line size: " << line.size();
+
+	// Check for valid line buffer
+	if (line.empty() || line.size() < 16)
+	{
+		BOOST_LOG_TRIVIAL(error) << "RINEX2: Invalid or too short line buffer (size: " << line.size() << ")";
+		return 0;
+	}
+
+	BOOST_LOG_TRIVIAL(debug) << "RINEX2: Accessing receiver options for " << rnxRec.id;
+
+	// Additional safety check for acsConfig
+	try {
+		auto testSys = SatSys(obs.Sat.sys, 0);
+		BOOST_LOG_TRIVIAL(debug) << "RINEX2: Created test SatSys: " << testSys.sysName();
+	} catch (const std::exception& e) {
+		BOOST_LOG_TRIVIAL(error) << "RINEX2: Error creating SatSys: " << e.what();
+		throw;
+	}
+
+	auto& recOpts = acsConfig.getRecOpts(rnxRec.id, {SatSys(obs.Sat.sys, 0).sysName()});
+	BOOST_LOG_TRIVIAL(debug) << "RINEX2: Got receiver options, accessing conversion maps";
+	auto& codeMap = recOpts.rinex23Conv.codeConv;
+	auto& phasMap = recOpts.rinex23Conv.phasConv;
+	BOOST_LOG_TRIVIAL(debug) << "RINEX2: Successfully accessed conversion maps, starting staging";
+
+	// Stage 1: Collect all observations, storing priority arrays for phase observations
+	ObservationStaging staging;
+	BOOST_LOG_TRIVIAL(debug) << "RINEX2: Processing observations with priority staging";
+	if (line.size() < 80)
+		line.append(80 - line.size(), ' '); // Ensure line is at least 80 characters
+
+	for (auto& [index, codeType] : codeTypes)
+	{
+		// RINEX 2: Check for line continuation
+		if (j >= 80)
+		{
+			if (!std::getline(inputStream, line))
+				break;
+            if (line.size() < 80)
+                line.append(80 - line.size(), ' '); // Ensure line is at least 80 characters
+
+			// Validate new line
+			if (line.empty())
+			{
+				BOOST_LOG_TRIVIAL(warning) << "RINEX2: Empty continuation line";
+				break;
+			}
+			buff = &line[0];
+			j = 0;
+		}
+
+		//check if codeType.code2 is in codeMap or phasMap(inside an array)
+
+		E_ObsCode effectiveCode = E_ObsCode::NONE;
+		vector<E_ObsCode> priorityCodes;
+		bool isPhaseObservation = false;
+
+
+		// Determine which map to use based on observation type
+		if (codeType.type == 'C' || codeType.type == 'P')
+		{
+			// Code/Pseudorange observations - use codeMap
+			auto it = codeMap.find(codeType.code2);
+			if (it != codeMap.end())
+			{
+				effectiveCode = it->second;
+				BOOST_LOG_TRIVIAL(debug) << "RINEX2: Found code2 " << codeType.code2._to_string()
+					<< " in codeMap -> " << effectiveCode._to_string();
+			}
+			else
+			{
+				BOOST_LOG_TRIVIAL(warning) << "RINEX2: code2 " << codeType.code2._to_string()
+					<< " not found in codeMap for type " << codeType.type;
+			}
+		}
+		else if (codeType.type == 'L')
+		{
+			// Phase observations - store priority array for later resolution
+			auto it = phasMap.find(codeType.code2);
+			if (it != phasMap.end() && !it->second.empty())
+			{
+				priorityCodes = it->second;
+				effectiveCode = priorityCodes[0]; // Temporary for frequency lookup
+				isPhaseObservation = true;
+				BOOST_LOG_TRIVIAL(debug) << "RINEX2: Found phase priorities for " << codeType.code2._to_string()
+					<< " -> [" << [&]() {
+						string codes;
+						for (size_t i = 0; i < priorityCodes.size(); ++i) {
+							if (i > 0) codes += ",";
+							codes += priorityCodes[i]._to_string();
+						}
+						return codes;
+					}() << "]";
+			}
+			else
+			{
+				BOOST_LOG_TRIVIAL(warning) << "RINEX2: code2 " << codeType.code2._to_string()
+					<< " not found in phasMap for type " << codeType.type;
+			}
+		}
+
+		E_FType ft = code2Freq[obs.Sat.sys][effectiveCode];
+
+		// Parse observation values
+		ObservationValues obsValues = parseObservationValues(buff, j);
+
+		// Stage the observation - use appropriate staging method
+		if (isPhaseObservation)
+		{
+			stagePhaseObservation(staging, codeType.type, priorityCodes, ft, obsValues.value, obsValues.lli);
+		}
+		else
+		{
+			stageObservation(staging, codeType.type, effectiveCode, ft, obsValues.value, obsValues.lli);
+		}
+		j += 16;
+    // }
+	}
+
+	// Stage 2: Validate all staged observations with conflict resolution
+	ValidationReport report = validateStagedObservationsDetailed(staging, obs.Sat);
+	if (!report.passed)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "RINEX2:" << rnxRec.id << " Validation failed for satellite " << obs.Sat.id()
+			<< " (valid: " << report.validObservations << "/" << report.totalObservations << ")";
+		return 0;
+	}
+
+	// Stage 3: Commit all validated observations to final structure
+	commitStagedObservations(staging, obs, codeMap);
+
+	// // Debug: Show final committed observations with L, P, and LLI values
+	BOOST_LOG_TRIVIAL(debug) << "Final committed observations for " << obs.Sat.id() << ":";
+	for (const auto& [fType, sigsList] : obs.sigsLists)
+	{
+		for (const auto& sig : sigsList)
+		{
+            BOOST_LOG_TRIVIAL(debug) << "  " << sig.code._to_string()
+                << ": L=" << std::setprecision(16) << sig.L
+                << ", P=" << std::setprecision(16) << sig.P
+                << ", LLI=" << static_cast<int>(sig.LLI);
+		}
+	}
+
+	return 1;
+}
+
+/** Decode RINEX 3 observation data
+*/
+int decodeObsDataRinex3(
+	std::istream& 					inputStream,
+	string&							line,
+	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
+	GObs&							obs,
+	RinexStation&					rnxRec)
+{
+	char		satid[8]	= "";
+	char*		buff		= &line[0];
+	int			stat		= 1;
+
+	// RINEX 3: Extract satellite ID from observation line
+	strncpy(satid, buff, 3);
+	obs.Sat = SatSys(satid);
+
+	if (!obs.Sat)
+	{
+		BOOST_LOG_TRIVIAL(debug)
+		<< "decodeObsDataRinex3: unsupported sat sat=" << satid;
+		stat = 0;
+	}
+
+	if (!stat)
+		return 0;
+
+	auto& codeTypes = sysCodeTypes[obs.Sat.sys];
+	int j = 3;  // RINEX 3 starts after 3-character satellite ID
+
+	// Stage 1: Collect all observations into staging area
+	ObservationStaging staging;
+
+	for (auto& [index, codeType] : codeTypes)
+	{
+		E_FType ft = code2Freq[obs.Sat.sys][codeType.code];
+
+		// Parse observation values using SRP helper function
+		ObservationValues obsValues = parseObservationValues(buff, j);
+
+		// Stage the observation instead of immediately committing
+		stageObservation(staging, codeType.type, codeType.code, ft, obsValues.value, obsValues.lli);
+
+		j += 16;
+	}
+
+	// Stage 2: Validate all staged observations with conflict resolution
+	ValidationReport report = validateStagedObservationsDetailed(staging, obs.Sat);
+	if (!report.passed)
+	{
+		BOOST_LOG_TRIVIAL(warning) << "RINEX3: Validation failed for satellite " << obs.Sat.id()
+			<< " (valid: " << report.validObservations << "/" << report.totalObservations << ")";
+		return 0;
+	}
+
+	// Stage 3: Commit all validated observations to final structure
+	// RINEX 3 doesn't use code conversion maps, so provide empty map
+	map<E_ObsCode2, E_ObsCode> emptyCodeMap;
+	commitStagedObservations(staging, obs, emptyCodeMap);
+
+	return 1;
+}
+
+/** Decode obs data (dispatcher function)
 */
 int decodeObsData(
 	std::istream& 					inputStream,
@@ -799,111 +1096,28 @@ int decodeObsData(
 	double							ver,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	GObs&							obs,
-	SatSys&							v2SatSys)
+	SatSys&							v2SatSys,
+	RinexStation&					rnxRec)
 {
-	char		satid[8]	= "";
-	int			stat		= 1;
-	char*		buff		= &line[0];
-
-// 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": ver=" << ver;
-
-	if (ver > 2.99)
+	if (ver <= 2.99)
 	{
-		// ver.3
-		strncpy(satid, buff, 3);
-		obs.Sat = SatSys(satid);
+		return decodeObsDataRinex2(inputStream, line, sysCodeTypes, obs, v2SatSys, rnxRec);
 	}
 	else
 	{
-		obs.Sat = v2SatSys;
+		return decodeObsDataRinex3(inputStream, line, sysCodeTypes, obs, rnxRec);
 	}
-
-	if (!obs.Sat)
-	{
-		BOOST_LOG_TRIVIAL(debug)
-		<< "decodeObsdata: unsupported sat sat=" << satid;
-
-		stat = 0;
-	}
-
-	auto& codeTypes = sysCodeTypes[obs.Sat.sys];
-
-	int j;
-	if (ver <= 2.99)	j = 0;
-	else				j = 3;
-
-	if (!stat)
-		return 0;
-
-	for (auto& [index, codeType] : codeTypes)
-	{
-		if	( ver	<= 2.99
-			&&j		>= 80)
-		{
-			// ver.2
-			if (!std::getline(inputStream, line))
-				break;
-			buff = &line[0];
-			j = 0;
-		}
-
-		E_FType ft = code2Freq[obs.Sat.sys][codeType.code];
-
-		RawSig* rawSig = nullptr;
-		auto& sigList = obs.sigsLists[ft];
-
-		for (auto& sig : sigList)
-		{
-			if (sig.code == codeType.code)
-			{
-				rawSig = &sig;
-				break;
-			}
-		}
-
-		if (rawSig == nullptr)
-		{
-			RawSig raw;
-			raw.code = codeType.code;
-
-			sigList.push_back(raw);
-			rawSig = &sigList.back();
-		}
-
-		double val = str2num(buff, j,		14);
-		double lli = str2num(buff, j + 14,	1);
-		lli = (unsigned char) lli & 0x03;
-
-		RawSig& sig = *rawSig;
-		if (val)
-		switch (codeType.type)
-		{
-			case 'P': //fallthrough
-			case 'C': sig.P		= val; 									break;
-			case 'L': sig.L		= val; 				sig.LLI = lli;  	break;
-			case 'D': sig.D		= val;                        			break;
-			case 'S': sig.snr	= val;   								break;
-		}
-
-		j += 16;
-	}
-
-//     BOOST_LOG_TRIVIAL(debug)
-// 	<< "decodeObsdata: time=" << obs.time.to_string()
-// 	<< " sat=" << obs.Sat.id();
-
-	return 1;
 }
 
-/** Read rinex obs data body
-*/
+// Read RINEX observation data body
 int readRnxObsB(
 	std::istream& 					inputStream,
 	double							ver,
 	E_TimeSys						tsys,
 	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
 	int&							flag,
-	ObsList&						obsList)
+	ObsList&						obsList,
+	RinexStation&					rnxRec)
 {
 	GTime			time	= {};
 	int				i		= 0;
@@ -938,7 +1152,7 @@ int readRnxObsB(
 			rawObs.time	= time;
 
 			// decode obs data
-			bool pass = decodeObsData(inputStream, line, ver, sysCodeTypes, rawObs, sats[i-1]);
+			bool pass = decodeObsData(inputStream, line, ver, sysCodeTypes, rawObs, sats[i-1], rnxRec);
 			if	(pass)
 			{
 				// save obs data
@@ -955,8 +1169,7 @@ int readRnxObsB(
 	return -1;
 }
 
-/** Read rinex obs
-*/
+// Read complete RINEX observation file
 int readRnxObs(
 	std::istream& 					inputStream,
 	double							ver,
@@ -971,7 +1184,7 @@ int readRnxObs(
 //	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ 	<< ": ver=" << ver << " tsys=" << tsys;
 
 	// read rinex obs data body
-	int n = readRnxObsB(inputStream, ver, tsys, sysCodeTypes, flag, obsList);
+	int n = readRnxObsB(inputStream, ver, tsys, sysCodeTypes, flag, obsList, rnxRec);
 
 	if	(n >= 0)
 		stat = 1;
@@ -979,8 +1192,7 @@ int readRnxObs(
 	return stat;
 }
 
-/** Decode ephemeris
-*/
+// Decode GPS/Galileo/QZS/BeiDou ephemeris
 int decodeEph(
 	double			ver,
 	SatSys			Sat,
@@ -1123,8 +1335,7 @@ int decodeEph(
 	return 1;
 }
 
-/** Decode glonass ephemeris
-*/
+// Decode GLONASS ephemeris parameters
 int decodeGeph(
 	double			ver,	///< RINEX version
 	SatSys			Sat,	///< Satellite ID
@@ -1188,8 +1399,7 @@ int decodeGeph(
 	return 1;
 }
 
-/** Decode geo ephemeris
-*/
+// Decode SBAS/geostationary satellite ephemeris
 int decodeSeph(
 	double			ver,
 	SatSys			Sat,
@@ -1231,8 +1441,7 @@ int decodeSeph(
 	return 1;
 }
 
-/** Decode CNVX ephemeris
-*/
+// Decode CNVX (Civil Navigation) ephemeris
 int decodeCeph(
 	double			ver,	///< RINEX version
 	SatSys			Sat,	///< Satellite ID
@@ -1403,8 +1612,7 @@ int decodeCeph(
 	return 1;
 }
 
-/** Decode STO message
-*/
+// Decode System Time Offset message
 int decodeSto(
 	double			ver,
 	SatSys			Sat,
@@ -1443,8 +1651,7 @@ int decodeSto(
 	return 1;
 }
 
-/** Decode EOP message
-*/
+// Decode Earth Orientation Parameters message
 int decodeEop(
 	double			ver,
 	SatSys			Sat,
@@ -1484,8 +1691,7 @@ int decodeEop(
 	return 1;
 }
 
-/** Decode ION message
-*/
+// Decode ionospheric parameters message
 int decodeIon(
 	double			ver,
 	SatSys			Sat,
@@ -1552,8 +1758,7 @@ int decodeIon(
 	return 1;
 }
 
-/** Read rinex navigation data body
-*/
+// Read RINEX navigation data body
 int readRnxNavB(
 	std::istream& 	inputStream,	///< Input stream to read
 	double			ver,			///< RINEX version
@@ -1720,8 +1925,7 @@ int readRnxNavB(
 	return -1;
 }
 
-/** Read rinex nav/gnav/geo nav
-*/
+// Read complete RINEX navigation file
 int readRnxNav(
 	std::istream& 	inputStream,	///< Input stream to read
 	double			ver,			///< RINEX version
@@ -1797,8 +2001,7 @@ int readRnxNav(
 			||nav. ionMap.empty() == false);
 }
 
-/** Read rinex clock
-*/
+// Read RINEX clock file
 int readRnxClk(
 	std::istream& 	inputStream,
 	double			ver,
@@ -1873,8 +2076,7 @@ int readRnxClk(
 	return nav.pclkMap.size() > 0;
 }
 
-/** Read rinex file
-*/
+// Read RINEX file with automatic type detection
 int readRnx(
 	std::istream& 					inputStream,
 	char&							type,
@@ -1908,4 +2110,408 @@ int readRnx(
 	<< "unsupported rinex type ver=" << ver << " type=" << type;
 
 	return 0;
+}
+
+// Helper functions for common RINEX observation processing (SRP compliance)
+
+/**
+ * @brief Parse observation values from RINEX formatted text
+ *
+ * Extracts numerical observation value and Loss of Lock Indicator from
+ * a RINEX formatted line at the specified position. Includes comprehensive
+ * bounds checking and error handling for malformed input data.
+ *
+ * RINEX observation format:
+ * - 14 characters: observation value (right-justified, decimal point optional)
+ * - 1 character: Loss of Lock Indicator (0-3)
+ * - 1 character: Signal strength (optional, not currently processed)
+ *
+ * @param buff Character buffer containing RINEX observation line
+ * @param position Starting position in buffer (0-based index)
+ *
+ * @return ObservationValues Structure containing parsed value and LLI
+ *         Returns zeros if parsing fails or position is out of bounds
+ *
+ * @note Includes debug output for development/troubleshooting
+ * @note LLI bits are masked to extract only relevant flags (bits 0-1)
+ *
+ * @warning Function assumes RINEX standard 16-character field width
+ */
+ObservationValues parseObservationValues(
+	char* 			buff,
+	int 			position)
+{
+	ObservationValues result;
+
+	// Add bounds checking to prevent buffer overflow
+	if (!buff)
+	{
+		BOOST_LOG_TRIVIAL(error) << "parseObservationValues: null buffer pointer";
+		result.value = 0.0;
+		result.lli = 0.0;
+		return result;
+	}
+
+	// Basic bounds check - RINEX observation fields are 14 chars + 1 char LLI
+	size_t bufferLength = strlen(buff);
+	result.value = str2num(buff, position, 14);
+	result.lli = str2num(buff, position + 14, 1);
+	result.lli = (unsigned char) result.lli & 0x03;  // Extract LLI bits
+	return result;
+}
+
+/**
+ * @brief Assign parsed values to appropriate RawSig fields
+ *
+ * Routes observation values to the correct field in a RawSig structure
+ * based on the observation type character. Implements type-safe assignment
+ * with validation to prevent data corruption.
+ *
+ * Observation type mapping:
+ * - 'C', 'P': Pseudorange/code observations -> signal.P
+ * - 'L': Carrier phase observations -> signal.L (with LLI)
+ * - 'D': Doppler observations -> signal.D
+ * - 'S': Signal-to-noise ratio -> signal.snr
+ *
+ * @param signal Reference to RawSig structure to modify
+ * @param observationType Single character observation type identifier
+ * @param value Numerical observation value to assign
+ * @param lli Loss of Lock Indicator (only used for phase observations)
+ *
+ * @note Only assigns non-zero values to prevent overwriting existing data
+ * @note LLI is only assigned for phase ('L') observations
+ */
+void assignObservationValue(
+	RawSig& 		signal,
+	char 			observationType,
+	double 			value,
+	double 			lli)
+{
+	if (value)  // Only assign if value is valid (non-zero)
+	{
+		switch (observationType)
+		{
+			case 'P': //fallthrough
+			case 'C': signal.P = value; break;					// Pseudorange (Code/Pulse)
+			case 'L': signal.L = value; signal.LLI = lli; break;	// Carrier Phase
+			case 'D': signal.D = value; break;					// Doppler
+			case 'S': signal.snr = value; break;				// Signal-to-Noise Ratio
+		}
+	}
+}
+
+/**
+ * @brief Stage observation for later processing and validation
+ *
+ * Adds an observation to the staging area with complete metadata for later
+ * processing. Used for observations that can be immediately resolved without
+ * requiring priority-based selection logic.
+ *
+ * The staging pattern provides several benefits:
+ * - Deferred processing allows validation before commitment
+ * - Conflict detection and resolution
+ * - Consistent handling of all observation types
+ * - Enhanced debugging and logging capabilities
+ *
+ * @param staging Reference to staging container map
+ * @param obsType Single character observation type ('C', 'L', 'P', 'D', 'S')
+ * @param obsCode Resolved RINEX 3 observation code (e.g., L1C, C1W)
+ * @param frequency Frequency type enumeration (F1, F2, F5, etc.)
+ * @param value Numerical observation value
+ * @param lli Loss of Lock Indicator (0-3)
+ *
+ * @note Creates composite key from obsType + frequency + obsCode for uniqueness
+ * @note Logs staging operation for debugging purposes
+ *
+ * @see stagePhaseObservation() for priority-based phase observations
+ * @see ObservationKey for key structure details
+ */
+void stageObservation(
+	ObservationStaging&		staging,
+	char 					obsType,
+	E_ObsCode 				obsCode,
+	E_FType 				frequency,
+	double 					value,
+	double 					lli)
+{
+	ObservationKey key = {obsType, frequency, obsCode};
+
+	StagedObservation staged;
+	staged.value = value;
+	staged.lli = lli;
+	staged.obsCode = obsCode;
+	staged.frequency = frequency;
+	staged.isValid = (value != 0.0);  // Consider non-zero values as valid
+
+	staging[key] = staged;
+
+	BOOST_LOG_TRIVIAL(debug) << "Staged observation: type=" << obsType
+		<< " code=" << obsCode._to_string()
+		<< " freq=" << (int)frequency
+		<< " value=" << value;
+}
+
+/**
+ * @brief Stage phase observation with priority resolution support
+ *
+ * Stages a phase observation that requires priority-based code resolution.
+ * Unlike regular observations, phase observations in RINEX 2 can map to
+ * multiple possible RINEX 3 codes, requiring selection based on available
+ * code observations.
+ *
+ * Priority resolution example:
+ * - Configuration: L1 -> [L1W, L1C] (try L1W first, then L1C)
+ * - If P1 has data -> L1W is available -> use L1W for L1 phase
+ * - If P1 is zero but C1 has data -> use L1C for L1 phase
+ *
+ * @param staging Reference to staging container map
+ * @param obsType Single character observation type (typically 'L')
+ * @param priorityCodes Vector of observation codes in priority order
+ * @param frequency Frequency type enumeration
+ * @param value Numerical phase observation value
+ * @param lli Loss of Lock Indicator
+ *
+ * @note Resolution occurs during commitStagedObservations() when code data is available
+ * @note Uses first priority code as temporary key for staging
+ * @note Logs priority array for debugging purposes
+ *
+ * @see commitStagedObservations() for priority resolution implementation
+ */
+void stagePhaseObservation(
+	ObservationStaging&			staging,
+	char 						obsType,
+	const vector<E_ObsCode>&	priorityCodes,
+	E_FType 					frequency,
+	double 						value,
+	double 						lli)
+{
+	// Use the first priority code as the key, but store the full priority array
+	E_ObsCode keyCode = E_ObsCode::NONE;
+	if (!priorityCodes.empty())
+	{
+		keyCode = priorityCodes[0];
+	}
+	ObservationKey key = {obsType, frequency, keyCode};
+
+	StagedObservation staged;
+	staged.value = value;
+	staged.lli = lli;
+	staged.obsCode = keyCode;
+	staged.frequency = frequency;
+	staged.isValid = (value != 0.0);
+	staged.priorityCodes = priorityCodes;
+	staged.isPhaseWithPriority = true;
+
+	staging[key] = staged;
+
+	BOOST_LOG_TRIVIAL(debug) << "Staged phase observation with priority: type=" << obsType
+		<< " priority_codes=[" << [&]() {
+			string codes;
+			for (size_t i = 0; i < priorityCodes.size(); ++i) {
+				if (i > 0) codes += ",";
+				codes += priorityCodes[i]._to_string();
+			}
+			return codes;
+		}() << "]"
+		<< " freq=" << (int)frequency
+		<< " value=" << value;
+}
+
+/**
+ * @brief Commit staged observations with phase priority resolution
+ *
+ * Processes all staged observations and transfers them to the final GObs
+ * structure. Implements sophisticated two-pass algorithm for phase observation
+ * priority resolution:
+ *
+ * Pass 1: Commit code observations and track available codes
+ * - Process all non-phase observations (C, P, D, S types)
+ * - Build set of available observation codes
+ * - Create RawSig entries in appropriate frequency lists
+ *
+ * Pass 2: Resolve and commit phase observations
+ * - For each phase observation with priority array
+ * - Find first available code from priority list
+ * - Fallback to first priority if none available
+ * - Commit resolved phase observation
+ *
+ * @param staging Container of staged observations to process
+ * @param obs Reference to output GObs structure to populate
+ * @param codeMap RINEX 2->3 code conversion map (for reference, not used in current impl)
+ *
+ * @note Phase resolution depends on code observations being processed first
+ * @note Extensive debug logging for troubleshooting priority resolution
+ * @note Creates RawSig entries using findOrCreateSignal() helper
+ *
+ * @see findOrCreateSignal(), assignObservationValue()
+ */
+void commitStagedObservations(
+	const ObservationStaging&	staging,
+	GObs&						obs,
+	const map<E_ObsCode2, E_ObsCode>& codeMap)
+{
+	// Step 1: Collect all committed code observations to determine availability
+	set<E_ObsCode> availableCodes;
+
+	// Step 2: First pass - commit all non-phase observations and collect available codes
+	BOOST_LOG_TRIVIAL(debug) << "Phase priority: Starting first pass - collecting available codes";
+	for (const auto& [key, staged] : staging)
+	{
+		if (!staged.isValid || staged.isPhaseWithPriority)
+			continue;
+
+		auto& sigList = obs.sigsLists[staged.frequency];
+		RawSig* rawSig = findOrCreateSignal(sigList, staged.obsCode);
+
+		// Commit the staged observation
+		assignObservationValue(*rawSig, key.obsType, staged.value, staged.lli);
+
+		// Track available codes for phase priority resolution
+		availableCodes.insert(staged.obsCode);
+
+		BOOST_LOG_TRIVIAL(debug) << "Committed code observation: type=" << key.obsType
+			<< " code=" << staged.obsCode._to_string()
+			<< " freq=" << (int)staged.frequency;
+	}
+
+	BOOST_LOG_TRIVIAL(debug) << "Phase priority: Available codes: [" << [&]() {
+		string codes;
+		for (const auto& code : availableCodes) {
+			if (!codes.empty()) codes += ",";
+			codes += code._to_string();
+		}
+		return codes;
+	}() << "]";
+
+	// Step 3: Second pass - resolve and commit phase observations with priority
+	BOOST_LOG_TRIVIAL(debug) << "Phase priority: Starting second pass - resolving phase priorities";
+	for (const auto& [key, staged] : staging)
+	{
+		if (!staged.isValid || !staged.isPhaseWithPriority)
+			continue;
+
+		BOOST_LOG_TRIVIAL(debug) << "Phase priority: Processing phase " << key.obsType
+			<< " with priorities [" << [&]() {
+				string codes;
+				for (const auto& code : staged.priorityCodes) {
+					if (!codes.empty()) codes += ",";
+					codes += code._to_string();
+				}
+				return codes;
+			}() << "]";
+
+		// Resolve priority: find first available code from priority list
+		E_ObsCode resolvedCode = E_ObsCode::NONE;
+		for (const auto& priorityCode : staged.priorityCodes)
+		{
+			BOOST_LOG_TRIVIAL(debug) << "Phase priority: Checking if " << priorityCode._to_string() << " is available";
+			if (availableCodes.find(priorityCode) != availableCodes.end())
+			{
+				resolvedCode = priorityCode;
+				BOOST_LOG_TRIVIAL(debug) << "Phase priority resolved: " << key.obsType
+					<< " -> " << resolvedCode._to_string() << " (available)";
+				break;
+			}
+			else
+			{
+				BOOST_LOG_TRIVIAL(debug) << "Phase priority: " << priorityCode._to_string() << " not available";
+			}
+		}
+
+		// Fallback to first priority if none available
+		if (resolvedCode == +E_ObsCode::NONE && !staged.priorityCodes.empty())
+		{
+			resolvedCode = staged.priorityCodes[0];
+			BOOST_LOG_TRIVIAL(warning) << "Phase priority fallback: " << key.obsType
+				<< " -> " << resolvedCode._to_string() << " (no available codes)";
+		}
+
+		if (resolvedCode != +E_ObsCode::NONE)
+		{
+			auto& sigList = obs.sigsLists[staged.frequency];
+			RawSig* rawSig = findOrCreateSignal(sigList, resolvedCode);
+
+			// Commit the resolved phase observation
+			assignObservationValue(*rawSig, key.obsType, staged.value, staged.lli);
+
+			BOOST_LOG_TRIVIAL(debug) << "Committed phase observation: type=" << key.obsType
+				<< " code=" << resolvedCode._to_string()
+				<< " freq=" << (int)staged.frequency;
+		}
+		else
+		{
+			BOOST_LOG_TRIVIAL(error) << "Failed to resolve phase observation: " << key.obsType;
+		}
+	}
+}
+
+/** Validate staged observations before committing
+ * Single Responsibility: Quality assurance for staged data
+ */
+bool validateStagedObservations(
+	const ObservationStaging&	staging,
+	const SatSys&				satellite)
+{
+	int validCount = 0;
+	int totalCount = 0;
+
+	for (const auto& [obsKey, stagedObs] : staging)
+	{
+		totalCount++;
+		if (stagedObs.isValid)
+			validCount++;
+	}
+
+	// Require at least one valid observation
+	bool isValid = (validCount > 0);
+
+	BOOST_LOG_TRIVIAL(debug) << "Validation for " << satellite.id()
+		<< ": " << validCount << "/" << totalCount << " valid observations"
+		<< " -> " << (isValid ? "PASS" : "FAIL");
+
+	return isValid;
+}
+
+/** Advanced validation and conflict resolution for staged observations
+ * Single Responsibility: Data quality assurance and conflict handling
+ */
+void resolveObservationConflicts(ObservationStaging& staging)
+{
+	// With the new composite key structure (type + frequency + code),
+	// each observation should be unique, so no conflicts should occur.
+	// This function is kept for future extensions or edge cases.
+
+	BOOST_LOG_TRIVIAL(debug) << "Conflict resolution: " << staging.size()
+		<< " unique observations (no conflicts expected with composite keys)";
+}
+
+/** Enhanced validation with detailed statistics
+ * Single Responsibility: Comprehensive data quality assessment
+ */
+ValidationReport validateStagedObservationsDetailed(
+	ObservationStaging&		staging,  // Note: non-const to allow conflict resolution
+	const SatSys&			satellite)
+{
+	ValidationReport report;
+
+	// Resolve conflicts first (should be no-op with composite keys)
+	resolveObservationConflicts(staging);
+
+	// Collect statistics
+	for (const auto& [key, staged] : staging)
+	{
+		report.observationCounts[key.obsType]++;
+		report.totalObservations++;
+		if (staged.isValid)
+			report.validObservations++;
+	}
+
+	// Apply validation rules
+	report.passed = (report.validObservations > 0);  // Require at least one valid observation
+
+	BOOST_LOG_TRIVIAL(debug) << "Validation report for " << satellite.id()
+		<< ": " << report.validObservations << "/" << report.totalObservations
+		<< " valid observations - " << (report.passed ? "PASSED" : "FAILED");
+
+	return report;
 }

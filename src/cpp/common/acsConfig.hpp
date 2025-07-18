@@ -168,7 +168,7 @@ struct InputOptions
 	double sbs_time_delay = 0;
 
 	SsrInputOptions				ssrInOpts;
-	SbsInputOptions				sbsInOpts;	
+	SbsInputOptions				sbsInOpts;
 };
 
 struct IonexOptions
@@ -616,7 +616,7 @@ struct GlobalOptions
 		{E_Sys::QZS, 0.0},
 		{E_Sys::BDS, 0.0},
 		{E_Sys::LEO, 0.0},
-		{E_Sys::SBS, 0.0}		
+		{E_Sys::SBS, 0.0}
 	};
 
 	bool common_sat_pco			= false;
@@ -732,7 +732,6 @@ struct PppOptions : FilterOptions
 
 	bool			add_eop_component		= false;
 
-	bool			satellite_chunking		= false;
 	bool			receiver_chunking		= false;
 	int				chunk_size				= 0;
 
@@ -793,12 +792,12 @@ struct AmbROptions
 struct Rinex23Conversion
 {
 	map<E_ObsCode2, E_ObsCode> codeConv;
-	map<E_ObsCode2, E_ObsCode> phasConv;
+	map<E_ObsCode2, vector<E_ObsCode>> phasConv;
 
 	Rinex23Conversion& operator +=(const Rinex23Conversion& rhs)
 	{
 		for (auto& [code2, code3] : rhs.codeConv)		{	if (code3 != +E_ObsCode::NONE)		codeConv[code2] = code3;		}
-		for (auto& [code2, code3] : rhs.phasConv)		{	if (code3 != +E_ObsCode::NONE)		phasConv[code2] = code3;		}
+		for (auto& [code2, code3List] : rhs.phasConv)	{	if (!code3List.empty())				phasConv[code2] = code3List;	}
 
 		return *this;
 	}

@@ -87,18 +87,16 @@ void ConsoleLog::consume(
 
 	string output;
 
-	output += "\r\n";
+	output += "\n";
+    string ending = "";
 	if (acsConfig.colourise_terminal)
 	{
 		if (sev == boost::log::trivial::warning)	output += "\x1B[1;93m";
 		if (sev == boost::log::trivial::error)		output += "\x1B[101m";
+        if (sev >= boost::log::trivial::warning)    ending = "\x1B[0m";
 	}
 	output += logString;
-
-	if (acsConfig.colourise_terminal)
-	{
-		output += "\x1B[0m";
-	}
+    output += ending;
 
 	if (useInteractive)
 	{
