@@ -1081,6 +1081,7 @@ void chunkFilter(
     map<string, FilterChunk>&	filterChunkMap,
     map<string, std::ofstream>&	traceList)
 {
+	filterChunkMap.clear();
     // Handle case when chunking is disabled
     if (acsConfig.pppOpts.receiver_chunking == false)
     {
@@ -1365,7 +1366,9 @@ void chunkFilter(
     {
         BOOST_LOG_TRIVIAL(debug) << "Chunk " << id
                                 << ": X[" << fc.begX << ":" << (fc.begX + fc.numX - 1) << "]"
-                                << ", H[" << fc.begH << ":" << (fc.begH + fc.numH - 1) << "]";
+                                << ", H[" << fc.begH << ":" << (fc.begH + fc.numH - 1) << "]"
+								<< ", size of H" << kfMeas.H.rows() << "x" << kfMeas.H.cols()
+								<< ", size of X" << kfState.x.rows() << "x" << kfState.x.cols();
     }
 }
 

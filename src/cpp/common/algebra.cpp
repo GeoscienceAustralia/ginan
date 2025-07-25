@@ -981,7 +981,7 @@ void KFState::preFitSigmaChecks(
 	int measChunkIndex	= measIndex		+ begH;
 
 	auto it = kfIndexMap.begin();
-	std::advance(it, stateIndex);
+	std::advance(it, stateChunkIndex);
 
 	auto& [stateKey, dummy] = *it;
 
@@ -1055,7 +1055,7 @@ void KFState::postFitSigmaChecks(
 {
 	auto& kfMeas	= callbackDetails.kfMeas;
 	auto& trace		= callbackDetails.trace;
-
+	
 	auto	V	= kfMeas.V.segment(begH, numH);
 	auto	VV	= kfMeas.VV.segment(begH, numH);
 	auto	R	= kfMeas.R.block(begH, begH, numH, numH);
@@ -1106,7 +1106,7 @@ void KFState::postFitSigmaChecks(
 	int measChunkIndex	= measIndex		+ begH;
 
 	auto it = kfIndexMap.begin();
-	std::advance(it, stateIndex);
+	std::advance(it, stateChunkIndex);
 
 	auto& [stateKey, dummy] = *it;
 
