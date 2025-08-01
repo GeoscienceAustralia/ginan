@@ -1,14 +1,9 @@
-
 #include <string>
 #include "common/gTime.hpp"
+
+using std::string;
 
 struct KFState;
 struct Receiver;
 
-using std::string;
-
-void outputCost(
-	string		filename,
-	KFState&	kfState,
-	Receiver&	rec);
-
+void outputCost(string filename, KFState& kfState, Receiver& rec);

@@ -1,159 +1,154 @@
-
 // #pragma GCC optimize ("O0")
 
+#include "pea/ppp.hpp"
 #include <boost/log/trivial.hpp>
-
 #include <iostream>
 #include <vector>
+#include "common/acsConfig.hpp"
+#include "common/algebra.hpp"
+#include "common/algebraTrace.hpp"
+#include "common/antenna.hpp"
+#include "common/constants.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/enums.h"
+#include "common/ephPrecise.hpp"
+#include "common/ephemeris.hpp"
+#include "common/erp.hpp"
+#include "common/gTime.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/observations.hpp"
+#include "common/receiver.hpp"
+#include "common/satStat.hpp"
+#include "common/trace.hpp"
+#include "orbprop/coordinates.hpp"
 
 using std::vector;
 
-
-#include "common/eigenIncluder.hpp"
-#include "common/observations.hpp"
-#include "common/algebraTrace.hpp"
-#include "orbprop/coordinates.hpp"
-#include "common/ephPrecise.hpp"
-#include "common/navigation.hpp"
-#include "common/mongoWrite.hpp"
-#include "common/ephPrecise.hpp"
-#include "common/ephemeris.hpp"
-#include "common/acsConfig.hpp"
-#include "common/constants.hpp"
-#include "common/receiver.hpp"
-#include "common/satStat.hpp"
-#include "common/algebra.hpp"
-#include "common/antenna.hpp"
-#include "common/gTime.hpp"
-#include "common/trace.hpp"
-#include "common/enums.h"
-#include "pea/ppp.hpp"
-#include "common/erp.hpp"
-
-void outputApriori(
-	ReceiverMap& receiverMap)
+void outputApriori(ReceiverMap& receiverMap)
 {
-	if (acsConfig.mongoOpts.output_states == +E_Mongo::NONE)
-	{
-		return;
-	}
+    if (acsConfig.mongoOpts.output_states == +E_Mongo::NONE)
+    {
+        return;
+    }
 
-	ERPValues erpv = getErp(nav.erp, tsync);
+    ERPValues erpv = getErp(nav.erp, tsync);
 
-	FrameSwapper frameSwapper(tsync, erpv);
+    FrameSwapper frameSwapper(tsync, erpv);
 
-	KFState aprioriState;
-	KFState brdcState;
+    KFState aprioriState;
+    KFState brdcState;
 
-	for (auto& [id, rec] : receiverMap)
-	{
-		// apriori_positions:
-		{
-			KFKey kfKey;
-			kfKey.str	= id;
-			kfKey.type	= KF::REC_POS;
+    for (auto& [id, rec] : receiverMap)
+    {
+        // apriori_positions:
+        {
+            KFKey kfKey;
+            kfKey.str  = id;
+            kfKey.type = KF::REC_POS;
 
-			for (int i = 0; i < 3; i++)
-			{
-				kfKey.num = i;
-				double apriori = rec.aprioriPos[i];
+            for (int i = 0; i < 3; i++)
+            {
+                kfKey.num      = i;
+                double apriori = rec.aprioriPos[i];
 
-				if (apriori == 0)
-				{
-					continue;
-				}
+                if (apriori == 0)
+                {
+                    continue;
+                }
 
-				aprioriState.addKFState(kfKey, {.x = apriori});
-			}
-		}
+                aprioriState.addKFState(kfKey, {.x = apriori});
+            }
+        }
 
-		// apriori_clocks:
-		{
-			KFKey kfKey;
-			kfKey.str	= id;
-			kfKey.Sat	= SatSys(E_Sys::GPS);
-			kfKey.type	= KF::REC_CLOCK;
+        // apriori_clocks:
+        {
+            KFKey kfKey;
+            kfKey.str  = id;
+            kfKey.Sat  = SatSys(E_Sys::GPS);
+            kfKey.type = KF::REC_CLOCK;
 
-			double apriori = rec.aprioriClk;
+            double apriori = rec.aprioriClk;
 
-			if (apriori == 0)
-			{
-				continue;
-			}
+            if (apriori == 0)
+            {
+                continue;
+            }
 
-			aprioriState.addKFState(kfKey, {.x = apriori});
-		}
-	}
+            aprioriState.addKFState(kfKey, {.x = apriori});
+        }
+    }
 
-	for (auto& [Sat, satNav] : nav.satNavMap)
-	{
-		if (acsConfig.process_sys[Sat.sys] == false)
-		{
-			continue;
-		}
+    for (auto& [Sat, satNav] : nav.satNavMap)
+    {
+        if (acsConfig.process_sys[Sat.sys] == false)
+        {
+            continue;
+        }
 
-		auto& satOpts = acsConfig.getSatOpts(Sat);
+        auto& satOpts = acsConfig.getSatOpts(Sat);
 
-		if (satOpts.exclude)
-		{
-			continue;
-		}
+        if (satOpts.exclude)
+        {
+            continue;
+        }
 
-		SatPos satPos;
-		satPos.Sat = Sat;
+        SatPos satPos;
+        satPos.Sat = Sat;
 
-		//apriori_clocks:
-		{
-			KFKey kfKey;
-			kfKey.Sat	= Sat;
-			kfKey.type	= KF::SAT_CLOCK;
+        // apriori_clocks:
+        {
+            KFKey kfKey;
+            kfKey.Sat  = Sat;
+            kfKey.type = KF::SAT_CLOCK;
 
-			aprioriState.addKFState(kfKey, {.x = CLIGHT * satNav.aprioriClk});
+            aprioriState.addKFState(kfKey, {.x = CLIGHT * satNav.aprioriClk});
 
-			bool brdcPass = satClkBroadcast(nullStream, tsync, tsync, satPos, nav);
-			if (brdcPass)
-			{
-				brdcState.addKFState(kfKey, {.x = CLIGHT * satPos.satClk});
-			}
-		}
+            bool brdcPass = satClkBroadcast(nullStream, tsync, tsync, satPos, nav);
+            if (brdcPass)
+            {
+                brdcState.addKFState(kfKey, {.x = CLIGHT * satPos.satClk});
+            }
+        }
 
-		//apriori_positions:
-		{
-			bool brdcPass = satPosBroadcast(nullStream, tsync, tsync, satPos, nav);
-			if (brdcPass)
-			{
-				satPos.rSatEci0 = frameSwapper(satPos.rSatApc);
-			}
+        // apriori_positions:
+        {
+            bool brdcPass = satPosBroadcast(nullStream, tsync, tsync, satPos, nav);
+            if (brdcPass)
+            {
+                satPos.rSatEci0 = frameSwapper(satPos.rSatApc);
+            }
 
-			for (int i = 0; i < 3; i++)
-			{
-				KFKey kfKey;
-				kfKey.Sat	= Sat;
-				kfKey.num	= i;
-				kfKey.type	= KF::ORBIT;
+            for (int i = 0; i < 3; i++)
+            {
+                KFKey kfKey;
+                kfKey.Sat  = Sat;
+                kfKey.num  = i;
+                kfKey.type = KF::ORBIT;
 
-									aprioriState.addKFState(kfKey, {.x = satNav.aprioriPos	(i)});
-				if (brdcPass)		brdcState	.addKFState(kfKey, {.x = satPos.rSatEci0	(i)});
-			}
-		}
-	}
+                aprioriState.addKFState(kfKey, {.x = satNav.aprioriPos(i)});
+                if (brdcPass)
+                    brdcState.addKFState(kfKey, {.x = satPos.rSatEci0(i)});
+            }
+        }
+    }
 
-	aprioriState.stateTransition(nullStream, tsync);
-	brdcState	.stateTransition(nullStream, tsync);
+    aprioriState.stateTransition(nullStream, tsync);
+    brdcState.stateTransition(nullStream, tsync);
 
-	mongoStates(aprioriState,
-				{
-					.suffix		= "/APRIORI",
-					.instances	= acsConfig.mongoOpts.output_states,
-					.queue		= acsConfig.mongoOpts.queue_outputs
-				});
+    mongoStates(
+        aprioriState,
+        {.suffix    = "/APRIORI",
+         .instances = acsConfig.mongoOpts.output_states,
+         .queue     = acsConfig.mongoOpts.queue_outputs}
+    );
 
-	mongoStates(brdcState,
-				{
-					.suffix		= "/BROADCAST",
-					.instances	= acsConfig.mongoOpts.output_states,
-					.queue		= acsConfig.mongoOpts.queue_outputs
-				});
+    mongoStates(
+        brdcState,
+        {.suffix    = "/BROADCAST",
+         .instances = acsConfig.mongoOpts.output_states,
+         .queue     = acsConfig.mongoOpts.queue_outputs}
+    );
 }
 
 /** Compare estimated station position with benchmark in SINEX file
@@ -214,7 +209,8 @@ void outputApriori(
 //
 // 	if (fout.tellp() == 0)
 // 	{
-// 		tracepdeex(1, fout, "  Date       UTC time  Sta.   A priori X    A priori Y    A priori Z    Estimated X   Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
+// 		tracepdeex(1, fout, "  Date       UTC time  Sta.   A priori X    A priori Y    A priori Z
+// Estimated X Estimated Y   Estimated Z    Dif. X  Dif. Y  Dif. Z   Dif. E  Dif. N  Dif. U\n");
 // 	}
 //
 // 	fout << kfState.time.to_string() << " ";
@@ -236,14 +232,16 @@ void outputApriori(
 // 	int 		solStat,		///< Solution quiality (2: ambiguity float, 5: ambiguity fix)
 // 	int			numSat,			///< Number of satellites
 // 	double      hdop,			///< Horizontal DOP
-// 	bool		lng)			///< Modified GPGGA format (false: GPGGA format according to NMEA 0183)
+// 	bool		lng)			///< Modified GPGGA format (false: GPGGA format according to NMEA
+// 0183)
 // {
 // 	GEpoch ep = kfState.time;
 //
 // 	std::ofstream fpar(outfile, std::ios::out | std::ios::app);
 //
 // 	if (fpar.tellp() == 0)
-// 		tracepdeex(1,fpar,"!GPGGA, UTC time, Latitude, N/S, Longitude, E/W, State, # Sat, HDOP, Height, , Geoid,\n");
+// 		tracepdeex(1,fpar,"!GPGGA, UTC time, Latitude, N/S, Longitude, E/W, State, # Sat, HDOP,
+// Height, , Geoid,\n");
 //
 // 	VectorEcef ecef;
 // 	for (short i = 0; i < 3; i++)
@@ -274,836 +272,996 @@ void outputApriori(
 // 	tracepdeex(1,fpar,",M,0.0,M,,,\n");
 // }
 
-void selectAprioriSource(
-	SatSys&		Sat,
-	GTime&		time,
-	KFState&	kfState,
-	KFState*	remote_ptr)
+void selectAprioriSource(SatSys& Sat, GTime& time, KFState& kfState, KFState* remote_ptr)
 {
-	auto& satOpts	= acsConfig.getSatOpts(Sat);
+    auto& satOpts = acsConfig.getSatOpts(Sat);
 
-	auto& satNav 	= nav.satNavMap[Sat];
-	auto& satPos0	= satNav.satPos0;
+    auto& satNav  = nav.satNavMap[Sat];
+    auto& satPos0 = satNav.satPos0;
 
-	auto trace = getTraceFile(satNav);
+    auto trace = getTraceFile(satNav);
 
-	satPos0.Sat			= Sat;
-	satPos0.satNav_ptr	= &satNav;
+    satPos0.Sat        = Sat;
+    satPos0.satNav_ptr = &satNav;
 
-	auto posModelSources = satOpts.posModel.sources;
-	auto clkModelSources = satOpts.clockModel.sources;
+    auto posModelSources = satOpts.posModel.sources;
+    auto clkModelSources = satOpts.clockModel.sources;
 
-	//remove kalman from the list to not corrupt the apriori states
-	auto posSource_it = std::find(posModelSources.begin(), posModelSources.end(), +E_Source::KALMAN);
-	auto clkSource_it = std::find(clkModelSources.begin(), clkModelSources.end(), +E_Source::KALMAN);
+    // remove kalman from the list to not corrupt the apriori states
+    auto posSource_it =
+        std::find(posModelSources.begin(), posModelSources.end(), +E_Source::KALMAN);
+    auto clkSource_it =
+        std::find(clkModelSources.begin(), clkModelSources.end(), +E_Source::KALMAN);
 
-	if (posSource_it != posModelSources.end())
-	{
-		posModelSources.erase(posSource_it);
-	}
-	if (clkSource_it != clkModelSources.end())
-	{
-		clkModelSources.erase(clkSource_it);
-	}
+    if (posSource_it != posModelSources.end())
+    {
+        posModelSources.erase(posSource_it);
+    }
+    if (clkSource_it != clkModelSources.end())
+    {
+        clkModelSources.erase(clkSource_it);
+    }
 
-	bool posPass = satpos(trace, time, time, satPos0, posModelSources, E_OffsetType::COM,	nav, &kfState, remote_ptr);
-	bool clkPass = satclk(trace, time, time, satPos0, clkModelSources,						nav, &kfState, remote_ptr);
+    bool posPass = satpos(
+        trace,
+        time,
+        time,
+        satPos0,
+        posModelSources,
+        E_OffsetType::COM,
+        nav,
+        &kfState,
+        remote_ptr
+    );
+    bool clkPass = satclk(trace, time, time, satPos0, clkModelSources, nav, &kfState, remote_ptr);
 
-	tracepdeex(1, trace, "\n");
+    tracepdeex(1, trace, "\n");
 
-	if (posPass)
-	{
-		ERPValues erpv = getErp(nav.erp, time);
+    if (posPass)
+    {
+        ERPValues erpv = getErp(nav.erp, time);
 
-		FrameSwapper frameSwapper(time, erpv);
+        FrameSwapper frameSwapper(time, erpv);
 
-		satNav.aprioriPos = frameSwapper(satPos0.rSatCom);
+        satNav.aprioriPos = frameSwapper(satPos0.rSatCom);
 
-		tracepdeex(1, trace, "\nSelecting apriori pos (ECI) at %s, found %-10s: [%f, %f, %f]",	time.to_string(), satPos0.posSource._to_string(), satNav.aprioriPos.x(), satNav.aprioriPos.x(), satNav.aprioriPos.x());
+        tracepdeex(
+            1,
+            trace,
+            "\nSelecting apriori pos (ECI) at %s, found %-10s: [%f, %f, %f]",
+            time.to_string(),
+            satPos0.posSource._to_string(),
+            satNav.aprioriPos.x(),
+            satNav.aprioriPos.x(),
+            satNav.aprioriPos.x()
+        );
 
-		updateSatAtts(satPos0);
-	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
-	}
+        updateSatAtts(satPos0);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
+    }
 
-	if (clkPass)
-	{
-		satNav.aprioriClk = satPos0.satClk;
+    if (clkPass)
+    {
+        satNav.aprioriClk = satPos0.satClk;
 
-		tracepdeex(1, trace, "\nSelecting apriori clk (m)   at %s, found %-10s: %f",			time.to_string(), satPos0.clkSource._to_string(), satNav.aprioriClk * CLIGHT);
-	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No sat clk found for " << satPos0.Sat.id() << ".";
-	}
+        tracepdeex(
+            1,
+            trace,
+            "\nSelecting apriori clk (m)   at %s, found %-10s: %f",
+            time.to_string(),
+            satPos0.clkSource._to_string(),
+            satNav.aprioriClk * CLIGHT
+        );
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(warning) << "Warning: No sat clk found for " << satPos0.Sat.id() << ".";
+    }
 }
 
 void updateAprioriRecPos(
-	Trace&				trace,
-	Receiver&			rec,
-	ReceiverOptions&	recOpts,
-	bool&				sppUsed,
-	KFState*			remote_ptr)
+    Trace&           trace,
+    Receiver&        rec,
+    ReceiverOptions& recOpts,
+    bool&            sppUsed,
+    KFState*         remote_ptr
+)
 {
-	E_Source foundSource = E_Source::NONE;
-	for (auto source : recOpts.posModel.sources)
-	{
-		switch (source)
-		{
-			case E_Source::CONFIG:
-			{
-				if (recOpts.apriori_pos.isZero())
-				{
-					continue;
-				}
+    E_Source foundSource = E_Source::NONE;
+    for (auto source : recOpts.posModel.sources)
+    {
+        switch (source)
+        {
+            case E_Source::CONFIG:
+            {
+                if (recOpts.apriori_pos.isZero())
+                {
+                    continue;
+                }
 
-				rec.aprioriPos		= recOpts.apriori_pos;
+                rec.aprioriPos = recOpts.apriori_pos;
 
-				break;
-			}
-			case E_Source::PRECISE:
-			{
-				if (rec.snx.pos.isZero())
-				{
-					continue;
-				}
+                break;
+            }
+            case E_Source::PRECISE:
+            {
+                if (rec.snx.pos.isZero())
+                {
+                    continue;
+                }
 
-				rec.aprioriPos		= rec.snx.pos;
-				rec.primaryApriori	= rec.snx.primary;
-				for (int i = 0; i < 3; i++)
-				{
-					rec.aprioriTime[i] = rec.snx.start[i];
-				}
+                rec.aprioriPos     = rec.snx.pos;
+                rec.primaryApriori = rec.snx.primary;
+                for (int i = 0; i < 3; i++)
+                {
+                    rec.aprioriTime[i] = rec.snx.start[i];
+                }
 
-				break;
-			}
-			case E_Source::REMOTE:
-			{
-				if (remote_ptr == nullptr)
-				{
-					continue;
-				}
+                break;
+            }
+            case E_Source::REMOTE:
+            {
+                if (remote_ptr == nullptr)
+                {
+                    continue;
+                }
 
-				bool found = true;
-				for (int i = 0; i < 3; i++)
-				{
-					KFKey kfKey;
-					kfKey.type		= KF::REC_POS;
-					kfKey.str		= rec.id;
-					kfKey.num		= i;
+                bool found = true;
+                for (int i = 0; i < 3; i++)
+                {
+                    KFKey kfKey;
+                    kfKey.type = KF::REC_POS;
+                    kfKey.str  = rec.id;
+                    kfKey.num  = i;
 
-					found &= remote_ptr->getKFValue(kfKey, rec.aprioriPos(i));
-				}
+                    found &= remote_ptr->getKFValue(kfKey, rec.aprioriPos(i));
+                }
 
-				if (found == false)
-				{
-					continue;
-				}
+                if (found == false)
+                {
+                    continue;
+                }
 
-				break;
-			}
-			case E_Source::SPP:
-			{
-				if (rec.sol.sppRRec.isZero())
-				{
-					continue;
-				}
+                break;
+            }
+            case E_Source::SPP:
+            {
+                if (rec.sol.sppRRec.isZero())
+                {
+                    continue;
+                }
 
-				rec.aprioriTime 	= rec.sol.sppTime;
-				rec.aprioriPos		= rec.sol.sppRRec;
+                rec.aprioriTime = rec.sol.sppTime;
+                rec.aprioriPos  = rec.sol.sppRRec;
 
-				sppUsed				= true;
+                sppUsed = true;
 
-				break;
-			}
-			case E_Source::BROADCAST:
-			{
-				//todo for satellite receivers
-				continue;
-			}
-			case E_Source::KALMAN:
-			{
-				//skipping this for receivers because it breaks minimum constraints
-				continue;
-			}
-			default:
-			{
-				BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown receiver apriori position source found: " << source._to_string();
+                break;
+            }
+            case E_Source::BROADCAST:
+            {
+                // todo for satellite receivers
+                continue;
+            }
+            case E_Source::KALMAN:
+            {
+                // skipping this for receivers because it breaks minimum constraints
+                continue;
+            }
+            default:
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Warning: Unknown receiver apriori position source found: "
+                    << source._to_string();
 
-				continue;
-			}
-		}
+                continue;
+            }
+        }
 
-		foundSource = source;
-		break;
-	}
+        foundSource = source;
+        break;
+    }
 
-	if (foundSource == +E_Source::NONE)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori position found for " << rec.id;
-	}
+    if (foundSource == +E_Source::NONE)
+    {
+        BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori position found for " << rec.id;
+    }
 
-	tracepdeex(4, trace, "\nUsing %s as source for receiver apriori position: %f %f %f",
-				foundSource._to_string(),
-				rec.aprioriPos.x(),
-				rec.aprioriPos.y(),
-				rec.aprioriPos.z());
+    tracepdeex(
+        4,
+        trace,
+        "\nUsing %s as source for receiver apriori position: %f %f %f",
+        foundSource._to_string(),
+        rec.aprioriPos.x(),
+        rec.aprioriPos.y(),
+        rec.aprioriPos.z()
+    );
 }
 
 void updateAprioriRecClk(
-	Trace&				trace,
-	Receiver&			rec,
-	ReceiverOptions&	recOpts,
-	GTime&				time,
-	KFState&			kfState,
-	KFState*			remote_ptr)
+    Trace&           trace,
+    Receiver&        rec,
+    ReceiverOptions& recOpts,
+    GTime&           time,
+    KFState&         kfState,
+    KFState*         remote_ptr
+)
 {
-	E_Source foundSource = E_Source::NONE;
-	for (auto source : recOpts.clockModel.sources)
-	{
-		switch (source)
-		{
-			case E_Source::PRECISE:
-			{
-				double	dtRec		= 0;
-				double	dtRecVar	= 0;
-				bool pass = pephclk(trace, time, rec.id, nav, dtRec, &dtRecVar);
-				if (pass == false)
-				{
-					continue;
-				}
+    E_Source foundSource = E_Source::NONE;
+    for (auto source : recOpts.clockModel.sources)
+    {
+        switch (source)
+        {
+            case E_Source::PRECISE:
+            {
+                double dtRec    = 0;
+                double dtRecVar = 0;
+                bool   pass     = pephclk(trace, time, rec.id, nav, dtRec, &dtRecVar);
+                if (pass == false)
+                {
+                    continue;
+                }
 
-				rec.aprioriClk		= dtRec		*		CLIGHT;
-				rec.aprioriClkVar	= dtRecVar	* SQR(	CLIGHT);
+                rec.aprioriClk    = dtRec * CLIGHT;
+                rec.aprioriClkVar = dtRecVar * SQR(CLIGHT);
 
-				break;
-			}
-			case E_Source::KALMAN:
-			case E_Source::REMOTE:
-			{
-				if (source == +E_Source::REMOTE	&& remote_ptr	== nullptr)	continue;
+                break;
+            }
+            case E_Source::KALMAN:
+            case E_Source::REMOTE:
+            {
+                if (source == +E_Source::REMOTE && remote_ptr == nullptr)
+                    continue;
 
-				E_Source found;
-				{
-					KFKey kfKey;
-					kfKey.type		= KF::REC_CLOCK;
-					kfKey.str		= rec.id;
+                E_Source found;
+                {
+                    KFKey kfKey;
+                    kfKey.type = KF::REC_CLOCK;
+                    kfKey.str  = rec.id;
 
-					double dummy;
+                    double dummy;
 
-					if (source == +E_Source::KALMAN)	found = kfState.	getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
-					if (source == +E_Source::REMOTE)	found = remote_ptr->getKFValue(kfKey, rec.aprioriClk, &rec.aprioriClkVar, &dummy, false);
-				}
+                    if (source == +E_Source::KALMAN)
+                        found = kfState.getKFValue(
+                            kfKey,
+                            rec.aprioriClk,
+                            &rec.aprioriClkVar,
+                            &dummy,
+                            false
+                        );
+                    if (source == +E_Source::REMOTE)
+                        found = remote_ptr->getKFValue(
+                            kfKey,
+                            rec.aprioriClk,
+                            &rec.aprioriClkVar,
+                            &dummy,
+                            false
+                        );
+                }
 
-				if (found == false)
-				{
-					continue;
-				}
+                if (found == false)
+                {
+                    continue;
+                }
 
-				break;
-			}
-			case E_Source::SPP:
-			{
-				if	( rec.sol.dtRec_m.find(E_Sys::GPS) == rec.sol.dtRec_m.end()
-					||rec.sol.dtRec_m[E_Sys::GPS] == 0)
-				{
-					continue;
-				}
+                break;
+            }
+            case E_Source::SPP:
+            {
+                if (rec.sol.dtRec_m.find(E_Sys::GPS) == rec.sol.dtRec_m.end() ||
+                    rec.sol.dtRec_m[E_Sys::GPS] == 0)
+                {
+                    continue;
+                }
 
-				rec.aprioriClk		= rec.sol.dtRec_m[E_Sys::GPS];
-				rec.aprioriClkVar	= SQR(30);
+                rec.aprioriClk    = rec.sol.dtRec_m[E_Sys::GPS];
+                rec.aprioriClkVar = SQR(30);
 
-				break;
-			}
-			case E_Source::BROADCAST:
-			{
-				//ignore broadcast thats in the common default list for satellites benefit
-				continue;
-			}
-			default:
-			{
-				BOOST_LOG_TRIVIAL(warning) << "Warning: Unknown receiver apriori clock source found: " << source._to_string();
-				continue;
-			}
-		}
+                break;
+            }
+            case E_Source::BROADCAST:
+            {
+                // ignore broadcast thats in the common default list for satellites benefit
+                continue;
+            }
+            default:
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Warning: Unknown receiver apriori clock source found: "
+                    << source._to_string();
+                continue;
+            }
+        }
 
-		foundSource = source;
-		break;
-	}
+        foundSource = source;
+        break;
+    }
 
-	if (foundSource == +E_Source::NONE)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori clock found for " << rec.id;
-	}
+    if (foundSource == +E_Source::NONE)
+    {
+        BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori clock found for " << rec.id;
+    }
 
-	tracepdeex(4, trace, "\nUsing %s as source for receiver apriori clock: %f",
-				foundSource._to_string(),
-				rec.aprioriClk);
+    tracepdeex(
+        4,
+        trace,
+        "\nUsing %s as source for receiver apriori clock: %f",
+        foundSource._to_string(),
+        rec.aprioriClk
+    );
 }
 
 void selectAprioriSource(
-	Trace&		trace,
-	Receiver&	rec,
-	GTime&		time,
-	bool&		sppUsed,
-	KFState&	kfState,
-	KFState*	remote_ptr)
+    Trace&    trace,
+    Receiver& rec,
+    GTime&    time,
+    bool&     sppUsed,
+    KFState&  kfState,
+    KFState*  remote_ptr
+)
 {
-	sppUsed = false;
+    sppUsed = false;
 
-	auto& recOpts = acsConfig.getRecOpts(rec.id);
+    auto& recOpts = acsConfig.getRecOpts(rec.id);
 
-	updateAprioriRecPos(trace, rec, recOpts, sppUsed, remote_ptr);
-	updateAprioriRecClk(trace, rec, recOpts, time, kfState, remote_ptr);
+    updateAprioriRecPos(trace, rec, recOpts, sppUsed, remote_ptr);
+    updateAprioriRecClk(trace, rec, recOpts, time, kfState, remote_ptr);
 
-	if (recOpts.apriori_sigma_enu.empty() == false)
-	{
-		Matrix3d enuNoise = Matrix3d::Zero();
-		for (int i = 0; i < 3; i++)
-		{
-			int j = i;
+    if (recOpts.apriori_sigma_enu.empty() == false)
+    {
+        Matrix3d enuNoise = Matrix3d::Zero();
+        for (int i = 0; i < 3; i++)
+        {
+            int j = i;
 
-			if (j >= recOpts.apriori_sigma_enu.size())
-				j = recOpts.apriori_sigma_enu.size() - 1;
+            if (j >= recOpts.apriori_sigma_enu.size())
+                j = recOpts.apriori_sigma_enu.size() - 1;
 
-			enuNoise(i,i) = SQR(recOpts.apriori_sigma_enu[j]);
-		}
+            enuNoise(i, i) = SQR(recOpts.apriori_sigma_enu[j]);
+        }
 
-		VectorPos pos = ecef2pos(rec.aprioriPos);
+        VectorPos pos = ecef2pos(rec.aprioriPos);
 
-		Matrix3d E;
-		pos2enu(pos, E.data());
+        Matrix3d E;
+        pos2enu(pos, E.data());
 
-		Matrix3d varianceXYZ = E.transpose()	* enuNoise * E;
+        Matrix3d varianceXYZ = E.transpose() * enuNoise * E;
 
+        rec.aprioriPosVar = varianceXYZ;
+    }
+    else
+    {
+        rec.aprioriPosVar = rec.snx.var.asDiagonal();
+    }
 
-		rec.aprioriPosVar 	= varianceXYZ;
-	}
-	else
-	{
-		rec.aprioriPosVar	= rec.snx.var.asDiagonal();
-	}
+    if (rec.sol.sppRRec.norm() < 0.001)
+    {
+        return;
+    }
 
-	if (rec.sol.sppRRec.norm() < 0.001)
-	{
-		return;
-	}
+    Vector3d delta = rec.aprioriPos - rec.sol.sppRRec;
 
-	Vector3d delta	= rec.aprioriPos
-					- rec.sol.sppRRec;
+    double distance = delta.norm();
 
-	double distance = delta.norm();
-
-	if (distance > 20)
-	{
-		BOOST_LOG_TRIVIAL(warning)
-		<< "Warning: Apriori for " << rec.id << " is " << distance << "m from SPP estimate";
-	}
+    if (distance > 20)
+    {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Warning: Apriori for " << rec.id << " is " << distance << "m from SPP estimate";
+    }
 }
 
-string ft2string(
-	E_FType ft)
+string ft2string(E_FType ft)
 {
-	return "F" + std::to_string(ft);
+    return "F" + std::to_string(ft);
 }
 
 void addRejectDetails(
-	const	GTime&					time,
-			Trace&					trace,
-			KFState&				kfState,
-	const	KFKey&					key,
-	const	string&					action,
-	const	string&					reason,
-			vector<ArbitraryKVP>	details)
+    const GTime&         time,
+    Trace&               trace,
+    KFState&             kfState,
+    const KFKey&         key,
+    const string&        action,
+    const string&        reason,
+    vector<ArbitraryKVP> details
+)
 {
-	tracepdeex(0, trace, "\n%s\t%-24s\t- %7s\t%s",
-				time.to_string().c_str(),
-				action.c_str(),
-				reason.c_str(),
-				((string) key).c_str());
+    tracepdeex(
+        0,
+        trace,
+        "\n%s\t%-24s\t- %7s\t%s",
+        time.to_string().c_str(),
+        action.c_str(),
+        reason.c_str(),
+        ((string)key).c_str()
+    );
 
-	for (auto& detail : details)
-	{
-		tracepdeex(0, trace, "\t- %s", detail.name.c_str());
+    for (auto& detail : details)
+    {
+        tracepdeex(0, trace, "\t- %s", detail.name.c_str());
 
-		if (detail.isBool() == false)
-		{
-			tracepdeex(0, trace, ": %s", detail.value().c_str());
-		}
-	};
+        if (detail.isBool() == false)
+        {
+            tracepdeex(0, trace, ": %s", detail.value().c_str());
+        }
+    };
 
-	details.push_back({"reason", reason});
+    details.push_back({"reason", reason});
 
-	KFKey subKey; subKey.str = key.str;
+    KFKey subKey;
+    subKey.str = key.str;
 
-	char buff[64];
-	for (auto& description : {reason.c_str(), "TOTAL"})
-	{
-		{	KFKey subKey; 								snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
-		{	KFKey subKey; subKey		= key;			snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
-		{	KFKey subKey; subKey.str	= key.str;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
-//		{	KFKey subKey; subKey.Sat	= key.Sat;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
-//		{	KFKey subKey; subKey.num	= key.num;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
-//		{	KFKey subKey; subKey.type	= key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
-	}
-	traceJson(0, trace, tsync,
-			{
-				{"data",		action					},
-				{MONGO_SAT,		key.Sat.id()			},
-				{MONGO_STR,		key.str					},
-				{MONGO_NUM,		std::to_string(key.num)	}
-			},
-			details);
+    char buff[64];
+    for (auto& description : {reason.c_str(), "TOTAL"})
+    {
+        {
+            KFKey subKey;
+            snprintf(
+                buff,
+                sizeof(buff),
+                "%-25s\t%s\t%s",
+                action.c_str(),
+                description,
+                ((string)subKey).c_str()
+            );
+            kfState.statisticsMap[buff]++;
+        }
+        {
+            KFKey subKey;
+            subKey = key;
+            snprintf(
+                buff,
+                sizeof(buff),
+                "%-25s\t%s\t%s",
+                action.c_str(),
+                description,
+                ((string)subKey).c_str()
+            );
+            kfState.statisticsMap[buff]++;
+        }
+        {
+            KFKey subKey;
+            subKey.str = key.str;
+            snprintf(
+                buff,
+                sizeof(buff),
+                "%-25s\t%s\t%s",
+                action.c_str(),
+                description,
+                ((string)subKey).c_str()
+            );
+            kfState.statisticsMap[buff]++;
+        }
+        //		{	KFKey subKey; subKey.Sat	= key.Sat;		snprintf(buff, sizeof(buff),
+        //"%-25s\t%s\t%s",
+        // action.c_str(), description, ((string) subKey).c_str());
+        // kfState.statisticsMap[buff]++;	 } 		{ KFKey subKey; subKey.num	= key.num;
+        // snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string)
+        // subKey).c_str());		kfState.statisticsMap[buff]++;	 } 		{	KFKey subKey;
+        // subKey.type	= key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",
+        // action.c_str(), description,
+        //((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+    }
+    traceJson(
+        0,
+        trace,
+        tsync,
+        {{"data", action},
+         {MONGO_SAT, key.Sat.id()},
+         {MONGO_STR, key.str},
+         {MONGO_NUM, std::to_string(key.num)}},
+        details
+    );
 }
 
 /** Remove ambiguity states from filter when they deemed old or bad
- * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
- * resolution of cycle-slips
+ * This effectively reinitialises them on the following epoch as a new state, and can be used for
+ * simple resolution of cycle-slips
  */
 void removeBadAmbiguities(
-	Trace&			trace,			///< Trace to output to
-	KFState&		kfState, 		///< Filter to remove states from
-	ReceiverMap&	receiverMap)	///< List of receivers containing observations for this epoch
+    Trace&       trace,       ///< Trace to output to
+    KFState&     kfState,     ///< Filter to remove states from
+    ReceiverMap& receiverMap  ///< List of receivers containing observations for this epoch
+)
 {
-	for (auto& [testKey, dummy]	: kfState.kfIndexMap)
-	for (auto& key				: kfState.decomposedStateKeys(testKey))
-	{
-		if (key.type != KF::AMBIGUITY)
-		{
-			continue;
-		}
+    for (auto& [testKey, dummy] : kfState.kfIndexMap)
+        for (auto& key : kfState.decomposedStateKeys(testKey))
+        {
+            if (key.type != KF::AMBIGUITY)
+            {
+                continue;
+            }
 
-		if (key.rec_ptr == nullptr)
-		{
-			continue;
-		}
+            if (key.rec_ptr == nullptr)
+            {
+                continue;
+            }
 
-		auto& rec		= *key.rec_ptr;
-		auto& satStat	= rec.satStatMap[key.Sat];
+            auto& rec     = *key.rec_ptr;
+            auto& satStat = rec.satStatMap[key.Sat];
 
-		string	preprocSigName;
-		string	sigName;
+            string preprocSigName;
+            string sigName;
 
-		if (acsConfig.process_ppp)
-		{
-			E_ObsCode	obsCode	= E_ObsCode::_from_integral(key.num);
-			E_FType		ft		= code2Freq[key.Sat.sys][obsCode];
+            if (acsConfig.process_ppp)
+            {
+                E_ObsCode obsCode = E_ObsCode::_from_integral(key.num);
+                E_FType   ft      = code2Freq[key.Sat.sys][obsCode];
 
-			preprocSigName	= ft2string(ft);
-			sigName			= obsCode._to_string();
-		}
-		else
-		{
-			E_FType ft = (E_FType) key.num;
+                preprocSigName = ft2string(ft);
+                sigName        = obsCode._to_string();
+            }
+            else
+            {
+                E_FType ft = (E_FType)key.num;
 
-			preprocSigName	= ft2string(ft);		//todo aaron, is this redundant now that network is gone?
-			sigName			= preprocSigName;
-		}
+                preprocSigName =
+                    ft2string(ft);  // todo aaron, is this redundant now that network is gone?
+                sigName = preprocSigName;
+            }
 
-		auto& sigStat			= satStat.sigStatMap[sigName];
-		auto& preprocSigStat	= satStat.sigStatMap[preprocSigName];
+            auto& sigStat        = satStat.sigStatMap[sigName];
+            auto& preprocSigStat = satStat.sigStatMap[preprocSigName];
 
-		if (sigStat.phaseRejectCount >= acsConfig.ambErrors.phase_reject_limit)
-		{
-			sigStat.phaseRejectCount = 0;
+            if (sigStat.phaseRejectCount >= acsConfig.ambErrors.phase_reject_limit)
+            {
+                sigStat.phaseRejectCount = 0;
 
-			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "REJECT");
+                addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "REJECT");
 
-			kfState.removeState(key);
+                kfState.removeState(key);
 
-			InitialState init = initialStateFromConfig(acsConfig.getRecOpts("global").ion_stec);
+                InitialState init = initialStateFromConfig(acsConfig.getRecOpts("global").ion_stec);
 
-			if (init.estimate == false)
-			{
-				KFKey kfKey = key;
-				for (kfKey.num = 0; kfKey.num < NUM_FTYPES; kfKey.num++)
-				{
-					kfState.removeState(kfKey);
-					continue;
-				}
-			}
-		}
+                if (init.estimate == false)
+                {
+                    KFKey kfKey = key;
+                    for (kfKey.num = 0; kfKey.num < NUM_FTYPES; kfKey.num++)
+                    {
+                        kfState.removeState(kfKey);
+                        continue;
+                    }
+                }
+            }
 
-		//reset slipping signals
-		if 	(  preprocSigStat.savedSlip.any
-			&& (  (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)
-                ||(acsConfig.ambErrors.resetOnSlip.retrack		&& preprocSigStat.savedSlip.retrack)
-                ||(acsConfig.ambErrors.resetOnSlip.single_freq && preprocSigStat.savedSlip.singleFreq)
-				||(acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)
-				||(acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)
-				||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)))
-		{
-			vector<ArbitraryKVP> details;
+            // reset slipping signals
+            if (preprocSigStat.savedSlip.any &&
+                ((acsConfig.ambErrors.resetOnSlip.LLI && preprocSigStat.savedSlip.LLI) ||
+                 (acsConfig.ambErrors.resetOnSlip.retrack && preprocSigStat.savedSlip.retrack) ||
+                 (acsConfig.ambErrors.resetOnSlip.single_freq && preprocSigStat.savedSlip.singleFreq
+                 ) ||
+                 (acsConfig.ambErrors.resetOnSlip.GF && preprocSigStat.savedSlip.GF) ||
+                 (acsConfig.ambErrors.resetOnSlip.MW && preprocSigStat.savedSlip.MW) ||
+                 (acsConfig.ambErrors.resetOnSlip.SCDIA && preprocSigStat.savedSlip.SCDIA)))
+            {
+                vector<ArbitraryKVP> details;
 
-			if (acsConfig.ambErrors.resetOnSlip.LLI		&& preprocSigStat.savedSlip.LLI)		details.push_back({"LLI",	true});
-			if (acsConfig.ambErrors.resetOnSlip.GF		&& preprocSigStat.savedSlip.GF)			details.push_back({"GF",	true});
-			if (acsConfig.ambErrors.resetOnSlip.MW		&& preprocSigStat.savedSlip.MW)			details.push_back({"MW",	true});
-			if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& preprocSigStat.savedSlip.SCDIA)		details.push_back({"SCDIA",	true});
-			if (acsConfig.ambErrors.resetOnSlip.retrack	&& preprocSigStat.savedSlip.retrack)	details.push_back({"retrack",	true});
-			if (acsConfig.ambErrors.resetOnSlip.single_freq	&& preprocSigStat.savedSlip.singleFreq)	details.push_back({"singleFreq",	true});
+                if (acsConfig.ambErrors.resetOnSlip.LLI && preprocSigStat.savedSlip.LLI)
+                    details.push_back({"LLI", true});
+                if (acsConfig.ambErrors.resetOnSlip.GF && preprocSigStat.savedSlip.GF)
+                    details.push_back({"GF", true});
+                if (acsConfig.ambErrors.resetOnSlip.MW && preprocSigStat.savedSlip.MW)
+                    details.push_back({"MW", true});
+                if (acsConfig.ambErrors.resetOnSlip.SCDIA && preprocSigStat.savedSlip.SCDIA)
+                    details.push_back({"SCDIA", true});
+                if (acsConfig.ambErrors.resetOnSlip.retrack && preprocSigStat.savedSlip.retrack)
+                    details.push_back({"retrack", true});
+                if (acsConfig.ambErrors.resetOnSlip.single_freq &&
+                    preprocSigStat.savedSlip.singleFreq)
+                    details.push_back({"singleFreq", true});
 
-			addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "PREPROC", details);
+                addRejectDetails(
+                    tsync,
+                    trace,
+                    kfState,
+                    key,
+                    "Ambiguity Removed",
+                    "PREPROC",
+                    details
+                );
 
-			kfState.removeState(key);
-		}
+                kfState.removeState(key);
+            }
 
-		//for ionosphere free, need to reset all connected singals
-		if	(acsConfig.pppOpts.ionoOpts.use_if_combo)
-		for (auto& [sigNam, sigStat] : satStat.sigStatMap)
-		{
-			if	(sigStat.savedSlip.any
-				&&( (  acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)
-					||(acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)
-                    ||(acsConfig.ambErrors.resetOnSlip.retrack	&& sigStat.savedSlip.retrack)
-                    ||(acsConfig.ambErrors.resetOnSlip.single_freq	&& sigStat.savedSlip.singleFreq)
-					||(acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)
-					||(acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)))
-			{
-				vector<ArbitraryKVP> details;
+            // for ionosphere free, need to reset all connected singals
+            if (acsConfig.pppOpts.ionoOpts.use_if_combo)
+                for (auto& [sigNam, sigStat] : satStat.sigStatMap)
+                {
+                    if (sigStat.savedSlip.any &&
+                        ((acsConfig.ambErrors.resetOnSlip.LLI && sigStat.savedSlip.LLI) ||
+                         (acsConfig.ambErrors.resetOnSlip.GF && sigStat.savedSlip.GF) ||
+                         (acsConfig.ambErrors.resetOnSlip.retrack && sigStat.savedSlip.retrack) ||
+                         (acsConfig.ambErrors.resetOnSlip.single_freq &&
+                          sigStat.savedSlip.singleFreq) ||
+                         (acsConfig.ambErrors.resetOnSlip.MW && sigStat.savedSlip.MW) ||
+                         (acsConfig.ambErrors.resetOnSlip.SCDIA && sigStat.savedSlip.SCDIA)))
+                    {
+                        vector<ArbitraryKVP> details;
 
-				if (acsConfig.ambErrors.resetOnSlip.LLI		&& sigStat.savedSlip.LLI)			details.push_back({"LLI",	true});
-				if (acsConfig.ambErrors.resetOnSlip.GF		&& sigStat.savedSlip.GF)			details.push_back({"GF",	true});
-				if (acsConfig.ambErrors.resetOnSlip.MW		&& sigStat.savedSlip.MW)			details.push_back({"MW",	true});
-				if (acsConfig.ambErrors.resetOnSlip.SCDIA	&& sigStat.savedSlip.SCDIA)			details.push_back({"SCDIA",	true});
-                if (acsConfig.ambErrors.resetOnSlip.single_freq	&& sigStat.savedSlip.singleFreq)			details.push_back({"singleFreq",	true});
-				if (acsConfig.ambErrors.resetOnSlip.retrack	&& sigStat.savedSlip.retrack)		details.push_back({"retrack",	true});
+                        if (acsConfig.ambErrors.resetOnSlip.LLI && sigStat.savedSlip.LLI)
+                            details.push_back({"LLI", true});
+                        if (acsConfig.ambErrors.resetOnSlip.GF && sigStat.savedSlip.GF)
+                            details.push_back({"GF", true});
+                        if (acsConfig.ambErrors.resetOnSlip.MW && sigStat.savedSlip.MW)
+                            details.push_back({"MW", true});
+                        if (acsConfig.ambErrors.resetOnSlip.SCDIA && sigStat.savedSlip.SCDIA)
+                            details.push_back({"SCDIA", true});
+                        if (acsConfig.ambErrors.resetOnSlip.single_freq &&
+                            sigStat.savedSlip.singleFreq)
+                            details.push_back({"singleFreq", true});
+                        if (acsConfig.ambErrors.resetOnSlip.retrack && sigStat.savedSlip.retrack)
+                            details.push_back({"retrack", true});
 
-				addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "PREPROC", details);
+                        addRejectDetails(
+                            tsync,
+                            trace,
+                            kfState,
+                            key,
+                            "Ambiguity Removed",
+                            "PREPROC",
+                            details
+                        );
 
-				kfState.removeState(key);
-			}
-		}
-	}
+                        kfState.removeState(key);
+                    }
+                }
+        }
 
-	for (auto& [id,		rec]		: receiverMap)
-	for (auto& [sat,	satStat]	: rec.satStatMap)
-	for (auto& [sig,	sigStat]	: satStat.sigStatMap)
-	{
-		sigStat.savedSlip.any = false;
-	}
+    for (auto& [id, rec] : receiverMap)
+        for (auto& [sat, satStat] : rec.satStatMap)
+            for (auto& [sig, sigStat] : satStat.sigStatMap)
+            {
+                sigStat.savedSlip.any = false;
+            }
 }
 
 void removeBadSatellites(
-	Trace&			trace,				///< Trace to output to
-	KFState&		kfState) 			///< Filter to remove states from
+    Trace&   trace,   ///< Trace to output to
+    KFState& kfState  ///< Filter to remove states from
+)
 {
-	if (acsConfig.errorAccumulation.enable == false)
-	{
-		return;
-	}
+    if (acsConfig.errorAccumulation.enable == false)
+    {
+        return;
+    }
 
-	for (auto& [Sat, satNav] : nav.satNavMap)
-	{
-		if (satNav.satelliteErrorCount >= acsConfig.errorAccumulation.satellite_error_count_threshold)
-		{
-			satNav.satelliteErrorEpochs++;
+    for (auto& [Sat, satNav] : nav.satNavMap)
+    {
+        if (satNav.satelliteErrorCount >=
+            acsConfig.errorAccumulation.satellite_error_count_threshold)
+        {
+            satNav.satelliteErrorEpochs++;
 
-			char idStr[100];
-			snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", Sat.id().c_str(), "", "");
+            char idStr[100];
+            snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", Sat.id().c_str(), "", "");
 
-			trace << "\n" << kfState.time << "\tIncrementing satelliteErrorEpochs on\t" << idStr << "\tto " << satNav.satelliteErrorEpochs;
-		}
-		else
-		{
-			satNav.satelliteErrorEpochs = 0;
-		}
+            trace << "\n"
+                  << kfState.time << "\tIncrementing satelliteErrorEpochs on\t" << idStr << "\tto "
+                  << satNav.satelliteErrorEpochs;
+        }
+        else
+        {
+            satNav.satelliteErrorEpochs = 0;
+        }
 
-		satNav.satelliteErrorCount	= 0;
+        satNav.satelliteErrorCount = 0;
 
-		if (satNav.satelliteErrorEpochs < acsConfig.errorAccumulation.satellite_error_epochs_threshold)
-		{
-			continue;
-		}
+        if (satNav.satelliteErrorEpochs <
+            acsConfig.errorAccumulation.satellite_error_epochs_threshold)
+        {
+            continue;
+        }
 
-		satNav.satelliteErrorEpochs	= 0;
+        satNav.satelliteErrorEpochs = 0;
 
-		for (auto [key, index] : kfState.kfIndexMap)
-		if (key.Sat == Sat)
-		{
-			kfState.removeState(key);
+        for (auto [key, index] : kfState.kfIndexMap)
+            if (key.Sat == Sat)
+            {
+                kfState.removeState(key);
 
-			trace << "\n" << "State removed due to high satellite error counts: " << key;
-		}
+                trace << "\n"
+                      << "State removed due to high satellite error counts: " << key;
+            }
 
-		kfState.statisticsMap["Sat error resets"]++;
-	}
+        kfState.statisticsMap["Sat error resets"]++;
+    }
 }
 
 void removeBadReceivers(
-	Trace&			trace,			///< Trace to output to
-	KFState&		kfState, 		///< Filter to remove states from
-	ReceiverMap&	receiverMap)	///< List of receivers containing observations for this epoch
+    Trace&       trace,       ///< Trace to output to
+    KFState&     kfState,     ///< Filter to remove states from
+    ReceiverMap& receiverMap  ///< List of receivers containing observations for this epoch
+)
 {
-	if (acsConfig.errorAccumulation.enable == false)
-	{
-		return;
-	}
+    if (acsConfig.errorAccumulation.enable == false)
+    {
+        return;
+    }
 
-	for (auto& [id, rec] : receiverMap)
-	{
-		if (rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)
-		{
-			rec.receiverErrorEpochs++;
+    for (auto& [id, rec] : receiverMap)
+    {
+        if (rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)
+        {
+            rec.receiverErrorEpochs++;
 
-			char idStr[100];
-			snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", id.c_str(), "", "");
+            char idStr[100];
+            snprintf(idStr, sizeof(idStr), "%10s\t%4s\t%4s\t%5s", "", id.c_str(), "", "");
 
-			trace << "\n" << kfState.time << "\tIncrementing receiverErrorEpochs  on\t" << idStr << "\tto " << rec.receiverErrorEpochs;
-		}
-		else
-		{
-			rec.receiverErrorEpochs = 0;
-		}
+            trace << "\n"
+                  << kfState.time << "\tIncrementing receiverErrorEpochs  on\t" << idStr << "\tto "
+                  << rec.receiverErrorEpochs;
+        }
+        else
+        {
+            rec.receiverErrorEpochs = 0;
+        }
 
-		rec.receiverErrorCount	= 0;
+        rec.receiverErrorCount = 0;
 
-		if (rec.receiverErrorEpochs < acsConfig.errorAccumulation.receiver_error_epochs_threshold)
-		{
-			continue;
-		}
+        if (rec.receiverErrorEpochs < acsConfig.errorAccumulation.receiver_error_epochs_threshold)
+        {
+            continue;
+        }
 
-		rec.receiverErrorEpochs	= 0;
+        rec.receiverErrorEpochs = 0;
 
-		for (auto [key, index] : kfState.kfIndexMap)
-		if (key.str == rec.id)
-		{
-			kfState.removeState(key);
+        for (auto [key, index] : kfState.kfIndexMap)
+            if (key.str == rec.id)
+            {
+                kfState.removeState(key);
 
-			trace << "\n" << "State removed due to high receiver error counts: " << key;
-		}
+                trace << "\n"
+                      << "State removed due to high receiver error counts: " << key;
+            }
 
-		kfState.statisticsMap["Rec error resets"]++;
+        kfState.statisticsMap["Rec error resets"]++;
 
-		rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = 0;
-	}
+        rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = 0;
+    }
 }
 
 /** Remove ambiguity states from filter when they deemed old or bad
- * This effectively reinitialises them on the following epoch as a new state, and can be used for simple
- * resolution of cycle-slips
+ * This effectively reinitialises them on the following epoch as a new state, and can be used for
+ * simple resolution of cycle-slips
  */
 void removeBadIonospheres(
-	Trace&				trace,				///< Trace to output to
-	KFState&			kfState) 			///< Filter to remove states from
+    Trace&   trace,   ///< Trace to output to
+    KFState& kfState  ///< Filter to remove states from
+)
 {
-	for (auto [key, index] : kfState.kfIndexMap)
-	{
-		if (key.type != KF::IONOSPHERIC)
-		{
-			continue;
-		}
+    for (auto [key, index] : kfState.kfIndexMap)
+    {
+        if (key.type != KF::IONOSPHERIC)
+        {
+            continue;
+        }
 
-		auto& recOpts = acsConfig.getRecOpts(key.str);
+        auto& recOpts = acsConfig.getRecOpts(key.str);
 
-		if (key.rec_ptr == nullptr)
-		{
-			auto& rec		= *key.rec_ptr;
-			auto& satStat	= rec.satStatMap[key.Sat];
+        if (key.rec_ptr == nullptr)
+        {
+            auto& rec     = *key.rec_ptr;
+            auto& satStat = rec.satStatMap[key.Sat];
 
-			if	( satStat.lastIonTime						!=	GTime::noTime()
-				&&(tsync - satStat.lastIonTime).to_double()	>	acsConfig.ionErrors.outage_reset_limit)	// Eugene: don't think this ever works
-			{
-				kfState.removeState(key);
+            if (satStat.lastIonTime != GTime::noTime() &&
+                (tsync - satStat.lastIonTime).to_double() >
+                    acsConfig.ionErrors.outage_reset_limit)  // Eugene: don't think this ever works
+            {
+                kfState.removeState(key);
 
-				trace << "\n" << "State removed due to long ionosphere signal outage: " << key;
-			}
-		}
-	}
+                trace << "\n"
+                      << "State removed due to long ionosphere signal outage: " << key;
+            }
+        }
+    }
 }
 
-void postFilterChecks(
-	const	GTime&	time,
-			KFMeas&	kfMeas)
+void postFilterChecks(const GTime& time, KFMeas& kfMeas)
 {
-	for (int i = 0; i < kfMeas.V.rows(); i++)
-	{
-		resetPhaseSignalError	(time, kfMeas, i);
-		resetIonoSignalOutage	(time, kfMeas, i);
-	}
+    for (int i = 0; i < kfMeas.V.rows(); i++)
+    {
+        resetPhaseSignalError(time, kfMeas, i);
+        resetIonoSignalOutage(time, kfMeas, i);
+    }
 }
 
 /* write solution status for PPP
-*/
-void outputPppNmea(
-	Trace&		trace,
-	KFState&	kfState,
-	string		id)
+ */
+void outputPppNmea(Trace& trace, KFState& kfState, string id)
 {
-	GWeek	week	= kfState.time;
-	GTow	tow		= kfState.time;
+    GWeek week = kfState.time;
+    GTow  tow  = kfState.time;
 
-	Block block(trace, "NMEA");
+    Block block(trace, "NMEA");
 
-	for (auto& [kfKey, index] : kfState.kfIndexMap)
-	{
-		KFKey key = kfKey;
-		if	( key.type	== KF::REC_POS
-			&&key.num	== 0
-			&&key.str	== id)
-		{
-			double x[3]	= {};
-			double v[3]	= {};
+    for (auto& [kfKey, index] : kfState.kfIndexMap)
+    {
+        KFKey key = kfKey;
+        if (key.type == KF::REC_POS && key.num == 0 && key.str == id)
+        {
+            double x[3] = {};
+            double v[3] = {};
 
-			for (key.num = 0; key.num < 3; key.num++)
-			{
-				kfState.getKFValue(key, x[key.num], &v[key.num]);
-			}
-			tracepdeex(0, trace, "$POS,%d,%.3f,%.4f,%.4f,%.4f,%.7f,%.7f,%.7f\n",
-						week,
-						tow,
-						x[0],
-						x[1],
-						x[2],
-						sqrt(v[0]),
-						sqrt(v[1]),
-						sqrt(v[2]));
-		}
+            for (key.num = 0; key.num < 3; key.num++)
+            {
+                kfState.getKFValue(key, x[key.num], &v[key.num]);
+            }
+            tracepdeex(
+                0,
+                trace,
+                "$POS,%d,%.3f,%.4f,%.4f,%.4f,%.7f,%.7f,%.7f\n",
+                week,
+                tow,
+                x[0],
+                x[1],
+                x[2],
+                sqrt(v[0]),
+                sqrt(v[1]),
+                sqrt(v[2])
+            );
+        }
 
-// 		if (key.type == KF::PHASE_BIAS)
-// 		{
-// 			double phase_bias		= 0;
-// 			double phase_biasVar	= 0;
-// 			kfState.getKFValue(key, phase_bias, &phase_biasVar);
-// 			tracepdeex(1, trace, "$AMB,%d,%.3f,%d,%s,%d,%.4f,%.7f\n",
-// 						week,
-// 						tow,
-// 						solStat,
-// 						key.Sat.id().c_str(),
-// 						key.num,
-// 						phase_bias,
-// 						sqrt(phase_biasVar));
-// 		}
+        // 		if (key.type == KF::PHASE_BIAS)
+        // 		{
+        // 			double phase_bias		= 0;
+        // 			double phase_biasVar	= 0;
+        // 			kfState.getKFValue(key, phase_bias, &phase_biasVar);
+        // 			tracepdeex(1, trace, "$AMB,%d,%.3f,%d,%s,%d,%.4f,%.7f\n",
+        // 						week,
+        // 						tow,
+        // 						solStat,
+        // 						key.Sat.id().c_str(),
+        // 						key.num,
+        // 						phase_bias,
+        // 						sqrt(phase_biasVar));
+        // 		}
 
-		if	( key.type	== KF::TROP	//todo aaron needs iteration
-			&&key.str	== id)
-		{
-			string grad;
-			double trop		= 0;
-			double tropVar	= 0;
-			if (key.num == 1)	grad = "_N";
-			if (key.num == 2)	grad = "_E";
-			kfState.getKFValue(key, trop, &tropVar);
-			tracepdeex(0, trace, "$TROP%s,%d,%.3f,%f,%.7f\n",
-					grad.c_str(),
-					week,
-					tow,
-					trop,
-					sqrt(tropVar));
-		}
+        if (key.type == KF::TROP  // todo aaron needs iteration
+            && key.str == id)
+        {
+            string grad;
+            double trop    = 0;
+            double tropVar = 0;
+            if (key.num == 1)
+                grad = "_N";
+            if (key.num == 2)
+                grad = "_E";
+            kfState.getKFValue(key, trop, &tropVar);
+            tracepdeex(
+                0,
+                trace,
+                "$TROP%s,%d,%.3f,%f,%.7f\n",
+                grad.c_str(),
+                week,
+                tow,
+                trop,
+                sqrt(tropVar)
+            );
+        }
 
-		if	( key.type	== KF::REC_SYS_BIAS
-			&&key.Sat	== SatSys(E_Sys::GPS)
-			&&key.str	== id)
-		{
-			double rClkGPS		= 0;
-			double rClkGLO		= 0;
-			double rClkGAL		= 0;
-			double rClkBDS		= 0;
-			double GPSclkVar	= 0;
-			double GLOclkVar	= 0;
-			double GALclkVar	= 0;
-			double BDSclkVar	= 0;
+        if (key.type == KF::REC_SYS_BIAS && key.Sat == SatSys(E_Sys::GPS) && key.str == id)
+        {
+            double rClkGPS   = 0;
+            double rClkGLO   = 0;
+            double rClkGAL   = 0;
+            double rClkBDS   = 0;
+            double GPSclkVar = 0;
+            double GLOclkVar = 0;
+            double GALclkVar = 0;
+            double BDSclkVar = 0;
 
-			key.Sat	= SatSys(E_Sys::GPS);			kfState.getKFValue(key, rClkGPS, &GPSclkVar);
-			key.Sat = SatSys(E_Sys::GLO);			kfState.getKFValue(key, rClkGLO, &GLOclkVar);
-			key.Sat = SatSys(E_Sys::GAL);			kfState.getKFValue(key, rClkGAL, &GALclkVar);
-			key.Sat = SatSys(E_Sys::BDS);			kfState.getKFValue(key, rClkBDS, &BDSclkVar);
+            key.Sat = SatSys(E_Sys::GPS);
+            kfState.getKFValue(key, rClkGPS, &GPSclkVar);
+            key.Sat = SatSys(E_Sys::GLO);
+            kfState.getKFValue(key, rClkGLO, &GLOclkVar);
+            key.Sat = SatSys(E_Sys::GAL);
+            kfState.getKFValue(key, rClkGAL, &GALclkVar);
+            key.Sat = SatSys(E_Sys::BDS);
+            kfState.getKFValue(key, rClkBDS, &BDSclkVar);
 
-			tracepdeex(0, trace, "$CLK,%d,%.3f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
-					week,
-					tow,
-					rClkGPS			* 1E9 / CLIGHT,
-					rClkGLO			* 1E9 / CLIGHT,
-					rClkGAL			* 1E9 / CLIGHT,
-					rClkBDS			* 1E9 / CLIGHT,
-					sqrt(GPSclkVar)	* 1E9 / CLIGHT,
-					sqrt(GLOclkVar)	* 1E9 / CLIGHT,
-					sqrt(GALclkVar)	* 1E9 / CLIGHT,
-					sqrt(BDSclkVar)	* 1E9 / CLIGHT);
-		}
-	}
-//
-// 	/* receiver velocity and acceleration */
-// 	{
-// 		ecef2pos(rtk->sol.rr, pos);
-// 		ecef2enu(pos, rtk->xx + 3, vel);
-// 		ecef2enu(pos, rtk->xx + 6, acc);
-// 		p += sprintf(p, "$VELACC,%d,%.3f,%d,%.4f,%.4f,%.4f,%.5f,%.5f,%.5f,%.4f,%.4f,"
-// 		             "%.4f,%.5f,%.5f,%.5f\n", week, tow, rtk->sol.stat, vel[0], vel[1],
-// 		             vel[2], acc[0], acc[1], acc[2], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-// 	}
+            tracepdeex(
+                0,
+                trace,
+                "$CLK,%d,%.3f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+                week,
+                tow,
+                rClkGPS * 1E9 / CLIGHT,
+                rClkGLO * 1E9 / CLIGHT,
+                rClkGAL * 1E9 / CLIGHT,
+                rClkBDS * 1E9 / CLIGHT,
+                sqrt(GPSclkVar) * 1E9 / CLIGHT,
+                sqrt(GLOclkVar) * 1E9 / CLIGHT,
+                sqrt(GALclkVar) * 1E9 / CLIGHT,
+                sqrt(BDSclkVar) * 1E9 / CLIGHT
+            );
+        }
+    }
+    //
+    // 	/* receiver velocity and acceleration */
+    // 	{
+    // 		ecef2pos(rtk->sol.rr, pos);
+    // 		ecef2enu(pos, rtk->xx + 3, vel);
+    // 		ecef2enu(pos, rtk->xx + 6, acc);
+    // 		p += sprintf(p, "$VELACC,%d,%.3f,%d,%.4f,%.4f,%.4f,%.5f,%.5f,%.5f,%.4f,%.4f,"
+    // 		             "%.4f,%.5f,%.5f,%.5f\n", week, tow, rtk->sol.stat, vel[0], vel[1],
+    // 		             vel[2], acc[0], acc[1], acc[2], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    // 	}
 }
 
-
-double netResidualAndChainOutputs(
-	Trace&			trace,
-	Observation&	obs,
-	KFMeasEntry&	measEntry)
+double netResidualAndChainOutputs(Trace& trace, Observation& obs, KFMeasEntry& measEntry)
 {
-	double residual		= 0;
-	double residualVar	= 0;
+    double residual    = 0;
+    double residualVar = 0;
 
-	for (auto& [component, details] : measEntry.componentsMap)
-	{
-		auto& [componentVal, eq, var] = details;
+    for (auto& [component, details] : measEntry.componentsMap)
+    {
+        auto& [componentVal, eq, var] = details;
 
-		residual -= componentVal;
+        residual -= componentVal;
 
-		if (var > 0)
-		{
-			residualVar += var;
-		}
+        if (var > 0)
+        {
+            residualVar += var;
+        }
 
-		if (acsConfig.output_residual_chain)
-		{
-			tracepdeex(0, trace, "\n");
-			tracepdeex(4, trace, "%s",		obs.time.to_string());
-			tracepdeex(3, trace, "%30s",	((string)measEntry.obsKey).c_str());
-			tracepdeex(0, trace, " %-23s %+14.4f", component._to_string(), -componentVal);
+        if (acsConfig.output_residual_chain)
+        {
+            tracepdeex(0, trace, "\n");
+            tracepdeex(4, trace, "%s", obs.time.to_string());
+            tracepdeex(3, trace, "%30s", ((string)measEntry.obsKey).c_str());
+            tracepdeex(0, trace, " %-23s %+14.4f", component._to_string(), -componentVal);
 
-			if		(var >= 0)		tracepdeex(2, trace, " ~ %5.3e", var);
-			else if	(var == 0)		tracepdeex(2, trace, " ~ 0        ");
-			else					tracepdeex(2, trace, " ~ Estimated");
+            if (var >= 0)
+                tracepdeex(2, trace, " ~ %5.3e", var);
+            else if (var == 0)
+                tracepdeex(2, trace, " ~ 0        ");
+            else
+                tracepdeex(2, trace, " ~ Estimated");
 
-			tracepdeex(2, trace, " -> %13.4f",	residual);
-			tracepdeex(3, trace, " ~ %.2e ",	residualVar);
-		}
-	}
+            tracepdeex(2, trace, " -> %13.4f", residual);
+            tracepdeex(3, trace, " ~ %.2e ", residualVar);
+        }
+    }
 
-	for (auto& [component, details] : measEntry.componentsMap)
-	{
-		auto& [componentVal, eq, var] = details;
+    for (auto& [component, details] : measEntry.componentsMap)
+    {
+        auto& [componentVal, eq, var] = details;
 
-		if (var > 100)
-		{
-			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
-			<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
+        if (var > 100)
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Warning: Unestimated component '" << component._to_string() << "' for '"
+                << measEntry.obsKey << "' has large variance (" << var
+                << "), valid inputs may not (yet) be available";
 
-			trace << "\n"
-			<< "Warning: Unestimated component '" << component._to_string() << "' for '" << measEntry.obsKey
-			<< "' has large variance (" << var << "), valid inputs may not (yet) be available";
-		}
-	}
+            trace << "\n"
+                  << "Warning: Unestimated component '" << component._to_string() << "' for '"
+                  << measEntry.obsKey << "' has large variance (" << var
+                  << "), valid inputs may not (yet) be available";
+        }
+    }
 
-	if (acsConfig.output_residual_chain)
-	{
-		trace << "\n" << "\n" << "0 =";
+    if (acsConfig.output_residual_chain)
+    {
+        trace << "\n"
+              << "\n"
+              << "0 =";
 
-		for (auto& [component, details] : measEntry.componentsMap)
-		{
-			auto& [componentVal, eq, var] = details;
+        for (auto& [component, details] : measEntry.componentsMap)
+        {
+            auto& [componentVal, eq, var] = details;
 
-			tracepdeex(0, trace, " %s", eq.c_str());
-		}
-	}
+            tracepdeex(0, trace, " %s", eq.c_str());
+        }
+    }
 
-	if (abs(residual) > 1e30)
-	{
-		BOOST_LOG_TRIVIAL(warning) << "Warning: " << measEntry.obsKey << " has very large residual: " << residual;
-	}
+    if (abs(residual) > 1e30)
+    {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Warning: " << measEntry.obsKey << " has very large residual: " << residual;
+    }
 
-	return residual;
+    return residual;
 }

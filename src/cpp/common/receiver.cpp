@@ -1,13 +1,11 @@
-
 #include "common/receiver.hpp"
 #include "common/sinex.hpp"
+SinexSiteId   dummySiteid;
+SinexReceiver dummyReceiver;
+SinexAntenna  dummyAntenna;
+SinexSiteEcc  dummySiteEcc;
 
-SinexSiteId				dummySiteid;
-SinexReceiver			dummyReceiver;
-SinexAntenna			dummyAntenna;
-SinexSiteEcc			dummySiteEcc;
+SinexSatIdentity dummySinexSatIdentity;
+SinexSatEcc      dummySinexSatEcc;
 
-SinexSatIdentity		dummySinexSatIdentity;
-SinexSatEcc				dummySinexSatEcc;
-
-ReceiverMap				receiverMap;
+ReceiverMap receiverMap;

@@ -1,51 +1,43 @@
-
 #pragma once
 
-#include "common/satSys.hpp"
-#include "common/gTime.hpp"
-#include "common/enums.h"
-
+#include <boost/asio.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include "common/enums.h"
+#include "common/gTime.hpp"
+#include "common/satSys.hpp"
 
 using std::string;
 using std::vector;
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio.hpp>
-
 struct NetworkStatistics
 {
-	string	streamName;
-	GTime	startTime;
-	GTime	endTime;
+    string streamName;
+    GTime  startTime;
+    GTime  endTime;
 
-	string	networkTraceFilename;
+    string networkTraceFilename;
 
-	int		connectCount			= 0;
-	int		disconnectCount 		= 0;
-	int 	chunksSent				= 0;
-	int		chunksReceived			= 0;
+    int connectCount    = 0;
+    int disconnectCount = 0;
+    int chunksSent      = 0;
+    int chunksReceived  = 0;
 
-	boost::posix_time::time_duration connectedDuration		= boost::posix_time::hours(0);
-	boost::posix_time::time_duration disconnectedDuration	= boost::posix_time::hours(0);
+    boost::posix_time::time_duration connectedDuration    = boost::posix_time::hours(0);
+    boost::posix_time::time_duration disconnectedDuration = boost::posix_time::hours(0);
 
-	string	getNetworkStatistics(
-		GTime	now,
-		string	label);
+    string getNetworkStatistics(GTime now, string label);
 
-	void onConnectedStatistics();
+    void onConnectedStatistics();
 
-	void onDisconnectedStatistics();
+    void onDisconnectedStatistics();
 
-	void onChunkSentStatistics();
+    void onChunkSentStatistics();
 
-	void onChunkReceivedStatistics();
+    void onChunkReceivedStatistics();
 
-	void onErrorStatistics(
-		const boost::system::error_code& 	err,
-		string 								operation);
+    void onErrorStatistics(const boost::system::error_code& err, string operation);
 };
-

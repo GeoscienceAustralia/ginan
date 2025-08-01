@@ -1,15 +1,12 @@
-R"HTMLTEMPLATE(
-
+#pragma once
+// clang-format off
+static const char* htmlFooterTemplate = R"HTMLTEMPLATE(
 <p>
 	<input type="file" name="inputfile" id="inputfile">
-
 	<br><button id="generate">Generate yaml</button>
 		<button id="create">Save file</button>
-
 	<br><textarea id="textbox" rows="40" cols="200" disabled>generated yaml file</textarea>
-
 </body>
-
 	<script>
 (function ()
 	{
@@ -26,17 +23,14 @@ R"HTMLTEMPLATE(
 				textFile = window.URL.createObjectURL(data);
 				return textFile;
 			};
-
 		var create      = document.getElementById('create');
 		var textbox     = document.getElementById('textbox');
 		var generate    = document.getElementById('generate');
 		var inputfile   = document.getElementById('inputfile');
 		var configLevel = document.getElementById('configLevel');
-
 		configLevel.addEventListener('change', function()
 			{
 				let level = $("#configLevel").val();
-
 				console.log("edit" + level)
 				if (level >= 1)     $(".level1").css("display", "block");
 				else                $(".level1").css("display", "none");
@@ -45,43 +39,34 @@ R"HTMLTEMPLATE(
 				if (level >= 3)     $(".level3").css("display", "block");
 				else                $(".level3").css("display", "none");
 			});
-
 		$("#configLevel").val(1);
-
 		generate.addEventListener('click', function()
 			{
 				var yaml = "";
 				var checked = $("input:checked + .ident");
-
 				checked.each(function(index, item)
 					{
 						var hidden = $(item).parents(":hidden");
 						if (hidden.length)
 							return;
-
 						var string = $(item).attr("data-indent") + item.textContent.split(/[\s\r\n]+/)[0] + " ";
-
 						var values = $(item).siblings(".value");
 						if ($(values).length)
 						{
 							// var bits = values[0].value;
 							string += values[0].value;
 						}
-
 						yaml += string + "\n";
 						console.log(string);
 					});
-
 				$("textarea").val(yaml);
 			}, false);
-
 		create.addEventListener('click', function ()
 			{
 				var link = document.createElement('a');
 				link.setAttribute('download', 'output.yaml');
 				link.href = makeTextFile(textbox.value);
 				document.body.appendChild(link);
-
 				// wait for the link to be added to the document
 				window.requestAnimationFrame(function ()
 					{
@@ -90,7 +75,6 @@ R"HTMLTEMPLATE(
 						document.body.removeChild(link);
 					});
 			}, false);
-
 		inputfile.addEventListener('change', function()
 			{
 				var fr = new FileReader();
@@ -104,11 +88,8 @@ R"HTMLTEMPLATE(
 						}
 						catch (e)
 						{
-
 						}
-
 						const isObject = val => val && typeof val === 'object' && !Array.isArray(val);
-
 						const paths = (obj = {}, head = '', depth = "") =>
 						{
 							Object.entries(obj).reduce((product, [key, value]) =>
@@ -125,16 +106,12 @@ R"HTMLTEMPLATE(
 								}
 							}, []);
 						}
-
 						paths(doc);
 					}
-
 				fr.readAsText(this.files[0]);
 			});
-
 	})();
-
 	</script>
 </html>
-
-)HTMLTEMPLATE"
+)HTMLTEMPLATE";
+// clang-format on

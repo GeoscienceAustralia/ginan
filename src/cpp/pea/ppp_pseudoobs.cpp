@@ -1,43 +1,34 @@
-
 // #pragma GCC optimize ("O0")
 
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
-
-#include "pea/minimumConstraints.hpp"
+#include <boost/algorithm/string/split.hpp>
 #include "architectureDocs.hpp"
-#include "common/eigenIncluder.hpp"
-#include "orbprop/coordinates.hpp"
-#include "common/navigation.hpp"
 #include "common/acsConfig.hpp"
-#include "trop/tropModels.hpp"
-#include "iono/ionoModel.hpp"
-#include "common/constants.hpp"
-#include "orbprop/orbitProp.hpp"
-#include "common/receiver.hpp"
 #include "common/algebra.hpp"
 #include "common/common.hpp"
+#include "common/constants.hpp"
+#include "common/eigenIncluder.hpp"
 #include "common/gTime.hpp"
-#include "common/trace.hpp"
+#include "common/navigation.hpp"
+#include "common/receiver.hpp"
 #include "common/sinex.hpp"
+#include "common/trace.hpp"
+#include "iono/ionoModel.hpp"
+#include "orbprop/coordinates.hpp"
+#include "orbprop/orbitProp.hpp"
+#include "pea/minimumConstraints.hpp"
+#include "trop/tropModels.hpp"
+#define PIVOT_MEAS_VARIANCE SQR(1E-5)
 
-
-#define PIVOT_MEAS_VARIANCE 	SQR(1E-5)
-
-
-Architecture Pseudo_Observations__()
-{
-
-}
-
+Architecture Pseudo_Observations__() {}
 
 void initPseudoObs(
-    Trace& trace,				///< Trace to output to
-    KFState& kfState,			///< Kalman filter object containing the network state parameters
-    KFMeasEntryList& kfMeasEntryList)	///< List to append kf measurements to
+    Trace&           trace,    ///< Trace to output to
+    KFState&         kfState,  ///< Kalman filter object containing the network state parameters
+    KFMeasEntryList& kfMeasEntryList  ///< List to append kf measurements to
+)
 {
-    if (kfMeasEntryList.empty() == false
-        || epoch != 1)
+    if (kfMeasEntryList.empty() == false || epoch != 1)
     {
         return;
     }
@@ -63,9 +54,7 @@ void initPseudoObs(
             InitialState posInit = initialStateFromConfig(satOpts.orbit, i);
             InitialState velInit = initialStateFromConfig(satOpts.orbit, i + 3);
 
-            if (posInit.estimate == false
-                || posInit.x == 0
-                || velInit.x == 0)
+            if (posInit.estimate == false || posInit.x == 0 || velInit.x == 0)
             {
                 continue;
             }
@@ -74,12 +63,12 @@ void initPseudoObs(
             KFKey satVelKey;
 
             satPosKey.type = KF::ORBIT;
-            satPosKey.Sat = Sat;
-            satPosKey.num = i;
+            satPosKey.Sat  = Sat;
+            satPosKey.num  = i;
 
             satVelKey.type = KF::ORBIT;
-            satVelKey.Sat = Sat;
-            satVelKey.num = i + 3;
+            satVelKey.Sat  = Sat;
+            satVelKey.num  = i + 3;
 
             newState |= kfState.addKFState(satPosKey, posInit);
             newState |= kfState.addKFState(satVelKey, velInit);
@@ -91,36 +80,33 @@ void initPseudoObs(
         }
 
         addEmpStates(satOpts, kfState, Sat);
-        #ifdef _ESTIMATE_CRCD
+#ifdef _ESTIMATE_CRCD
         if (initialStateFromConfig(satOpts.cr).estimate)
         {
             InitialState CrInit = initialStateFromConfig(satOpts.cr, 0);
-            kfState.addKFState({ KF::CR, Sat, 0 }, CrInit);
+            kfState.addKFState({KF::CR, Sat, 0}, CrInit);
         }
         if (initialStateFromConfig(satOpts.cd).estimate)
         {
             InitialState CdInit = initialStateFromConfig(satOpts.cd, 0);
-            kfState.addKFState({ KF::CD, Sat, 0 }, CdInit);
+            kfState.addKFState({KF::CD, Sat, 0}, CdInit);
         }
-        #endif
+#endif
         // addKFSatStates(satOpts.cr,       	kfState,	KF::CR,	        obs.Sat, 3);
-
     }
 }
 
 struct Pseudo
 {
-    GTime	time;
-    KFKey	kfKey;
-    double	value = 0;
-    double	sigma = 0;
+    GTime  time;
+    KFKey  kfKey;
+    double value = 0;
+    double sigma = 0;
 };
 
 map<GTime, vector<Pseudo>> pseudoListMap;
 
-
-void readPseudosFromFile(
-    string& file)
+void readPseudosFromFile(string& file)
 {
     std::ifstream fileStream(file);
     if (!fileStream)
@@ -134,8 +120,6 @@ void readPseudosFromFile(
         BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening read file '" << file << "_read'\n";
         return;
     }
-
-
 
     while (fileStream)
     {
@@ -153,7 +137,6 @@ void readPseudosFromFile(
             continue;
         }
 
-
         for (auto& token : tokens)
         {
             boost::trim(token);
@@ -161,22 +144,22 @@ void readPseudosFromFile(
 
         Pseudo pseudo;
         pseudo.kfKey.type = KF::_from_string_nocase(tokens[2].c_str());
-        pseudo.kfKey.str = tokens[3];
-        pseudo.kfKey.Sat = SatSys(tokens[4].c_str());
-        pseudo.kfKey.num = std::stoi(tokens[5].c_str());
-        pseudo.value = std::stod(tokens[6].c_str());
-        pseudo.sigma = std::stod(tokens[7].c_str());
+        pseudo.kfKey.str  = tokens[3];
+        pseudo.kfKey.Sat  = SatSys(tokens[4].c_str());
+        pseudo.kfKey.num  = std::stoi(tokens[5].c_str());
+        pseudo.value      = std::stod(tokens[6].c_str());
+        pseudo.sigma      = std::stod(tokens[7].c_str());
 
         vector<string> timeTokens;
         boost::split(timeTokens, tokens[1], boost::is_any_of(" -:"));
 
         GEpoch epoch;
-        epoch.year = std::stoi(timeTokens[0].c_str());
+        epoch.year  = std::stoi(timeTokens[0].c_str());
         epoch.month = std::stoi(timeTokens[1].c_str());
-        epoch.day = std::stoi(timeTokens[2].c_str());
-        epoch.hour = std::stoi(timeTokens[3].c_str());
-        epoch.min = std::stoi(timeTokens[4].c_str());
-        epoch.sec = std::stoi(timeTokens[5].c_str());
+        epoch.day   = std::stoi(timeTokens[2].c_str());
+        epoch.hour  = std::stoi(timeTokens[3].c_str());
+        epoch.min   = std::stoi(timeTokens[4].c_str());
+        epoch.sec   = std::stoi(timeTokens[5].c_str());
 
         pseudo.time = epoch;
 
@@ -188,12 +171,9 @@ void readPseudosFromFile(
     remove(file.c_str());
 }
 
-void filterPseudoObs(
-    Trace& trace,
-    KFState& kfState,
-    KFMeasEntryList& kfMeasEntryList)
+void filterPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
 {
-    for (auto it = pseudoListMap.begin(); it != pseudoListMap.end(); )
+    for (auto it = pseudoListMap.begin(); it != pseudoListMap.end();)
     {
         auto& [time, pseudoList] = *it;
 
@@ -238,10 +218,11 @@ void filterPseudoObs(
 }
 
 void orbitPseudoObs(
-    Trace& trace,				///< Trace to output to
-    Receiver& rec,				///< Receiver to perform calculations for
-    KFState& kfState,			///< Kalman filter object containing the network state parameters
-    KFMeasEntryList& kfMeasEntryList)	///< List to append kf measurements to
+    Trace&           trace,    ///< Trace to output to
+    Receiver&        rec,      ///< Receiver to perform calculations for
+    KFState&         kfState,  ///< Kalman filter object containing the network state parameters
+    KFMeasEntryList& kfMeasEntryList  ///< List to append kf measurements to
+)
 {
     GTime time = rec.obsList.front()->time;
 
@@ -285,7 +266,7 @@ void orbitPseudoObs(
                 obs.vel = satPos.vSatEci0;
             }
 
-            //Get framed vectors because obs is undefined
+            // Get framed vectors because obs is undefined
             rSatEci = obs.pos;
             vSatEci = obs.vel;
 
@@ -298,7 +279,7 @@ void orbitPseudoObs(
                 obs.vel = satPos.satVel;
             }
 
-            //Get framed vectors because obs is undefined
+            // Get framed vectors because obs is undefined
             rSatEcef = obs.pos;
             vSatEcef = obs.vel;
 
@@ -317,19 +298,19 @@ void orbitPseudoObs(
         for (int i = 0; i < 3; i++)
         {
             satPosKeys[i].type = KF::ORBIT;
-            satPosKeys[i].Sat = obs.Sat;
-            satPosKeys[i].num = i;
+            satPosKeys[i].Sat  = obs.Sat;
+            satPosKeys[i].num  = i;
 
             satVelKeys[i].type = KF::ORBIT;
-            satVelKeys[i].Sat = obs.Sat;
-            satVelKeys[i].num = i + 3;
+            satVelKeys[i].Sat  = obs.Sat;
+            satVelKeys[i].num  = i + 3;
 
-            eopKeys[i].type = KF::EOP;
-            eopKeys[i].num = i;
+            eopKeys[i].type    = KF::EOP;
+            eopKeys[i].num     = i;
             eopKeys[i].comment = eopComments[i];
 
-            rateKeys[i].type = KF::EOP_RATE;
-            rateKeys[i].num = i;
+            rateKeys[i].type    = KF::EOP_RATE;
+            rateKeys[i].num     = i;
             rateKeys[i].comment = (string)eopComments[i] + "/day";
         }
 
@@ -345,8 +326,10 @@ void orbitPseudoObs(
                 continue;
             }
 
-            if (posInit.x == 0)		posInit.x = satPos.rSatEci0[i];
-            if (velInit.x == 0)		velInit.x = satPos.vSatEci0[i];
+            if (posInit.x == 0)
+                posInit.x = satPos.rSatEci0[i];
+            if (velInit.x == 0)
+                velInit.x = satPos.vSatEci0[i];
 
             statePosEci[i] = posInit.x;
 
@@ -359,7 +342,7 @@ void orbitPseudoObs(
 
             for (int num = 0; num < 3; num++)
             {
-                InitialState init = initialStateFromConfig(acsConfig.pppOpts.eop, num);
+                InitialState init        = initialStateFromConfig(acsConfig.pppOpts.eop, num);
                 InitialState eopRateInit = initialStateFromConfig(acsConfig.pppOpts.eop_rates, num);
 
                 if (init.estimate == false)
@@ -370,9 +353,18 @@ void orbitPseudoObs(
                 if (init.x == 0)
                     switch (num)
                     {
-                    case 0:	init.x = erpv.xp * R2MAS;		eopRateInit.x = +erpv.xpr * R2MAS;	break;
-                    case 1:	init.x = erpv.yp * R2MAS;		eopRateInit.x = +erpv.ypr * R2MAS;	break;
-                    case 2:	init.x = erpv.ut1Utc * S2MTS;	eopRateInit.x = -erpv.lod * S2MTS;	break;
+                        case 0:
+                            init.x        = erpv.xp * R2MAS;
+                            eopRateInit.x = +erpv.xpr * R2MAS;
+                            break;
+                        case 1:
+                            init.x        = erpv.yp * R2MAS;
+                            eopRateInit.x = +erpv.ypr * R2MAS;
+                            break;
+                        case 2:
+                            init.x        = erpv.ut1Utc * S2MTS;
+                            eopRateInit.x = -erpv.lod * S2MTS;
+                            break;
                     }
 
                 kfMeasEntry.addDsgnEntry(eopKeys[num], eopPartialMatrixEci(num, i), init);
@@ -385,15 +377,14 @@ void orbitPseudoObs(
                 kfState.setKFTransRate(eopKeys[num], rateKeys[num], 1 / S_IN_DAY, eopRateInit);
             }
 
-            double omc = rSatEci[i]
-                - statePosEci[i];
+            double omc = rSatEci[i] - statePosEci[i];
 
             kfMeasEntry.setInnov(omc);
 
-            kfMeasEntry.obsKey.comment = "ECI PseudoPos";
-            kfMeasEntry.obsKey.type = KF::ORBIT_MEAS;
-            kfMeasEntry.obsKey.Sat = obs.Sat;
-            kfMeasEntry.obsKey.num = i;
+            kfMeasEntry.obsKey.comment           = "ECI PseudoPos";
+            kfMeasEntry.obsKey.type              = KF::ORBIT_MEAS;
+            kfMeasEntry.obsKey.Sat               = obs.Sat;
+            kfMeasEntry.obsKey.num               = i;
             kfMeasEntry.metaDataMap["pseudoObs"] = (void*)true;
 
             kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigma));
@@ -402,27 +393,26 @@ void orbitPseudoObs(
         }
 
         addEmpStates(satOpts, kfState, obs.Sat);
-        #ifdef _ESTIMATE_CRCD
+#ifdef _ESTIMATE_CRCD
         if (initialStateFromConfig(satOpts.cr).estimate)
         {
-
             InitialState CrInit = initialStateFromConfig(satOpts.cr, 0);
-            kfState.addKFState({ KF::CR, obs.Sat, 0 }, CrInit);
+            kfState.addKFState({KF::CR, obs.Sat, 0}, CrInit);
         }
         if (initialStateFromConfig(satOpts.cd).estimate)
         {
-
             InitialState CdInit = initialStateFromConfig(satOpts.cd, 0);
-            kfState.addKFState({ KF::CD, obs.Sat, 0 }, CdInit);
+            kfState.addKFState({KF::CD, obs.Sat, 0}, CdInit);
         }
-        #endif
+#endif
     }
 }
 
 void pseudoRecDcb(
-    Trace& trace,				///< Trace to output to
-    KFState& kfState,			///< Kalman filter object containing the network state parameters
-    KFMeasEntryList& kfMeasEntryList)	///< List to append kf measurements to
+    Trace&           trace,    ///< Trace to output to
+    KFState&         kfState,  ///< Kalman filter object containing the network state parameters
+    KFMeasEntryList& kfMeasEntryList  ///< List to append kf measurements to
+)
 {
     string doneRec;
     SatSys doneSys;
@@ -431,18 +421,17 @@ void pseudoRecDcb(
 
     for (auto& [key, index] : kfState.kfIndexMap)
     {
-        if (key.type != KF::CODE_BIAS
-            || key.str.empty())
+        if (key.type != KF::CODE_BIAS || key.str.empty())
         {
-            //only do receiver code biases
+            // only do receiver code biases
             continue;
         }
 
         SatSys sysSat(key.Sat.sys);
 
-        //there are code biases for this receiver+system, check the dcbs all at once at the first one
-        if (key.str == doneRec
-            && sysSat == doneSys)
+        // there are code biases for this receiver+system, check the dcbs all at once at the first
+        // one
+        if (key.str == doneRec && sysSat == doneSys)
         {
             continue;
         }
@@ -450,28 +439,27 @@ void pseudoRecDcb(
         auto sys = sysSat.sys;
 
         KFKey sysKey = key;
-        sysKey.Sat = SatSys(sys);
-        sysKey.num = 0;
+        sysKey.Sat   = SatSys(sys);
+        sysKey.num   = 0;
 
         auto& setSat = setSatMap[sysKey];
-        if (setSat.sys
-            && setSat != key.Sat)
+        if (setSat.sys && setSat != key.Sat)
         {
-            //have used a different key before, only use that one again.
+            // have used a different key before, only use that one again.
             continue;
         }
 
         doneRec = key.str;
         doneSys = sysSat;
 
-        auto& recSysOpts = acsConfig.getRecOpts(key.str, { sys._to_string() });
+        auto& recSysOpts = acsConfig.getRecOpts(key.str, {sys._to_string()});
 
         if (recSysOpts.zero_dcb_codes.size() != 2)
         {
             continue;
         }
 
-        auto& firstCode = recSysOpts.zero_dcb_codes[0];
+        auto& firstCode  = recSysOpts.zero_dcb_codes[0];
         auto& secondCode = recSysOpts.zero_dcb_codes[1];
 
         list<KFKey> codeBiasKeys;
@@ -480,11 +468,8 @@ void pseudoRecDcb(
 
         KFKey testKey;
 
-        while (it != kfState.kfIndexMap.end()
-            && (testKey = it->first, true)
-            && testKey.type == +KF::CODE_BIAS
-            && testKey.str == key.str
-            && testKey.Sat == key.Sat)
+        while (it != kfState.kfIndexMap.end() && (testKey = it->first, true) &&
+               testKey.type == +KF::CODE_BIAS && testKey.str == key.str && testKey.Sat == key.Sat)
         {
             codeBiasKeys.push_back(testKey);
             ++it;
@@ -494,24 +479,34 @@ void pseudoRecDcb(
             }
         }
 
-        if (firstCode == +E_ObsCode::AUTO
-            || secondCode == +E_ObsCode::AUTO)
+        if (firstCode == +E_ObsCode::AUTO || secondCode == +E_ObsCode::AUTO)
         {
-            //get all available codes in priority order to resolve the autos
+            // get all available codes in priority order to resolve the autos
 
-
-            codeBiasKeys.sort([sys](KFKey& a, KFKey& b)
+            codeBiasKeys.sort(
+                [sys](KFKey& a, KFKey& b)
                 {
                     auto& code_priorities = acsConfig.code_priorities[sys];
 
-                    auto iterA = std::find(code_priorities.begin(), code_priorities.end(), E_ObsCode::_from_integral(a.num));
-                    auto iterB = std::find(code_priorities.begin(), code_priorities.end(), E_ObsCode::_from_integral(b.num));
+                    auto iterA = std::find(
+                        code_priorities.begin(),
+                        code_priorities.end(),
+                        E_ObsCode::_from_integral(a.num)
+                    );
+                    auto iterB = std::find(
+                        code_priorities.begin(),
+                        code_priorities.end(),
+                        E_ObsCode::_from_integral(b.num)
+                    );
 
-                    if (iterA < iterB)	return true;
-                    else				return false;
-                });
+                    if (iterA < iterB)
+                        return true;
+                    else
+                        return false;
+                }
+            );
 
-            for (auto& code_ptr : { &firstCode, &secondCode })
+            for (auto& code_ptr : {&firstCode, &secondCode})
             {
                 auto& code = *code_ptr;
 
@@ -520,52 +515,55 @@ void pseudoRecDcb(
                     continue;
                 }
 
-                //need to replace this code with the first one found in the sorted code_priorities
+                // need to replace this code with the first one found in the sorted code_priorities
 
-				try
-				{
-					for (auto& codeBiasKey : codeBiasKeys)
-					{
-						E_ObsCode keyCode = E_ObsCode::_from_integral(codeBiasKey.num);
+                try
+                {
+                    for (auto& codeBiasKey : codeBiasKeys)
+                    {
+                        E_ObsCode keyCode = E_ObsCode::_from_integral(codeBiasKey.num);
 
-						if (code2Freq[sys][keyCode] == code2Freq[sys][firstCode])
-						{
-							//would duplicate frequency, skip. (also works for auto in firstCode)
-							continue;
-						}
+                        if (code2Freq[sys][keyCode] == code2Freq[sys][firstCode])
+                        {
+                            // would duplicate frequency, skip. (also works for auto in firstCode)
+                            continue;
+                        }
 
-						code = keyCode;
+                        code = keyCode;
 
-						BOOST_LOG_TRIVIAL(debug) << "Setting zero_dcb_code for " << key.str << " " << sys._to_string() << " to " << code;
+                        BOOST_LOG_TRIVIAL(debug) << "Setting zero_dcb_code for " << key.str << " "
+                                                 << sys._to_string() << " to " << code;
 
-						break;
-					}
-				}
-				catch (...)
-				{
-					continue;
-				}
-			}
-		}
+                        break;
+                    }
+                }
+                catch (...)
+                {
+                    continue;
+                }
+            }
+        }
 
-        KFKey key1 = key;	key1.num = firstCode;
-        KFKey key2 = key;	key2.num = secondCode;
+        KFKey key1 = key;
+        key1.num   = firstCode;
+        KFKey key2 = key;
+        key2.num   = secondCode;
 
-        if (std::find(codeBiasKeys.begin(), codeBiasKeys.end(), key1) == codeBiasKeys.end()
-            || std::find(codeBiasKeys.begin(), codeBiasKeys.end(), key2) == codeBiasKeys.end())
+        if (std::find(codeBiasKeys.begin(), codeBiasKeys.end(), key1) == codeBiasKeys.end() ||
+            std::find(codeBiasKeys.begin(), codeBiasKeys.end(), key2) == codeBiasKeys.end())
         {
-            //both biases not found
+            // both biases not found
             continue;
         }
 
         KFMeasEntry measEntry(&kfState);
-        measEntry.obsKey.type = KF::CODE_BIAS;
-        measEntry.obsKey.Sat = sysSat;
-        measEntry.obsKey.str = key.str;
+        measEntry.obsKey.type    = KF::CODE_BIAS;
+        measEntry.obsKey.Sat     = sysSat;
+        measEntry.obsKey.str     = key.str;
         measEntry.obsKey.comment = "Zero DCB";
 
         measEntry.metaDataMap["pseudoObs"] = (void*)true;
-        measEntry.metaDataMap["explain"] = (void*)true;
+        measEntry.metaDataMap["explain"]   = (void*)true;
 
         InitialState init1;
         InitialState init2;
@@ -590,22 +588,22 @@ void pseudoRecDcb(
 }
 
 void receiverPseudoObs(
-    Trace& trace,				///< Trace to output to
-    Receiver& rec,				///< (Pseudo) Receiver to perform calculations for
-    KFState& kfState,			///< Kalman filter object containing the network state parameters
-    KFMeasEntryList& kfMeasEntryList,	///< List to append kf measurements to
-    ReceiverMap& receiverMap)		///< Map of stations to retrieve receiver metadata from
+    Trace&           trace,    ///< Trace to output to
+    Receiver&        rec,      ///< (Pseudo) Receiver to perform calculations for
+    KFState&         kfState,  ///< Kalman filter object containing the network state parameters
+    KFMeasEntryList& kfMeasEntryList,  ///< List to append kf measurements to
+    ReceiverMap&     receiverMap       ///< Map of stations to retrieve receiver metadata from
+)
 {
     GTime time = rec.obsList.front()->time;
 
-    vector<int>	indices;
+    vector<int> indices;
 
     for (auto& obs : only<FObs>(rec.obsList))
     {
         for (auto& [key, index] : obs.obsState.kfIndexMap)
         {
-            if (key.type != KF::REC_POS
-                || key.num != 0)
+            if (key.type != KF::REC_POS || key.num != 0)
             {
                 continue;
             }
@@ -616,7 +614,7 @@ void receiverPseudoObs(
             }
 
             auto& rec = *key.rec_ptr;
-            //try to get apriori from the existing state, otherwise use sinex.
+            // try to get apriori from the existing state, otherwise use sinex.
 
             Vector3d apriori = Vector3d::Zero();
 
@@ -624,14 +622,15 @@ void receiverPseudoObs(
             for (int i = 0; i < 3; i++)
             {
                 KFKey posKey = key;
-                posKey.num = i;
+                posKey.num   = i;
 
                 found &= kfState.getKFValue(posKey, apriori(i));
             }
 
-            //make sure this receiver is initialised since this might be the first time anyone has seen it
+            // make sure this receiver is initialised since this might be the first time anyone has
+            // seen it
 
-// 			if (found == false)
+            // 			if (found == false)
             {
                 rec.id = key.str;
                 getRecSnx(rec.id, obs.time, rec.snx);
@@ -656,7 +655,7 @@ void receiverPseudoObs(
 
             KFKey kfKey = key;
 
-            auto& rec = receiverMap[key.str];
+            auto& rec     = receiverMap[key.str];
             kfKey.rec_ptr = &rec;
 
             InitialState posInit = initialStateFromConfig(recOpts.pos, kfKey.num);
@@ -676,19 +675,17 @@ void receiverPseudoObs(
 
             kfMeasEntry.addDsgnEntry(kfKey, 1, posInit);
 
-
             InitialState velInit = initialStateFromConfig(recOpts.strain_rate, kfKey.num);
             if (velInit.estimate)
             {
-                KFKey velKey = kfKey;
-                velKey.type = KF::STRAIN_RATE;
+                KFKey velKey   = kfKey;
+                velKey.type    = KF::STRAIN_RATE;
                 velKey.comment = "mm/year";
 
                 kfState.setKFTransRate(kfKey, velKey, 1 / (365.25 * 24 * 60 * 60 * 1e3), velInit);
             }
 
-            double omc = obsX
-                - stateX;
+            double omc = obsX - stateX;
 
             kfMeasEntry.setInnov(omc);
             kfMeasEntry.setNoise(obs.obsState.P(index, index));
@@ -701,142 +698,138 @@ void receiverPseudoObs(
 }
 
 /** Add pseudo-observations to set one satellite's phase biases variances to zero.
- * This shouldnt occur in the parallel section because multiple receivers may be trying to set different satellites to 0 if they see different satellites.
+ * This shouldnt occur in the parallel section because multiple receivers may be trying to set
+ * different satellites to 0 if they see different satellites.
  */
-void phasePseudoObs(
-	Trace&				trace,
-	KFState&			kfState,
-	KFMeasEntryList&	kfMeasEntryList)
+void phasePseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
 {
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if (key.type != KF::PHASE_BIAS)
-		{
-			continue;
-		}
+    for (auto& [key, index] : kfState.kfIndexMap)
+    {
+        if (key.type != KF::PHASE_BIAS)
+        {
+            continue;
+        }
 
-		string& constrain_phase_bias = acsConfig.constrain_phase_bias[key.Sat.sys];
+        string& constrain_phase_bias = acsConfig.constrain_phase_bias[key.Sat.sys];
 
-		if (constrain_phase_bias.empty())
-		{
-			continue;
-		}
+        if (constrain_phase_bias.empty())
+        {
+            continue;
+        }
 
-		if (constrain_phase_bias == "<AUTO>")
-		{
-			constrain_phase_bias = key.Sat.id();
-		}
+        if (constrain_phase_bias == "<AUTO>")
+        {
+            constrain_phase_bias = key.Sat.id();
+        }
 
-		if (key.Sat.id() != constrain_phase_bias)
-		{
-			continue;
-		}
+        if (key.Sat.id() != constrain_phase_bias)
+        {
+            continue;
+        }
 
-		double dummy;
-		double var;
-		kfState.getKFValue(key, dummy, &var);
+        double dummy;
+        double var;
+        kfState.getKFValue(key, dummy, &var);
 
-		if (var < 2 * PIVOT_MEAS_VARIANCE)
-		{
-			continue;
-		}
+        if (var < 2 * PIVOT_MEAS_VARIANCE)
+        {
+            continue;
+        }
 
-		KFMeasEntry kfMeasEntry(&kfState, key);
+        KFMeasEntry kfMeasEntry(&kfState, key);
 
-		kfMeasEntry.obsKey.comment = "Phase bias constraint";
+        kfMeasEntry.obsKey.comment = "Phase bias constraint";
 
-		kfMeasEntry.addDsgnEntry	(key, +1);
-		kfMeasEntry.addNoiseEntry	(key, +1, PIVOT_MEAS_VARIANCE);
+        kfMeasEntry.addDsgnEntry(key, +1);
+        kfMeasEntry.addNoiseEntry(key, +1, PIVOT_MEAS_VARIANCE);
 
-		kfMeasEntryList.push_back(kfMeasEntry);
-	}
+        kfMeasEntryList.push_back(kfMeasEntry);
+    }
 }
 
-void ambgPseudoObs(
-	Trace&				trace,
-	KFState&			kfState,
-	KFMeasEntryList&	kfMeasEntryList)
+void ambgPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
 {
-	static map<E_Sys,	map<int, tuple<KFKey, double, bool>>>	bestForSysCode;
+    static map<E_Sys, map<int, tuple<KFKey, double, bool>>> bestForSysCode;
 
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if (key.type != KF::AMBIGUITY)
-		{
-			continue;
-		}
+    for (auto& [key, index] : kfState.kfIndexMap)
+    {
+        if (key.type != KF::AMBIGUITY)
+        {
+            continue;
+        }
 
-		if (acsConfig.constrain_best_ambiguity_integer[key.Sat.sys] == false)
-		{
-			continue;
-		}
+        if (acsConfig.constrain_best_ambiguity_integer[key.Sat.sys] == false)
+        {
+            continue;
+        }
 
-		double dummy;
-		double var = 0;
+        double dummy;
+        double var = 0;
 
-		kfState.getKFValue(key, dummy, &var);
+        kfState.getKFValue(key, dummy, &var);
 
-		auto& [bestKey, bestVar, done] = bestForSysCode[key.Sat.sys][key.num];
+        auto& [bestKey, bestVar, done] = bestForSysCode[key.Sat.sys][key.num];
 
-		if (done)
-		{
-			continue;
-		}
+        if (done)
+        {
+            continue;
+        }
 
-		if	( bestVar == 0
-			||var < bestVar)
-		{
-			//new best variance for this frequency
-			bestForSysCode[key.Sat.sys][key.num] = {key, var, false};
-		}
-	}
+        if (bestVar == 0 || var < bestVar)
+        {
+            // new best variance for this frequency
+            bestForSysCode[key.Sat.sys][key.num] = {key, var, false};
+        }
+    }
 
-	for (auto& [sys,	codeMap]	: bestForSysCode)
-	for (auto& [code,	best]		: codeMap)
-	{
-		auto& [key, var, done] = best;
+    for (auto& [sys, codeMap] : bestForSysCode)
+        for (auto& [code, best] : codeMap)
+        {
+            auto& [key, var, done] = best;
 
-		if (done)
-		{
-			continue;
-		}
+            if (done)
+            {
+                continue;
+            }
 
-		if (var < 2 * PIVOT_MEAS_VARIANCE)
-		{
-			continue;
-		}
+            if (var < 2 * PIVOT_MEAS_VARIANCE)
+            {
+                continue;
+            }
 
-		//this is the most constrained ambiguity of an unconstrained system, constrain it to an integer value
+            // this is the most constrained ambiguity of an unconstrained system, constrain it to an
+            // integer value
 
-		KFMeasEntry measEntry(&kfState);
-		measEntry.obsKey			= key;
-		measEntry.obsKey.comment	= "Integer ambiguity constraint";
+            KFMeasEntry measEntry(&kfState);
+            measEntry.obsKey         = key;
+            measEntry.obsKey.comment = "Integer ambiguity constraint";
 
-		measEntry.addDsgnEntry(key, +1);
+            measEntry.addDsgnEntry(key, +1);
 
-		double floatAmb;
-		kfState.getKFValue(key, floatAmb);
+            double floatAmb;
+            kfState.getKFValue(key, floatAmb);
 
-		double fixedAmb = round(floatAmb);
+            double fixedAmb = round(floatAmb);
 
-        measEntry.setInnov(fixedAmb - floatAmb);
+            measEntry.setInnov(fixedAmb - floatAmb);
 
-        measEntry.metaDataMap["pseudoObs"] = (void*)true;
-        //		measEntry.metaDataMap["explain"]	= (void*) true;
+            measEntry.metaDataMap["pseudoObs"] = (void*)true;
+            //		measEntry.metaDataMap["explain"]	= (void*) true;
 
-        measEntry.addNoiseEntry(measEntry.obsKey, 1, PIVOT_MEAS_VARIANCE);
+            measEntry.addNoiseEntry(measEntry.obsKey, 1, PIVOT_MEAS_VARIANCE);
 
-		kfMeasEntryList.push_back(measEntry);
+            kfMeasEntryList.push_back(measEntry);
 
-		done = true;
-	}
+            done = true;
+        }
 }
 
-void ionoPseudoObs(				//todo aaron, move to model section
-    Trace& pppTrace,
-    ReceiverMap& receiverMap,
-    KFState& kfState,
-    KFMeasEntryList& kfMeasEntryList)
+void ionoPseudoObs(  // todo aaron, move to model section
+    Trace&           pppTrace,
+    ReceiverMap&     receiverMap,
+    KFState&         kfState,
+    KFMeasEntryList& kfMeasEntryList
+)
 {
     for (auto& [id, rec] : receiverMap)
         for (auto& obs : only<GObs>(rec.obsList))
@@ -852,7 +845,14 @@ void ionoPseudoObs(				//todo aaron, move to model section
             auto& satStat = *obs.satStat_ptr;
 
             double extvar = 0;
-            double extion = getSSRIono(pppTrace, obs.time, rec.aprioriPos, satStat, extvar, obs.Sat);					 //todo aaron get from other sources too
+            double extion = getSSRIono(
+                pppTrace,
+                obs.time,
+                rec.aprioriPos,
+                satStat,
+                extvar,
+                obs.Sat
+            );  // todo aaron get from other sources too
 
             if (extvar <= 0)
                 continue;
@@ -863,19 +863,28 @@ void ionoPseudoObs(				//todo aaron, move to model section
 
             KFKey kfKey;
             kfKey.type = KF::IONO_STEC;
-            kfKey.str = rec.id;
-            kfKey.Sat = obs.Sat;
+            kfKey.str  = rec.id;
+            kfKey.Sat  = obs.Sat;
 
             kfState.getKFValue(kfKey, init.x);
 
             double kfion = init.x;
 
-            tracepdeex(2, pppTrace, "    Checking Ionosphere pseudos: %s %s, %.4f, %.4f, %.2e\n", rec.id.c_str(), obs.Sat.id().c_str(), extion, kfion, extvar);
+            tracepdeex(
+                2,
+                pppTrace,
+                "    Checking Ionosphere pseudos: %s %s, %.4f, %.4f, %.2e\n",
+                rec.id.c_str(),
+                obs.Sat.id().c_str(),
+                extion,
+                kfion,
+                extvar
+            );
 
             KFMeasEntry measEntry(&kfState);
             measEntry.obsKey.type = KF::IONOSPHERIC;
-            measEntry.obsKey.str = rec.id;
-            measEntry.obsKey.Sat = obs.Sat;
+            measEntry.obsKey.str  = rec.id;
+            measEntry.obsKey.Sat  = obs.Sat;
 
             measEntry.addDsgnEntry(kfKey, +1, init);
 
@@ -891,10 +900,11 @@ void ionoPseudoObs(				//todo aaron, move to model section
 }
 
 void tropPseudoObs(
-    Trace& trace,
-    ReceiverMap& receiverMap,
-    KFState& kfState,
-    KFMeasEntryList& kfMeasEntryList)
+    Trace&           trace,
+    ReceiverMap&     receiverMap,
+    KFState&         kfState,
+    KFMeasEntryList& kfMeasEntryList
+)
 {
     if (acsConfig.use_trop_corrections == false)
     {
@@ -915,14 +925,24 @@ void tropPseudoObs(
         double dryMap;
         double wetMap;
         double extVar;
-        double extZTD = tropCSSR(trace, kfState.time, rec.pos, PI / 2, dryZTD, dryMap, wetZTD, wetMap, extVar);		//todo aaron, take this from other places optionally
+        double extZTD = tropCSSR(
+            trace,
+            kfState.time,
+            rec.pos,
+            PI / 2,
+            dryZTD,
+            dryMap,
+            wetZTD,
+            wetMap,
+            extVar
+        );  // todo aaron, take this from other places optionally
 
         if (extVar <= 0)
             continue;
 
         KFKey kfKey;
         kfKey.type = KF::TROP;
-        kfKey.str = rec.id;
+        kfKey.str  = rec.id;
 
         InitialState init = initialStateFromConfig(recOpts.trop);
 
@@ -930,11 +950,21 @@ void tropPseudoObs(
 
         double kftrop = init.x;
 
-        tracepdeex(2, trace, "    Checking troposphere pseudos: %s, %.4f + %.4f = %.4f, %.4f, %.2e\n", rec.id.c_str(), dryZTD, wetZTD, extZTD, kftrop, extVar);
+        tracepdeex(
+            2,
+            trace,
+            "    Checking troposphere pseudos: %s, %.4f + %.4f = %.4f, %.4f, %.2e\n",
+            rec.id.c_str(),
+            dryZTD,
+            wetZTD,
+            extZTD,
+            kftrop,
+            extVar
+        );
 
         KFMeasEntry measEntry(&kfState);
         measEntry.obsKey.type = KF::TROP;
-        measEntry.obsKey.str = rec.id;
+        measEntry.obsKey.str  = rec.id;
 
         measEntry.addDsgnEntry(kfKey, +1, init);
 
@@ -948,35 +978,31 @@ void tropPseudoObs(
     }
 }
 
-void satClockPivotPseudoObs(
-    Trace& trace,
-    KFState& kfState,
-    KFMeasEntryList& kfMeasEntryList)
+void satClockPivotPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
 {
-	for (auto& [key, index] : kfState.kfIndexMap)
-	{
-		if (key.type != KF::SAT_CLOCK)
-		{
-			continue;
-		}
+    for (auto& [key, index] : kfState.kfIndexMap)
+    {
+        if (key.type != KF::SAT_CLOCK)
+        {
+            continue;
+        }
 
-		string& constrain_clock = acsConfig.constrain_clock[key.Sat.sys];
+        string& constrain_clock = acsConfig.constrain_clock[key.Sat.sys];
 
-		if (constrain_clock.empty())
-		{
-			continue;
-		}
+        if (constrain_clock.empty())
+        {
+            continue;
+        }
 
-		if	( constrain_clock != "<AUTO>"
-			&&constrain_clock != key.Sat.id())
-		{
-			continue;
-		}
+        if (constrain_clock != "<AUTO>" && constrain_clock != key.Sat.id())
+        {
+            continue;
+        }
 
-		KFMeasEntry measEntry(&kfState);
- 		measEntry.obsKey.type		= KF::SAT_CLOCK;
- 		measEntry.obsKey.Sat		= key.Sat;
-		measEntry.obsKey.comment	= "Satellite pivot constraint";
+        KFMeasEntry measEntry(&kfState);
+        measEntry.obsKey.type    = KF::SAT_CLOCK;
+        measEntry.obsKey.Sat     = key.Sat;
+        measEntry.obsKey.comment = "Satellite pivot constraint";
 
         measEntry.addDsgnEntry(key, +1);
 

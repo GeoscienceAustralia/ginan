@@ -1,67 +1,70 @@
-
 #pragma once
 
 #include <boost/numeric/odeint.hpp>
-
 #include <fstream>
-#include <vector>
 #include <map>
-
-using std::vector;
-using std::map;
-
-#include "common/eigenIncluder.hpp"
+#include <memory>
+#include <vector>
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/enums.h"
 #include "common/gTime.hpp"
 #include "common/trace.hpp"
-#include "common/enums.h"
+#include "common/attitude.hpp"
 
+using std::map;
+using std::shared_ptr;
+using std::vector;
 using namespace boost::numeric::odeint;
+
+//forward declarations
+struct KFState;
+struct KFKey;
 
 struct EMP
 {
-    bool		scaleEclipse = false;
-    int			deg = 0;
-    E_EmpAxis	axisId = E_EmpAxis::NONE;
-    E_TrigType	type = E_TrigType::COS;
-    double		value = 0;
-    KFKey		key;
+    bool       scaleEclipse = false;
+    int        deg          = 0;
+    E_EmpAxis  axisId       = E_EmpAxis::NONE;
+    E_TrigType type         = E_TrigType::COS;
+    double     value        = 0;
+    KFKey      key;
 };
 
 struct OrbitState : OrbitOptions
 {
-    SatSys	Sat;
-    string	str;
+    SatSys Sat;
+    string str;
 
-    bool	exclude = false;
+    bool exclude = false;
 
-    shared_ptr<KFState>	subState_ptr;
+    shared_ptr<KFState> subState_ptr;
 
     vector<EMP> empInput;
 
-    mutable map<E_Component, double>	componentsMap;
+    mutable map<E_Component, double> componentsMap;
 
-    int numEmp = 0;
-    int numParam = 0;
-    double srpCr = 0;
-    double dragCd = 0;
-    Vector3d	pos;
-    Vector3d	vel;
-    MatrixXd	posVelSTM;
-    bool 		estimateCr = false;
-    bool 		estimateCd = false;
-    AttStatus	attStatus;
-    Vector3d	gyroBias = Vector3d::Zero();
-    Vector3d	acclBias = Vector3d::Zero();
-    Vector3d	gyroScale = Vector3d::Ones();
-    Vector3d	acclScale = Vector3d::Ones();
-    double		posVar = 0;
+    int       numEmp   = 0;
+    int       numParam = 0;
+    double    srpCr    = 0;
+    double    dragCd   = 0;
+    Vector3d  pos;
+    Vector3d  vel;
+    MatrixXd  posVelSTM;
+    bool      estimateCr = false;
+    bool      estimateCd = false;
+    AttStatus attStatus;
+    Vector3d  gyroBias  = Vector3d::Zero();
+    Vector3d  acclBias  = Vector3d::Zero();
+    Vector3d  gyroScale = Vector3d::Ones();
+    Vector3d  acclScale = Vector3d::Ones();
+    double    posVar    = 0;
 
     OrbitState& operator+=(double rhs)
     {
-        pos = (pos.array() + rhs).matrix();
-        vel = (vel.array() + rhs).matrix();
+        pos       = (pos.array() + rhs).matrix();
+        vel       = (vel.array() + rhs).matrix();
         posVelSTM = (posVelSTM.array() + rhs).matrix();
         return *this;
     }
@@ -100,16 +103,12 @@ struct OrbitState : OrbitOptions
 
 typedef vector<OrbitState> Orbits;
 
-inline OrbitState operator*(
-    const	double		lhs,
-    const	OrbitState& rhs)
+inline OrbitState operator*(const double lhs, const OrbitState& rhs)
 {
     return rhs * lhs;
 };
 
-inline Orbits operator+(
-    const Orbits& lhs,
-    const Orbits& rhs)
+inline Orbits operator+(const Orbits& lhs, const Orbits& rhs)
 {
     Orbits newState = lhs;
     for (int i = 0; i < lhs.size(); i++)
@@ -119,9 +118,7 @@ inline Orbits operator+(
     return newState;
 }
 
-inline Orbits operator*(
-    const Orbits& lhs,
-    const double	rhs)
+inline Orbits operator*(const Orbits& lhs, const double rhs)
 {
     Orbits newState = lhs;
     for (int i = 0; i < lhs.size(); i++)
@@ -131,9 +128,7 @@ inline Orbits operator*(
     return newState;
 }
 
-inline Orbits operator*(
-    const double rhs,
-    const Orbits& lhs)
+inline Orbits operator*(const double rhs, const Orbits& lhs)
 {
     Orbits newState = lhs;
     for (int i = 0; i < lhs.size(); i++)
@@ -142,72 +137,56 @@ inline Orbits operator*(
     }
     return newState;
 }
-
 
 struct OrbitIntegrator
 {
-    GTime						timeInit;
+    GTime timeInit;
 
-    Matrix3d		eci2ecf;
-    Matrix3d		deci2ecf;
+    Matrix3d eci2ecf;
+    Matrix3d deci2ecf;
 
     map<E_ThirdBody, Vector3dInit> planetsPosMap;
     map<E_ThirdBody, Vector3dInit> planetsVelMap;
 
-    MatrixXd Cnm;
-    MatrixXd Snm;
+    MatrixXd                                                                     Cnm;
+    MatrixXd                                                                     Snm;
     runge_kutta_fehlberg78<Orbits, double, Orbits, double, vector_space_algebra> odeIntegrator;
 
-    void operator()(
-        const	Orbits& orbInit,
-        Orbits& orbUpdate,
-        const	double	mjdSec);
+    void operator()(const Orbits& orbInit, Orbits& orbUpdate, const double mjdSec);
 
-    void computeCommon(
-        const	GTime	time);
+    void computeCommon(const GTime time);
 
     void computeAcceleration(
-        const	OrbitState& orbInit,
-        Vector3d& acc,
-        Matrix3d& dAdPos,
-        Matrix3d& dAdVel,
-        MatrixXd& dAdParam,
-        const	GTime		time);
+        const OrbitState& orbInit,
+        Vector3d&         acc,
+        Matrix3d&         dAdPos,
+        Matrix3d&         dAdVel,
+        MatrixXd&         dAdParam,
+        const GTime       time
+    );
 };
 
-KFState getOrbitFromState(
-    Trace& trace,
-    string			id,
-    const KFState& kfState);
+KFState getOrbitFromState(Trace& trace, string id, const KFState& kfState);
 
-void predictOrbits(
-    Trace& trace,
-    KFState& kfState,
-    GTime		time);
+void predictOrbits(Trace& trace, KFState& kfState, GTime time);
 
-Orbits prepareOrbits(
-    Trace& trace,
-    const KFState& kfState);
+Orbits prepareOrbits(Trace& trace, const KFState& kfState);
 
 void integrateOrbits(
     OrbitIntegrator& orbitPropagator,
-    Orbits& orbits,
-    double				integrationPeriod,
-    double 				dt);
+    Orbits&          orbits,
+    double           integrationPeriod,
+    double           dt
+);
 
-
-void addEmpStates(
-    const	EmpKalmans& satOpts,
-    KFState& kfState,
-    const	string& id);
+void addEmpStates(const EmpKalmans& satOpts, KFState& kfState, const string& id);
 
 void addNilDesignStates(
-    const	KalmanModel& model,
-    KFState& kfState,
-    const	KF& kfType,
-    int				num,
-    const	string& id);
+    const KalmanModel& model,
+    KFState&           kfState,
+    const KF&          kfType,
+    int                num,
+    const string&      id
+);
 
-void outputOrbitConfig(
-    KFState& kfState,
-    bool		isSmoothed = false);
+void outputOrbitConfig(KFState& kfState, bool isSmoothed = false);

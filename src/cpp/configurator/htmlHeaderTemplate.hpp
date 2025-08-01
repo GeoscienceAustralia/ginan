@@ -1,41 +1,35 @@
-R"HTMLTEMPLATE(
-
+#pragma once
+// clang-format off
+static const char* htmlHeaderTemplate = R"HTMLTEMPLATE(
 <html>
 <head><title>Ginan YAML Inspector</title>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-
 	<style>
-
 	input
 	{
 	// display: inline-block;
 		font-family: monospace;
 	}
-
 	body
 	{
 		font-family: monospace;
 	}
-
 .ident {
 position: relative;
 display: inline-block;
 border-bottom: 1px dotted black;
 }
-
 .level2, .level3, .level4
 {
 	display: none;
 }
-
 /* make it clear something is unintentionally hidden (on some browsers) */
 .level2:has(.level1), .level3:has(.level2, .level1)
 {
 /*	display: block;
 	font-size: larger;*/
 }
-
 .ident .tooltiptext {
 visibility: hidden;
 width: 50vw;
@@ -49,7 +43,6 @@ z-index: 1;
 top: -5px;
 left: 110%;
 }
-
 .ident .tooltiptext::after {
 content: "";
 position: absolute;
@@ -63,8 +56,6 @@ border-color: transparent teal transparent transparent;
 .ident:hover .tooltiptext {
 visibility: visible;
 }
-
-
 input[type=text]
 {
 border: none;
@@ -74,8 +65,6 @@ width: 70vw;
 {
 margin-left: 2em;
 }
-
-
 .value
 {
 display: inline-block;
@@ -101,19 +90,13 @@ input:not(:checked) ~ .contents
 {
 	display: none;
 }
-
-
 input:not(:checked) + div::before
 {
 	content:  "#";
 }
-
-
 	</style>
-
 </head>
 <body>
-
 	<h1>Ginan YAML Inspector</h1>
 	<p>Use the checkboxes to enable editing and modification of options.
 	<p>Existing yaml files and their configuration can be loaded by importing them below.
@@ -124,6 +107,5 @@ input:not(:checked) + div::before
 			<option value="3">Advanced</option>
 			<option value="4">Debug</option>
 		</select>
-
-
-)HTMLTEMPLATE"
+)HTMLTEMPLATE";
+// clang-format on

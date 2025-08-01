@@ -18,23 +18,34 @@
  * @date 2024
  * @version 1.0
  */
-
 #pragma once
 
 #include <iostream>
-#include <string>
 #include <map>
-
+#include <string>
+#include <vector>
 #include "common/enums.h"
+#include "common/observations.hpp" /// @todo try to remove this dependency (trying minimising header dependencies)
 
-using std::string;
 using std::map;
+using std::string;
+using std::vector;
 
 struct RinexStation;
 struct Navigation;
 struct ObsList;
 struct GObs;
 struct SatSys;
+struct GTime;
+
+// Forward declarations for ephemeris and navigation message types
+struct Eph;      // GPS/Galileo/QZS/BeiDou ephemeris
+struct Geph;     // GLONASS ephemeris
+struct Seph;     // SBAS ephemeris
+struct Ceph;     // CNVX ephemeris
+struct STO;      // System Time Offset
+struct EOP;      // Earth Orientation Parameters
+struct ION;      // Ionospheric parameters
 
 /**
  * @brief Ephemeris type enumeration for RINEX navigation data
@@ -45,16 +56,18 @@ struct SatSys;
  *
  * @note Values correspond to RINEX navigation message types
  */
-BETTER_ENUM(E_EphType,	short int,
-			NONE,			///< Unknown or uninitialized ephemeris type
-			EPH,			///< GPS/QZS LNAV, GAL IFNV, BDS D1D2 Ephemeris
-			GEPH,			///< GLONASS Ephemeris (frequency division)
-			SEPH,			///< SBAS Ephemeris (geostationary satellites)
-			CEPH,			///< GPS/QZS/BDS CNVX Ephemeris (civil navigation)
-			STO,			///< System Time Offset message
-			EOP,			///< Earth Orientation Parameters message
-			ION)			///< Ionospheric parameters message
-;
+BETTER_ENUM(
+    E_EphType,
+    short int,
+    NONE,  ///< Unknown or uninitialized ephemeris type
+    EPH,   ///< GPS/QZS LNAV, GAL IFNV, BDS D1D2 Ephemeris
+    GEPH,  ///< GLONASS Ephemeris (frequency division)
+    SEPH,  ///< SBAS Ephemeris (geostationary satellites)
+    CEPH,  ///< GPS/QZS/BDS CNVX Ephemeris (civil navigation)
+    STO,   ///< System Time Offset message
+    EOP,   ///< Earth Orientation Parameters message
+    ION    ///< Ionospheric parameters message
+);
 /**
  * @brief RINEX observation code type structure
  *
@@ -68,56 +81,53 @@ BETTER_ENUM(E_EphType,	short int,
  */
 struct CodeType
 {
-	char		type = 0;					///< Single character observation type identifier ('C', 'L', 'P', 'D', 'S')
-	E_ObsCode	code = E_ObsCode::NONE;		///< RINEX 3 style observation code (3-character codes like L1C)
-	E_ObsCode2	code2 = E_ObsCode2::NONE;	///< RINEX 2 style observation code (2-character codes like L1)
+    char      type = 0;  ///< Single character observation type identifier ('C', 'L', 'P', 'D', 'S')
+    E_ObsCode code =
+        E_ObsCode::NONE;   ///< RINEX 3 style observation code (3-character codes like L1C)
+    E_ObsCode2 code2 =
+        E_ObsCode2::NONE;  ///< RINEX 2 style observation code (2-character codes like L1)
 
-	/**
-	 * @brief Get the effective observation code for processing
-	 *
-	 * Returns the RINEX 3 style code if available, otherwise attempts conversion
-	 * from RINEX 2 style code. Used to normalize observation codes across formats.
-	 *
-	 * @return E_ObsCode The effective observation code, or NONE if unavailable
-	 *
-	 * @note Future enhancement: implement conversion logic from code2 to code
-	 */
-	E_ObsCode getEffectiveCode() const
-	{
-		if (code != +E_ObsCode::NONE)
-		{
-			return code;
-		}
+    /**
+     * @brief Get the effective observation code for processing
+     *
+     * Returns the RINEX 3 style code if available, otherwise attempts conversion
+     * from RINEX 2 style code. Used to normalize observation codes across formats.
+     *
+     * @return E_ObsCode The effective observation code, or NONE if unavailable
+     *
+     * @note Future enhancement: implement conversion logic from code2 to code
+     */
+    E_ObsCode getEffectiveCode() const
+    {
+        if (code != +E_ObsCode::NONE)
+        {
+            return code;
+        }
 
-		// For RINEX 2, would need conversion logic here
-		// This is where conversion from code2 to code would happen if needed
-		return E_ObsCode::NONE;
-	}
+        // For RINEX 2, would need conversion logic here
+        // This is where conversion from code2 to code would happen if needed
+        return E_ObsCode::NONE;
+    }
 
-	/**
-	 * @brief Check if this represents a RINEX 2 style observation code
-	 *
-	 * @return true if code2 is set and code is not set
-	 * @return false otherwise
-	 */
-	bool isRinex2Style() const
-	{
-		return (code2 != +E_ObsCode2::NONE) && (code == +E_ObsCode::NONE);
-	}
+    /**
+     * @brief Check if this represents a RINEX 2 style observation code
+     *
+     * @return true if code2 is set and code is not set
+     * @return false otherwise
+     */
+    bool isRinex2Style() const
+    {
+        return (code2 != +E_ObsCode2::NONE) && (code == +E_ObsCode::NONE);
+    }
 
-	/**
-	 * @brief Check if this represents a RINEX 3 style observation code
-	 *
-	 * @return true if code is set (regardless of code2 status)
-	 * @return false if code is not set
-	 */
-	bool isRinex3Style() const
-	{
-		return (code != +E_ObsCode::NONE);
-	}
+    /**
+     * @brief Check if this represents a RINEX 3 style observation code
+     *
+     * @return true if code is set (regardless of code2 status)
+     * @return false if code is not set
+     */
+    bool isRinex3Style() const { return (code != +E_ObsCode::NONE); }
 };
-
-
 
 /**
  * @brief Decode RINEX 2.x observation data from input stream
@@ -139,12 +149,13 @@ struct CodeType
  * @see decodeObsDataRinex3() for RINEX 3.x equivalent
  */
 int decodeObsDataRinex2(
-	std::istream& 					inputStream,
-	string&							line,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
-	GObs&							obs,
-	SatSys&							v2SatSys,
-	RinexStation&					rnxRec);
+    std::istream&                   inputStream,
+    string&                         line,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes,
+    GObs&                           obs,
+    SatSys&                         v2SatSys,
+    RinexStation&                   rnxRec
+);
 
 /**
  * @brief Decode RINEX 3.x observation data from input stream
@@ -166,11 +177,12 @@ int decodeObsDataRinex2(
  * @see decodeObsDataRinex2() for RINEX 2.x equivalent
  */
 int decodeObsDataRinex3(
-	std::istream& 					inputStream,
-	string&							line,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
-	GObs&							obs,
-	RinexStation&					rnxRec);
+    std::istream&                   inputStream,
+    string&                         line,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes,
+    GObs&                           obs,
+    RinexStation&                   rnxRec
+);
 
 /**
  * @brief Read and parse complete RINEX file
@@ -195,15 +207,16 @@ int decodeObsDataRinex3(
  * @note File type detection is based on header information
  */
 int readRnx(
-	std::istream& 					inputStream,
-	char&							type,
-	ObsList&						obsList,
-	Navigation&						nav,
-	RinexStation&					rnxRec,
-	double&							ver,
-	E_Sys&							sys,
-	E_TimeSys&						tsys,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes);
+    std::istream&                   inputStream,
+    char&                           type,
+    ObsList&                        obsList,
+    Navigation&                     nav,
+    RinexStation&                   rnxRec,
+    double&                         ver,
+    E_Sys&                          sys,
+    E_TimeSys&                      tsys,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes
+);
 
 /**
  * @brief Get human-readable description of GNSS system
@@ -216,8 +229,7 @@ int readRnx(
  *
  * @note Used primarily for diagnostic output and error messages
  */
-string rinexSysDesc(
-	E_Sys sys);
+string rinexSysDesc(E_Sys sys);
 
 // RINEX Header Processing Functions
 
@@ -233,7 +245,7 @@ string rinexSysDesc(
  *
  * @warning Assumes dst buffer is large enough to hold result
  */
-void setstr(char *dst, const char *src, int n);
+void setstr(char* dst, const char* src, int n);
 
 /**
  * @brief Decode RINEX observation file header
@@ -250,13 +262,14 @@ void setstr(char *dst, const char *src, int n);
  * @param rnxRec Output structure for station information and metadata
  */
 void decodeObsH(
-	std::istream& 					inputStream,
-	string&							line,
-	double							ver,
-	E_TimeSys&						tsys,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
-	Navigation&						nav,
-	RinexStation&					rnxRec);
+    std::istream&                   inputStream,
+    string&                         line,
+    double                          ver,
+    E_TimeSys&                      tsys,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes,
+    Navigation&                     nav,
+    RinexStation&                   rnxRec
+);
 
 /**
  * @brief Decode RINEX navigation file header
@@ -268,10 +281,7 @@ void decodeObsH(
  * @param sys GNSS system identifier (GPS, GLO, GAL, BDS, etc.)
  * @param nav Navigation data structure to populate
  */
-void decodeNavH(
-	string&		line,
-	E_Sys		sys,
-	Navigation&	nav);
+void decodeNavH(string& line, E_Sys sys, Navigation& nav);
 
 /**
  * @brief Decode GLONASS navigation file header
@@ -282,9 +292,7 @@ void decodeNavH(
  * @param line Header line to decode
  * @param nav Navigation data structure to populate
  */
-void decodeGnavH(
-	string&		line,
-	Navigation&	nav);
+void decodeGnavH(string& line, Navigation& nav);
 
 /**
  * @brief Decode SBAS/Geostationary navigation file header
@@ -295,9 +303,7 @@ void decodeGnavH(
  * @param line Header line to decode
  * @param nav Navigation data structure to populate
  */
-void decodeHnavH(
-	string&		line,
-	Navigation&	nav);
+void decodeHnavH(string& line, Navigation& nav);
 
 /**
  * @brief Read RINEX file header section
@@ -316,14 +322,15 @@ void decodeHnavH(
  * @return int Processing status (0 = success, negative = error)
  */
 int readRnxH(
-	std::istream& 					inputStream,
-	double&							ver,
-	char&							type,
-	E_Sys&							sys,
-	E_TimeSys&						tsys,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
-	Navigation&						nav,
-	RinexStation&					rnxRec);
+    std::istream&                   inputStream,
+    double&                         ver,
+    char&                           type,
+    E_Sys&                          sys,
+    E_TimeSys&                      tsys,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes,
+    Navigation&                     nav,
+    RinexStation&                   rnxRec
+);
 
 // RINEX Observation Processing Functions
 
@@ -343,13 +350,14 @@ int readRnxH(
  * @return int Number of satellites in epoch, or negative for error
  */
 int decodeObsEpoch(
-	std::istream& 		inputStream,
-	string&				line,
-	double				ver,
-	E_TimeSys			tsys,
-	GTime&				time,
-	int&				flag,
-	vector<SatSys>&		sats);
+    std::istream&   inputStream,
+    string&         line,
+    double          ver,
+    E_TimeSys       tsys,
+    GTime&          time,
+    int&            flag,
+    vector<SatSys>& sats
+);
 
 /**
  * @brief Read RINEX observation data body section
@@ -367,13 +375,14 @@ int decodeObsEpoch(
  * @return int Number of epochs processed, or negative for error
  */
 int readRnxObsB(
-	std::istream& 					inputStream,
-	double							ver,
-	E_TimeSys						tsys,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
-	int&							flag,
-	ObsList&						obsList,
-	RinexStation&					rnxRec);
+    std::istream&                   inputStream,
+    double                          ver,
+    E_TimeSys                       tsys,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes,
+    int&                            flag,
+    ObsList&                        obsList,
+    RinexStation&                   rnxRec
+);
 
 /**
  * @brief Read complete RINEX observation file
@@ -390,12 +399,13 @@ int readRnxObsB(
  * @return int Processing status (positive = success, negative = error)
  */
 int readRnxObs(
-	std::istream& 					inputStream,
-	double							ver,
-	E_TimeSys						tsys,
-	map<E_Sys, map<int, CodeType>>&	sysCodeTypes,
-	ObsList&						obsList,
-	RinexStation&					rnxRec);
+    std::istream&                   inputStream,
+    double                          ver,
+    E_TimeSys                       tsys,
+    map<E_Sys, map<int, CodeType>>& sysCodeTypes,
+    ObsList&                        obsList,
+    RinexStation&                   rnxRec
+);
 
 // RINEX Navigation/Ephemeris Processing Functions
 
@@ -412,12 +422,7 @@ int readRnxObs(
  * @param eph Output ephemeris structure
  * @return int Processing status (1 = success, 0 = error)
  */
-int decodeEph(
-	double			ver,
-	SatSys			Sat,
-	GTime			toc,
-	vector<double>&	data,
-	Eph&			eph);
+int decodeEph(double ver, SatSys Sat, GTime toc, vector<double>& data, Eph& eph);
 
 /**
  * @brief Decode GLONASS ephemeris parameters
@@ -432,12 +437,7 @@ int decodeEph(
  * @param geph Output GLONASS ephemeris structure
  * @return int Processing status (1 = success, 0 = error)
  */
-int decodeGeph(
-	double			ver,
-	SatSys			Sat,
-	GTime			toc,
-	vector<double>&	data,
-	Geph&			geph);
+int decodeGeph(double ver, SatSys Sat, GTime toc, vector<double>& data, Geph& geph);
 
 /**
  * @brief Decode SBAS/geostationary satellite ephemeris
@@ -452,12 +452,7 @@ int decodeGeph(
  * @param seph Output SBAS ephemeris structure
  * @return int Processing status (1 = success, 0 = error)
  */
-int decodeSeph(
-	double			ver,
-	SatSys			Sat,
-	GTime			toc,
-	vector<double>&	data,
-	Seph&			seph);
+int decodeSeph(double ver, SatSys Sat, GTime toc, vector<double>& data, Seph& seph);
 
 /**
  * @brief Decode CNVX (Civil Navigation) ephemeris parameters
@@ -474,12 +469,13 @@ int decodeSeph(
  * @return int Processing status (1 = success, 0 = error)
  */
 int decodeCeph(
-	double			ver,
-	SatSys			Sat,
-	E_NavMsgType	type,
-	GTime			toc,
-	vector<double>&	data,
-	Ceph&			ceph);
+    double          ver,
+    SatSys          Sat,
+    E_NavMsgType    type,
+    GTime           toc,
+    vector<double>& data,
+    Ceph&           ceph
+);
 
 /**
  * @brief Decode System Time Offset (STO) message
@@ -494,13 +490,7 @@ int decodeCeph(
  * @param sto Output system time offset structure
  * @return int Processing status (1 = success, 0 = error)
  */
-int decodeSto(
-	double			ver,
-	SatSys			Sat,
-	E_NavMsgType	type,
-	GTime			toc,
-	vector<double>&	data,
-	STO&			sto);
+int decodeSto(double ver, SatSys Sat, E_NavMsgType type, GTime toc, vector<double>& data, STO& sto);
 
 /**
  * @brief Decode Earth Orientation Parameters (EOP) message
@@ -515,13 +505,7 @@ int decodeSto(
  * @param eop Output Earth orientation parameters
  * @return int Processing status (1 = success, 0 = error)
  */
-int decodeEop(
-	double			ver,
-	SatSys			Sat,
-	E_NavMsgType	type,
-	GTime			toc,
-	vector<double>&	data,
-	EOP&			eop);
+int decodeEop(double ver, SatSys Sat, E_NavMsgType type, GTime toc, vector<double>& data, EOP& eop);
 
 /**
  * @brief Decode ionospheric parameters (ION) message
@@ -536,13 +520,7 @@ int decodeEop(
  * @param ion Output ionospheric parameters
  * @return int Processing status (1 = success, 0 = error)
  */
-int decodeIon(
-	double			ver,
-	SatSys			Sat,
-	E_NavMsgType	type,
-	GTime			toc,
-	vector<double>&	data,
-	ION&			ion);
+int decodeIon(double ver, SatSys Sat, E_NavMsgType type, GTime toc, vector<double>& data, ION& ion);
 
 /**
  * @brief Read RINEX navigation data body section
@@ -564,17 +542,18 @@ int decodeIon(
  * @return int Processing status (1 = success, 0 = end, negative = error)
  */
 int readRnxNavB(
-	std::istream& 	inputStream,
-	double			ver,
-	E_Sys			sys,
-	E_EphType&		type,
-	Eph&			eph,
-	Geph&			geph,
-	Seph&			seph,
-	Ceph&			ceph,
-	STO&			sto,
-	EOP&			eop,
-	ION&			ion);
+    std::istream& inputStream,
+    double        ver,
+    E_Sys         sys,
+    E_EphType&    type,
+    Eph&          eph,
+    Geph&         geph,
+    Seph&         seph,
+    Ceph&         ceph,
+    STO&          sto,
+    EOP&          eop,
+    ION&          ion
+);
 
 /**
  * @brief Read complete RINEX navigation file
@@ -588,11 +567,7 @@ int readRnxNavB(
  * @param nav Output navigation data structure
  * @return int Processing status (positive = records, negative = error)
  */
-int readRnxNav(
-	std::istream& 	inputStream,
-	double			ver,
-	E_Sys			sys,
-	Navigation&		nav);
+int readRnxNav(std::istream& inputStream, double ver, E_Sys sys, Navigation& nav);
 
 /**
  * @brief Read RINEX clock file
@@ -605,10 +580,7 @@ int readRnxNav(
  * @param nav Navigation data structure for clock corrections
  * @return int Processing status (positive = records, negative = error)
  */
-int readRnxClk(
-	std::istream& 	inputStream,
-	double			ver,
-	Navigation&		nav);
+int readRnxClk(std::istream& inputStream, double ver, Navigation& nav);
 
 /**
  * @brief Container for parsed RINEX observation values
@@ -620,8 +592,8 @@ int readRnxClk(
  */
 struct ObservationValues
 {
-	double value;	///< Numerical observation value (pseudorange, phase, doppler, SNR)
-	double lli;		///< Loss of Lock Indicator (0-3, phase observations only)
+    double value;  ///< Numerical observation value (pseudorange, phase, doppler, SNR)
+    double lli;    ///< Loss of Lock Indicator (0-3, phase observations only)
 };
 
 /**
@@ -639,23 +611,23 @@ struct ObservationValues
  * @note Template design allows use with different signal list types
  * @note Always returns valid pointer - creates new entry if needed
  */
-template<typename SigList>
+template <typename SigList>
 RawSig* findOrCreateSignal(SigList& sigList, E_ObsCode obsCode)
 {
-	// Find existing signal
-	for (auto& sig : sigList)
-	{
-		if (sig.code == obsCode)
-		{
-			return &sig;
-		}
-	}
+    // Find existing signal
+    for (auto& sig : sigList)
+    {
+        if (sig.code == obsCode)
+        {
+            return &sig;
+        }
+    }
 
-	// Create new signal if not found
-	RawSig raw;
-	raw.code = obsCode;
-	sigList.push_back(raw);
-	return &sigList.back();
+    // Create new signal if not found
+    RawSig raw;
+    raw.code = obsCode;
+    sigList.push_back(raw);
+    return &sigList.back();
 }
 
 /**
@@ -701,14 +673,14 @@ void assignObservationValue(RawSig& signal, char observationType, double value, 
  */
 struct StagedObservation
 {
-	double value = 0.0;					///< Numerical observation value
-	double lli = 0.0;					///< Loss of Lock Indicator
-	E_ObsCode obsCode = E_ObsCode::NONE;	///< Primary observation code
-	E_FType frequency = E_FType::NONE;	///< Frequency type (F1, F2, F5, etc.)
-	bool isValid = false;				///< Validation status flag
+    double    value     = 0.0;              ///< Numerical observation value
+    double    lli       = 0.0;              ///< Loss of Lock Indicator
+    E_ObsCode obsCode   = E_ObsCode::NONE;  ///< Primary observation code
+    E_FType   frequency = E_FType::NONE;    ///< Frequency type (F1, F2, F5, etc.)
+    bool      isValid   = false;            ///< Validation status flag
 
-	vector<E_ObsCode> priorityCodes;	///< Priority-ordered codes for phase resolution
-	bool isPhaseWithPriority = false;	///< Flag indicating priority-based phase observation
+    vector<E_ObsCode> priorityCodes;        ///< Priority-ordered codes for phase resolution
+    bool isPhaseWithPriority = false;       ///< Flag indicating priority-based phase observation
 };
 
 /**
@@ -721,24 +693,27 @@ struct StagedObservation
  */
 struct ObservationKey
 {
-	char obsType;			///< Single character observation type ('C', 'L', 'P', 'D', 'S')
-	E_FType frequency;		///< Frequency enumeration (F1, F2, F5, etc.)
-	E_ObsCode obsCode;		///< Observation code enumeration
+    char      obsType;    ///< Single character observation type ('C', 'L', 'P', 'D', 'S')
+    E_FType   frequency;  ///< Frequency enumeration (F1, F2, F5, etc.)
+    E_ObsCode obsCode;    ///< Observation code enumeration
 
-	/**
-	 * @brief Comparison operator for std::map ordering
-	 *
-	 * Implements lexicographic ordering: obsType, then frequency, then obsCode.
-	 * Required for use as key in std::map containers.
-	 *
-	 * @param other Other ObservationKey to compare against
-	 * @return true if this key is less than other key
-	 */
-	bool operator<(const ObservationKey& other) const {
-		if (obsType != other.obsType) return obsType < other.obsType;
-		if (frequency != other.frequency) return frequency < other.frequency;
-		return obsCode < other.obsCode;
-	}
+    /**
+     * @brief Comparison operator for std::map ordering
+     *
+     * Implements lexicographic ordering: obsType, then frequency, then obsCode.
+     * Required for use as key in std::map containers.
+     *
+     * @param other Other ObservationKey to compare against
+     * @return true if this key is less than other key
+     */
+    bool operator<(const ObservationKey& other) const
+    {
+        if (obsType != other.obsType)
+            return obsType < other.obsType;
+        if (frequency != other.frequency)
+            return frequency < other.frequency;
+        return obsCode < other.obsCode;
+    }
 };
 
 /// Type alias for observation staging container
@@ -756,8 +731,9 @@ using ObservationStaging = std::map<ObservationKey, StagedObservation>;
  */
 inline std::ostream& operator<<(std::ostream& os, const ObservationKey& key)
 {
-	os << "{obsType:" << key.obsType << ",freq:" << key.frequency << ",obsCode:" << key.obsCode._to_string() << "}";
-	return os;
+    os << "{obsType:" << key.obsType << ",freq:" << key.frequency
+       << ",obsCode:" << key.obsCode._to_string() << "}";
+    return os;
 }
 
 /**
@@ -776,7 +752,14 @@ inline std::ostream& operator<<(std::ostream& os, const ObservationKey& key)
  * @note Creates composite key for unique identification
  * @see stagePhaseObservation() for priority-based phase observations
  */
-void stageObservation(ObservationStaging& staging, char obsType, E_ObsCode obsCode, E_FType frequency, double value, double lli);
+void stageObservation(
+    ObservationStaging& staging,
+    char                obsType,
+    E_ObsCode           obsCode,
+    E_FType             frequency,
+    double              value,
+    double              lli
+);
 
 /**
  * @brief Commit all staged observations to final structure
@@ -792,7 +775,11 @@ void stageObservation(ObservationStaging& staging, char obsType, E_ObsCode obsCo
  * @note Phase resolution depends on code observations being processed first
  * @note Extensive debug logging for troubleshooting priority resolution
  */
-void commitStagedObservations(const ObservationStaging& staging, GObs& obs, const map<E_ObsCode2, E_ObsCode>& codeMap);
+void commitStagedObservations(
+    const ObservationStaging&         staging,
+    GObs&                             obs,
+    const map<E_ObsCode2, E_ObsCode>& codeMap
+);
 
 /**
  * @brief Validate staged observations before commitment
@@ -818,11 +805,11 @@ bool validateStagedObservations(const ObservationStaging& staging, const SatSys&
  */
 struct ValidationReport
 {
-	int totalObservations = 0;				///< Total number of observations processed
-	int validObservations = 0;				///< Number of observations passing validation
-	int conflictingTypes = 0;				///< Number of observation type conflicts detected
-	std::map<char, int> observationCounts;	///< Count of observations by type ('C', 'L', etc.)
-	bool passed = false;					///< Overall validation pass/fail status
+    int                 totalObservations = 0;  ///< Total number of observations processed
+    int                 validObservations = 0;  ///< Number of observations passing validation
+    int                 conflictingTypes  = 0;  ///< Number of observation type conflicts detected
+    std::map<char, int> observationCounts;      ///< Count of observations by type ('C', 'L', etc.)
+    bool                passed = false;         ///< Overall validation pass/fail status
 };
 
 /**
@@ -854,7 +841,8 @@ void resolveObservationConflicts(ObservationStaging& staging);
  * @note More comprehensive than validateStagedObservations()
  * @note May modify staging container during conflict resolution
  */
-ValidationReport validateStagedObservationsDetailed(ObservationStaging& staging, const SatSys& satellite);
+ValidationReport
+validateStagedObservationsDetailed(ObservationStaging& staging, const SatSys& satellite);
 
 /**
  * @brief Stage phase observation with priority-based code resolution
@@ -875,9 +863,10 @@ ValidationReport validateStagedObservationsDetailed(ObservationStaging& staging,
  * @see commitStagedObservations() for priority resolution implementation
  */
 void stagePhaseObservation(
-	ObservationStaging&			staging,
-	char 						obsType,
-	const vector<E_ObsCode>&	priorityCodes,
-	E_FType 					frequency,
-	double 						value,
-	double 						lli);
+    ObservationStaging&      staging,
+    char                     obsType,
+    const vector<E_ObsCode>& priorityCodes,
+    E_FType                  frequency,
+    double                   value,
+    double                   lli
+);

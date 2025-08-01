@@ -1,34 +1,24 @@
 #pragma once
 
 #include <string>
+#include "common/eigenIncluder.hpp"
 
 using std::string;
 
-#include "common/eigenIncluder.hpp"
-
-
-struct OceanPoleTide 
+struct OceanPoleTide
 {
-	void read(
-		const string&	filename,
-		int				maxDeg);
-	
-	void estimate(
-		double		m1,
-		double		m2,
-		MatrixXd&	Cnm, 
-		MatrixXd&	Snm);
+    void read(const string& filename, int maxDeg);
 
-	bool initialized = false;
-	MatrixXd cnmp;
-	MatrixXd cnmm;
-	MatrixXd snmp;
-	MatrixXd snmm;
+    void estimate(double m1, double m2, MatrixXd& Cnm, MatrixXd& Snm);
 
-	const double gamma2_i = 0.0036;
-	const double gamma2_r = 0.6870;
+    bool     initialized = false;
+    MatrixXd cnmp;
+    MatrixXd cnmm;
+    MatrixXd snmp;
+    MatrixXd snmm;
+
+    const double gamma2_i = 0.0036;
+    const double gamma2_r = 0.6870;
 };
 
 extern OceanPoleTide oceanPoleTide;
-
-

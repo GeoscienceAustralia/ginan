@@ -1,6 +1,2 @@
-
 #pragma once
-
-
-void writeRinexNav(
-	const double rnxver = 3.05);
+void writeRinexNav(const double rnxver = 3.05);

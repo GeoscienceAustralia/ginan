@@ -193,9 +193,8 @@ processing_options:
       use_if_combo: false # Combine 'uncombined' measurements to simulate an ionosphere-free solution
 
     chunking:
-      by_receiver: true # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
-      by_satellite: false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
-      size: 0
+        by_receiver: true # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
+        size: 0
 
     rts: # Rauch-Tung-Striebel (RTS) backwards smoothing
       enable: true
@@ -285,7 +284,7 @@ estimation_parameters:
           phase_bias:
             estimated: [true]
             sigma: [10]
-            process_noise: [0.001]  
+            process_noise: [0.001]
 
 mongo: # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
   enable: primary # Enable and connect to mongo database {none,primary,secondary,both}

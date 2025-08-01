@@ -1,131 +1,114 @@
-
 #pragma once
 
+#include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <mutex>
-#include <map>
-
+#include "common/enums.h"
 #include "common/gTime.hpp"
 #include "common/trace.hpp"
-#include "common/enums.h"
 
-using std::ostringstream;
 using std::lock_guard;
-using std::vector;
-using std::string;
-using std::mutex;
 using std::map;
+using std::mutex;
+using std::ostringstream;
+using std::string;
+using std::vector;
 
 struct InteractivePage
 {
-	vector<string>	lines;
-	int				currentLine = 0;
-	bool			followEnd	= true;
+    vector<string> lines;
+    int            currentLine = 0;
+    bool           followEnd   = true;
 };
 
 struct InteractiveMode
 {
-	GTime	startTime;
-	GTime	stopTime;
-	double	duration	= 0;
-	int		active		= 0;
-	string	modeName;
+    GTime  startTime;
+    GTime  stopTime;
+    double duration = 0;
+    int    active   = 0;
+    string modeName;
 };
 
 struct InteractiveTerminal : ostringstream
 {
-	static mutex										dataMutex;
-	static mutex										displayMutex;
-	static string										activePage;
-	static string										epoch;
-	static string										duration;
-	static E_InteractMode								interactMode;
-	static E_InteractiveMode							activeMode;
-	static bool											enabled;
-	static map<string,				InteractivePage>	pages;
-	static map<E_InteractiveMode,	InteractiveMode>	modes;
+    static mutex                                   dataMutex;
+    static mutex                                   displayMutex;
+    static string                                  activePage;
+    static string                                  epoch;
+    static string                                  duration;
+    static E_InteractMode                          interactMode;
+    static E_InteractiveMode                       activeMode;
+    static bool                                    enabled;
+    static map<string, InteractivePage>            pages;
+    static map<E_InteractiveMode, InteractiveMode> modes;
 
+    static void enable();
+    static void drawMenus();
+    static void drawWindow();
+    static void keyboardHandler();
 
-	static void enable();
-	static void drawMenus();
-	static void drawWindow();
-	static void keyboardHandler();
+    static void clearPage(string pageName)
+    {
+        if (enabled == false)
+            return;
 
-	static void clearPage(
-		string pageName)
-	{
-		if (enabled == false)
-			return;
+        boost::replace_all(pageName, "\t", "/");
 
-		boost::replace_all(pageName, "\t", "/");
+        lock_guard<mutex> guard(dataMutex);
 
-		lock_guard<mutex> guard(dataMutex);
+        pages[pageName].lines.clear();
+    }
 
-		pages[pageName].lines.clear();
-	}
+    static void clearModes(string epochStr = "", string durationStr = "")
+    {
+        setMode(E_InteractiveMode::Syncing);
 
-	static void clearModes(
-		string epochStr		= "",
-		string durationStr	= "")
-	{
-		setMode(E_InteractiveMode::Syncing);
+        if (enabled == false)
+            return;
 
-		if (enabled == false)
-			return;
+        epoch    = epochStr;
+        duration = durationStr;
 
-		epoch		= epochStr;
-		duration	= durationStr;
+        for (auto& [modeName, mode] : modes)
+        {
+            mode.active = 0;
+        }
+    }
 
-		for (auto& [modeName, mode] : modes)
-		{
-			mode.active = 0;
-		}
-	}
+    static void setMode(E_InteractiveMode modeName);
 
-	static void setMode(
-		E_InteractiveMode		modeName);
+    static void addString(string pageName, const string& str, bool updateWindow = true);
 
-	static void addString(
-				string	pageName,
-		const	string&	str,
-				bool	updateWindow = true);
+    string name;
+    Trace& trace;
+    bool   doClear;
 
+    /// Creates a RAII object that acts like an ostringstream and spits results out to another trace
+    /// when it goes out of scope Also clears and updates an interactive terminal page
+    InteractiveTerminal(const string& name, Trace& trace, bool doClear = true)
+        : name{name}, trace{trace}, doClear{doClear}
+    {
+    }
 
-	string	name;
-	Trace&	trace;
-	bool	doClear;
+    ~InteractiveTerminal()
+    {
+        trace << str();
 
-	/// Creates a RAII object that acts like an ostringstream and spits results out to another trace when it goes out of scope
-	/// Also clears and updates an interactive terminal page
-	InteractiveTerminal(
-		const	string&	name,
-				Trace&	trace,
-				bool	doClear = true)
-	:	name	{name},
-		trace	{trace},
-		doClear	{doClear}
-	{
+        if (doClear)
+        {
+            clearPage(name);
+        }
 
-	}
-
-	~InteractiveTerminal()
-	{
-		trace << str();
-
-		if (doClear)
-		{
-			clearPage(name);
-		}
-
-		addString(name, str());
-	}
+        addString(name, str());
+    }
 };
 
 struct InteractiveTerminalDestructor
 {
-	~InteractiveTerminalDestructor();
+    ~InteractiveTerminalDestructor();
 };
 
 extern InteractiveTerminalDestructor interactiveTerminaldestructor;

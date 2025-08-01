@@ -1,19 +1,17 @@
-
 #include "common/acsConfig.hpp"
+map<string, string> ACSConfig::docs = {
 
-
-map<string, string> ACSConfig::docs =
-{
-
-{ "outputs", R"config(Specifies options to enable outputs and specify file locations.
+    {"outputs", R"config(Specifies options to enable outputs and specify file locations.
 
 Each section typically contains an option to `output` the filetype, and a `directory` to place the files named `filename`, along with any ancillary options.
 )config"},
 
-{ "inputs", R"config(This section of the yaml file specifies the lists of files to be used for general metadata inputs, and inputs of external product data.
+    {"inputs",
+     R"config(This section of the yaml file specifies the lists of files to be used for general metadata inputs, and inputs of external product data.
 )config"},
 
-{ "gnss_observations", R"config(This section specifies the sources of observation data to be used in positioning.
+    {"gnss_observations",
+     R"config(This section specifies the sources of observation data to be used in positioning.
 
 
 There are numerous ways that the `pea` can access GNSS observations to process.
@@ -44,22 +42,34 @@ If multiple files are supplied with the same ID, they are all processed in seque
 
 )config"},
 
-{ "satellite_data", R"config(This section specifies sources of ephemerides and other satellite data.)config"},
+    {"satellite_data",
+     R"config(This section specifies sources of ephemerides and other satellite data.)config"},
 
-{ "trace",		"Trace files are used to document processing"},
+    {"trace", "Trace files are used to document processing"},
 
+    {"ssr", "Values derived from applying received corrections to broadcast ephemeris"},
+    {"broadcast", "Values derived from broadcast ephemeris streams/files"},
+    {"precise", "Values derived from file-based products such as SP3/CLK/OBX"},
+    {"kalman", "Values estimated internally by the kalman filter"},
 
-{ "ssr",		"Values derived from applying received corrections to broadcast ephemeris"},
-{ "broadcast",	"Values derived from broadcast ephemeris streams/files"},
-{ "precise",	"Values derived from file-based products such as SP3/CLK/OBX"},
-{ "kalman",		"Values estimated internally by the kalman filter"},
-
-
-{ "cost",				"COST format files are used to export troposhere products, such as ZTD and delay gradients."},
-{ "trop_sinex",			"Troposphere SINEX files are used to export troposhere products, such as ZTD and delay gradients."},
-{ "slr_obs",			"SLR_OBS files are used as temporary files to arrange SLR observations by time. SLR observations are taken from CRD files, which are not strictly in time-order)."},
-{ "slr_options",		"This section controls how Satellite Laser Ranging (SLR) observations are handled."},
-{ "ssr_outputs",		"This section specifies how State State Representation (SSR) corrections are calculated before being published to an NTRIP caster."},
-{ "rtcm_inputs",		"This section specifies how State State Representation (SSR) corrections are applied after they are downloaded from an NTRIP caster."},
+    {"cost",
+     "COST format files are used to export troposhere products, such as ZTD and delay gradients."},
+    {"trop_sinex",
+     "Troposphere SINEX files are used to export troposhere products, such as ZTD and delay "
+     "gradients."},
+    {"slr_obs",
+     "SLR_OBS files are used as temporary files to arrange SLR observations by time. SLR "
+     "observations are taken from "
+     "CRD files, which are not strictly in time-order)."},
+    {"slr_options",
+     "This section controls how Satellite Laser Ranging (SLR) observations are handled."},
+    {"ssr_outputs",
+     "This section specifies how State State Representation (SSR) corrections are calculated "
+     "before being published to "
+     "an NTRIP caster."},
+    {"rtcm_inputs",
+     "This section specifies how State State Representation (SSR) corrections are applied after "
+     "they are downloaded "
+     "from an NTRIP caster."},
 
 };
