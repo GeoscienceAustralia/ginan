@@ -26,7 +26,7 @@ if [[ "$ubuntu_version" != "20.04" && "$ubuntu_version" != "18.04" ]]; then
 fi
 
 # MongoDB library version numbers
-mongo_cxx_driver_version="r3.6.7"
+mongo_cxx_driver_version="r3.11.0"
 
 echo "Updating package repositories..."
 $sudo_cmd apt update -y
@@ -79,25 +79,17 @@ $sudo_cmd make -j2 install
 cd /tmp
 
 
-echo "Downloading, extracting, building, and installing Mongo drivers..."
-cd /tmp
-wget https://github.com/mongodb/mongo-c-driver/releases/download/1.17.1/mongo-c-driver-1.17.1.tar.gz
-tar -xf mongo-c-driver-1.17.1.tar.gz
-cd mongo-c-driver-1.17.1/
-mkdir cmake-build
-cd cmake-build/
-cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_EXAMPLES=OFF ../
-cmake --build . -- -j 2
-$sudo_cmd cmake --build . --target install -- -j 2
-cd /tmp
-curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.0/mongo-cxx-driver-r3.6.0.tar.gz
-tar -xf mongo-cxx-driver-r3.6.0.tar.gz
-cd mongo-cxx-driver-r3.6.0/build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_EXAMPLES=OFF ../
-sudo cmake --build . --target EP_mnmlstc_core -- -j 2
-$sudo_cmd cmake --build . -- -j 2
-$sudo_cmd cmake --build . --target install
-cd /tmp
+echo "Downloading and extracting mongo-cxx-driver version $mongo_cxx_driver_version..."
+wget --no-check-certificate https://github.com/mongodb/mongo-cxx-driver/releases/download/$mongo_cxx_driver_version/mongo-cxx-driver-$mongo_cxx_driver_version.tar.gz
+tar -xzf mongo-cxx-driver-$mongo_cxx_driver_version.tar.gz
+rm mongo-cxx-driver-$mongo_cxx_driver_version.tar.gz
+
+echo "Building and installing mongo-cxx-driver..."
+mkdir -p mongo-cxx-driver-$mongo_cxx_driver_version/build
+cd mongo-cxx-driver-$mongo_cxx_driver_version/build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+$sudo_cmd make -j 1
+$sudo_cmd make install
 
 echo "Downloading, extracting, building, and installing MongoDB ..."
 cd /tmp

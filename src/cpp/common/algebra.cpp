@@ -1160,7 +1160,7 @@ void outputResiduals(
         "Type",
         "Sat",
         "Str",
-        "Num",
+        "Code",
         "Prefit Res",
         "Postfit Res",
         "Meas Sigma",

@@ -67,15 +67,40 @@ struct KFKey
         return str;
     }
 
-	operator string() const
-	{
-		char buff[100];
-        E_ObsCode code = E_ObsCode::_from_integral(num);
+    operator string() const
+    {
+        char buff[100];
 
-		snprintf(buff, sizeof(buff), "%10s\t%4s\t%4s\t%3s", KF::_from_integral(type)._to_string(), Sat.id().c_str(), str.c_str(), code._to_string());
-		string str = buff;
+        if (num > 100)
+        {
+            int num1 = num / 100;
+            int num2 = num % 100;
 
-        return str;
+            snprintf(
+                buff,
+                sizeof(buff),
+                "%10s\t%4s\t%4s\t%3s_%3s",
+                KF::_from_integral(type)._to_string(),
+                Sat.id().c_str(),
+                str.c_str(),
+                E_ObsCode::_from_integral(num1)._to_string(),
+                E_ObsCode::_from_integral(num2)._to_string()
+            );
+        }
+        else
+        {
+            snprintf(
+                buff,
+                sizeof(buff),
+                "%10s\t%4s\t%4s\t%3s",
+                KF::_from_integral(type)._to_string(),
+                Sat.id().c_str(),
+                str.c_str(),
+                E_ObsCode::_from_integral(num)._to_string()
+            );
+        }
+
+        return string(buff);
     }
 
     string commaString() const
@@ -176,7 +201,7 @@ struct KFMeas
     vector<map<string, void*>>                  metaDataMaps;
     vector<map<E_Component, ComponentsDetails>> componentsMaps;
 
-    KFMeas(){
+    KFMeas() {
 
     };
 
@@ -790,14 +815,23 @@ int filter_(
 );
 
 // matrix and vector functions
-double *mat  (int n, int m);
-int    *imat (int n, int m);
-double *zeros(int n, int m);
-double *eye  (int n);
-double dot (const double *a, const double *b, int n);
-double norm(const double *a, int n);
-void matcpy(double *A, const double *B, int n, int m);
-void matmul(const char *tr, int n, int k, int m, double alpha, const double *A, const double *B, double beta, double *C);
-int  matinv(double *A, int n);
-int  solve (const char *tr, const double *A, const double *Y, int n,
-				int m, double *X);
+double* mat(int n, int m);
+int*    imat(int n, int m);
+double* zeros(int n, int m);
+double* eye(int n);
+double  dot(const double* a, const double* b, int n);
+double  norm(const double* a, int n);
+void    matcpy(double* A, const double* B, int n, int m);
+void    matmul(
+       const char*   tr,
+       int           n,
+       int           k,
+       int           m,
+       double        alpha,
+       const double* A,
+       const double* B,
+       double        beta,
+       double*       C
+   );
+int matinv(double* A, int n);
+int solve(const char* tr, const double* A, const double* Y, int n, int m, double* X);

@@ -5,18 +5,28 @@ import click
 import random
 import ftplib
 import logging
-import tarfile
 import requests
 import numpy as np
 from time import sleep
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Tuple
 from urllib.parse import urlparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 from gnssanalysis.gn_datetime import GPSDate
-from gnssanalysis.gn_download import download_product_from_cddis, download_url, decompress_file
+from gnssanalysis.gn_download import (
+    download_product_from_cddis,
+    decompress_file,
+    generate_content_type,
+    generate_sampling_rate,
+    generate_product_filename,
+    download_file_from_cddis,
+    check_whether_to_download,
+    attempt_url_download,
+    long_filename_cddis_cutoff,
+)
+from gnssanalysis.gn_utils import configure_logging, ensure_folders
 
 API_URL = "https://data.gnss.ga.gov.au/api"
 
@@ -29,334 +39,6 @@ def ftp_tls(url: str, **kwargs) -> None:
         ftps.prot_p()
         yield ftps
         ftps.quit()
-
-
-def configure_logging(verbose: bool) -> None:
-    if verbose:
-        logging_level = logging.DEBUG
-    else:
-        logging_level = logging.INFO
-    logging.basicConfig(format="%(asctime)s [%(funcName)s] %(levelname)s: %(message)s")
-    logging.getLogger().setLevel(logging_level)
-
-
-def ensure_folders(paths: list) -> None:
-    """
-    Ensures the list of folders exist in the file system.
-    """
-    for path in paths:
-        if not isinstance(path, Path):
-            path = Path(path)
-        if not path.is_dir():
-            path.mkdir(parents=True)
-
-
-def generate_nominal_span(start_epoch: datetime, end_epoch: datetime) -> str:
-    """
-    Generate the 3 character LEN for IGS filename based on the start and end epochs passed in
-    """
-    span = (end_epoch - start_epoch).total_seconds()
-    if span % 86400 == 0.0:
-        unit = "D"
-        span = int(span // 86400)
-    elif span % 3600 == 0.0:
-        unit = "H"
-        span = int(span // 3600)
-    elif span % 60 == 0.0:
-        unit = "M"
-        span = int(span // 60)
-    else:
-        raise NotImplementedError
-
-    return f"{span:02}{unit}"
-
-
-def generate_long_filename(
-    analysis_center: str,  # AAA
-    content_type: str,  # CNT
-    format_type: str,  # FMT
-    start_epoch: datetime,
-    end_epoch: datetime = None,
-    timespan: timedelta = None,
-    solution_type: str = "",  # TTT
-    sampling_rate: str = "15M",  # SMP
-    version: str = "0",  # V
-    project: str = "EXP",  # PPP, e.g. EXP, OPS
-) -> str:
-    """
-    Function to generate filename with IGS Long Product Filename convention (v1.0) as outlined in
-    http://acc.igs.org/repro3/Long_Product_Filenames_v1.0.pdf
-
-    AAAVPPPTTT_YYYYDDDHHMM_LEN_SMP_CNT.FMT[.gz]
-    """
-    initial_epoch = start_epoch.strftime("%Y%j%H%M")
-    if end_epoch == None:
-        end_epoch = start_epoch + timespan
-    timespan_str = generate_nominal_span(start_epoch, end_epoch)
-
-    result = (
-        f"{analysis_center}{version}{project}"
-        f"{solution_type}_"
-        f"{initial_epoch}_{timespan_str}_{sampling_rate}_"
-        f"{content_type}.{format_type}"
-    )
-    return result
-
-
-def generate_content_type(file_ext: str, analysis_center: str) -> str:
-    """
-    IGS files following the long filename convention require a content specifier
-    Given the file extension, generate the content specifier
-    """
-    file_ext = file_ext.upper()
-    file_ext_dict = {
-        "ERP": "ERP",
-        "SP3": "ORB",
-        "CLK": "CLK",
-        "OBX": "ATT",
-        "TRO": "TRO",
-        "SNX": "CRD",
-        "BIA": {"ESA": "BIA", None: "OSB"},
-    }
-    content_type = file_ext_dict.get(file_ext)
-    # If result is still dictionary, use analysis_center to determine content_type
-    if isinstance(content_type, dict):
-        content_type = content_type.get(analysis_center, content_type.get(None))
-    return content_type
-
-
-def generate_sampling_rate(file_ext: str, analysis_center: str, solution_type: str) -> str:
-    """
-    IGS files following the long filename convention require a content specifier
-    Given the file extension, generate the content specifier
-    """
-    file_ext = file_ext.upper()
-    sampling_rates = {
-        "ERP": {
-            ("COD"): {"FIN": "12H", "RAP": "01D", "ERP": "01D"},
-            (): "01D",
-        },
-        "BIA": "01D",
-        "SP3": {
-            ("COD", "GFZ", "GRG", "IAC", "JAX", "MIT", "WUM"): "05M",
-            ("ESA"): {"FIN": "05M", "RAP": "15M", None: "15M"},
-            (): "15M",
-        },
-        "CLK": {
-            ("EMR", "MIT", "SHA", "USN"): "05M",
-            ("ESA", "GFZ", "GRG", "IGS"): {"FIN": "30S", "RAP": "05M", None: "30S"},  # DZ: IGS FIN has 30S CLK
-            (): "30S",
-        },
-        "OBX": {"GRG": "05M", None: "30S"},
-        "TRO": {"JPL": "30S", None: "01H"},
-        "SNX": "01D",
-    }
-    if file_ext in sampling_rates:
-        file_rates = sampling_rates[file_ext]
-        if isinstance(file_rates, dict):
-            center_rates_found = False
-            for key in file_rates:
-                if analysis_center in key:
-                    center_rates = file_rates.get(key, file_rates.get(()))
-                    center_rates_found = True
-                    break
-                # else:
-                #     return file_rates.get(())
-            if not center_rates_found:  # DZ: bug fix
-                return file_rates.get(())
-            if isinstance(center_rates, dict):
-                return center_rates.get(solution_type, center_rates.get(None))
-            else:
-                return center_rates
-        else:
-            return file_rates
-    else:
-        return "01D"
-
-
-def generate_product_filename(
-    reference_start: datetime,
-    file_ext: str,
-    shift: int = 0,
-    long_filename: bool = False,
-    analysis_center: str = "IGS",
-    timespan: timedelta = timedelta(days=1),
-    solution_type: str = "ULT",
-    sampling_rate: str = "15M",
-    version: str = "0",
-    project: str = "OPS",
-    content_type: str = None,
-) -> Tuple[str, GPSDate, datetime]:
-    """
-    Generate filename, GPSDate obj from datetime
-    Optionally, move reference_start forward by "shift" hours
-    """
-    reference_start += timedelta(hours=shift)
-    if type(reference_start == date):
-        gps_date = GPSDate(str(reference_start))
-    else:
-        gps_date = GPSDate(str(reference_start.date()))
-
-    if long_filename:
-        if content_type == None:
-            content_type = generate_content_type(file_ext, analysis_center=analysis_center)
-        product_filename = (
-            generate_long_filename(
-                analysis_center=analysis_center,
-                content_type=content_type,
-                format_type=file_ext,
-                start_epoch=reference_start,
-                timespan=timespan,
-                solution_type=solution_type,
-                sampling_rate=sampling_rate,
-                version=version,
-                project=project,
-            )
-            + ".gz"
-        )
-    else:
-        if file_ext.lower() == "snx":
-            product_filename = f"igs{gps_date.yr[2:]}P{gps_date.gpswk}.snx.Z"
-        else:
-            hour = f"{reference_start.hour:02}"
-            prefix = "igs" if solution_type == "FIN" else "igr" if solution_type == "RAP" else "igu"
-            product_filename = (
-                f"{prefix}{gps_date.gpswkD}_{hour}.{file_ext}.Z"
-                if solution_type == "ULT"
-                else f"{prefix}{gps_date.gpswkD}.{file_ext}.Z"
-            )
-    return product_filename, gps_date, reference_start
-
-
-def download_file_from_cddis(
-    filename: str,
-    ftp_folder: str,
-    output_folder: Path,
-    max_retries: int = 3,
-    decompress: bool = True,
-    if_file_present: str = "prompt_user",
-    note_filetype: str = None,
-) -> None:
-    with ftp_tls("gdc.cddis.eosdis.nasa.gov") as ftps:
-        ftps.cwd(ftp_folder)
-        retries = 0
-        download_done = False
-        while not download_done and retries <= max_retries:
-            try:
-                download_filepath = attempt_ftps_download(
-                    download_dir=output_folder,
-                    ftps=ftps,
-                    filename=filename,
-                    type_of_file=note_filetype,
-                    if_file_present=if_file_present,
-                )
-                if decompress and download_filepath:
-                    download_filepath = decompress_file(
-                        input_filepath=download_filepath, delete_after_decompression=True
-                    )
-                download_done = True
-                if download_filepath:
-                    logging.info(f"Downloaded {download_filepath.name}")
-            except ftplib.all_errors as e:
-                retries += 1
-                if retries > max_retries:
-                    logging.info(f"Failed to download {filename} and reached maximum retry count ({max_retries}).")
-                    if (output_folder / filename).is_file():
-                        (output_folder / filename).unlink()
-                    raise e
-
-                logging.debug(f"Received an error ({e}) while try to download {filename}, retrying({retries}).")
-                # Add some backoff time (exponential random as it appears to be contention based?)
-                sleep(random.uniform(0.0, 2.0**retries))
-    return download_filepath
-
-
-def check_whether_to_download(
-    filename: str, download_dir: Path, if_file_present: str = "prompt_user"
-) -> Union[Path, None]:
-    """
-    Determine whether to download given file (filename) to the desired location (download_dir) based on whether it is
-    already present and what action to take if it is (if_file_present). Output is the Path obj to the file to be
-    downloaded (output_path) or None if file is not to be downloaded (already present and skipped)
-    """
-    # Flag to determine whether to download:
-    download = None
-    # Create Path obj to where file will be - if original file is compressed, check for decompressed file
-    uncompressed_filename = generate_uncompressed_filename(filename)  # Returns original filename if not compressed
-    output_path = download_dir / uncompressed_filename
-    # Check if file already exists - if so, then re-download or not based on if_file_present value
-    if output_path.is_file():
-        if if_file_present == "prompt_user":
-            replace = click.confirm(
-                f"File {output_path} already present; download and replace? - Answer:", default=None
-            )
-            if replace:
-                logging.info(f"Option chosen: Replace. Re-downloading {output_path.name} to {download_dir}")
-                download = True
-            else:
-                logging.info(f"Option chosen: Don't Replace. Leaving {output_path.name} as is in {download_dir}")
-                download = False
-        elif if_file_present == "dont_replace":
-            logging.info(f"File {output_path} already present; Flag --dont-replace is on ... skipping download ...")
-            download = False
-        elif if_file_present == "replace":
-            logging.info(
-                f"File {output_path} already present; Flag --replace is on ... re-downloading to {download_dir}"
-            )
-            download = True
-    else:
-        download = True
-
-    if download == False:
-        return None
-    elif download == True:
-        if uncompressed_filename == filename:  # Existing Path obj is already the one we need to download
-            return output_path
-        else:
-            return download_dir / filename  # Path to compressed file to download
-    elif download == None:
-        logging.error(f"Invalid internal flag value for if_file_present: '{if_file_present}'")
-
-
-def attempt_ftps_download(
-    download_dir: Path,
-    ftps: ftplib.FTP_TLS,
-    filename: str,
-    type_of_file: str = None,
-    if_file_present: str = "prompt_user",
-) -> Path:
-    """
-    Attempt download of file (filename) given the ftps client object (ftps) to chosen location (download_dir)
-    """
-    logging.info(f"Attempting FTPS Download of {type_of_file} file - {filename} to {download_dir}")
-    download_filepath = check_whether_to_download(
-        filename=filename, download_dir=download_dir, if_file_present=if_file_present
-    )
-    if download_filepath:
-        logging.debug(f"Downloading {filename}")
-        with open(download_filepath, "wb") as local_file:
-            ftps.retrbinary(f"RETR {filename}", local_file.write)
-
-    return download_filepath
-
-
-def attempt_url_download(
-    download_dir: Path, url: str, filename: str = None, type_of_file: str = None, if_file_present: str = "prompt_user"
-) -> Path:
-    """
-    Attempt download of file given URL (url) to chosen location (download_dir)
-    """
-    # If the filename is not provided, use the filename from the URL
-    if not filename:
-        filename = url[url.rfind("/") + 1 :]
-    logging.info(f"Attempting URL Download of {type_of_file} file - {filename} to {download_dir}")
-    # Use the check_whether_to_download function to determine whether to download the file
-    download_filepath = check_whether_to_download(
-        filename=filename, download_dir=download_dir, if_file_present=if_file_present
-    )
-    if download_filepath:
-        download_url(url, download_filepath)
-    return download_filepath
 
 
 def download_atx(download_dir: Path, long_filename: bool = False, if_file_present: str = "prompt_user") -> None:
@@ -373,28 +55,6 @@ def download_atx(download_dir: Path, long_filename: bool = False, if_file_presen
     attempt_url_download(
         download_dir=download_dir, url=url, filename=atx_filename, type_of_file="ATX", if_file_present=if_file_present
     )
-
-
-def generate_uncompressed_filename(filename: str) -> str:
-    """
-    Name of uncompressed filename given the [assumed compressed] filename (filename).
-    If not one of the recognized compression format types, return original filename -
-    """
-    if filename.endswith(".tar.gz") or filename.endswith(".tar"):
-        with tarfile.open(filename, "r") as tar:
-            # Get name of file inside tar.gz file (assuming only one file)
-            return tar.getmembers()[0].name
-    elif filename.endswith(".crx.gz"):
-        return filename[:-6] + "rnx"
-    elif filename.endswith(".gz"):
-        return filename[:-3]
-    elif filename.endswith(".Z"):
-        return filename[:-2]
-    elif filename.endswith(".bz2"):
-        return filename[:-4]
-    else:
-        logging.debug(f"{filename} not compressed - extension not a recognized compression format")
-        return filename
 
 
 def download_atmosphere_loading_model(download_dir: Path, if_file_present: str = "prompt_user") -> Path:
@@ -896,18 +556,6 @@ def download_files_from_gnss_data(
         logging.info(f"Not downloaded / missing: {list(missing_stations)}")
 
 
-def long_filename_cddis_cutoff(epoch: datetime) -> bool:
-    """
-    Simple function that determines whether long filenames should be expected on the CDDIS server
-    """
-    # Long filename cut-off:
-    long_filename_cutoff = datetime(2022, 11, 27)
-    if epoch >= long_filename_cutoff:
-        return True
-    else:
-        return False
-
-
 def most_recent_6_hour():
     """
     Returns a datetime object set to the most recent hour divisible by 6: (0000, 0600, 1200 or 1800)
@@ -1207,6 +855,11 @@ def auto_download(
     help="Provide comma-separated list of IGS stations to download - daily observation RNX files",
     type=str,
 )
+@click.option(
+    "--station-list-file",
+    help="Read file of newline separated list of IGS stations to download - takes precedence over option --station-list",
+    type=click.File("r"),
+)
 @click.option("--start-datetime", help="Start of date-time period to download files for", type=str)
 @click.option("--end-datetime", help="End of date-time period to download files for", type=str)
 @click.option("--replace", help=" Re-download all files already present in target-dir", default=False, is_flag=True)
@@ -1232,7 +885,7 @@ def auto_download(
 @click.option("--gpt2", help="Flag to Download GPT 2.5 file", default=False, is_flag=True)
 @click.option("--rinex-data-dir", help="Directory to Download RINEX data file/s. Default: target-dir", type=Path)
 @click.option("--trop-dir", help="Directory to Download troposphere model file/s. Default: target-dir", type=Path)
-@click.option("--model-dir", help="Directory to Download static model files. Default: product-dir / tables", type=Path)
+@click.option("--model-dir", help="Directory to Download static model files. Default: target-dir / tables", type=Path)
 @click.option(
     "--solution-type",
     help="The solution type of products to download from CDDIS. 'FIN': final, or 'RAP': rapid, or 'ULT': ultra-rapid. Default: RAP",
@@ -1276,6 +929,7 @@ def auto_download_main(
     target_dir,
     preset,
     station_list,
+    station_list_file,
     start_datetime,
     end_datetime,
     replace,
@@ -1317,6 +971,9 @@ def auto_download_main(
         station_list = None
     if not station_list == None:
         station_list = station_list.split(",")
+    if station_list_file:
+        content = station_list_file.read()
+        station_list = content.split("\n")
     auto_download(
         target_dir,
         preset,
