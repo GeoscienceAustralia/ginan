@@ -659,7 +659,7 @@ struct ChiSquareOptions
 struct RtsOptions
 {
     string rts_filename        = "<RTS_DIRECTORY>/Filter-<RECEIVER>.rts";
-    string rts_directory       = "./";
+    string rts_directory       = "<OUTPUTS_ROOT>";
     int    rts_lag             = -1;
     int    rts_interval        = 0;
     string rts_smoothed_suffix = "_smoothed";
@@ -716,7 +716,6 @@ struct PppOptions : FilterOptions
     bool receiver_chunking = false;
     int  chunk_size        = 0;
 
-    /// @todo: rename to reset_states_
     bool           filter_reset_enable = false;
     int            reset_interval      = 0;
     vector<double> reset_epochs        = {};
@@ -1280,6 +1279,7 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
     E_Mongo cull_history          = E_Mongo::NONE;
     E_Mongo use_predictions       = E_Mongo::NONE;
     E_Mongo output_predictions    = E_Mongo::NONE;
+    E_Mongo output_editing        = E_Mongo::NONE;
 
     bool queue_outputs = false;
 

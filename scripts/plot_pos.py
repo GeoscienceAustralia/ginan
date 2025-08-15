@@ -211,7 +211,6 @@ for component in components:
 
     else:
         # When not using --colour_sigma, add error bars using the sigma values
-        color = component_colors[component]
         fig1.add_trace(go.Scatter(
             x=all_data['Time'], y=all_data[component],
             mode='markers',
@@ -223,8 +222,8 @@ for component in components:
                 visible=True,  # Make error bars visible
                 color='gray'  # Color of error bars
             ),
-            marker=dict(size=5, color=color),
-            line=dict(color=color),
+            marker=dict(size=5, color=component_colors[component]),
+            line=dict(color=component_colors[component]),
             hoverinfo='text+x+y',
             text=f'{component} Sigma: ' + all_data[sigma_key].astype(str)
         ))
@@ -242,7 +241,7 @@ for component in components:
         x=all_data['Time'], y=all_data[f'{component}_weighted_mean'],
         mode='lines',
         name=f'{component} Weighted Mean',
-        line=dict(color='red')
+        line=dict(color=component_colors[component])
     ))
 
     fig1.add_trace(go.Scatter(
@@ -365,6 +364,7 @@ if args.save_prefix is not None:
     output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig2.html")
     os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
     fig2.write_html(output_path)
+    
 if args.map:
     # Plotly plotting using mapbox open-street-map
 

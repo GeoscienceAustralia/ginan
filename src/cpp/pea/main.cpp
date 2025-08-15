@@ -678,13 +678,16 @@ int main(int argc, char** argv)
         pppNet.kfState.measRejectCallbacks.push_back(incrementPhaseSignalError);
         pppNet.kfState.measRejectCallbacks.push_back(incrementSatelliteErrors);
         pppNet.kfState.measRejectCallbacks.push_back(incrementReceiverErrors);
-        pppNet.kfState.measRejectCallbacks.push_back(pseudoMeasTest
+        pppNet.kfState.measRejectCallbacks.push_back(
+            pseudoMeasTest
         );  // Eugene: should this go first (before deweightMeas)?
 
-        pppNet.kfState.stateRejectCallbacks.push_back(satelliteGlitchReaction
+        pppNet.kfState.stateRejectCallbacks.push_back(
+            satelliteGlitchReaction
         );  // This goes before reject by state
         pppNet.kfState.stateRejectCallbacks.push_back(incrementStateErrors);
-        pppNet.kfState.stateRejectCallbacks.push_back(rejectWorstMeasByState
+        pppNet.kfState.stateRejectCallbacks.push_back(
+            rejectWorstMeasByState
         );  // Assume the state error is caused by a single measurement error and try removing it
             // first
         pppNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
@@ -711,6 +714,8 @@ int main(int argc, char** argv)
 
     if (acsConfig.rts_only)
     {
+        replaceString(acsConfig.pppOpts.rts_filename, "<RECEIVER>", pppNet.id);
+
         pppNet.kfState.rts_basename = acsConfig.pppOpts.rts_filename;
 
         rtsSmoothing(pppNet.kfState, receiverMap);

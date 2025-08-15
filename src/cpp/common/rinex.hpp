@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 #include "common/enums.h"
-#include "common/observations.hpp" /// @todo try to remove this dependency (trying minimising header dependencies)
+#include "common/observations.hpp"  /// @todo try to remove this dependency (trying minimising header dependencies)
 
 using std::map;
 using std::string;
@@ -39,13 +39,13 @@ struct SatSys;
 struct GTime;
 
 // Forward declarations for ephemeris and navigation message types
-struct Eph;      // GPS/Galileo/QZS/BeiDou ephemeris
-struct Geph;     // GLONASS ephemeris
-struct Seph;     // SBAS ephemeris
-struct Ceph;     // CNVX ephemeris
-struct STO;      // System Time Offset
-struct EOP;      // Earth Orientation Parameters
-struct ION;      // Ionospheric parameters
+struct Eph;   // GPS/Galileo/QZS/BeiDou ephemeris
+struct Geph;  // GLONASS ephemeris
+struct Seph;  // SBAS ephemeris
+struct Ceph;  // CNVX ephemeris
+struct STO;   // System Time Offset
+struct EOP;   // Earth Orientation Parameters
+struct ION;   // Ionospheric parameters
 
 /**
  * @brief Ephemeris type enumeration for RINEX navigation data

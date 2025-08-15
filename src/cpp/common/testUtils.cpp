@@ -2,7 +2,7 @@
 
 #include "common/testUtils.hpp"
 #include <algorithm>
-#include <malloc.h>
+// #include <malloc.h>
 #include <math.h>
 #include "common/acsConfig.hpp"
 #include "common/biases.hpp"

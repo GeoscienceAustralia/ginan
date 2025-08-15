@@ -25,6 +25,20 @@ Architecture Preprocessing__()
     DOCS_REFERENCE(SPP__);
 }
 
+#include "ambres/GNSSambres.hpp"
+#include "common/acsConfig.hpp"
+#include "common/acsQC.hpp"
+#include "common/constants.hpp"
+#include "common/mongoWrite.hpp"
+#include "common/navigation.hpp"
+#include "common/observations.hpp"
+#include "common/receiver.hpp"
+#include "common/satStat.hpp"
+#include "common/sinex.hpp"
+#include "common/trace.hpp"
+#include "orbprop/coordinates.hpp"
+#include "pea/ppp.hpp"
+
 void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList)
 {
     for (auto& obs : only<GObs>(obsList))
@@ -169,7 +183,9 @@ void excludeUnprocessed(ObsList& obsList)
 void recordSlips(Receiver& rec)
 {
     for (auto& obs : only<GObs>(rec.obsList))
+    {
         for (auto& [ft, sig] : obs.sigs)
+        {
             if (obs.satStat_ptr)
             {
                 SigStat& sigStat = obs.satStat_ptr->sigStatMap[ft2string(ft)];
@@ -183,8 +199,25 @@ void recordSlips(Receiver& rec)
                      (acsConfig.exclude.SCDIA && sigStat.slip.SCDIA)))
                 {
                     rec.savedSlips[obs.Sat] = obs.time;
+                    mongoEditing(
+                        obs.Sat.id(),
+                        rec.id,
+                        obs.time,
+                        "PreprocSlip",
+                        sig.code._to_string(),
+                        static_cast<int>(sigStat.slip.any)
+                    );
                 }
             }
+        }
+        if (obs.satStat_ptr)
+        {
+            double gf0 = obs.satStat_ptr->gf;
+            double mw0 = obs.satStat_ptr->mw;
+            mongoEditing(obs.Sat.id(), rec.id, obs.time, "gf", "", gf0);
+            mongoEditing(obs.Sat.id(), rec.id, obs.time, "mw", "", mw0);
+        }
+    }
 }
 
 void preprocessor(

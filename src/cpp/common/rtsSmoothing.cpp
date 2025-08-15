@@ -212,6 +212,8 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
     string inputFile  = kfState.rts_basename + FORWARD_SUFFIX;
     string outputFile = kfState.rts_basename + BACKWARD_SUFFIX;
 
+    checkValidFile(inputFile, "RTS file (rts_forward)");
+
     if (write)
     {
         std::ofstream ofs(outputFile, std::ofstream::out | std::ofstream::trunc);
@@ -321,12 +323,14 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                     return;
                 }
 
+                if (acsConfig.rts_only && kfState.time == GTime::noTime())
+                {
+                    kfState.time = kalmanPlus.time;
+                }
+
                 lag = (kfState.time - kalmanPlus.time).to_double();
 
-                if (write)
-                {
-                    BOOST_LOG_TRIVIAL(info) << "RTS lag: " << lag;
-                }
+                BOOST_LOG_TRIVIAL(info) << "RTS lag: " << lag;
 
                 if (smoothedPready == false)
                 {
@@ -512,9 +516,13 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                                     failInversion();
                                 break;
                             }
-                                // 					case E_Inverter::FULLPIVHQR:{
-                                // solve(Eigen::FullPivHouseholderQR <MatrixXd>()); if (pass ==
-                                // false) failInversion();	break;	}
+                                // case E_Inverter::FULLPIVHQR:
+                                // {
+                                //     solve(Eigen::FullPivHouseholderQR<MatrixXd>());
+                                //     if (pass == false)
+                                //         failInversion();
+                                //     break;
+                                // }
                         }
 
                     if (pass == false)
@@ -602,38 +610,27 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                             smoothedKF.metaDataMap[TRACE_FILENAME_STR + SMOOTHED_SUFFIX],
                             std::ofstream::out | std::ofstream::app
                         );
-
-                        perEpochPostProcessingAndOutputs(
-                            trace,
-                            dummyTime,
-                            dummyNet,
-                            receiverMap,
-                            smoothedKF,
-                            false,
-                            true
-                        );
                     }
                 }
 
                 GTime epochStopTime = timeGet();
-                if (write)
-                {
-                    int fractionalMilliseconds =
-                        (kalmanPlus.time.bigTime - (long int)kalmanPlus.time.bigTime) * 1000;
-                    auto boostTime =
-                        boost::posix_time::from_time_t((time_t)((PTime)kalmanPlus.time).bigTime) +
-                        boost::posix_time::millisec(fractionalMilliseconds);
 
-                    BOOST_LOG_TRIVIAL(info) << "Processed epoch" << " - " << boostTime << " (took "
-                                            << (epochStopTime - epochStartTime) << ")";
+                int fractionalMilliseconds =
+                    (kalmanPlus.time.bigTime - (long int)kalmanPlus.time.bigTime) * 1000;
+                auto boostTime =
+                    boost::posix_time::from_time_t((time_t)((PTime)kalmanPlus.time).bigTime) +
+                    boost::posix_time::millisec(fractionalMilliseconds);
 
-                    InteractiveTerminal::clearModes(
-                        (string) " Processing epoch " + kalmanPlus.time.to_string(),
-                        (string) " Last Epoch took " +
-                            std::to_string((epochStopTime - epochStartTime).to_double()) + "s"
-                    );
-                    InteractiveTerminal::setMode(E_InteractiveMode::Syncing);
-                }
+                BOOST_LOG_TRIVIAL(info) << "Processed epoch" << " - " << boostTime << " (took "
+                                        << (epochStopTime - epochStartTime) << ")";
+
+                InteractiveTerminal::clearModes(
+                    (string) " Processing epoch " + kalmanPlus.time.to_string(),
+                    (string) " Last Epoch took " +
+                        std::to_string((epochStopTime - epochStartTime).to_double()) + "s"
+                );
+                InteractiveTerminal::setMode(E_InteractiveMode::Syncing);
+
                 epochStartTime = timeGet();
 
                 break;

@@ -88,7 +88,6 @@ struct Mongo
 #define SSR_PREC "Prec"
 
 #define REMOTE_DATA_DB "Remote"
-#define STATES_DB "States"
 
 #define REMOTE_DATA "Data"
 #define REMOTE_EPOCH "Epoch"
@@ -102,28 +101,61 @@ struct Mongo
 #define REMOTE_CLK_DRIFT "ClkRate"
 #define REMOTE_STR "Str"
 
-#define MONGO_CONTENT "Content"
-#define MONGO_VALUES "Values"
 #define MONGO_UPDATED "Updated"
-#define MONGO_EPOCH "Epoch"
-#define MONGO_STATE "State"
-#define MONGO_SAT "Sat"
-#define MONGO_STR "Site"
-#define MONGO_MEASUREMENTS "Measurements"
-#define MONGO_CONFIG "Config"
-#define MONGO_TRACE "Trace"
-#define MONGO_GEOMETRY "Geometry"
-#define MONGO_SERIES "Series"
-#define MONGO_TYPE "Type"
+
 #define MONGO_AVAILABLE "Available"
-#define MONGO_DX "dx"
-#define MONGO_NUM "Num"
-#define MONGO_X "x"
-#define MONGO_SIGMA "sigma"
-#define MONGO_COVAR "Covar"
-#define MONGO_AZIMUTH "Azimuth"
-#define MONGO_ELEVATION "Elevation"
-#define MONGO_NADIR "Nadir"
+
+// @todo seb put all define as const char* in a namespace
+
+namespace Constants
+{
+/**
+ * @namespace Mongo
+ * @brief Contains constant string literals used for MongoDB database and field names.
+ *
+ * This namespace provides a collection of constant string literals that represent
+ * database names and variable/field names commonly used in MongoDB operations.
+ *
+ */
+namespace Mongo
+{
+constexpr const char* EDITING_DB      = "Editing";
+constexpr const char* MEASUREMENTS_DB = "Measurements";
+constexpr const char* STATE_DB        = "State";
+constexpr const char* STATES_DB       = "States";  ///@todo are STATE_DB and STATES_DB the same?
+constexpr const char* CONFIG_DB       = "Config";
+constexpr const char* TRACE_DB        = "Trace";
+constexpr const char* GEOMETRY_DB     = "Geometry";
+constexpr const char* CONTENT_DB      = "Content";
+
+constexpr const char* DX_VAR        = "dx";
+constexpr const char* NUM_VAR       = "Num";
+constexpr const char* X_VAR         = "x";
+constexpr const char* SIGMA_VAR     = "sigma";
+constexpr const char* COVAR_VAR     = "Covar";
+constexpr const char* AZIMUTH_VAR   = "Azimuth";
+constexpr const char* ELEVATION_VAR = "Elevation";
+constexpr const char* NADIR_VAR     = "Nadir";
+constexpr const char* SERIES_VAR    = "Series";
+constexpr const char* EPOCH_VAR     = "Epoch";
+constexpr const char* SAT_VAR       = "Sat";
+constexpr const char* STR_VAR       = "Site";
+constexpr const char* TYPE_VAR      = "Type";
+constexpr const char* VALUE_VAR     = "Values";
+
+};  // namespace Mongo
+};  // namespace Constants
+
+/**
+ * @brief Converts a C-style string (const char*) to a std::string.
+ *
+ * @param cstr A pointer to a null-terminated C-style string.
+ * @return A std::string object containing the same characters as the input C-style string.
+ */
+inline std::string toString(const char* cstr)
+{
+    return std::string(cstr);
+}
 
 b_date bDate(const GTime& time);
 

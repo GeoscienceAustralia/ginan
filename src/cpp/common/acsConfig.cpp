@@ -8179,6 +8179,12 @@ bool ACSConfig::parse(
                 "Output console trace and warnings to mongo with timestamps and other metadata"
             );
             tryGetEnumOpt(
+                mongoOpts.output_editing,
+                mongo,
+                {"2@ output_editing"},
+                "Output additional information on data editing to mongo"
+            );
+            tryGetEnumOpt(
                 mongoOpts.output_ssr_precursors,
                 mongo,
                 {"2@ output_ssr_precursors"},

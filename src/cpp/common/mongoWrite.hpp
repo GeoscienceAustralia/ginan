@@ -45,7 +45,7 @@ void mongoOutputConfig(string& config);
 struct MongoStatesOptions
 {
     string  suffix;
-    string  collection = STATES_DB;
+    string  collection = Constants::Mongo::STATES_DB;
     E_Mongo instances;
     bool    force  = false;
     bool    upsert = false;
@@ -63,3 +63,23 @@ void mongoMeasSatStat(ReceiverMap& receiverMap);
 void mongoTestStat(KFState& kfState, TestStatistics& statistics);
 
 void mongoCull(GTime time);
+
+void mongoEditing(
+    const std::string& sat,
+    const std::string& site,
+    const GTime&       time,
+    const std::string& type,
+    const std::string& signal,
+    const int&         values,
+    const std::string& message = ""
+);
+
+void mongoEditing(
+    const std::string& sat,
+    const std::string& site,
+    const GTime&       time,
+    const std::string& type,
+    const std::string& signal,
+    const double&      values,
+    const std::string& message = ""
+);

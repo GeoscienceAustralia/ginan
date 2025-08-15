@@ -2536,8 +2536,13 @@ void commitStagedObservations(
 
     // Step 3: Second pass - resolve and commit phase observations with priority
     BOOST_LOG_TRIVIAL(debug) << "Phase priority: Starting second pass - resolving phase priorities";
-    for (const auto& [key, staged] : staging)
+    // this part was initially `for (const auto& [key, staged] : staging)`. However it seems to be
+    // an issue with clang in openMP sections
+
+    for (const auto& stage : staging)
     {
+        auto& key    = stage.first;
+        auto& staged = stage.second;
         if (!staged.isValid || !staged.isPhaseWithPriority)
             continue;
 

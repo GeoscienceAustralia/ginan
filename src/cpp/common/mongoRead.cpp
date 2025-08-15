@@ -299,9 +299,11 @@ SsrPBMap mongoReadPhaseBias(
         getMongoCollection(mongo, SSR_DB);
 
         mongocxx::pipeline p;
-        p.match(bsoncxx::builder::basic::make_document(
-            bsoncxx::builder::basic::kvp(SSR_DATA, SSR_PHAS_BIAS)
-        ));
+        p.match(
+            bsoncxx::builder::basic::make_document(
+                bsoncxx::builder::basic::kvp(SSR_DATA, SSR_PHAS_BIAS)
+            )
+        );
         // p.sort (bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_EPOCH,
         // 1)));
 
@@ -384,9 +386,11 @@ SsrCBMap mongoReadCodeBias(
         getMongoCollection(mongo, SSR_DB);
 
         mongocxx::pipeline p;
-        p.match(bsoncxx::builder::basic::make_document(
-            bsoncxx::builder::basic::kvp(SSR_DATA, SSR_CODE_BIAS)
-        ));
+        p.match(
+            bsoncxx::builder::basic::make_document(
+                bsoncxx::builder::basic::kvp(SSR_DATA, SSR_CODE_BIAS)
+            )
+        );
         // p.sort (bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_EPOCH,
         // 1)));
 
@@ -1014,7 +1018,7 @@ void mongoReadFilter(
 
         auto& mongo = *mongo_ptr;
 
-        getMongoCollection(mongo, STATES_DB);
+        getMongoCollection(mongo, Constants::Mongo::STATES_DB);
 
         b_date btime = bDate(time);
 
@@ -1025,15 +1029,16 @@ void mongoReadFilter(
         auto docProject = document();
         auto docGroup   = document{};
 
-        docMatch << MONGO_TYPE << MONGO_AVAILABLE;
+        docMatch << toString(Constants::Mongo::TYPE_VAR) << MONGO_AVAILABLE;
         if (time != GTime::noTime())
-            docMatch << MONGO_EPOCH << open_document << "$lte" << btime << close_document;
+            docMatch << toString(Constants::Mongo::EPOCH_VAR) << open_document << "$lte" << btime
+                     << close_document;
 
-        docSort << MONGO_EPOCH << -1;
+        docSort << toString(Constants::Mongo::EPOCH_VAR) << -1;
         docSort << MONGO_UPDATED << -1;
 
         docProject << "_id" << 0;
-        docProject << MONGO_TYPE << 0;
+        docProject << toString(Constants::Mongo::TYPE_VAR) << 0;
 
         auto findOpts = mongocxx::options::find();
         findOpts.sort(docSort.view());
@@ -1050,10 +1055,10 @@ void mongoReadFilter(
         auto docMatch2   = document();
         auto docProject2 = document();
 
-        docProject2 << MONGO_EPOCH << 0;
+        docProject2 << toString(Constants::Mongo::EPOCH_VAR) << 0;
         docProject2 << MONGO_UPDATED << 0;
-        docProject2 << MONGO_SERIES << 0;
-        docProject2 << MONGO_DX << 0;
+        docProject2 << toString(Constants::Mongo::SERIES_VAR) << 0;
+        docProject2 << toString(Constants::Mongo::DX_VAR) << 0;
         docProject2 << "_id" << 0;
 
         if (std::find(types.begin(), types.end(), +KF::ALL) == types.end())
@@ -1062,7 +1067,8 @@ void mongoReadFilter(
 
             for (auto& type : types)
             {
-                array << open_document << MONGO_STATE << type._to_string() << close_document;
+                array << open_document << toString(Constants::Mongo::STATE_DB) << type._to_string()
+                      << close_document;
             }
 
             array << close_array;
@@ -1071,7 +1077,7 @@ void mongoReadFilter(
         auto updateDoc = matchTemplate->view();
 
         PTime pTime;
-        auto  time    = updateDoc[MONGO_EPOCH].get_date();
+        auto  time    = updateDoc[Constants::Mongo::EPOCH_VAR].get_date();
         pTime.bigTime = std::chrono::system_clock::to_time_t(time);
 
         kfState.time = pTime;
@@ -1081,13 +1087,14 @@ void mongoReadFilter(
 
         std::cout << "\n" << bsoncxx::to_json(updateDoc) << "\n";
 
-        docMatch2 << MONGO_EPOCH << updateDoc[MONGO_EPOCH].get_date();
+        docMatch2 << toString(Constants::Mongo::EPOCH_VAR)
+                  << updateDoc[Constants::Mongo::EPOCH_VAR].get_date();
         docMatch2 << MONGO_UPDATED << updateDoc[MONGO_UPDATED].get_date();
-        docMatch2 << MONGO_SERIES << "_predicted";
+        docMatch2 << toString(Constants::Mongo::SERIES_VAR) << "_predicted";
         if (str.empty() == false)
-            docMatch2 << MONGO_STR << str;
+            docMatch2 << toString(Constants::Mongo::STR_VAR) << str;
         if (Sat.empty() == false)
-            docMatch2 << MONGO_SAT << Sat;
+            docMatch2 << toString(Constants::Mongo::SAT_VAR) << Sat;
 
         // std::cout <<  "\n" << bsoncxx::to_json(docMatch2.view()) << "\n";
 
@@ -1116,17 +1123,22 @@ void mongoReadFilter(
             // std::cout << bsoncxx::to_json(doc) <<  "\n";
 
             KFKey kfKey;
-            kfKey.type = KF::_from_string(std::string(doc[MONGO_STATE].get_string().value).c_str());
-            kfKey.Sat  = SatSys(std::string(doc[MONGO_SAT].get_string().value).c_str());
-            kfKey.str  = std::string(doc[MONGO_STR].get_string().value);
+            kfKey.type = KF::_from_string(
+                std::string(doc[Constants::Mongo::STATE_DB].get_string().value).c_str()
+            );
+            kfKey.Sat =
+                SatSys(std::string(doc[Constants::Mongo::SAT_VAR].get_string().value).c_str());
+            kfKey.str = std::string(doc[Constants::Mongo::STR_VAR].get_string().value).c_str();
 
             int i = 0;
-            for (auto thing : doc[MONGO_NUM].get_array().value)
+            for (auto thing : doc[Constants::Mongo::NUM_VAR].get_array().value)
             {
-                kfKey.num = doc[MONGO_NUM].get_array().value[i].get_int32();
+                kfKey.num = doc[Constants::Mongo::NUM_VAR].get_array().value[i].get_int32();
 
-                x.push_back(doc[MONGO_X].get_array().value[i].get_double());
-                P.push_back(SQR(doc[MONGO_SIGMA].get_array().value[i].get_double()));
+                x.push_back(doc[Constants::Mongo::X_VAR].get_array().value[i].get_double());
+                P.push_back(
+                    SQR(doc[Constants::Mongo::SIGMA_VAR].get_array().value[i].get_double())
+                );
 
                 kfState.kfIndexMap[kfKey] = index;
                 index++;

@@ -459,7 +459,7 @@ void rtsBump()
 
 		kfState.outputStates(std::cout);
 
-		if (acsConfig.output_mongo_states)
+		if (acsConfig.output_Constants::Mongo::STATE_DBs)
 		{
 			mongoStates(kfState);
 		}

@@ -1498,6 +1498,18 @@ void chunkFilter(
     }
 }
 
+/**
+ * @brief Checks if a reset interval has been reached between two epochs.
+ *
+ * Determines whether the current epoch (`epoch`) or the transition
+ * from the previous epoch (`prev_epoch`) to the current epoch crosses a
+ * specified reset interval (`reset_interval`).
+ *
+ * @param epoch The current epoch time.
+ * @param prev_epoch The previous epoch time.
+ * @param reset_interval The interval at which resets occur.
+ * @return True if a reset interval is reached or crossed, false otherwise.
+ */
 bool isIntervalReset(double epoch, double prev_epoch, double reset_interval)
 {
     bool reset_epoch          = std::fmod(epoch, reset_interval) == 0;
@@ -1507,6 +1519,20 @@ bool isIntervalReset(double epoch, double prev_epoch, double reset_interval)
     return reset_epoch || (!prev_epoch_reset && reset_between_epochs);
 }
 
+/**
+ * @brief Checks if a specific time reset has occurred between two epochs.
+ *
+ * Determines whether a given epoch or the transition between two epochs
+ * corresponds to any of the specified reset times within a day. A reset time can
+ * either match the exact time of the epoch or occur between the two epochs.
+ *
+ * @param epoch The current epoch time in seconds since the start of the day.
+ * @param prev_epoch The previous epoch time in seconds since the start of the day.
+ * @param resetTimes A vector of reset times in seconds within a day (0 to 86400).
+ *
+ * @return True If a reset time matches the current epoch or occurs between the
+ *         previous and current epochs, False otherwise.
+ */
 bool isSpecificTimeReset(double epoch, double prev_epoch, const std::vector<double>& resetTimes)
 {
     double seconds_in_day = 86400;
@@ -1616,6 +1642,13 @@ void resetFilterbyConfig(Trace& trace, KFState& kfState)
             kfState.removeState(key);
         }
     }
+    // generate a string of the reset_states values.
+    string reset_states_str = "";
+    for (auto& state : reset_states)
+    {
+        reset_states_str += std::string(state._to_string()) + " ";
+    }
+    mongoEditing("", "", tsync, "reset", "", 1, reset_states_str);
 }
 
 void removeBadAmbiguities(Trace& trace, KFState& kfState, ReceiverMap& receiverMap);

@@ -735,23 +735,22 @@ void addRejectDetails(
             kfState.statisticsMap[buff]++;
         }
         //		{	KFKey subKey; subKey.Sat	= key.Sat;		snprintf(buff, sizeof(buff),
-        //"%-25s\t%s\t%s",
-        // action.c_str(), description, ((string) subKey).c_str());
-        // kfState.statisticsMap[buff]++;	 } 		{ KFKey subKey; subKey.num	= key.num;
+        //"%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());
+        // kfState.statisticsMap[buff]++;	 } 		{	KFKey subKey; subKey.num	= key.num;
         // snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string)
         // subKey).c_str());		kfState.statisticsMap[buff]++;	 } 		{	KFKey subKey;
-        // subKey.type	= key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",
-        // action.c_str(), description,
-        //((string) subKey).c_str());		kfState.statisticsMap[buff]++;	 }
+        // subKey.type = key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",
+        //action.c_str(), description, ((string) subKey).c_str());
+        // kfState.statisticsMap[buff]++;	 }
     }
     traceJson(
         0,
         trace,
         tsync,
         {{"data", action},
-         {MONGO_SAT, key.Sat.id()},
-         {MONGO_STR, key.str},
-         {MONGO_NUM, std::to_string(key.num)}},
+         {Constants::Mongo::SAT_VAR, key.Sat.id()},
+         {Constants::Mongo::STR_VAR, key.str},
+         {Constants::Mongo::NUM_VAR, std::to_string(key.num)}},
         details
     );
 }

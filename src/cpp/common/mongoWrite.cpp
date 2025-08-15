@@ -173,7 +173,7 @@ void mongoTestStat(KFState& kfState, TestStatistics& testStatistics)
 
         auto& config = acsConfig.mongoOpts[instance];
 
-        getMongoCollection(mongo, STATES_DB);
+        getMongoCollection(mongo, Constants::Mongo::STATES_DB);
 
         mongocxx::options::bulk_write bulk_opts;
         bulk_opts.ordered(false);
@@ -185,8 +185,10 @@ void mongoTestStat(KFState& kfState, TestStatistics& testStatistics)
         for (auto& [state, value] : entries)
         {
             bsoncxx::builder::stream::document doc{};
-            doc << REMOTE_EPOCH << bDate(kfState.time) << MONGO_STR << kfState.id + config.suffix
-                << MONGO_SAT << "" + config.suffix << MONGO_STATE << state << MONGO_X << value;
+            doc << REMOTE_EPOCH << bDate(kfState.time) << toString(Constants::Mongo::STR_VAR)
+                << kfState.id + config.suffix << toString(Constants::Mongo::SAT_VAR)
+                << "" + config.suffix << toString(Constants::Mongo::STATE_DB) << state
+                << toString(Constants::Mongo::X_VAR) << value;
 
             bsoncxx::document::value doc_val = doc << finalize;
             bulk.append(mongocxx::model::insert_one(doc_val.view()));
@@ -230,7 +232,7 @@ void mongoTrace(const vector<string>& jsons, bool queue)
 
         auto& mongo = *mongo_ptr;
 
-        getMongoCollection(mongo, MONGO_TRACE);
+        getMongoCollection(mongo, Constants::Mongo::TRACE_DB);
 
         mongocxx::options::bulk_write bulk_opts;
         bulk_opts.ordered(false);
@@ -264,7 +266,7 @@ void mongoOutputConfig(string& config)
 
         auto& mongo = *mongo_ptr;
 
-        getMongoCollection(mongo, MONGO_CONFIG);
+        getMongoCollection(mongo, Constants::Mongo::CONFIG_DB);
 
         mongocxx::options::bulk_write bulk_opts;
         bulk_opts.ordered(false);
@@ -306,7 +308,7 @@ void mongoMeasSatStat(ReceiverMap& receiverMap)
 
         auto& config = acsConfig.mongoOpts[instance];
 
-        getMongoCollection(mongo, MONGO_GEOMETRY);
+        getMongoCollection(mongo, Constants::Mongo::GEOMETRY_DB);
 
         mongocxx::options::bulk_write bulk_opts;
         bulk_opts.ordered(false);
@@ -334,10 +336,13 @@ void mongoMeasSatStat(ReceiverMap& receiverMap)
                     SatStat& satStat = *satPos.satStat_ptr;
 
                     bsoncxx::builder::stream::document doc{};
-                    doc << MONGO_EPOCH << bDate(tsync) << MONGO_STR << obs.mount << MONGO_SAT
-                        << satPos.Sat.id() << MONGO_SERIES << formatSeries(config.suffix)
-                        << MONGO_AZIMUTH << satStat.az * R2D << MONGO_ELEVATION << satStat.el * R2D
-                        << MONGO_NADIR << satStat.nadir * R2D;
+                    doc << toString(Constants::Mongo::EPOCH_VAR) << bDate(tsync)
+                        << toString(Constants::Mongo::STR_VAR) << obs.mount
+                        << toString(Constants::Mongo::SAT_VAR) << satPos.Sat.id()
+                        << toString(Constants::Mongo::SERIES_VAR) << formatSeries(config.suffix)
+                        << toString(Constants::Mongo::AZIMUTH_VAR) << satStat.az * R2D
+                        << toString(Constants::Mongo::ELEVATION_VAR) << satStat.el * R2D
+                        << toString(Constants::Mongo::NADIR_VAR) << satStat.nadir * R2D;
 
                     bsoncxx::document::value doc_val = doc << finalize;
                     bulk.append(mongocxx::model::insert_one(doc_val.view()));
@@ -394,7 +399,7 @@ void mongoMeasResiduals(
 
         auto& config = acsConfig.mongoOpts[instance];
 
-        getMongoCollection(mongo, MONGO_MEASUREMENTS);
+        getMongoCollection(mongo, Constants::Mongo::MEASUREMENTS_DB);
 
         mongocxx::options::bulk_write bulk_opts;
         bulk_opts.ordered(false);
@@ -433,8 +438,10 @@ void mongoMeasResiduals(
             bsoncxx::builder::stream::document doc{};
             auto& [site, sat] = description;
             auto series       = formatSeries(config.suffix + suffix);
-            doc << MONGO_EPOCH << bDate(time) << MONGO_STR << site << MONGO_SAT << sat
-                << MONGO_SERIES << series;
+            doc << toString(Constants::Mongo::EPOCH_VAR) << bDate(time)
+                << toString(Constants::Mongo::STR_VAR) << site
+                << toString(Constants::Mongo::SAT_VAR) << sat
+                << toString(Constants::Mongo::SERIES_VAR) << series;
 
             indexSeries[series] = true;
             indexSite[site]     = true;
@@ -526,17 +533,24 @@ void mongoMeasResiduals(
                 }
                 arrayDoc << close_array;
 
-                auto findDoc   = document{} << MONGO_TYPE << name << finalize;
-                auto updateDoc = document{} << "$addToSet" << open_document << MONGO_VALUES
-                                            << eachDoc << close_document << finalize;
+                auto findDoc = document{} << toString(Constants::Mongo::TYPE_VAR) << name
+                                          << finalize;
+                auto updateDoc = document{} << "$addToSet" << open_document
+                                            << toString(Constants::Mongo::VALUE_VAR) << eachDoc
+                                            << close_document << finalize;
 
-                db[MONGO_CONTENT].update_one(findDoc.view(), updateDoc.view(), options);
+                db[Constants::Mongo::CONTENT_DB]
+                    .update_one(findDoc.view(), updateDoc.view(), options);
             };
 
-            addIndices(MONGO_MEASUREMENTS, indexLabel);
-            addIndices(MONGO_MEASUREMENTS MONGO_SERIES, indexSeries);
-            addIndices(MONGO_STR, indexSite);
-            addIndices(MONGO_SAT, indexSat);
+            addIndices(Constants::Mongo::MEASUREMENTS_DB, indexLabel);
+            addIndices(
+                toString(Constants::Mongo::MEASUREMENTS_DB) +
+                    toString(Constants::Mongo::SERIES_VAR),
+                indexSeries
+            );
+            addIndices(toString(Constants::Mongo::STR_VAR), indexSite);
+            addIndices(toString(Constants::Mongo::SAT_VAR), indexSat);
         }
     }
 }
@@ -579,10 +593,11 @@ void mongoStatesAvailable(GTime time, MongoStatesOptions opts)
         mongocxx::database   db     = client[mongo.database];
         mongocxx::collection coll   = db[opts.collection];
 
-        auto findDoc = document{} << MONGO_TYPE << MONGO_AVAILABLE << MONGO_EPOCH << bDate(time)
+        auto findDoc = document{} << toString(Constants::Mongo::TYPE_VAR) << MONGO_AVAILABLE
+                                  << toString(Constants::Mongo::EPOCH_VAR) << bDate(time)
                                   << MONGO_UPDATED << bDate(opts.updated) << finalize;
 
-        db[STATES_DB].insert_one(findDoc.view());
+        db[Constants::Mongo::STATES_DB].insert_one(findDoc.view());
     }
 }
 
@@ -669,8 +684,11 @@ void mongoStates(KFState& kfState, MongoStatesOptions opts)
 
             auto&  doc    = *val_ptr;
             string series = formatSeries(config.suffix + opts.suffix);
-            keydoc << MONGO_EPOCH << bDate(kfState.time) << MONGO_STR << site << MONGO_SAT << sat
-                   << MONGO_STATE << state << MONGO_SERIES << series;
+            keydoc << toString(Constants::Mongo::EPOCH_VAR) << bDate(kfState.time)
+                   << toString(Constants::Mongo::STR_VAR) << site
+                   << toString(Constants::Mongo::SAT_VAR) << sat
+                   << toString(Constants::Mongo::STATE_DB) << state
+                   << toString(Constants::Mongo::SERIES_VAR) << series;
 
             indexSeries[series] = true;
             indexState[state]   = true;
@@ -679,32 +697,32 @@ void mongoStates(KFState& kfState, MongoStatesOptions opts)
 
             if (opts.updated != GTime::noTime())
             {
-                doc << MONGO_UPDATED
+                doc << toString(MONGO_UPDATED)
                     << b_date{std::chrono::system_clock::from_time_t(
                            (time_t)((PTime)opts.updated).bigTime
                        )};
             }
 
-            auto array_builder = doc << MONGO_X << open_array;
+            auto array_builder = doc << toString(Constants::Mongo::X_VAR) << open_array;
             for (auto& [i, num] : index)
                 array_builder << kfState.x(i);
             array_builder << close_array;
-            array_builder = doc << MONGO_DX << open_array;
+            array_builder = doc << toString(Constants::Mongo::DX_VAR) << open_array;
             for (auto& [i, num] : index)
                 array_builder << kfState.dx(i);
             array_builder << close_array;
-            array_builder = doc << MONGO_SIGMA << open_array;
+            array_builder = doc << toString(Constants::Mongo::SIGMA_VAR) << open_array;
             for (auto& [i, num] : index)
                 array_builder << sqrt(kfState.P(i, i));
             array_builder << close_array;
-            array_builder = doc << MONGO_NUM << open_array;
+            array_builder = doc << toString(Constants::Mongo::NUM_VAR) << open_array;
             for (auto& [i, num] : index)
                 array_builder << num;
             array_builder << close_array;
 
             if (instance & acsConfig.mongoOpts.output_state_covars)
             {
-                array_builder = doc << MONGO_COVAR << open_array;
+                array_builder = doc << toString(Constants::Mongo::COVAR_VAR) << open_array;
                 for (auto& [i, numI] : index)
                     for (auto& [j, numJ] : index)
                         if (j > i)
@@ -743,19 +761,25 @@ void mongoStates(KFState& kfState, MongoStatesOptions opts)
                 }
                 arrayDoc << close_array;
 
-                auto findDoc   = document{} << MONGO_TYPE << name << finalize;
-                auto updateDoc = document{} << "$addToSet" << open_document << MONGO_VALUES
-                                            << eachDoc << close_document << finalize;
+                auto findDoc = document{} << toString(Constants::Mongo::TYPE_VAR) << name
+                                          << finalize;
+                auto updateDoc = document{} << "$addToSet" << open_document
+                                            << toString(Constants::Mongo::VALUE_VAR) << eachDoc
+                                            << close_document << finalize;
 
-                db[MONGO_CONTENT].update_one(findDoc.view(), updateDoc.view(), options);
+                db[Constants::Mongo::CONTENT_DB]
+                    .update_one(findDoc.view(), updateDoc.view(), options);
             };
 
             if (opts.index)
             {
-                addIndices(MONGO_STATE, indexState);
-                addIndices(MONGO_STATE MONGO_SERIES, indexSeries);
-                addIndices(MONGO_STR, indexSite);
-                addIndices(MONGO_SAT, indexSat);
+                addIndices(Constants::Mongo::STATE_DB, indexState);
+                addIndices(
+                    toString(Constants::Mongo::STATE_DB) + toString(Constants::Mongo::SERIES_VAR),
+                    indexSeries
+                );
+                addIndices(toString(Constants::Mongo::STR_VAR), indexSite);
+                addIndices(toString(Constants::Mongo::SAT_VAR), indexSat);
             }
         }
     }
@@ -1528,4 +1552,96 @@ void prepareSsrStates(
     }
 
     mongoOutput(dbEntryList, acsConfig.mongoOpts.queue_outputs, instances, SSR_DB);
+}
+
+/// add editing infomation to mongo
+/// @todo slow version, need to do some bulk writting.
+void mongoEditing(
+    const std::string& sat,
+    const std::string& site,
+    const GTime&       time,
+    const std::string& type,
+    const std::string& signal,
+    const int&         values,
+    const std::string& message
+)
+{
+    auto instances = mongoInstances(acsConfig.mongoOpts.output_editing);
+
+    if (instances.empty())
+    {
+        return;
+    }
+
+    for (auto instance : instances)
+    {
+        auto mongo_ptr = mongo_ptr_arr[instance];
+
+        if (mongo_ptr == nullptr)
+            continue;
+
+        auto& mongo = *mongo_ptr;
+
+        auto& config = acsConfig.mongoOpts[instance];
+
+        getMongoCollection(mongo, toString(Constants::Mongo::EDITING_DB));
+
+        bsoncxx::builder::stream::document doc{};
+        doc << "Sat" << sat << "Site" << site << "Epoch" << bDate(time) << "Type" << type
+            << "Signal" << signal << "Values" << values;
+
+        if (!message.empty())
+        {
+            doc << "message" << message;
+        }
+
+        bsoncxx::document::value doc_val = doc << finalize;
+
+        coll.insert_one(doc_val.view());
+    }
+}
+
+void mongoEditing(
+    const std::string& sat,
+    const std::string& site,
+    const GTime&       time,
+    const std::string& type,
+    const std::string& signal,
+    const double&      values,
+    const std::string& message
+)
+{
+    auto instances = mongoInstances(acsConfig.mongoOpts.output_editing);
+
+    if (instances.empty())
+    {
+        return;
+    }
+
+    for (auto instance : instances)
+    {
+        auto mongo_ptr = mongo_ptr_arr[instance];
+
+        if (mongo_ptr == nullptr)
+            continue;
+
+        auto& mongo = *mongo_ptr;
+
+        auto& config = acsConfig.mongoOpts[instance];
+
+        getMongoCollection(mongo, toString(Constants::Mongo::EDITING_DB));
+
+        bsoncxx::builder::stream::document doc{};
+        doc << "Sat" << sat << "Site" << site << "Epoch" << bDate(time) << "Type" << type
+            << "Signal" << signal << "Values" << values;
+
+        if (!message.empty())
+        {
+            doc << "message" << message;
+        }
+
+        bsoncxx::document::value doc_val = doc << finalize;
+
+        coll.insert_one(doc_val.view());
+    }
 }

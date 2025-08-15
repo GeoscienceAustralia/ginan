@@ -7,18 +7,18 @@
 #include <vector>
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
+#include "common/attitude.hpp"
 #include "common/eigenIncluder.hpp"
 #include "common/enums.h"
 #include "common/gTime.hpp"
 #include "common/trace.hpp"
-#include "common/attitude.hpp"
 
 using std::map;
 using std::shared_ptr;
 using std::vector;
 using namespace boost::numeric::odeint;
 
-//forward declarations
+// forward declarations
 struct KFState;
 struct KFKey;
 
