@@ -610,7 +610,7 @@ int main(int argc, char** argv)
     {
         BOOST_LOG_TRIVIAL(error) << "Error: Incorrect configuration";
         BOOST_LOG_TRIVIAL(info) << "PEA finished";
-        TcpSocket::ioService.stop();
+        TcpSocket::ioContext.stop();
         return EXIT_FAILURE;
     }
 
@@ -1235,7 +1235,7 @@ int main(int argc, char** argv)
     }
 
     ntripBroadcaster.stopBroadcast();
-    TcpSocket::ioService.stop();
+    TcpSocket::ioContext.stop();
 
     GTime peaInterTime = timeGet();
     BOOST_LOG_TRIVIAL(info) << "\n"

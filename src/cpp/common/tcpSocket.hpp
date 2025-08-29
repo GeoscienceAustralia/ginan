@@ -257,7 +257,7 @@ struct TcpSocket : NetworkStatistics, SerialStream
     unsigned int content_length = 0;
 
     TcpSocket(const string& url_str, const string& readUntil = "\r\n\r\n")
-        : timer(ioService), readUntilString(readUntil), sslContext(ssl::context::sslv23_client)
+        : timer(ioContext), readUntilString(readUntil), sslContext(ssl::context::sslv23_client)
     {
         url        = URL(url_str);
         streamName = url.path;
@@ -282,7 +282,7 @@ struct TcpSocket : NetworkStatistics, SerialStream
 
    private:
     std::mutex receivedDataBufferMtx;  //< This mutex ensures that the main thread and the
-                                       // io_service thread dont alter
+                                       // io_context thread dont alter
                                        // the receivedDataBuffer buffer at the same time.
     vector<vector<char>> chunkList;
 
@@ -317,12 +317,12 @@ struct TcpSocket : NetworkStatistics, SerialStream
 
     B_asio::ssl::context sslContext;
 
-    static B_asio::io_service ioService;
+    static B_asio::io_context ioContext;
 
     static void runService()
     {
-        B_asio::io_service::work work(ioService);
-        ioService.run();
+        B_asio::executor_work_guard<B_asio::io_context::executor_type> work = B_asio::make_work_guard(ioContext);
+        ioContext.run();
     }
 
     static void startClients() { std::thread(TcpSocket::runService).detach(); }

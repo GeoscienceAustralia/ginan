@@ -2540,6 +2540,8 @@ void KFState::leastSquareInitStates(
         return;
     }
 
+    leastSquareMeasSubs.VV = leastSquareMeasSubs.Y - leastSquareMeasSubs.H * xp;
+
     if (chiSquareTest.enable)
     {
         chiQC(trace, leastSquareMeasSubs);

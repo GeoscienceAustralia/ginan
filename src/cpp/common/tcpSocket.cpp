@@ -15,7 +15,7 @@ namespace bp = boost::asio::placeholders;
 using bsoncxx::builder::basic::kvp;
 using std::chrono::system_clock;
 
-B_asio::io_service TcpSocket::ioService;
+B_asio::io_context TcpSocket::ioContext;
 
 void TcpSocket::logChunkError()
 {
@@ -523,9 +523,9 @@ void TcpSocket::connect()
 {
     // Pointers are required as objects may need to be destroyed to full recover
     // socket error.
-    _socket    = std::make_shared<tcp::socket>(ioService);
-    _sslsocket = std::make_shared<ssl_socket>(ioService, sslContext);
-    _resolver  = std::make_shared<tcp::resolver>(ioService);
+    _socket    = std::make_shared<tcp::socket>(ioContext);
+    _sslsocket = std::make_shared<ssl_socket>(ioContext, sslContext);
+    _resolver  = std::make_shared<tcp::resolver>(ioContext);
 
     BOOST_LOG_TRIVIAL(debug) << "(Re)connecting " << url.sanitised();
 

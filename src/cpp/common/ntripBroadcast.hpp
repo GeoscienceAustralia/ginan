@@ -26,7 +26,7 @@ struct NtripUploader : NtripResponder, RtcmEncoder
 
     SsrBroadcast streamConfig;
 
-    NtripUploader(const string& url_str) : NtripResponder(url_str), sendTimer(ioService)
+    NtripUploader(const string& url_str) : NtripResponder(url_str), sendTimer(ioContext)
     {
         if (url.path.empty())
         {
