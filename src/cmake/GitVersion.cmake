@@ -31,7 +31,7 @@ if (GIT_FOUND)
         string(SUBSTRING "${GINAN_BRANCH_NAME}" 1 -1 GINAN_BRANCH_NAME) # Remove the leading '/'
     endif()
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd --date=local
+        COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd --date=iso
         OUTPUT_VARIABLE "GINAN_COMMIT_DATE"
         OUTPUT_STRIP_TRAILING_WHITESPACE
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

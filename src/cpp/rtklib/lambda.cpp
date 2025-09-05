@@ -13,12 +13,13 @@
  *-----------------------------------------------------------------------------*/
 
 #include <math.h>
+#include <algorithm>
 #include "common/algebra.hpp"
 #include "common/common.hpp"
 #include "common/trace.hpp"
 /* constants/macros ----------------------------------------------------------*/
 
-#define LOOPMAX 10000 /* maximum count of search loop */
+constexpr int LOOPMAX = 10000; /* maximum count of search loop */
 
 const double table1[34][41] = {
     {0.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000,
@@ -474,9 +475,9 @@ void perm(int n, double* L, double* D, int j, double del, double* Z)
     }
     L[j + 1 + j * n] = lam;
     for (k = j + 2; k < n; k++)
-        SWAP(L[k + j * n], L[k + (j + 1) * n]);
+        std::swap(L[k + j * n], L[k + (j + 1) * n]);
     for (k = 0; k < n; k++)
-        SWAP(Z[k + j * n], Z[k + (j + 1) * n]);
+        std::swap(Z[k + j * n], Z[k + (j + 1) * n]);
 }
 /* lambda reduction (z=Z'*a, Qz=Z'*Q*Z=L'*diag(D)*L) (ref.[1]) ---------------*/
 void reduction(int n, double* L, double* D, double* Z)
@@ -577,9 +578,9 @@ int search(int n, int m, const double* L, const double* D, const double* zs, dou
         {
             if (s[i] < s[j])
                 continue;
-            SWAP(s[i], s[j]);
+            std::swap(s[i], s[j]);
             for (k = 0; k < n; k++)
-                SWAP(zn[k + i * n], zn[k + j * n]);
+                std::swap(zn[k + i * n], zn[k + j * n]);
         }
     }
     free(S);

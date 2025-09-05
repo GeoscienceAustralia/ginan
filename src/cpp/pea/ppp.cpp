@@ -202,7 +202,7 @@ void outputApriori(ReceiverMap& receiverMap)
 // 	if (!fout)
 // 	{
 // 		BOOST_LOG_TRIVIAL(warning)
-// 		<< "Warning: Could not open trace file for PPP solution at \"" << filename << "\"";
+// 		<< "Could not open trace file for PPP solution at \"" << filename << "\"";
 //
 // 		return;
 // 	}
@@ -340,7 +340,7 @@ void selectAprioriSource(SatSys& Sat, GTime& time, KFState& kfState, KFState* re
     }
     else
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No sat pos found for " << satPos0.Sat.id() << ".";
+        BOOST_LOG_TRIVIAL(warning) << "No sat pos found for " << satPos0.Sat.id() << ".";
     }
 
     if (clkPass)
@@ -358,7 +358,7 @@ void selectAprioriSource(SatSys& Sat, GTime& time, KFState& kfState, KFState* re
     }
     else
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No sat clk found for " << satPos0.Sat.id() << ".";
+        BOOST_LOG_TRIVIAL(warning) << "No sat clk found for " << satPos0.Sat.id() << ".";
     }
 }
 
@@ -454,8 +454,7 @@ void updateAprioriRecPos(
             default:
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: Unknown receiver apriori position source found: "
-                    << source._to_string();
+                    << "Unknown receiver apriori position source found: " << source._to_string();
 
                 continue;
             }
@@ -467,7 +466,7 @@ void updateAprioriRecPos(
 
     if (foundSource == +E_Source::NONE)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori position found for " << rec.id;
+        BOOST_LOG_TRIVIAL(warning) << "No receiver apriori position found for " << rec.id;
     }
 
     tracepdeex(
@@ -570,8 +569,7 @@ void updateAprioriRecClk(
             default:
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: Unknown receiver apriori clock source found: "
-                    << source._to_string();
+                    << "Unknown receiver apriori clock source found: " << source._to_string();
                 continue;
             }
         }
@@ -582,7 +580,7 @@ void updateAprioriRecClk(
 
     if (foundSource == +E_Source::NONE)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No receiver apriori clock found for " << rec.id;
+        BOOST_LOG_TRIVIAL(warning) << "No receiver apriori clock found for " << rec.id;
     }
 
     tracepdeex(
@@ -649,7 +647,7 @@ void selectAprioriSource(
     if (distance > 20)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Apriori for " << rec.id << " is " << distance << "m from SPP estimate";
+            << "Apriori for " << rec.id << " is " << distance << "m from SPP estimate";
     }
 }
 
@@ -740,7 +738,7 @@ void addRejectDetails(
         // snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string)
         // subKey).c_str());		kfState.statisticsMap[buff]++;	 } 		{	KFKey subKey;
         // subKey.type = key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",
-        //action.c_str(), description, ((string) subKey).c_str());
+        // action.c_str(), description, ((string) subKey).c_str());
         // kfState.statisticsMap[buff]++;	 }
     }
     traceJson(
@@ -1230,10 +1228,9 @@ double netResidualAndChainOutputs(Trace& trace, Observation& obs, KFMeasEntry& m
 
         if (var > 100)
         {
-            BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Unestimated component '" << component._to_string() << "' for '"
-                << measEntry.obsKey << "' has large variance (" << var
-                << "), valid inputs may not (yet) be available";
+            BOOST_LOG_TRIVIAL(warning) << "Unestimated component '" << component._to_string()
+                                       << "' for '" << measEntry.obsKey << "' has large variance ("
+                                       << var << "), valid inputs may not (yet) be available";
 
             trace << "\n"
                   << "Warning: Unestimated component '" << component._to_string() << "' for '"
@@ -1258,8 +1255,7 @@ double netResidualAndChainOutputs(Trace& trace, Observation& obs, KFMeasEntry& m
 
     if (abs(residual) > 1e30)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: " << measEntry.obsKey << " has very large residual: " << residual;
+        BOOST_LOG_TRIVIAL(warning) << measEntry.obsKey << " has very large residual: " << residual;
     }
 
     return residual;

@@ -27,7 +27,7 @@ void readCom(string filepath)  ///< Path to CoM file
     std::ifstream comFile(filepath);
     if (!comFile)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: could not read in CoM file " << filepath;
+        BOOST_LOG_TRIVIAL(error) << "Could not read in CoM file " << filepath;
         return;
     }
 
@@ -44,7 +44,7 @@ void readCom(string filepath)  ///< Path to CoM file
     {
         if (line.size() < MIN_LINE_LEN)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: line size is too short: " << line.size();
+            BOOST_LOG_TRIVIAL(warning) << "Line size is too short: " << line.size();
             continue;
         }
 
@@ -131,13 +131,13 @@ double satComOffSphere(LObs& obs)  ///< SLR observation
     if (acsConfig.require_reflector_com)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Observation rejected due to lack of laser retroreflector COM correction";
+            << "Observation rejected due to lack of laser retroreflector COM correction";
 
         obs.excludeCom = true;
     }
     else
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Laser retroreflector COM correction not found";
+        BOOST_LOG_TRIVIAL(warning) << "Laser retroreflector COM correction not found";
     }
 
     return 0;
@@ -165,13 +165,13 @@ VectorEcef satComOffGnss(LObs& obs)  ///< SLR observation
     if (acsConfig.require_reflector_com)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Observation rejected due to lack of laser retroreflector COM correction";
+            << "Observation rejected due to lack of laser retroreflector COM correction";
 
         obs.excludeCom = true;
     }
     else
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Laser retroreflector COM correction not found";
+        BOOST_LOG_TRIVIAL(warning) << "Laser retroreflector COM correction not found";
     }
 
     return VectorEcef();

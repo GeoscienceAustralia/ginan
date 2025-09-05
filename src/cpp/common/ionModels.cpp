@@ -12,13 +12,14 @@
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
 #include "orbprop/coordinates.hpp"
-#define VAR_IONO SQR(60.0)  // init variance iono-delay
-#define VAR_IONEX SQR(0.0)
-#define ERR_BRDCI 0.5       // broadcast iono model error factor
 
-#define VAR_NOTEC SQR(30.0) /* variance of no tec */
-#define MIN_EL 0.0          /* min elevation angle (rad) */
-#define MIN_HGT -1000.0     /* min user height (m) */
+constexpr double VAR_IONO = 60.0*60.0;  // init variance iono-delay
+constexpr double VAR_IONEX = 0.0*0.0;
+constexpr double ERR_BRDCI = 0.5;       // broadcast iono model error factor
+
+constexpr double VAR_NOTEC = 30.0*30.0; /* variance of no tec */
+constexpr double MIN_EL = 0.0;          /* min elevation angle (rad) */
+constexpr double MIN_HGT = -1000.0;     /* min user height (m) */
 
 int dataindex(int i, int j, int k, const int* ndata);
 

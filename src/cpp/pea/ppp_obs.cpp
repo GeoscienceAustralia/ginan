@@ -831,7 +831,7 @@ inline static void pppIonStec2(COMMON_PPP_ARGS)
     {
         if (initialStateFromConfig(recOpts.ion_stec).estimate == false)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Higher order ionosphere estimation requires "
+            BOOST_LOG_TRIVIAL(warning) << "Higher order ionosphere estimation requires "
                                           "lower order ionosphere estimation.";
         }
 
@@ -923,7 +923,7 @@ inline static void pppIonStec3(COMMON_PPP_ARGS)
     {
         if (initialStateFromConfig(recOpts.ion_stec).estimate == false)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Higher order ionosphere estimation requires "
+            BOOST_LOG_TRIVIAL(warning) << "Higher order ionosphere estimation requires "
                                           "lower order ionosphere estimation.";
         }
 
@@ -1389,8 +1389,7 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
     else if (biasFound == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Receiver phase bias not found for " << rec.id << " : "
-            << sig.code._to_string()
+            << "Receiver phase bias not found for " << rec.id << " : " << sig.code._to_string()
             << ". Using undefined_sigma: " << recOpts.phaseBiasModel.undefined_sigma;
     }
 
@@ -1442,8 +1441,7 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
     else if (biasFound == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Satellite phase bias not found for " << Sat.id() << " : "
-            << sig.code._to_string()
+            << "Satellite phase bias not found for " << Sat.id() << " : " << sig.code._to_string()
             << ". Using undefined_sigma: " << recOpts.phaseBiasModel.undefined_sigma;
     }
 
@@ -1549,8 +1547,7 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
     else if (biasFound == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Receiver code bias not found for " << rec.id << " : "
-            << sig.code._to_string()
+            << "Receiver code bias not found for " << rec.id << " : " << sig.code._to_string()
             << ". Using undefined_sigma: " << recOpts.codeBiasModel.undefined_sigma;
     }
 
@@ -1641,8 +1638,7 @@ inline static void pppSatCodeBias(COMMON_PPP_ARGS)
     else if (biasFound == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Satellite code bias not found for " << Sat.id() << " : "
-            << sig.code._to_string()
+            << "Satellite code bias not found for " << Sat.id() << " : " << sig.code._to_string()
             << ". Using undefined_sigma: " << satOpts.codeBiasModel.undefined_sigma;
     }
 
@@ -1671,8 +1667,7 @@ void checkModels(ReceiverOptions& recOpts, SatelliteOptions& satOpts)
     {
         if (estimated && enable == false)
         {
-            BOOST_LOG_TRIVIAL(warning)
-                << "Warning: " << label << " is estimated but model is not enabled";
+            BOOST_LOG_TRIVIAL(warning) << label << " is estimated but model is not enabled";
         }
     };
 
@@ -1685,12 +1680,12 @@ void checkModels(ReceiverOptions& recOpts, SatelliteOptions& satOpts)
 
     if (acsConfig.minimise_sat_clock_offsets.enable && nav.ephMap.empty())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_clock_offsets` configured, but no "
+        BOOST_LOG_TRIVIAL(warning) << "`minimise_sat_clock_offsets` configured, but no "
                                       "broadcast ephemerides are available";
     }
     if (acsConfig.minimise_sat_orbit_offsets && nav.ephMap.empty())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: `minimise_sat_orbit_offsets` configured, but no "
+        BOOST_LOG_TRIVIAL(warning) << "`minimise_sat_orbit_offsets` configured, but no "
                                       "broadcast ephemerides are available";
     }
 }
@@ -2164,15 +2159,14 @@ void receiverUducGnss(
 
                     if (rSat.isZero())
                     {
-                        BOOST_LOG_TRIVIAL(error) << "Error: Satpos is unexpectedly zero for "
-                                                 << rec.id << " - " << Sat.id();
+                        BOOST_LOG_TRIVIAL(error)
+                            << "Sat pos is unexpectedly zero for " << rec.id << " - " << Sat.id();
                         continue;
                     }
 
                     if (rRec.isZero())
                     {
-                        BOOST_LOG_TRIVIAL(error)
-                            << "Error: rRec is unexpectedly zero for " << rec.id;
+                        BOOST_LOG_TRIVIAL(error) << "Rec pos is unexpectedly zero for " << rec.id;
                         continue;
                     }
 

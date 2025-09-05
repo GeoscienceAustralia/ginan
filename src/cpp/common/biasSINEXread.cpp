@@ -76,8 +76,7 @@ bool read_biasSINEX_line(
 
     if (size < 91)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Short bias line in SINEX file (" << size
-                                 << "): " << buff;
+        BOOST_LOG_TRIVIAL(error) << "Short bias line in SINEX file (" << size << "): " << buff;
         return false;
     }
 
@@ -165,7 +164,7 @@ bool read_biasSINEX_line(
         entry.refTime = entry.tfin;
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Invalid interval for bias in SINEX file: " << buff;
+        BOOST_LOG_TRIVIAL(error) << "Invalid interval for bias in SINEX file: " << buff;
         return false;
     }
 
@@ -188,7 +187,7 @@ bool read_biasSINEX_line(
     }
     catch (const std::invalid_argument& ia)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Invalid bias in SINEX file: " << buff;
+        BOOST_LOG_TRIVIAL(error) << "Invalid bias in SINEX file: " << buff;
         return false;
     }
 
@@ -277,8 +276,7 @@ bool readBiasSinex(string& filename)  ///< File to read
     std::ifstream inputStream(filename);
     if (!inputStream)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Could not find bias SINEX file " << filename.c_str();
+        BOOST_LOG_TRIVIAL(warning) << "Could not find bias SINEX file " << filename.c_str();
         return false;
     }
 
@@ -307,8 +305,7 @@ bool readBiasSinex(string& filename)  ///< File to read
                     tsys = E_TimeSys::TAI;
                 else
                 {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: unsupported time system: " << timeSystem;
+                    BOOST_LOG_TRIVIAL(warning) << "Unsupported time system: " << timeSystem;
                     return false;
                 }
             }
@@ -328,7 +325,7 @@ bool readBiasSinex(string& filename)  ///< File to read
 
         if (strstr(buff, "%="))
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: erroneous bias SINEX file " << filename.c_str();
+            BOOST_LOG_TRIVIAL(warning) << "Erroneous bias SINEX file " << filename.c_str();
             return false;
         }
 

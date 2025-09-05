@@ -377,7 +377,7 @@ bool calculateBias(
     else
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No suitable data for bias interpolation, extrapolated bias in use.";
+            << "No suitable data for bias interpolation, extrapolated bias in use.";
     }
 
     auto& [dummy2, bias2] = *biasIt;

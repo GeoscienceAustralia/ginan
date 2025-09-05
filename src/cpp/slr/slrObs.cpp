@@ -31,7 +31,7 @@ void readSatId(string filepath)  ///< Filepath to sat ID file
     std::ifstream satIdFile(filepath);
     if (!satIdFile)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: could not read in satellite ID file " << filepath;
+        BOOST_LOG_TRIVIAL(warning) << "Could not read in satellite ID file " << filepath;
         return;
     }
 
@@ -271,8 +271,8 @@ vector<CrdSession> readCrdFile(string filepath)  ///< Filepath to CRD file
         {
         }  // User-defined (ignore)
         else
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Unrecognised CRD recordType in file "
-                                       << filepath << " - '" << recordType << "'";
+            BOOST_LOG_TRIVIAL(warning) << "Unrecognised CRD recordType in file " << filepath
+                                       << " - '" << recordType << "'";
     }
 
     for (auto it = crdSessions.begin(); it != crdSessions.end();)
@@ -281,7 +281,7 @@ vector<CrdSession> readCrdFile(string filepath)  ///< Filepath to CRD file
         if (session.readH2 == false || session.readH3 == false || session.readH4 == false ||
             session.readC0 == false || session.d20.empty() || session.d11.empty())
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: CRD file " << filepath
+            BOOST_LOG_TRIVIAL(warning) << "CRD file " << filepath
                                        << " has a session with insufficient data; ignoring data";
             it = crdSessions.erase(it);
         }
@@ -368,7 +368,7 @@ SatSys ilrsIdToSatSys(int ilrsId)  ///< ILRS ID
     auto   it = satIdMap.find(ilrsId);
     if (it == satIdMap.end())
     {
-        BOOST_LOG_TRIVIAL(error) << "Error - SatId not found in " << __FUNCTION__ << ": " << ilrsId;
+        BOOST_LOG_TRIVIAL(error) << "SatId not found in " << __FUNCTION__ << ": " << ilrsId;
         return Sat;
     }
 
@@ -408,7 +408,7 @@ void readCrd(string filepath)  ///< CRD file to read
             crdSession.h4.SC_sysdelay_app_ind != false ||
             crdSession.h4.range_type_ind != E_SlrRangeType::TWO_WAY)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: unexpected H4 flags!";
+            BOOST_LOG_TRIVIAL(warning) << "Unexpected H4 flags!";
 
             obsHeader.excludeBadFlags = true;
         }
@@ -439,7 +439,7 @@ void readCrd(string filepath)  ///< CRD file to read
 
         double sessionLength = (endSession - startSession).to_double();
         if (sessionLength > S_IN_DAY / 2)
-            BOOST_LOG_TRIVIAL(error) << "Error: CRD session spans more than 12hrs";
+            BOOST_LOG_TRIVIAL(error) << "CRD session spans more than 12hrs";
 
         for (auto& record : crdSession.d11)
         {
@@ -483,8 +483,7 @@ void readCrd(string filepath)  ///< CRD file to read
                 case E_CrdEpochEvent::SAT_TX_REC_RX:
                 default:
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Unexpected epoch event found: " << obs.epochEvent
-                        << ", discarding";
+                        << "Unexpected epoch event found: " << obs.epochEvent << ", discarding";
                     continue;
             }
 
@@ -606,7 +605,7 @@ int readSlrObs(
 
     if (line.size() < MIN_LINE_LEN_SLROBS)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: incorrect SLR obs file format, line skipped";
+        BOOST_LOG_TRIVIAL(warning) << "Incorrect SLR obs file format, line skipped";
         return 0;
     }
 

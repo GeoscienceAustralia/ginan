@@ -244,7 +244,7 @@ void integrateInertials(
     {
         double newDt = integrationPeriod / steps;
 
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt;
+        BOOST_LOG_TRIVIAL(warning) << "Time step adjusted from " << dt << " to " << newDt;
 
         dt = newDt;
     }
@@ -263,7 +263,7 @@ void integrateInertials(
             if (errorMag > 0.001)
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << " Integrator error " << errorMag << " greater than 1mm for " << error.Sat
+                    << "Integrator error " << errorMag << " greater than 1mm for " << error.Sat
                     << " " << error.str;
             }
         }

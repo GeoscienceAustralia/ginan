@@ -65,7 +65,7 @@ void writeEMSdata(
             std::ofstream outputStream(lastEMSFile, std::fstream::app);
             if (!outputStream)
             {
-                BOOST_LOG_TRIVIAL(error) << "ERROR: cannot open EMS file:" << lastEMSFile;
+                BOOST_LOG_TRIVIAL(error) << "Cannot open EMS file:" << lastEMSFile;
                 trace << "ERROR: cannot open EMS file:" << lastEMSFile;
 
                 break;

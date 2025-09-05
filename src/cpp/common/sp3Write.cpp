@@ -16,7 +16,7 @@
 #include "common/rinexObsWrite.hpp"
 #include "orbprop/coordinates.hpp"
 /* macro defintions */
-#define VERSION 3.00
+constexpr double VERSION = 3.00;
 
 struct Sp3Entry
 {
@@ -221,7 +221,7 @@ void writeSp3Header(
     }
     if (syschar == 0)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Writing RINEX clock file no systems in process_sys.";
+        BOOST_LOG_TRIVIAL(error) << "Writing RINEX clock file no systems in process_sys.";
         return;
     }
 
@@ -422,7 +422,7 @@ void writeSysSetSp3(
         if (posPass == false)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Writing SP3 file, failed to get data for satellite " << Sat.id();
+                << "Writing SP3 file, failed to get data for satellite " << Sat.id();
             continue;
         }
 

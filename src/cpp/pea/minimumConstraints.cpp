@@ -297,7 +297,7 @@ void mincon(
         {
             if (key.rec_ptr == nullptr)
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: rec_ptr is null during mincon";
+                BOOST_LOG_TRIVIAL(error) << "rec_ptr is null during mincon";
 
                 continue;
             }
@@ -1075,8 +1075,7 @@ KFState minconOnly(Trace& trace, ReceiverMap& receiverMap)
         );
         if (pass == false)
         {
-            BOOST_LOG_TRIVIAL(warning)
-                << "Warning: No sat pos found for " << satPos.Sat.id() << ".";
+            BOOST_LOG_TRIVIAL(warning) << "No sat pos found for " << satPos.Sat.id() << ".";
             continue;
         }
 

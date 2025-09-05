@@ -299,11 +299,9 @@ SsrPBMap mongoReadPhaseBias(
         getMongoCollection(mongo, SSR_DB);
 
         mongocxx::pipeline p;
-        p.match(
-            bsoncxx::builder::basic::make_document(
-                bsoncxx::builder::basic::kvp(SSR_DATA, SSR_PHAS_BIAS)
-            )
-        );
+        p.match(bsoncxx::builder::basic::make_document(
+            bsoncxx::builder::basic::kvp(SSR_DATA, SSR_PHAS_BIAS)
+        ));
         // p.sort (bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_EPOCH,
         // 1)));
 
@@ -386,11 +384,9 @@ SsrCBMap mongoReadCodeBias(
         getMongoCollection(mongo, SSR_DB);
 
         mongocxx::pipeline p;
-        p.match(
-            bsoncxx::builder::basic::make_document(
-                bsoncxx::builder::basic::kvp(SSR_DATA, SSR_CODE_BIAS)
-            )
-        );
+        p.match(bsoncxx::builder::basic::make_document(
+            bsoncxx::builder::basic::kvp(SSR_DATA, SSR_CODE_BIAS)
+        ));
         // p.sort (bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp(SSR_EPOCH,
         // 1)));
 
@@ -479,7 +475,7 @@ Eph mongoReadEphemeris(
                 type = E_NavMsgType::INAV;
                 break;
             default:
-                BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect message type.\n";
+                BOOST_LOG_TRIVIAL(error) << "Attempting to upload incorrect message type.\n";
                 return eph;
         }
 
@@ -1136,8 +1132,7 @@ void mongoReadFilter(
                 kfKey.num = doc[Constants::Mongo::NUM_VAR].get_array().value[i].get_int32();
 
                 x.push_back(doc[Constants::Mongo::X_VAR].get_array().value[i].get_double());
-                P.push_back(
-                    SQR(doc[Constants::Mongo::SIGMA_VAR].get_array().value[i].get_double())
+                P.push_back(SQR(static_cast<double>(doc[Constants::Mongo::SIGMA_VAR].get_array().value[i].get_double()))
                 );
 
                 kfState.kfIndexMap[kfKey] = index;

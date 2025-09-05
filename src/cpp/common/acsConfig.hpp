@@ -1,7 +1,4 @@
 #pragma once
-#define PI 3.141592653589793238462643383279502884197169399375105820974
-#define D2R (PI / 180.0)  ///< deg to rad
-#define R2D (180.0 / PI)  ///< rad to deg
 
 #include <array>
 #include <boost/program_options.hpp>
@@ -235,11 +232,12 @@ struct OutputOptions
     bool output_residuals          = false;
     bool output_residual_chain     = true;
 
-    bool output_statistics  = false;
-    bool output_summaries   = false;
-    bool output_config      = false;
-    bool colourise_terminal = true;
-    bool warn_once          = true;
+    bool output_statistics      = false;
+    bool output_summaries       = false;
+    bool output_config          = false;
+    bool colourise_terminal     = true;
+    bool timestamp_console_logs = false;
+    bool warn_once              = true;
 
     bool             output_clocks           = false;
     vector<E_Source> clocks_receiver_sources = {

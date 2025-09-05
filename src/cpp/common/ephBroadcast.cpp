@@ -4,22 +4,23 @@
 #include "common/navigation.hpp"
 #include "common/observations.hpp"
 #include "common/trace.hpp"
-#define STD_BRDCCLK 1.5            ///< error of broadcast clock (m)
 
-#define J2_GLO 1.0826257E-3        ///< 2nd zonal harmonic of geopot   ref [2]
+constexpr double STD_BRDCCLK = 1.5;            ///< error of broadcast clock (m)
 
-#define SIN_5 -0.0871557427476582  ///< sin(-5.0 deg)
-#define COS_5 +0.9961946980917456  ///< cos(-5.0 deg)
+constexpr double J2_GLO = 1.0826257E-3;        ///< 2nd zonal harmonic of geopot   ref [2]
 
-#define ERREPH_GLO 5.0             ///< error of glonass ephemeris (m)
-#define TSTEP 60.0                 ///< integration step glonass ephemeris (s)
-#define RTOL_KEPLER 1E-14          ///< relative tolerance for Kepler equation
+constexpr double SIN_5 = -0.0871557427476582;  ///< sin(-5.0 deg)
+constexpr double COS_5 = +0.9961946980917456;  ///< cos(-5.0 deg)
 
-#define MAX_ITER_KEPLER 30         ///< max number of iteration of Kelpler
+constexpr double ERREPH_GLO  = 5.0;            ///< error of glonass ephemeris (m)
+constexpr double TSTEP       = 60.0;           ///< integration step glonass ephemeris (s)
+constexpr double RTOL_KEPLER = 1E-14;          ///< relative tolerance for Kepler equation
 
-#define OMGE_GLO 7.292115E-5       ///< earth angular velocity (rad/s) ref [2]
-#define OMGE_CMP 7.292115E-5       ///< earth angular velocity (rad/s) ref [9]
-#define OMGE_GAL 7.2921151467E-5   ///< earth angular velocity (rad/s) ref [7]
+constexpr int MAX_ITER_KEPLER = 30;            ///< max number of iteration of Kelpler
+
+constexpr double OMGE_GLO = 7.292115E-5;       ///< earth angular velocity (rad/s) ref [2]
+constexpr double OMGE_CMP = 7.292115E-5;       ///< earth angular velocity (rad/s) ref [9]
+constexpr double OMGE_GAL = 7.2921151467E-5;   ///< earth angular velocity (rad/s) ref [7]
 
 /** variance by ura ephemeris (ref [1] 20.3.3.3.1.1)
  */

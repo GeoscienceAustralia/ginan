@@ -75,8 +75,7 @@ void OrbitIntegrator::computeCommon(GTime time)
         {
             if (egm.initialised == false)
             {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Error: EGM data not initialised, check for valid egm file";
+                BOOST_LOG_TRIVIAL(error) << "EGM data not initialised, check for valid egm file";
 
                 break;
             }
@@ -743,7 +742,7 @@ void integrateOrbits(
     {
         double newDt = integrationPeriod / steps;
 
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Time step adjusted from " << dt << " to " << newDt;
+        BOOST_LOG_TRIVIAL(warning) << "Time step adjusted from " << dt << " to " << newDt;
 
         dt = newDt;
     }
@@ -762,7 +761,7 @@ void integrateOrbits(
             if (errorMag > 0.001)
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << " Integrator error " << errorMag << " greater than 1mm for " << error.Sat
+                    << "Integrator error " << errorMag << " greater than 1mm for " << error.Sat
                     << " " << error.str;
             }
         }

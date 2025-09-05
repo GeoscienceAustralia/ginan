@@ -39,9 +39,9 @@ FileType CLK__() {}
 
 FileType RNX__() {}
 
-#define MAXPOSHEAD 1024  ///< max head line position
-#define MINFREQ_GLO -7   ///< min frequency number glonass
-#define MAXFREQ_GLO 13   ///< max frequency number glonass
+constexpr int MAXPOSHEAD  = 1024;  ///< max head line position
+constexpr int MINFREQ_GLO = -7;    ///< min frequency number glonass
+constexpr int MAXFREQ_GLO = 13;    ///< max frequency number glonass
 
 /**
  * @brief Default navigation message types by GNSS system
@@ -993,7 +993,8 @@ int decodeObsDataRinex2(
             else
             {
                 BOOST_LOG_TRIVIAL(warning) << "RINEX2: code2 " << codeType.code2._to_string()
-                                           << " not found in codeMap for type " << codeType.type;
+                                           << " not found in codeMap for type " << codeType.type
+                                           << ", sat=" << obs.Sat.id();
             }
         }
         else if (codeType.type == 'L')
@@ -1021,7 +1022,8 @@ int decodeObsDataRinex2(
             else
             {
                 BOOST_LOG_TRIVIAL(warning) << "RINEX2: code2 " << codeType.code2._to_string()
-                                           << " not found in phasMap for type " << codeType.type;
+                                           << " not found in phasMap for type " << codeType.type
+                                           << ", sat=" << obs.Sat.id();
             }
         }
 
@@ -1062,7 +1064,7 @@ int decodeObsDataRinex2(
     if (!report.passed)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "RINEX2:" << rnxRec.id << " Validation failed for satellite " << obs.Sat.id()
+            << "RINEX2: " << rnxRec.id << " Validation failed for satellite " << obs.Sat.id()
             << " (valid: " << report.validObservations << "/" << report.totalObservations << ")";
         return 0;
     }
@@ -1204,8 +1206,7 @@ int readRnxObsB(
         }
         else if (line[0] == '>')
         {
-            BOOST_LOG_TRIVIAL(warning)
-                << "Warning: unexpected end of epoch in rinex file at " << time;
+            BOOST_LOG_TRIVIAL(warning) << "Unexpected end of epoch in rinex file at " << time;
             inputStream.seekg(pos);
             return obsList.size();
         }

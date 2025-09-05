@@ -292,7 +292,7 @@ void receiverSlr(
 
         if (obs.ephPosValid == false)
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Invalid position for " << obs.Sat.id() << " in " << __FUNCTION__;
+                << "Invalid position for " << obs.Sat.id() << " in " << __FUNCTION__;
 
         auto Sat = obs.Sat;
         auto sys = Sat.sys;
@@ -371,7 +371,7 @@ void receiverSlr(
         if (obs.rSatCom.isZero())
         {
             BOOST_LOG_TRIVIAL(error)
-                << "Error: Satpos is unexpectedly zero for " << rec.id << " - " << Sat.id();
+                << "Sat pos is unexpectedly zero for " << rec.id << " - " << Sat.id();
             continue;
         }
 

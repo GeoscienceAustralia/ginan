@@ -1,7 +1,8 @@
 #include "common/acsConfig.hpp"
 #include "iono/ionoModel.hpp"
 #include "trop/tropModels.hpp"
-#define ERR_SAAS 0.3  ///< saastamoinen model error std (m)
+
+constexpr double ERR_SAAS = 0.3;  ///< saastamoinen model error std (m)
 
 /** SSR Troposphere model
  * compute tropospheric delay using compact SSR contents

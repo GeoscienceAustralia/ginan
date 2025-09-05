@@ -467,8 +467,7 @@ bool satelliteGlitchReaction(RejectCallbackDetails rejectDetails)
 
     if (acsConfig.satelliteErrors.enable == false)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Bad satellite detected but `satellite_errors` not enabled";
+        BOOST_LOG_TRIVIAL(warning) << "Bad satellite detected but `satellite_errors` not enabled";
 
         return true;
     }

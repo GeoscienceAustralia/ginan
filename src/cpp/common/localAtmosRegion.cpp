@@ -4,8 +4,9 @@
 #include "iono/ionoModel.hpp"
 #include "orbprop/coordinates.hpp"
 #include "trop/tropModels.hpp"
-#define DEFAULT_LAT_INTERVAL 2.5
-#define DEFAULT_LON_INTERVAL 5.0
+
+constexpr double DEFAULT_LAT_INTERVAL = 2.5;
+constexpr double DEFAULT_LON_INTERVAL = 5.0;
 
 int checkSSRRegion(VectorPos& pos)
 {
@@ -58,8 +59,7 @@ bool configAtmosRegion_File()
         std::ifstream inputStream(regionFile);
         if (!inputStream)
         {
-            BOOST_LOG_TRIVIAL(error)
-                << "Error: Ionosphere region definition file error " << regionFile;
+            BOOST_LOG_TRIVIAL(error) << "Ionosphere region definition file error " << regionFile;
 
             return false;
         }

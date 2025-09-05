@@ -47,7 +47,7 @@ bool checkValidFile(
 {
     if (!path.empty() && !std::filesystem::exists(path))
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Missing " << description << " file " << path;
+        BOOST_LOG_TRIVIAL(error) << "Missing " << description << " file " << path;
 
         return false;
     }
@@ -219,7 +219,7 @@ void addReceiverData(
         }
         else
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Invalid protocol " << protocol;
+            BOOST_LOG_TRIVIAL(warning) << "Invalid protocol " << protocol;
         }
 
         if (inputFormat == "RINEX")
@@ -264,7 +264,7 @@ void addReceiverData(
         }
         else
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Invalid inputFormat " << inputFormat;
+            BOOST_LOG_TRIVIAL(warning) << "Invalid inputFormat " << inputFormat;
         }
 
         shared_ptr<StreamParser> streamParser_ptr;
@@ -449,7 +449,7 @@ void reloadInputFiles()
         bool pass = readSinex(snxfile);
         if (pass == false)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Unable to load SINEX file " << snxfile;
+            BOOST_LOG_TRIVIAL(error) << "Unable to load SINEX file " << snxfile;
 
             continue;
         }
@@ -715,7 +715,7 @@ void reloadInputFiles()
         if (jpl_init_error_code())
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: planetary ephemeris file had error code " << jpl_init_error_code();
+                << "Planetary ephemeris file had error code " << jpl_init_error_code();
         }
     }
 

@@ -11,7 +11,8 @@
 #include "common/trace.hpp"
 #include "iono/ionoModel.hpp"
 #include "orbprop/coordinates.hpp"
-#define PHASE_BIAS_STD 0.05
+
+constexpr double PHASE_BIAS_STD = 0.05;
 bool ionoConfigured = false;
 
 bool ippInRange(GTime time, VectorPos& ionPP)

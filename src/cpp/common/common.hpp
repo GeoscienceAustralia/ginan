@@ -11,19 +11,27 @@ using std::pair;
 using std::vector;
 
 /* constants/macros */
-#define SQR(x) ((x) * (x))
-#define POW4(x) ((x) * (x) * (x) * (x))
-#define SQRT(x) ((x) <= 0.0 ? 0.0 : sqrt(x))
-#define ROUND(x) (int)floor((x) + 0.5)
-#define SWAP(x, y)   \
-    do               \
-    {                \
-        double tmp_; \
-        tmp_ = x;    \
-        x    = y;    \
-        y    = tmp_; \
-    } while (0)
-#define SGN(x) ((x) <= 0.0 ? -1.0 : 1.0)
+template<typename T> constexpr T SQR(T x)
+{
+    return x * x;
+}
+template<typename T> constexpr T POW4(T x)
+{
+    return x * x * x * x;
+}
+template<typename T> constexpr T SQRT(T x)
+{
+    return (x) <= 0.0 ? 0.0 : sqrt(x);
+}
+template<typename T> constexpr T ROUND(T x)
+{
+    return (int)floor((x) + 0.5);
+}
+template<typename T> constexpr T SGN(T x)
+{
+    return (x) <= 0.0 ? -1.0 : 1.0;
+}
+
 
 struct SatSys;
 struct SatPos;

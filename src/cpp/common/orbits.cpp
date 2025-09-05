@@ -27,8 +27,8 @@ using std::string;
 using std::chrono::system_clock;
 using std::chrono::time_point;
 
-#define RTOL_KEPLER 1E-14  ///< relative tolerance for Kepler equation
-#define MAX_ITER_KEPLER 30
+constexpr double RTOL_KEPLER     = 1E-14;  ///< relative tolerance for Kepler equation
+constexpr int    MAX_ITER_KEPLER = 30;
 
 bool inertial2Keplers(Trace& trace, const VectorEci& r, const VectorEci& v, Vector6d& keplers)
 {
@@ -350,7 +350,7 @@ VectorEci propagateEllipse(
     if (pass == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Failed to determine keplers for " << satPos.Sat.id() << " , "
+            << "Failed to determine keplers for " << satPos.Sat.id() << " , "
             << rSat.transpose().format(heavyFmt) << vSat.transpose().format(heavyFmt);
 
         VectorEci newPos = rSat + vSat * dt;

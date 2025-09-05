@@ -137,7 +137,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+        BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
         return;
     }
 
@@ -148,14 +148,14 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
 
     if (sys == +E_Sys::NONE)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: invalid message code system :" << messCode;
+        BOOST_LOG_TRIVIAL(error) << "Invalid message code system :" << messCode;
         return;
     }
 
     if (sys != +E_Sys::GPS && sys != +E_Sys::GLO && sys != +E_Sys::GAL && sys != +E_Sys::QZS &&
         sys != +E_Sys::SBS && sys != +E_Sys::BDS)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+        BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
     }
 
     // if (sys == +E_Sys::BDS)
@@ -215,7 +215,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
             nj = 0;
             break;
         default:
-            BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system in " << __FUNCTION__;
+            BOOST_LOG_TRIVIAL(error) << "Unrecognised system in " << __FUNCTION__;
             return;
     }
 
@@ -459,8 +459,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
                     }
                     else
                     {
-                        BOOST_LOG_TRIVIAL(error)
-                            << "Error: unrecognised system in " << __FUNCTION__;
+                        BOOST_LOG_TRIVIAL(error) << "Unrecognised system in " << __FUNCTION__;
                         continue;
                     }
 
@@ -489,7 +488,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
 
                 catch (std::exception& e)
                 {
-                    // BOOST_LOG_TRIVIAL(error) << "Error, Decoding SSR Message unknown RTCM code :
+                    // BOOST_LOG_TRIVIAL(error) << "Decoding SSR Message unknown RTCM code :
                     // " << rtcmCode << " for " << rtcmMountPoint << " : " << messCode;
                     // BOOST_LOG_TRIVIAL(error) << "Code bias for " << Sat.id() << " rtcmCode: " <<
                     // rtcmCode << ": " << bias;
@@ -569,8 +568,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
                     }
                     else
                     {
-                        BOOST_LOG_TRIVIAL(error)
-                            << "Error: unrecognised system in " << __FUNCTION__;
+                        BOOST_LOG_TRIVIAL(error) << "Unrecognised system in " << __FUNCTION__;
                         continue;
                     }
 
@@ -600,7 +598,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
                 }
                 catch (std::exception& e)
                 {
-                    // BOOST_LOG_TRIVIAL(error) << "Error, Decoding SSR Message unknown RTCM code :
+                    // BOOST_LOG_TRIVIAL(error) << "Decoding SSR Message unknown RTCM code :
                     // " << rtcmCode << " for " << rtcmMountPoint << " : " << messCode;
                     continue;
                 }
@@ -628,7 +626,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+        BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
         return;
     }
 
@@ -653,7 +651,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
             break;
         default:
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+            BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
             return;
         }
     }
@@ -664,7 +662,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
     {
         if (i + 488 - 12 > data.size() * 8)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1019 length error: len=" << data.size();
+            BOOST_LOG_TRIVIAL(error) << "RTCM3 1019 length error: len=" << data.size();
             return;
         }
 
@@ -726,7 +724,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
     {
         if (i + 360 - 12 > data.size() * 8)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1020 length error: len=" << data.size();
+            BOOST_LOG_TRIVIAL(error) << "RTCM3 1020 length error: len=" << data.size();
             return;
         }
 
@@ -781,7 +779,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
     {
         if (i + 511 - 12 > data.size() * 8)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1042 length error: len=" << data.size();
+            BOOST_LOG_TRIVIAL(error) << "RTCM3 1042 length error: len=" << data.size();
             return;
         }
 
@@ -835,7 +833,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
     {
         if (i + 485 - 12 > data.size() * 8)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1044 length error: len=" << data.size();
+            BOOST_LOG_TRIVIAL(error) << "RTCM3 1044 length error: len=" << data.size();
             return;
         }
 
@@ -892,7 +890,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
         {
             if (i + 496 - 12 > data.size() * 8)
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1045 length error: len=" << data.size();
+                BOOST_LOG_TRIVIAL(error) << "RTCM3 1045 length error: len=" << data.size();
                 return;
             }
 
@@ -902,7 +900,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
         {
             if (i + 504 - 12 > data.size() * 8)
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 1046 length error: len=" << data.size();
+                BOOST_LOG_TRIVIAL(error) << "RTCM3 1046 length error: len=" << data.size();
                 return;
             }
 
@@ -910,7 +908,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
         }
         else
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message for GAL in " << __FUNCTION__;
+            BOOST_LOG_TRIVIAL(error) << "Unrecognised message for GAL in " << __FUNCTION__;
         }
 
         int prn          = getbituInc(data, i, 6);
@@ -980,7 +978,7 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: unrecognised system in " << __FUNCTION__;
+        BOOST_LOG_TRIVIAL(error) << "Unrecognised system in " << __FUNCTION__;
         return;
     }
 
@@ -1125,7 +1123,7 @@ E_ObsCode RtcmDecoder::signal_to_code(E_Sys sys, uint8_t signal)
     auto it1 = sysIdSignalMapMap.find(sys);
     if (it1 == sysIdSignalMapMap.end())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: unrecognised system in " << __FUNCTION__
+        BOOST_LOG_TRIVIAL(warning) << "Unrecognised system in " << __FUNCTION__
                                    << ": mountpoint=" << rtcmMountpoint << " sys=" << sys;
 
         return E_ObsCode::NONE;
@@ -1137,8 +1135,8 @@ E_ObsCode RtcmDecoder::signal_to_code(E_Sys sys, uint8_t signal)
     if (it2 == idSignalMap.end())
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: unrecognised signal in " << __FUNCTION__
-            << ": mountpoint=" << rtcmMountpoint << " sys=" << sys << " signal=" << (int)signal;
+            << "Unrecognised signal in " << __FUNCTION__ << ": mountpoint=" << rtcmMountpoint
+            << " sys=" << sys << " signal=" << (int)signal;
 
         return E_ObsCode::NONE;
     }
@@ -1212,7 +1210,7 @@ double highResLockTimeFromIndicator(int indicator)
     else if (i == 704)
         lockTime = 2097152 * i - 1409286144;
     else
-        BOOST_LOG_TRIVIAL(warning) << "Warning: High res lock time out of bounds: " << lockTime;
+        BOOST_LOG_TRIVIAL(warning) << "High res lock time out of bounds: " << lockTime;
 
     lockTime /= 1000;
 
@@ -1242,7 +1240,7 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+        BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
         return obsList;
     }
 
@@ -1268,7 +1266,7 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
             lcell = 80;
             break;
         default:
-            BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+            BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
             return obsList;
     }
 
@@ -1326,7 +1324,7 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
             tobs    = GTime(BTow(tow), nearTime);
             break;
         default:
-            BOOST_LOG_TRIVIAL(error) << "Error: unrecognised message in " << __FUNCTION__;
+            BOOST_LOG_TRIVIAL(error) << "Unrecognised message in " << __FUNCTION__;
             return obsList;
     }
 
@@ -1405,7 +1403,7 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
                 else
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: unrecognised signal in " << __FUNCTION__
+                        << "Unrecognised signal in " << __FUNCTION__
                         << ": mountpoint=" << rtcmMountpoint << " messageNumber=" << messageNumber
                         << " signal=" << sig.code;
                 }
@@ -1413,7 +1411,7 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
             else
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: unrecognised system in " << __FUNCTION__
+                    << "Unrecognised system in " << __FUNCTION__
                     << ": mountpoint=" << rtcmMountpoint << "messageNumber=" << messageNumber;
             }
 
@@ -1427,7 +1425,7 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
 
     if (i + nsat * lsat + ncell * lcell > data.size() * 8)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: rtcm3 " << messageNumber
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 " << messageNumber
                                  << " length error: len=" << data.size();
         return obsList;
     }

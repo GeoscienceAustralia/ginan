@@ -1,5 +1,6 @@
 #include "tropModels.hpp"
-#define ERR_SAAS 0.3  ///< saastamoinen model error std (m)
+
+constexpr double ERR_SAAS = 0.3;  ///< saastamoinen model error std (m)
 
 const double coefNMF[][5] = {
     {1.2769934E-3, 1.2683230E-3, 1.2465397E-3, 1.2196049E-3, 1.2045996E-3},

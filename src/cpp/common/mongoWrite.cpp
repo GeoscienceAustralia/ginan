@@ -283,8 +283,8 @@ void mongoOutputConfig(string& config)
         }
         catch (...)
         {
-            BOOST_LOG_TRIVIAL(warning
-            ) << "Warning: Could not output config to mongo, likely due to empty entries in yaml.";
+            BOOST_LOG_TRIVIAL(warning)
+                << "Could not output config to mongo, likely due to empty entries in yaml.";
         }
     }
 }

@@ -3545,7 +3545,7 @@ void readorog(string filepath)  ///< filename
 
     if (globalVMF3.gridLength != 0 && globalVMF3.gridLength != globalVMF3.orographyLength)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Orography and VMF3 file grid dimensions do not match";
+        BOOST_LOG_TRIVIAL(error) << "Orography and VMF3 file grid dimensions do not match";
     }
 }
 
@@ -3630,7 +3630,7 @@ void readvmf3(string filepath)  ///< vmf3 grid file path
 
     if (globalVMF3.orographyLength != 0 && globalVMF3.orographyLength != globalVMF3.gridLength)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Orography and VMF3 file grid dimensions do not match";
+        BOOST_LOG_TRIVIAL(error) << "Orography and VMF3 file grid dimensions do not match";
     }
 }
 

@@ -301,7 +301,7 @@ bool readsp3(
                     tsys = E_TimeSys::UTC;
                 else
                 {
-                    BOOST_LOG_TRIVIAL(error) << "Unknown sp3 time system: " << timeSysStr;
+                    BOOST_LOG_TRIVIAL(error) << "Unknown SP3 time system: " << timeSysStr;
                     return false;
                 }
             }

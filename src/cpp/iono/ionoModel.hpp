@@ -2,9 +2,10 @@
 
 #include "common/biases.hpp"
 #include "common/gTime.hpp"
-#define STEC2DELAY 4.48397972589608
 
-#define MIN_NSAT_REC 3
+constexpr double STEC2DELAY = 4.48397972589608;
+
+constexpr int MIN_NSAT_REC = 3;
 
 struct ReceiverMap;
 

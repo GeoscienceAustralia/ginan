@@ -172,8 +172,7 @@ void spitFilterToFile(
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Writing to " << filename
-                                 << " failed, drive may be full";
+        BOOST_LOG_TRIVIAL(error) << "Writing to " << filename << " failed, drive may be full";
     }
 }
 

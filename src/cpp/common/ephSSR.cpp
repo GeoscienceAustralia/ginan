@@ -4,9 +4,10 @@
 #include "common/gTime.hpp"
 #include "common/navigation.hpp"
 #include "common/ssr.hpp"
-#define DEFURASSR 0.03              ///< default accurary of ssr corr (m)
-#define MAXECORSSR 15               ///< max orbit correction of ssr (m)
-#define MAXCCORSSR (1E-6 * CLIGHT)  ///< max clock correction of ssr (m)
+
+constexpr double DEFURASSR  = 0.03;             ///< default accurary of ssr corr (m)
+constexpr double MAXECORSSR = 15;               ///< max orbit correction of ssr (m)
+constexpr double MAXCCORSSR = (1E-6 * CLIGHT);  ///< max clock correction of ssr (m)
 
 /** variance by ura ssr (ref [4])
  */
@@ -323,8 +324,7 @@ bool satPosSSR(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation&
         {
             satPos.failureSSRFail = true;
 
-            BOOST_LOG_TRIVIAL(warning)
-                << "Warning: SSR Corrections not found for " << satPos.Sat.id();
+            BOOST_LOG_TRIVIAL(warning) << "SSR Corrections not found for " << satPos.Sat.id();
             trace << "\n"
                   << "Warning: SSR Corrections not found for " << satPos.Sat.id();
 
@@ -334,7 +334,7 @@ bool satPosSSR(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation&
         if (ephValidStart >= clkValidStop || clkValidStart >= ephValidStop)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Timing inconsistent for " << satPos.Sat.id() << "   :   "
+                << "Timing inconsistent for " << satPos.Sat.id() << "   :   "
                 << ephValidStart.to_string(0) << "  -  " << ephValidStop.to_string(0) << "   "
                 << clkValidStart.to_string(0) << "  -  " << clkValidStop.to_string(0);
             trace << "\n"
@@ -354,7 +354,7 @@ bool satPosSSR(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation&
             satPos.failureIodeConsistency = true;
 
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
+                << "IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
             trace << "\n"
                   << "Warning: IOD inconsistent for " << satPos.Sat.id() << iodClk << " " << iodPos;
 
@@ -401,8 +401,8 @@ bool satPosSSR(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation&
                 else
                     ephTime = ephValidStart - 0.5;
 
-                BOOST_LOG_TRIVIAL(warning) << "Warning: IODE BRDC not found for " << satPos.Sat.id()
-                                           << " - adjusting ephTime";
+                BOOST_LOG_TRIVIAL(warning)
+                    << "IODE BRDC not found for " << satPos.Sat.id() << " - adjusting ephTime";
                 trace << "\n"
                       << "Warning: IODE BRDC not found for " << satPos.Sat.id()
                       << " - adjusting ephTime";
@@ -411,7 +411,7 @@ bool satPosSSR(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation&
             }
             satPos.failureBroadcastEph = true;
 
-            BOOST_LOG_TRIVIAL(warning) << "Warning: IODE BRDC not found for " << satPos.Sat.id();
+            BOOST_LOG_TRIVIAL(warning) << "IODE BRDC not found for " << satPos.Sat.id();
             trace << "\n"
                   << "Warning: IODE BRDC not found for " << satPos.Sat.id();
 

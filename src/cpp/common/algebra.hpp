@@ -201,7 +201,7 @@ struct KFMeas
     vector<map<string, void*>>                  metaDataMaps;
     vector<map<E_Component, ComponentsDetails>> componentsMaps;
 
-    KFMeas() {
+    KFMeas(){
 
     };
 

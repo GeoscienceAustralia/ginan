@@ -10,8 +10,8 @@
 
 using std::string;
 
-#define ERR_TROP 3.0  ///< tropspheric delay std (m)
-#define NGPT 2592     ///< grid number
+constexpr double ERR_TROP = 3.0;   ///< tropspheric delay std (m)
+constexpr int    NGPT     = 2592;  ///< grid number
 
 struct TropMapping
 {

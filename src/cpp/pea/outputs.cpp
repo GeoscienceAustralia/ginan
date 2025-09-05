@@ -70,7 +70,7 @@ void replaceTimes(
     string HH;
     string mm;
 
-    if (!time.is_not_a_date_time())
+    if (time.is_not_a_date_time() == false)
     {
         string gpsWeek0    = "1980-01-06 00:00:00.000";
         auto   gpsZero     = boost::posix_time::time_from_string(gpsWeek0);
@@ -98,7 +98,8 @@ void replaceTimes(
         mm   = time_string.substr(11, 2);
     }
 
-    bool replaced = false;
+    string origStr  = str;
+    bool   replaced = false;
 
     replaced |= replaceString(str, "<LOGTIME>", "<YYYY>-<MM>-<DD>_<HH>:<mm>", false);
     replaced |= replaceString(str, "<DDD>", DDD, false);
@@ -115,6 +116,10 @@ void replaceTimes(
     if (YY.empty() && replaced)
     {
         // replacing with nothing here may cause issues - kill the entire string to prevent damage
+        BOOST_LOG_TRIVIAL(warning)
+            << "Warning: " << __FUNCTION__ << ": time to replace with is invalid, setting "
+            << origStr << " to empty string";
+
         str = "";
     }
 }
@@ -175,8 +180,7 @@ void createDirectories(boost::posix_time::ptime logptime)
         }
         catch (...)
         {
-            BOOST_LOG_TRIVIAL(error)
-                << "Error: Could not create directory: \"" << directory << "\"";
+            BOOST_LOG_TRIVIAL(error) << "Could not create directory: \"" << directory << "\"";
         }
     }
 }
@@ -977,7 +981,7 @@ void perEpochPostProcessingAndOutputs(
 
             if (hold)
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: Ambiguity fix_and_hold requested but is not "
+                BOOST_LOG_TRIVIAL(error) << "Ambiguity fix_and_hold requested but is not "
                                             "possible with pre-pivoted states";
                 hold = false;
             }
@@ -1020,7 +1024,7 @@ void perEpochPostProcessingAndOutputs(
 
             if (hold)
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: Ambiguity fix_and_hold requested but is not "
+                BOOST_LOG_TRIVIAL(error) << "Ambiguity fix_and_hold requested but is not "
                                             "possible with minimally constrained states";
                 hold = false;
             }

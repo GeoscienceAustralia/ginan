@@ -140,7 +140,7 @@ void NtripUploader::messageTimeoutHandler(const boost::system::error_code& err)
 
         if (ssrMeta.updateIntIndex == -1)
             BOOST_LOG_TRIVIAL(error)
-                << "Error: ssrMeta.updateIntIndex is not valid :" << ssrMeta.updateIntIndex << ").";
+                << "ssrMeta.updateIntIndex is not valid :" << ssrMeta.updateIntIndex << ").";
 
         if (messCode == streamConfig.rtcmMsgOptsMap.rbegin()->first)
             ssrMeta.multipleMessage = 0;
@@ -149,7 +149,7 @@ void NtripUploader::messageTimeoutHandler(const boost::system::error_code& err)
 
         if (sys == +E_Sys::NONE)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: invalid message code system :" << messCode;
+            BOOST_LOG_TRIVIAL(error) << "Invalid message code system :" << messCode;
             continue;
         }
 
@@ -602,7 +602,7 @@ void NtripUploader::messageTimeoutHandler(const boost::system::error_code& err)
                             break;
                         }
                             // default:
-                            // 	BOOST_LOG_TRIVIAL(error) << "Error, attempting to upload incorrect
+                            // 	BOOST_LOG_TRIVIAL(error) << "Attempting to upload incorrect
                             // compacr SSR type: "
                             // << subType.to_integral << "\n";
                     }
@@ -736,7 +736,7 @@ void NtripUploader::messageTimeoutHandler(const boost::system::error_code& err)
             }
             default:
                 BOOST_LOG_TRIVIAL(error)
-                    << "Error, attempting to upload incorrect message type: " << messCode << "\n";
+                    << "Attempting to upload incorrect message type: " << messCode << "\n";
         }
     }
 

@@ -239,7 +239,7 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
         {
             default:
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: Unknown rts type" << "\n";
+                BOOST_LOG_TRIVIAL(error) << "Unknown rts type" << "\n";
                 break;
             }
             case E_SerialObject::METADATA:
@@ -387,9 +387,8 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                     auto oldInverter = inverter;
                     inverter         = E_Inverter::_from_integral(((int)inverter) + 1);
 
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Inverter type " << oldInverter._to_string()
-                        << " failed, trying " << inverter._to_string();
+                    BOOST_LOG_TRIVIAL(warning) << "Inverter type " << oldInverter._to_string()
+                                               << " failed, trying " << inverter._to_string();
                 };
                 VectorXd deltaX = VectorXd::Zero(kalmanPlus.x.rows());
                 MatrixXd deltaP = MatrixXd::Zero(kalmanPlus.P.rows(), kalmanPlus.P.cols());
@@ -448,7 +447,7 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                             default:
                             {
                                 BOOST_LOG_TRIVIAL(warning)
-                                    << "Warning: Inverter type "
+                                    << "Inverter type "
                                     << acsConfig.pppOpts.rts_inverter._to_string()
                                     << " not supported, reverting to LDLT";
 
@@ -528,7 +527,7 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                     if (pass == false)
                     {
                         BOOST_LOG_TRIVIAL(warning)
-                            << "Warning: RTS failed to find solution to invert system of "
+                            << "RTS failed to find solution to invert system of "
                                "equations, smoothed values may be bad";
 
                         BOOST_LOG_TRIVIAL(debug) << "P-det: " << kalmanMinus.P.determinant();

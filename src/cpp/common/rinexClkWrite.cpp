@@ -1,5 +1,4 @@
 // #pragma GCC optimize ("O0")
-#define VERSION 3.00
 
 #include "common/rinexClkWrite.hpp"
 #include <fstream>
@@ -20,6 +19,7 @@
 #include "common/sinex.hpp"
 #include "pea/inputsOutputs.hpp"
 
+constexpr double VERSION = 3.00;
 using std::map;
 
 /* macro defintions */
@@ -139,7 +139,7 @@ void getKalmanRecClks(ClockList& clkEntryList, ClockEntry& referenceRec, KFState
             if (key.rec_ptr == nullptr)
             {
                 BOOST_LOG_TRIVIAL(error)
-                    << "Error: Kalman RINEX file clock entry has no reference to receiver.";
+                    << "Kalman RINEX file clock entry has no reference to receiver.";
                 // 				continue;
             }
             else
@@ -189,7 +189,7 @@ void getPreciseRecClks(ClockList& clkEntryList, ReceiverMap* receiverMap_ptr, co
         if (ret != 1)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Receiver : " << rec.id << ", precise clock entry not calculated.";
+                << "Receiver: " << rec.id << ", precise clock entry not calculated.";
 
             continue;
         }
@@ -238,7 +238,7 @@ void getSatClksFromEph(
         if (pass == false)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Satellite : " << Sat.id() << ",  clock entry not calculated.";
+                << "Satellite: " << Sat.id() << ",  clock entry not calculated.";
 
             continue;
         }
@@ -265,8 +265,7 @@ void outputRinexClocksHeader(
 
     if (!clockFile)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Error opening " << filename << " for RINEX clock file.";
+        BOOST_LOG_TRIVIAL(warning) << "Error opening " << filename << " for RINEX clock file.";
         return;
     }
 
@@ -479,7 +478,7 @@ void outputClocksSet(
             getSatClksFromEph(clkEntryList, time, outSys, clkDataSatSrcs);
             break;
         default:
-            BOOST_LOG_TRIVIAL(error) << "Error: Unknown / Undefined clock data source.";
+            BOOST_LOG_TRIVIAL(error) << "Unknown / Undefined clock data source.";
             return;
     }
 
@@ -496,7 +495,7 @@ void outputClocksSet(
         case +E_Source::SSR:        // fallthrough
         case +E_Source::BROADCAST:  // fallthrough
         default:
-            BOOST_LOG_TRIVIAL(error) << "Error: Printing receiver clocks for "
+            BOOST_LOG_TRIVIAL(error) << "Printing receiver clocks for "
                                      << clkDataRecSrcs.front()._to_string() << " not implemented.";
             return;
     }

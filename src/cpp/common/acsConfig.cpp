@@ -204,8 +204,8 @@ bool replaceString(
 
         if (replacement.empty() && warn)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: " << subStr << " is used in config near " << str
-                                       << " but is not defined...";
+            BOOST_LOG_TRIVIAL(warning)
+                << subStr << " is used in config near " << str << " but is not defined...";
         }
 
         str.erase(index, subStr.size());
@@ -232,8 +232,8 @@ void getUserAliases(vector<string>& aliasPairs)
         int colonPos = aliasPair.find(':');
         if (colonPos == string::npos)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: User defined alias '" << aliasPair
-                                       << "' doesnt take form 'alias:value'";
+            BOOST_LOG_TRIVIAL(warning)
+                << "User defined alias '" << aliasPair << "' doesnt take form 'alias:value'";
             continue;
         }
 
@@ -250,6 +250,15 @@ void getUserAliases(vector<string>& aliasPairs)
  */
 void replaceTags(string& str)  ///< String to replace macros within
 {
+    string todayStr = "<YYYY><MM><DD>";
+    string nowStr = "<HH><mm>";
+    boost::posix_time::ptime nowptime = boost::posix_time::second_clock::local_time();
+    replaceTimes(todayStr, nowptime);
+    replaceTimes(nowStr, nowptime);
+
+    string commitDateStr = ginanCommitDate().substr(0, 10);
+    boost::erase_all(commitDateStr, "-");
+
     char* home = std::getenv("HOME");
 
     bool repeat = true;
@@ -271,7 +280,10 @@ void replaceTags(string& str)  ///< String to replace macros within
         repeat |= replaceString(str, "<OUTPUTS_ROOT>", acsConfig.outputs_root);
         repeat |= replaceString(str, "<ROOT_STREAM_URL>", acsConfig.root_stream_url);
         repeat |= replaceString(str, "<HASH>", ginanCommitHash());
+        repeat |= replaceString(str, "<COMMIT_DATE>", commitDateStr);
         repeat |= replaceString(str, "<BRANCH>", ginanBranchName());
+        repeat |= replaceString(str, "<TODAY>", todayStr);
+        repeat |= replaceString(str, "<NOW>", nowStr);
         repeat |= replaceString(str, "<AGENCY>", acsConfig.analysis_agency);
         repeat |= replaceString(str, "<SOFTWARE>", acsConfig.analysis_software.substr(0, 3));
         repeat |= replaceString(str, "<INPUTS_ROOT>", acsConfig.inputs_root);
@@ -312,6 +324,7 @@ void replaceTags(string& str)  ///< String to replace macros within
         repeat |= replaceString(str, "<USER>", acsConfig.stream_user);
         repeat |= replaceString(str, "<PASS>", acsConfig.stream_pass);
         repeat |= replaceString(str, "<CONFIG>", acsConfig.config_description);
+        repeat |= replaceString(str, "<DETAILS>", acsConfig.config_details);
         repeat |= replaceString(str, "<CWD>", std::filesystem::current_path());
         repeat |= replaceString(str, "<PID>", std::to_string(getpid()));
         if (home)
@@ -396,7 +409,7 @@ void globber(vector<string>& files)
 
         if (std::filesystem::is_directory(searchDir) == false)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Invalid input directory " << searchDir;
+            BOOST_LOG_TRIVIAL(error) << "Invalid input directory " << searchDir;
 
             continue;
         }
@@ -1581,7 +1594,7 @@ bool tryGetFromYaml(
     {
         if ((optNode.IsSequence()) || (optNode.IsScalar() && optNode.Scalar().empty() == false))
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Yaml entry '" << nonNumericStack(stack, dummy)
+            BOOST_LOG_TRIVIAL(warning) << "Yaml entry '" << nonNumericStack(stack, dummy)
                                        << "' was found but its value is incorrectly formatted";
         }
     }
@@ -1685,8 +1698,7 @@ string getEnumOpts(bool vec = false)
 template <typename ENUM>
 void warnAboutEnum(const string& wrong, const string& option, ENUM enumValue)
 {
-    BOOST_LOG_TRIVIAL(error) << "\nError: " << wrong
-                             << " is not a valid entry for option: " << option << ".\n"
+    BOOST_LOG_TRIVIAL(error) << wrong << " is not a valid entry for option: " << option << ".\n"
                              << "Valid options include:";
 
     for (const char* name : ENUM::_names())
@@ -1716,7 +1728,7 @@ bool tryGetEnumOpt(
 
     if (optNode.IsSequence() || optNode.IsMap())
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Map or sequence found for scalar option "
+        BOOST_LOG_TRIVIAL(error) << "Map or sequence found for scalar option "
                                  << yamlNodeDescriptor.back();
     }
 
@@ -2910,14 +2922,14 @@ void getOptionsFromYaml(
         if (surface.rotation_axis.empty() == false && surface.rotation_axis.size() != 3)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: rotation_axis is not a vector of size 3 for surface " << stack;
+                << "Rotation_axis is not a vector of size 3 for surface " << stack;
             continue;
         }
 
         if (surface.normal.empty() == false && surface.normal.size() != 3)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Error: boxwing surface.normal is not a vector of size 3 for surface " << stack;
+                << "Boxwing surface.normal is not a vector of size 3 for surface " << stack;
             continue;
         }
 
@@ -4184,7 +4196,7 @@ void ACSConfig::recurseYaml(
         if (found)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Duplicate " << newStack << " entries found in config file: " << file;
+                << "Duplicate " << newStack << " entries found in config file: " << file;
         }
         found = true;
 
@@ -4208,8 +4220,7 @@ void ACSConfig::recurseYaml(
 
                     if (availableOptions.find(newAliasStack) == availableOptions.end())
                     {
-                        BOOST_LOG_TRIVIAL(warning)
-                            << "Warning: " << newStack << " is not a valid yaml option";
+                        BOOST_LOG_TRIVIAL(warning) << newStack << " is not a valid yaml option";
 
                         continue;
                     }
@@ -4218,8 +4229,7 @@ void ACSConfig::recurseYaml(
 
             if (altered == false)
             {
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: " << newStack << " is not a valid yaml option";
+                BOOST_LOG_TRIVIAL(warning) << newStack << " is not a valid yaml option";
 
                 continue;
             }
@@ -4243,8 +4253,7 @@ void ACSConfig::recurseYaml(
 
             if (altered)
             {
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: " << newStack << " is not a valid yaml option";
+                BOOST_LOG_TRIVIAL(warning) << newStack << " is not a valid yaml option";
 
                 continue;
             }
@@ -4386,7 +4395,7 @@ bool configure(
 
         if (!pass)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Configuration aborted";
+            BOOST_LOG_TRIVIAL(error) << "Configuration aborted";
 
             return false;
         }
@@ -4472,7 +4481,7 @@ bool configure(
 
     if (acsConfig.snx_files.empty())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Invalid SINEX file ";
+        BOOST_LOG_TRIVIAL(warning) << "Invalid SINEX file ";
     }
 
     if (vm.count("dump-config-only"))
@@ -4488,7 +4497,7 @@ bool configure(
 void ACSConfig::sanityChecks()
 {
     if (ionErrors.outage_reset_limit < epoch_interval)
-        BOOST_LOG_TRIVIAL(warning) << "Warning: ionospheric_components:outage_reset_limit < "
+        BOOST_LOG_TRIVIAL(warning) << "ionospheric_components:outage_reset_limit < "
                                       "epoch_interval, but it probably shouldnt be";
 
     if (acsConfig.simulate_real_time == false)
@@ -4508,7 +4517,7 @@ void ACSConfig::sanityChecks()
             {
                 recOpts.ionospheric_component2 = false;
                 BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: Higher-order ionospheric corrections are not supported when "
+                    << "Higher-order ionospheric corrections are not supported when "
                        "use_if_combo is enabled, "
                        "setting ionospheric_components:use_2nd_order to false";
             }
@@ -4516,7 +4525,7 @@ void ACSConfig::sanityChecks()
             {
                 recOpts.ionospheric_component3 = false;
                 BOOST_LOG_TRIVIAL(warning)
-                    << "Warning: Higher-order ionospheric corrections are not supported when "
+                    << "Higher-order ionospheric corrections are not supported when "
                        "use_if_combo is enabled, "
                        "setting ionospheric_components:use_3rd_order to false";
             }
@@ -4607,15 +4616,14 @@ bool ACSConfig::parse(
             }
             else
             {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Error: Failed to parse configuration file " << filename;
+                BOOST_LOG_TRIVIAL(error) << "Failed to parse configuration file " << filename;
                 BOOST_LOG_TRIVIAL(error) << e.msg << "\n";
                 return false;
             }
         }
         catch (const YAML::ParserException& e)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration. Check for errors as "
+            BOOST_LOG_TRIVIAL(error) << "Failed to parse configuration. Check for errors as "
                                         "described near the below:";
             BOOST_LOG_TRIVIAL(error) << e.what() << "\n"
                                      << "\n";
@@ -4677,8 +4685,7 @@ bool ACSConfig::parse(
             }
             else
             {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Error: Failed to parse configuration file " << filename;
+                BOOST_LOG_TRIVIAL(error) << "Failed to parse configuration file " << filename;
                 BOOST_LOG_TRIVIAL(error) << e.msg << "\n";
                 return false;
             }
@@ -4691,14 +4698,13 @@ bool ACSConfig::parse(
             }
             else
             {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Error: Failed to parse configuration file " << filename;
+                BOOST_LOG_TRIVIAL(error) << "Failed to parse configuration file " << filename;
                 return false;
             }
         }
         catch (const YAML::ParserException& e)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Failed to parse configuration. Check for errors as "
+            BOOST_LOG_TRIVIAL(error) << "Failed to parse configuration. Check for errors as "
                                         "described near the below:";
             BOOST_LOG_TRIVIAL(error) << e.what() << "\n"
                                      << "\n";
@@ -4832,6 +4838,12 @@ bool ACSConfig::parse(
                     outputs,
                     {"1! colourise_terminal"},
                     "Use ascii command codes to highlight warnings and errors"
+                );
+                tryGetFromYaml(
+                    timestamp_console_logs,
+                    outputs,
+                    {"1! timestamp_console_logs"},
+                    "Add timestamps (GPST) to console logs"
                 );
                 tryGetFromYaml(warn_once, outputs, {"1! warn_once"}, "Print warnings once only");
             }
@@ -7412,7 +7424,7 @@ bool ACSConfig::parse(
                     if (found)
                     {
                         BOOST_LOG_TRIVIAL(warning)
-                            << "Warning: the yaml option 'prefit:sigma_threshold' is depreciated, "
+                            << "The yaml option 'prefit:sigma_threshold' is depreciated, "
                                "better use "
                                "'prefit:state_sigma_threshold' and 'prefit:meas_sigma_threshold' "
                                "instead";
@@ -7475,7 +7487,7 @@ bool ACSConfig::parse(
                     if (found)
                     {
                         BOOST_LOG_TRIVIAL(warning)
-                            << "Warning: the yaml option 'postfit:sigma_threshold' is depreciated, "
+                            << "The yaml option 'postfit:sigma_threshold' is depreciated, "
                                "better use "
                                "'postfit:state_sigma_threshold' and 'postfit:meas_sigma_threshold' "
                                "instead";

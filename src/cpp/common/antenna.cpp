@@ -197,10 +197,15 @@ Vector3d makeAntPco(string id, E_Sys sys, E_FType ftx, GTime time, double& var, 
 Vector3d
 antPco(string id, E_Sys sys, E_FType ft, GTime time, double& var, E_Radio radio, bool interp)
 {
+    if (id.empty())
+    {
+        return Vector3d::Zero();
+    }
+
     auto it0 = nav.pcoMap.find(id);
     if (it0 == nav.pcoMap.end())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for '" << id << "'";
+        BOOST_LOG_TRIVIAL(warning) << "No PCO found for '" << id << "'";
 
         return Vector3d::Zero();
     }
@@ -224,7 +229,7 @@ antPco(string id, E_Sys sys, E_FType ft, GTime time, double& var, E_Radio radio,
         auto it1 = pcoSysFreqMap.find(testSys);
         if (it1 == pcoSysFreqMap.end())
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << testSys;
+            BOOST_LOG_TRIVIAL(warning) << "No PCO found for " << id << " for " << testSys;
 
             continue;
         }
@@ -250,7 +255,7 @@ antPco(string id, E_Sys sys, E_FType ft, GTime time, double& var, E_Radio radio,
         if (it2 == pcoFreqMap.end())
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: No PCO found for " << id << " for " << foundTestSys << " L" << testFt;
+                << "No PCO found for " << id << " for " << foundTestSys << " L" << testFt;
 
             if (interp == false)
                 continue;
@@ -280,8 +285,8 @@ antPco(string id, E_Sys sys, E_FType ft, GTime time, double& var, E_Radio radio,
     auto it3 = pcoTimeMap.lower_bound(time);
     if (it3 == pcoTimeMap.end())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys
-                                   << " L" << foundTestFt << " at " << time;
+        BOOST_LOG_TRIVIAL(warning) << "No PCO found for " << id << " for " << foundTestSys << " L"
+                                   << foundTestFt << " at " << time;
         return Vector3d::Zero();
     }
 
@@ -289,8 +294,8 @@ antPco(string id, E_Sys sys, E_FType ft, GTime time, double& var, E_Radio radio,
 
     if (pco.validUntil != GTime::noTime() && time > pco.validUntil)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No PCO found for " << id << " for " << foundTestSys
-                                   << " L" << foundTestFt << " at " << time;
+        BOOST_LOG_TRIVIAL(warning) << "No PCO found for " << id << " for " << foundTestSys << " L"
+                                   << foundTestFt << " at " << time;
         return Vector3d::Zero();
     }
 
@@ -315,6 +320,11 @@ double antPcv(
     double*    zen_ptr     ///< Optional pointer to output antenna frame zenith in degrees
 )
 {
+    if (id.empty())
+    {
+        return 0;
+    }
+
     // Rotate relative look vector into local frame
     Matrix3d ant2Ecef = rotBasisMat(attStatus.eXAnt, attStatus.eYAnt, attStatus.eZAnt);
 
@@ -335,7 +345,7 @@ double antPcv(
     auto it0 = nav.pcvMap.find(id);
     if (it0 == nav.pcvMap.end())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for '" << id << "'";
+        BOOST_LOG_TRIVIAL(warning) << "No PCV found for '" << id << "'";
         return 0;
     }
 
@@ -344,7 +354,7 @@ double antPcv(
     auto it1 = pcvSysFreqMap.find(sys);
     if (it1 == pcvSysFreqMap.end())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No PCV found for " << id << " for " << sys;
+        BOOST_LOG_TRIVIAL(warning) << "No PCV found for " << id << " for " << sys;
         return 0;
     }
 
@@ -353,8 +363,7 @@ double antPcv(
     auto it2 = pcvFreqMap.find(ft);
     if (it2 == pcvFreqMap.end())
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No PCV found for " << id << " for " << sys << " L" << ft;
+        BOOST_LOG_TRIVIAL(warning) << "No PCV found for " << id << " for " << sys << " L" << ft;
         return 0;
     }
 
@@ -364,7 +373,7 @@ double antPcv(
     if (it3 == pcvTimeMap.end())
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
+            << "No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
         return 0;
     }
 
@@ -373,7 +382,7 @@ double antPcv(
     if (pcd.validUntil != GTime::noTime() && time > pcd.validUntil)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
+            << "No PCV found for " << id << " for " << sys << " L" << ft << " at " << time;
         return 0;
     }
 

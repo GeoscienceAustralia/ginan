@@ -73,7 +73,7 @@ void updateRinexObsHeader(RinexOutput& rinexOutput, std::fstream& rinexStream, G
 
         if (sys_c == '-')
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Writing RINEX file undefined system.";
+            BOOST_LOG_TRIVIAL(error) << "Writing RINEX file undefined system.";
             return;
         }
 
@@ -358,8 +358,7 @@ void writeRinexObsBody(
                     // if it locates the E_ObsCode then it will always locate E_ObsDesc.
                     if (foundObsPair)
                     {
-                        BOOST_LOG_TRIVIAL(error)
-                            << "Error: Writing RINEX file duplicated observation.";
+                        BOOST_LOG_TRIVIAL(error) << "Writing RINEX file duplicated observation.";
                         break;
                     }
                     else
@@ -409,7 +408,7 @@ void writeRinexObsBody(
 
                         default:
                             BOOST_LOG_TRIVIAL(error)
-                                << "Error: Writing RINEX unknown/unused observation code.";
+                                << "Writing RINEX unknown/unused observation code.";
                             break;
                     }
                 }

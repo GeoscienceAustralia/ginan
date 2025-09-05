@@ -3,8 +3,9 @@
 #include "common/observations.hpp"
 #include "iono/ionoModel.hpp"
 #include "orbprop/coordinates.hpp"
-#define IONO_OUT_THRESHOLD 120
-#define DEFAULT_STEC_POLY_ACC 0.5
+
+constexpr int    IONO_OUT_THRESHOLD    = 120;
+constexpr double DEFAULT_STEC_POLY_ACC = 0.5;
 
 double currRecLatDeg = 0;
 double currRecLonDeg = 0;

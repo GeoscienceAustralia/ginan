@@ -109,9 +109,8 @@ void newMongoDatabase(E_Mongo instance)
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(fatal
-        ) << "Error: Mongo connection failed - check if service is running at "
-          << config.uri;
+        BOOST_LOG_TRIVIAL(fatal) << "Mongo connection failed - check if service is running at "
+                                 << config.uri;
     }
 }
 
@@ -119,7 +118,7 @@ void checkValidDbname(string& new_database)
 {
     if (new_database.empty())
     {
-        BOOST_LOG_TRIVIAL(fatal) << "Error: Mongo database name is empty";
+        BOOST_LOG_TRIVIAL(fatal) << "Mongo database name is empty";
     }
     string old_database = new_database;
     bool   invalid      = false;
@@ -130,8 +129,8 @@ void checkValidDbname(string& new_database)
     if (invalid)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Error: Mongo database name contains invalid characters, new database is: "
-            << new_database << " previously: " << old_database;
+            << "Mongo database name contains invalid characters, new database is: " << new_database
+            << " previously: " << old_database;
     }
 }
 

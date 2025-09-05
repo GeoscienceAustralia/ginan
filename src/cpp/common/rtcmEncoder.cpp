@@ -29,7 +29,7 @@ void calculateSsrComb(
 {
     if (ssrOutMap.empty())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No suitable Ephemeris data available.";
+        BOOST_LOG_TRIVIAL(warning) << "No suitable Ephemeris data available.";
         return;
     }
 
@@ -191,7 +191,7 @@ int RtcmEncoder::getUdiIndex(int udi)
         }
     }
 
-    BOOST_LOG_TRIVIAL(error) << "Error: udi is not valid :" << udi << ").";
+    BOOST_LOG_TRIVIAL(error) << "UDI is not valid :" << udi << ").";
 
     return -1;
 }
@@ -217,7 +217,7 @@ bool RtcmEncoder::encodeWriteMessageToBuffer(vector<uint8_t>& buffer)
 
     if (messLength > 1023)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: message length exceeds the limit.";
+        BOOST_LOG_TRIVIAL(error) << "Message length exceeds the limit.";
         return false;
     }
 
@@ -328,7 +328,7 @@ int RtcmEncoder::encodeSsrHeader(
             break;
         default:
             BOOST_LOG_TRIVIAL(error)
-                << "Error: unrecognised system: " << sys._to_string() << " in " << __FUNCTION__;
+                << "Unrecognised system: " << sys._to_string() << " in " << __FUNCTION__;
             return 0;
     }
 
@@ -416,7 +416,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
             break;
         default:
             BOOST_LOG_TRIVIAL(error)
-                << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+                << "Unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
             return vector<uint8_t>();
     }
 
@@ -619,8 +619,8 @@ vector<uint8_t> RtcmEncoder::encodeSsrOrbClk(
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Orbit/Clock.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -677,7 +677,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
             break;
         default:
             BOOST_LOG_TRIVIAL(error)
-                << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+                << "Unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
             return vector<uint8_t>();
     }
 
@@ -792,8 +792,8 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
 
     i = setbituInc(buf, i, bitl, 0);
@@ -851,7 +851,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
             break;
         default:
             BOOST_LOG_TRIVIAL(error)
-                << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+                << "Unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
             return vector<uint8_t>();
     }
 
@@ -938,8 +938,8 @@ vector<uint8_t> RtcmEncoder::encodeSsrCode(
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Code.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -987,7 +987,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
             break;
         default:
             BOOST_LOG_TRIVIAL(error)
-                << "Error: unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
+                << "Unrecognised system: " << Sat.sysName() << " in " << __FUNCTION__;
             return vector<uint8_t>();
     }
 
@@ -1042,8 +1042,8 @@ vector<uint8_t> RtcmEncoder::encodeSsrUra(
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR URA.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -1332,8 +1332,8 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding ephmeris.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -1413,8 +1413,8 @@ vector<uint8_t> RtcmEncoder::encodeEphemeris(
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding ephmeris.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -1444,7 +1444,7 @@ void setbitu(
 
     if (value >= invalid)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: " << __FUNCTION__ << " has data outside range\n";
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " has data outside range\n";
     }
 
     for (int i = pos; i < pos + len; i++, mask >>= 1)
@@ -1476,8 +1476,7 @@ void setbits(
 
     if (+value >= invalid || -value >= invalid)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: " << __FUNCTION__ << " has data outside range, setting invalid\n";
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " has data outside range, setting invalid\n";
         value = -invalid;
     }
 

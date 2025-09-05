@@ -490,7 +490,7 @@ bool satYawGpsIIR(
     bool   maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
     if (maxYawRateFound == false)
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+            << "Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
             << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
 
     nominalYaw  = nominalYawGps(satGeom.beta, satGeom.mu);
@@ -573,7 +573,7 @@ bool satYawGpsIIA(
     if (maxYawRateFound == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+            << "Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
             << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
 
         return false;
@@ -874,7 +874,7 @@ bool satYawGlo(
     if (maxYawRateFound == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
+            << "Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
             << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
 
         return false;
@@ -1413,7 +1413,7 @@ void updateSatYaw(
             modelYawValid = false;
             satYawGpsIIR(Sat, attStatus, time, satGeom);
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Attitude model not implemented for " << Sat.blockType() << " in "
+                << "Attitude model not implemented for " << Sat.blockType() << " in "
                 << __FUNCTION__ << "; using GPS-IIR model instead.";
         }
     }
@@ -1525,7 +1525,7 @@ bool preciseAttitude(
     if (frac < 0 || frac > 1)  // note: Quaterniond::slerp only accepts frac = [0,1]
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Insufficient precise attitude data to perform slerp in " << __FUNCTION__;
+            << "Insufficient precise attitude data to perform slerp in " << __FUNCTION__;
         return false;
     }
 
@@ -1534,7 +1534,7 @@ bool preciseAttitude(
         || t2 > time + 6.0 * 60 * 60)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No nearby precise attitude data to perform slerp in " << __FUNCTION__;
+            << "No nearby precise attitude data to perform slerp in " << __FUNCTION__;
         return false;
     }
 
@@ -1572,8 +1572,8 @@ bool preciseAttitude(
         }
         default:
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Unknown frame type in " << __FUNCTION__ << ": "
-                                     << entry1.frame._to_string();
+            BOOST_LOG_TRIVIAL(error)
+                << "Unknown frame type in " << __FUNCTION__ << ": " << entry1.frame._to_string();
             return false;
         }
     }

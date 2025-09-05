@@ -11,7 +11,7 @@ void Aod::read(const string& filename, int maxDeg)
     std::ifstream infile(filename);
     if (!infile)
     {
-        BOOST_LOG_TRIVIAL(error) << "Aod file open error " << filename;
+        BOOST_LOG_TRIVIAL(error) << "AOD file open error " << filename;
 
         return;
     }

@@ -6,8 +6,9 @@
 #include "common/satStat.hpp"
 #include "common/satSys.hpp"
 #include "iono/ionoModel.hpp"
-#define IONEX_NEXP -1
-#define SINGL_LAY_ERR 0.3
+
+constexpr int    IONEX_NEXP    = -1;
+constexpr double SINGL_LAY_ERR = 0.3;
 
 static double ionexLatmin = -55;
 static double ionexLonmin = 90;

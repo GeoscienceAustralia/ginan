@@ -9,17 +9,18 @@ using std::map;
 using std::string;
 using std::vector;
 
-#define RAW_SBAS_PRN_OFFSET 119
-#define RAW_QZSS_PRN_OFFSET 192
-#define QZS_SAIF_PRN_OFFSET 182
-#define NSYSGPS 1
-#define NSATGPS 32  ///< potential number of GPS satellites, PRN goes from 1 to this number
-#define NSATGLO 27  ///< potential number of GLONASS satellites, PRN goes from 1 to this number
-#define NSATGAL 36  ///< potential number of Galileo satellites, PRN goes from 1 to this number
-#define NSATQZS 7   ///< potential number of QZSS satellites, PRN goes from 1 to this number
-#define NSATLEO 78  ///< potential number of LEO satellites, PRN goes from 1 to this number
-#define NSATBDS 62  ///< potential number of Beidou satellites, PRN goes from 1 to this number
-#define NSATSBS 39  ///< potential number of SBAS satellites, PRN goes from 1 to this number
+constexpr int RAW_SBAS_PRN_OFFSET = 119;
+constexpr int RAW_QZSS_PRN_OFFSET = 192;
+constexpr int QZS_SAIF_PRN_OFFSET = 182;
+
+constexpr int NSYSGPS = 1;
+constexpr int NSATGPS = 32;  ///< potential max number of GPS satellites
+constexpr int NSATGLO = 27;  ///< potential max number of GLONASS satellites
+constexpr int NSATGAL = 36;  ///< potential max number of Galileo satellites
+constexpr int NSATQZS = 7;   ///< potential max number of QZSS satellites
+constexpr int NSATLEO = 78;  ///< potential max number of LEO satellites
+constexpr int NSATBDS = 62;  ///< potential max number of Beidou satellites
+constexpr int NSATSBS = 39;  ///< potential max number of SBAS satellites
 
 /** Object holding satellite id, and providing related functions
  */

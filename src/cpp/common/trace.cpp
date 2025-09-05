@@ -91,26 +91,41 @@ void ConsoleLog::consume(
     {
         if (sev == boost::log::trivial::warning)
             output += "\x1B[1;93m";
-        if (sev == boost::log::trivial::error)
+        if (sev >= boost::log::trivial::error)
             output += "\x1B[101m";
+
         if (sev >= boost::log::trivial::warning)
             ending = "\x1B[0m";
     }
+
+    if (acsConfig.timestamp_console_logs && boost::trim_copy(logString).empty() == false)
+    {
+        string timestamp = "[" + timeGet().to_string() + "]\t";
+        output += timestamp;
+    }
+
+    if (sev == boost::log::trivial::warning)
+        output += "Warning: ";
+    if (sev >= boost::log::trivial::error)
+        output += "Error: ";
+
     output += logString;
     output += ending;
+
+    output += "\r\n";
 
     if (useInteractive)
     {
         InteractiveTerminal::addString("Messages/All", logString);
 
-        if (sev == boost::log::trivial::info)
+        if (sev == boost::log::trivial::debug)
+            InteractiveTerminal::addString("Messages/Debug", logString);
+        else if (sev == boost::log::trivial::info)
             InteractiveTerminal::addString("Messages/Info", logString);
         else if (sev == boost::log::trivial::warning)
             InteractiveTerminal::addString("Messages/Warnings", logString);
-        else if (sev == boost::log::trivial::error)
+        else if (sev >= boost::log::trivial::error)
             InteractiveTerminal::addString("Messages/Errors", logString);
-        else if (sev == boost::log::trivial::debug)
-            InteractiveTerminal::addString("Messages/Debug", logString);
 
         // std::cerr << output << std::flush;
     }
@@ -251,8 +266,7 @@ bool createNewTraceFile(
     std::ofstream trace(old_path_trace);
     if (!trace)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Could not create file for " << id << " at "
-                                 << old_path_trace;
+        BOOST_LOG_TRIVIAL(error) << "Could not create file for " << id << " at " << old_path_trace;
 
         return false;
     }

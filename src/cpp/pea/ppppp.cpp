@@ -320,7 +320,7 @@ void makeIFLCs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
     if (iflcMade == false)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No IONO_STEC measurements found - 'use_if_combo' requires 'ion_stec' "
+            << "No IONO_STEC measurements found - 'use_if_combo' requires 'ion_stec' "
                "estimation to be enabled in the config file.";
     }
 }
@@ -412,7 +412,7 @@ KFMeas makeGFLCs(KFMeas& kfMeas, KFState& kfState)
     if (meas == 0)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No IONO_STEC measurements found - 'use_gf_combo' requires 'iono_stec' "
+            << "No IONO_STEC measurements found - 'use_gf_combo' requires 'iono_stec' "
                "estimation to be enabled in the config file.";
     }
 

@@ -546,8 +546,7 @@ void writeSsrOutToFile(int epochNum, map<SatSys, SSROut>& ssrOutMap)
 
     if (!out)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Could not open trace file for SSR messages at "
-                                 << filename;
+        BOOST_LOG_TRIVIAL(error) << "Could not open trace file for SSR messages at " << filename;
         return;
     }
     out.precision(17);

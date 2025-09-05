@@ -154,8 +154,8 @@ bool getSHCoef(
     if (year >= igrfSV.yearEnd || year < 1900)
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Input epoch " << time.to_string()
-            << " out of range covered by the IGRF file: 1900-" << igrfSV.yearEnd;
+            << "Input epoch " << time.to_string() << " out of range covered by the IGRF file: 1900-"
+            << igrfSV.yearEnd;
         return false;
     }
 

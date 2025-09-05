@@ -18,7 +18,8 @@
 #include "orbprop/orbitProp.hpp"
 #include "pea/minimumConstraints.hpp"
 #include "trop/tropModels.hpp"
-#define PIVOT_MEAS_VARIANCE SQR(1E-5)
+
+constexpr double PIVOT_MEAS_VARIANCE = 1e-5*1e-5;
 
 Architecture Pseudo_Observations__() {}
 
@@ -117,7 +118,7 @@ void readPseudosFromFile(string& file)
     std::ofstream output(file + "_read", std::fstream::app);
     if (!output)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening read file '" << file << "_read'\n";
+        BOOST_LOG_TRIVIAL(warning) << "Error opening read file '" << file << "_read'\n";
         return;
     }
 

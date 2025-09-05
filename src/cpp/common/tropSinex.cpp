@@ -679,7 +679,7 @@ void setTropSolFromFilter(KFState& kfState)  ///< KF state
                 if (it == theSinex.tropSiteCoordMapMap.end())
                 {
                     BOOST_LOG_TRIVIAL(error)
-                        << "Error: theSinex.tropSiteCoordMapMap has no entry for " << id;
+                        << "theSinex.tropSiteCoordMapMap has no entry for " << id;
 
                     continue;
                 }
@@ -735,7 +735,7 @@ void setTropSol(KFState& kfState)  ///< KF state
         }
         default:
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Unrecognised troposphere delay source " << source;
+            BOOST_LOG_TRIVIAL(error) << "Unrecognised troposphere delay source " << source;
         }
     }
     setTropSolCommentList();
@@ -805,8 +805,7 @@ void writeTropSinexToFile(
     ofstream fout(filename, std::fstream::in | std::fstream::out);
     if (!fout)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Could not open " << filename << " for writing trop sinex";
+        BOOST_LOG_TRIVIAL(warning) << "Could not open " << filename << " for writing trop sinex";
 
         return;
     }

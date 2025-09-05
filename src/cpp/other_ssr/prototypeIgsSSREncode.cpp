@@ -125,8 +125,8 @@ vector<uint8_t> encodeIGS_ORB(map<SatSys, SSROut>& orbClkMap, E_Sys sys, bool la
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding orbit.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -189,8 +189,8 @@ vector<uint8_t> encodeIGS_CLK(map<SatSys, SSROut>& orbClkMap, E_Sys sys, bool la
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding clock.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -269,8 +269,8 @@ vector<uint8_t> encodeIGS_CMB(map<SatSys, SSROut>& orbClkMap, E_Sys sys, bool la
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding combined.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -341,8 +341,8 @@ vector<uint8_t> encodeIGS_HRC(map<SatSys, SSROut>& orbClkMap, E_Sys sys, bool la
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding HR clock.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -428,8 +428,8 @@ vector<uint8_t> encodeIGS_COD(map<SatSys, SSRCodeBias>& codBiasMap, E_Sys sys, b
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
 
     i = setbituInc(buf, i, bitl, 0);
@@ -527,8 +527,8 @@ vector<uint8_t> encodeIGS_PHS(map<SatSys, SSRPhasBias>& ssrPBMap, E_Sys sys, boo
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Phase.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
 
     i = setbituInc(buf, i, bitl, 0);
@@ -582,8 +582,8 @@ vector<uint8_t> encodeIGS_URA(map<SatSys, SSRUra>& uraMap, E_Sys sys, bool last)
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding URA.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
     i = setbituInc(buf, i, bitl, 0);
 
@@ -676,8 +676,8 @@ vector<uint8_t> encodeIGS_ATM(SSRAtm& ssrAtm, bool last)
     if (bitl > 7)
     {
         BOOST_LOG_TRIVIAL(error) << "Error encoding SSR Ionosphere.\n";
-        BOOST_LOG_TRIVIAL(error) << "Error: bitl : " << bitl << ", i : " << i
-                                 << ", byteLen : " << byteLen << "\n";
+        BOOST_LOG_TRIVIAL(error) << "bitl : " << bitl << ", i : " << i << ", byteLen : " << byteLen
+                                 << "\n";
     }
 
     i = setbituInc(buf, i, bitl, 0);

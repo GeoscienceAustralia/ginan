@@ -438,7 +438,7 @@ void readTec(string file, Navigation* navi)
     std::ifstream inputStream(file);
     if (!inputStream)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: ionex file open error " << file;
+        BOOST_LOG_TRIVIAL(warning) << "Ionex file open error " << file;
 
         return;
     }
@@ -452,7 +452,7 @@ void readTec(string file, Navigation* navi)
     double version = readionexh(inputStream, lats, lons, hgts, rb, nexp, navi);
     if (version <= 0)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: ionex file format error " << file;
+        BOOST_LOG_TRIVIAL(warning) << "Ionex file format error " << file;
 
         return;
     }

@@ -141,8 +141,8 @@ bool satclk(
             double delta = (copy.satClk - satPos.satClk) * CLIGHT;
             if (pass && fabs(delta) > 30)
             {
-                BOOST_LOG_TRIVIAL(warning) << "Warning, clock for " << satPos.Sat.id() << " is "
-                                           << delta << " from broadcast";
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Clock for " << satPos.Sat.id() << " is " << delta << " from broadcast";
             }
         }
 
@@ -238,8 +238,8 @@ bool satpos(
             double delta = (satPos.rSatApc - copy.rSatApc).norm();
             if (pass && delta > 10)
             {
-                BOOST_LOG_TRIVIAL(warning) << "Warning, orbit for " << satPos.Sat.id() << " is "
-                                           << delta << " from broadcast";
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Orbit for " << satPos.Sat.id() << " is " << delta << " from broadcast";
             }
         }
 
@@ -260,7 +260,7 @@ bool satpos(
 
     if (satPos.posSource == +E_Source::SSR &&
         acsConfig.ssr_input_antenna_offset == +E_OffsetType::UNSPECIFIED)
-        BOOST_LOG_TRIVIAL(error) << "Error: ssr_antenna_offset has not been set in config.\n";
+        BOOST_LOG_TRIVIAL(error) << "ssr_antenna_offset has not been set in config.\n";
 
     if (satPos.posSource == +E_Source::SSR && offsetType == +E_OffsetType::APC &&
         acsConfig.ssr_input_antenna_offset == +E_OffsetType::COM)

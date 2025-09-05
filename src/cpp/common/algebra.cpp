@@ -539,9 +539,8 @@ bool KFState::addPseudoState(const KFKey& kfKey, const map<KFKey, double>& coeff
 
         if (parentKey.type != KF::NONE && parentKey != kfKey)
         {
-            BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Pseudo state added with multiple parents. " << key << " has parents '"
-                << parentKey << "' and '" << kfKey;
+            BOOST_LOG_TRIVIAL(warning) << "Pseudo state added with multiple parents. " << key
+                                       << " has parents '" << parentKey << "' and '" << kfKey;
 
             throw true;
         }
@@ -1441,8 +1440,8 @@ bool KFState::kFilter(
         {
             default:
             {
-                BOOST_LOG_TRIVIAL(warning) << "Warning: kalman filter inverter type " << inverter
-                                           << " not supported, reverting";
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Kalman filter inverter type " << inverter << " not supported, reverting";
                 inverter = E_Inverter::LDLT;
                 continue;
             }
@@ -1466,7 +1465,7 @@ bool KFState::kFilter(
                     dx = VectorXd::Zero(xp.rows());
 
                     BOOST_LOG_TRIVIAL(error)
-                        << "Error: Failed to calculate kalman gain, see trace file for matrices";
+                        << "Failed to calculate kalman gain, see trace file for matrices";
 
                     trace << "\n"
                           << "Kalman Filter Error";
@@ -1504,7 +1503,7 @@ bool KFState::kFilter(
                                            solver.info() != Eigen::ComputationInfo::Success)))
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Innovation covariance matrix not invertible with LLT "
+                        << "Innovation covariance matrix not invertible with LLT "
                            "inverter, trying LDLT inverter instead";
 
                     inverter = E_Inverter::LDLT;
@@ -1520,7 +1519,7 @@ bool KFState::kFilter(
                 if (Qinv.array().isNaN().any() || Qinv.array().isInf().any())
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Innovation covariance matrix not invertible with INV "
+                        << "Innovation covariance matrix not invertible with INV "
                            "inverter, trying LDLT inverter instead";
 
                     inverter = E_Inverter::LDLT;
@@ -1650,8 +1649,8 @@ bool KFState::leastSquare(
         {
             default:
             {
-                BOOST_LOG_TRIVIAL(warning) << "Warning: least squares inverter type "
-                                           << lsq_inverter << " not supported, reverting";
+                BOOST_LOG_TRIVIAL(warning) << "Least squares inverter type " << lsq_inverter
+                                           << " not supported, reverting";
                 lsq_inverter = E_Inverter::LDLT;
                 continue;
             }
@@ -1663,7 +1662,7 @@ bool KFState::leastSquare(
                     (Pp = solver.solve(I), solver.info() != Eigen::ComputationInfo::Success))
                 {
                     BOOST_LOG_TRIVIAL(error)
-                        << "Error: Failed to solve normal equation, see trace file for matrices";
+                        << "Failed to solve normal equation, see trace file for matrices";
 
                     trace << "\n"
                           << "Least Squares Error";
@@ -1689,7 +1688,7 @@ bool KFState::leastSquare(
                 if ((solver.compute(NN), solver.info() != Eigen::ComputationInfo::Success) ||
                     (Pp = solver.solve(I), solver.info() != Eigen::ComputationInfo::Success))
                 {
-                    BOOST_LOG_TRIVIAL(warning) << "Warning: Normal matrix not invertible with LLT "
+                    BOOST_LOG_TRIVIAL(warning) << "Normal matrix not invertible with LLT "
                                                   "inverter, trying LDLT inverter instead";
 
                     lsq_inverter = E_Inverter::LDLT;
@@ -1704,7 +1703,7 @@ bool KFState::leastSquare(
 
                 if (Pp.array().isNaN().any() || Pp.array().isInf().any())
                 {
-                    BOOST_LOG_TRIVIAL(warning) << "Warning: Normal matrix not invertible with INV "
+                    BOOST_LOG_TRIVIAL(warning) << "Normal matrix not invertible with INV "
                                                   "inverter, trying LDLT inverter instead";
 
                     lsq_inverter = E_Inverter::LDLT;
@@ -2121,8 +2120,8 @@ void KFState::filterKalman(
                 if (i == prefitOpts.max_iterations - 1)
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Max pre-fit filter iterations limit reached at " << time
-                        << " in " << suffix << ", limit is " << prefitOpts.max_iterations;
+                        << "Max pre-fit filter iterations limit reached at " << time << " in "
+                        << suffix << ", limit is " << prefitOpts.max_iterations;
                     stringBuffer << "\n"
                                  << "Warning: Max pre-fit filter iterations limit reached at "
                                  << time << " in " << suffix << ", limit is "
@@ -2254,8 +2253,8 @@ void KFState::filterKalman(
                 if (i == postfitOpts.max_iterations - 1)
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Max post-fit filter iterations limit reached at " << time
-                        << " in " << suffix << ", limit is " << postfitOpts.max_iterations;
+                        << "Max post-fit filter iterations limit reached at " << time << " in "
+                        << suffix << ", limit is " << postfitOpts.max_iterations;
                     stringBuffer << "\n"
                                  << "Warning: Max post-fit filter iterations limit reached at "
                                  << time << " in " << suffix << ", limit is "
@@ -2333,7 +2332,7 @@ void KFState::filterKalman(
                 }
                 default:
                 {
-                    BOOST_LOG_TRIVIAL(error) << "Error: Unknown Chi-square test mode";
+                    BOOST_LOG_TRIVIAL(error) << "Unknown Chi-square test mode";
                     break;
                 }
             }
@@ -2438,26 +2437,22 @@ void KFState::leastSquareInitStates(
         kfMeas.Y = kfMeas.V;
     }
 
-    vector<int> newStateIndicies;
-
     // find all the states that aren't initialised, they need least squaring.
+    vector<int> newStateIndicies;
     for (auto& [key, index] : kfIndexMap)
     {
         if ((key.type != KF::ONE) && (P(index, index) < 0))
         {
-            // this is a new state and needs to be evaluated using least squares
+            // this is a new state and needs to be estimated using least squares
             newStateIndicies.push_back(index);
         }
     }
 
-    // get the subset of the measurement matrix that applies to the uninitialised states
-    auto subsetA = kfMeas.H(all, newStateIndicies);
-
     // find the subset of measurements that are required for the initialisation
-    auto usedMeasMask = subsetA.rowwise().any();
+    auto usedMeasMask = kfMeas.H(all, newStateIndicies).rowwise().any();
 
-    vector<int> pseudoMeasStateIndicies;
     vector<int> leastSquareMeasIndicies;
+    vector<int> pseudoMeasStateIndicies;
 
     for (int measIndex = 0; measIndex < usedMeasMask.rows(); measIndex++)
     {
@@ -2491,8 +2486,6 @@ void KFState::leastSquareInitStates(
     leastSquareMeas.Y = VectorXd::Zero(totalMeasCount);
     leastSquareMeas.R = MatrixXd::Zero(totalMeasCount, totalMeasCount);
     leastSquareMeas.H = MatrixXd::Zero(totalMeasCount, kfMeas.H.cols());
-    // VV
-    // V
 
     // copy in the required measurements from the old set
     leastSquareMeas.Y.head(lsqMeasCount) = kfMeas.Y(leastSquareMeasIndicies);

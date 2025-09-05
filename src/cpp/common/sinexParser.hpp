@@ -74,7 +74,7 @@ struct SinexParser : Parser, ObsLister
             if (!inputStream)
             {
                 // error - did not find closure line. Report and clean up.
-                BOOST_LOG_TRIVIAL(error) << "Error: Closure line not found before end.";
+                BOOST_LOG_TRIVIAL(error) << "Closure line not found before end.";
 
                 break;
             }
@@ -93,7 +93,7 @@ struct SinexParser : Parser, ObsLister
                 if (line != closure)
                 {
                     BOOST_LOG_TRIVIAL(error)
-                        << "Error: Incorrect section closure line encountered: " << closure
+                        << "Incorrect section closure line encountered: " << closure
                         << " != " << line;
                 }
 
@@ -133,7 +133,7 @@ struct SinexParser : Parser, ObsLister
                 else
                 {
                     // 				BOOST_LOG_TRIVIAL(error)
-                    // 				<< "Error: error unknown header line: " << line;
+                    // 				<< "Error unknown header line: " << line;
                 }
 
                 continue;
@@ -149,9 +149,8 @@ struct SinexParser : Parser, ObsLister
                 if (line != "%ENDSNX")
                 {
                     // error in file. report it.
-                    BOOST_LOG_TRIVIAL(error)
-                        << "Error: line starting '%' met not final line" << "\n"
-                        << line;
+                    BOOST_LOG_TRIVIAL(error) << "Line starting '%' met not final line" << "\n"
+                                             << line;
 
                     return;
                 }

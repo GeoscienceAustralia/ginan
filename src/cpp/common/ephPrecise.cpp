@@ -26,10 +26,10 @@ using std::array;
 using std::map;
 using std::string;
 
-#define NMAX 10         /* order of polynomial interpolation */
-#define MAXDTE 900.0    /* max time difference to ephem time (s) */
-#define EXTERR_CLK 1E-3 /* extrapolation error for clock (m/s) */
-#define EXTERR_EPH 5E-7 /* extrapolation error for ephem (m/s^2) */
+constexpr int    NMAX       = 10;    /* order of polynomial interpolation */
+constexpr double MAXDTE     = 900.0; /* max time difference to ephem time (s) */
+constexpr double EXTERR_CLK = 1E-3;  /* extrapolation error for clock (m/s) */
+constexpr double EXTERR_EPH = 5E-7;  /* extrapolation error for ephem (m/s^2) */
 
 /** read dcb parameters file
  */
@@ -188,7 +188,7 @@ bool pephpos(Trace& trace, GTime time, SatSys Sat, Navigation& nav, Vector3d& rS
     if (nav.pephMap.empty())
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Looking for precise positions, but no precise ephemerides found";
+            << "Looking for precise positions, but no precise ephemerides found";
 
         return false;
     }
@@ -197,8 +197,7 @@ bool pephpos(Trace& trace, GTime time, SatSys Sat, Navigation& nav, Vector3d& rS
     if (it == nav.pephMap.end())
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Looking for precise position, but no precise ephemerides found for "
-            << Sat.id();
+            << "Looking for precise position, but no precise ephemerides found for " << Sat.id();
 
         return false;
     }
@@ -316,8 +315,8 @@ bool pclkMapClk(
     auto& [key, pclkMap] = *it;
 
     if ((pclkMap.size() < 2) || (time < pclkMap.begin()->first - nav.pclkInterval) ||
-        (time > pclkMap.rbegin()->first + nav.pclkInterval
-        ))  // Extrapolate for at most one data interval
+        (time >
+         pclkMap.rbegin()->first + nav.pclkInterval))  // Extrapolate for at most one data interval
     {
         BOOST_LOG_TRIVIAL(debug) << "no prec clock " << time.to_string() << " for " << id;
 

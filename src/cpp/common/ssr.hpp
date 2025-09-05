@@ -6,7 +6,7 @@
 #include "common/trace.hpp"
 // #include "gMap.hpp"
 
-#define SSR_UNAVAILABLE -9999
+constexpr int SSR_UNAVAILABLE = -9999;
 
 struct SatPos;
 

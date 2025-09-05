@@ -25,7 +25,7 @@ bool jplEphPos(
 {
     if (jplEph_ptr == nullptr)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No JPL ephemeris file found.";
+        BOOST_LOG_TRIVIAL(warning) << "No JPL ephemeris file found.";
 
         return false;
     }

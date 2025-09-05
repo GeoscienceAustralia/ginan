@@ -10,11 +10,14 @@
 
 > [![](images/GinanWorkshopS.png) Slides from the Ginan Workshop hosted at the IGNSS 2024 conference.](resources/Ginan_Workshop_Slides_-_IGNSS_2024.pdf)
 
-> [![](images/GinanWorkshop1.png) Set Up Guide for the Ginan Workshop.](resources/Ginan_Workshop_1_Set-up_Guide_-_IGNSS_2024_-_6_Feb.pdf)
+> [![](images/GinanWorkshop2025WindowsSetUp-TN2.png) Set-up Guide for Windows Users from 2025 Geodesy Workshop at ANU.](resources/resources/Ginan-Workshop--Windows-Set-up--2025-06-23.pdf)
 
-> [![](images/GinanWorkshop2.png) Guide outlining how to run Ginan in the Workshop Tutorial.](resources/Ginan_Workshop_2_Running_Ginan_-_IGNSS_2024_-_6_Feb.pdf)
+> [![](images/GinanWorkshop1.png) Set Up Guide for the Ginan 2024 Workshop.](resources/Ginan_Workshop_1_Set-up_Guide_-_IGNSS_2024_-_6_Feb.pdf)
 
-> [![](images/GinanWorkshopD.png) Guide for those using Docker to run Ginan.](resources/Ginan_Workshop_Docker_Guide_-_IGNSS_2024_-_6_Feb.pdf)
+> [![](images/GinanWorkshop2.png) Guide outlining how to run Ginan in the 2024 Workshop Tutorial.](resources/Ginan_Workshop_2_Running_Ginan_-_IGNSS_2024_-_6_Feb.pdf)
+
+> [![](images/GinanWorkshopD.png) Guide for those using Docker to run Ginan - 2024.](resources/Ginan_Workshop_Docker_Guide_-_IGNSS_2024_-_6_Feb.pdf)
+
 
 
 ***

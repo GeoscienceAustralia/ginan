@@ -30,7 +30,7 @@ struct NtripUploader : NtripResponder, RtcmEncoder
     {
         if (url.path.empty())
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Ntrip uploader created with empty url";
+            BOOST_LOG_TRIVIAL(error) << "Ntrip uploader created with empty url";
 
             return;
         }

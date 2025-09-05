@@ -22,7 +22,7 @@ long int streamPos(std::istream& stream)
 
         if (filePos < 0)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: Negative file pos in file at " << filePos << "\n"
+            BOOST_LOG_TRIVIAL(error) << "Negative file pos in file at " << filePos << "\n"
                                      << " - " << strerror(errno);
 
             return -1;

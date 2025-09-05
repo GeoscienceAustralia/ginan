@@ -83,7 +83,7 @@ std::ofstream getTraceFile(T& thing, bool json = false)
     std::ofstream trace(traceFilename, std::ios::app);
     if (!trace)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Could not open trace file for " << thing.id << " at "
+        BOOST_LOG_TRIVIAL(error) << "Could not open trace file for " << thing.id << " at "
                                  << traceFilename;
     }
 

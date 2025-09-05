@@ -182,8 +182,7 @@ bool readBlq(
                 catch (...)
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: Unknown tidal constituent in BLQ file header: " << waveName
-                        << "\n";
+                        << "Unknown tidal constituent in BLQ file header: " << waveName << "\n";
                 }
             }
 
@@ -198,7 +197,7 @@ bool readBlq(
 
         if (!columnOrderFound)
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: Column order information not found in BLQ file "
+            BOOST_LOG_TRIVIAL(warning) << "Column order information not found in BLQ file "
                                           "header, (default) config is used"
                                        << "\n";
         }
@@ -772,7 +771,7 @@ VectorEnu tideOceanPole(
 
     if (oceanPoleGrid.grid.empty())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Ocean pole tide coefficients not available" << "\n";
+        BOOST_LOG_TRIVIAL(warning) << "Ocean pole tide coefficients not available" << "\n";
 
         return VectorEnu();
     }
@@ -916,9 +915,9 @@ void tideDisp(
     auto& atlMap = atlDisplacementMap[id];
 
     if (recOpts.tideModels.otl && otlMap.empty())
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No otl parameters found for " << id;
+        BOOST_LOG_TRIVIAL(warning) << "No otl parameters found for " << id;
     if (recOpts.tideModels.atl && atlMap.empty())
-        BOOST_LOG_TRIVIAL(warning) << "Warning: No atl parameters found for " << id;
+        BOOST_LOG_TRIVIAL(warning) << "No atl parameters found for " << id;
 
     if (recOpts.tideModels.solid)
     {

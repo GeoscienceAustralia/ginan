@@ -16,9 +16,9 @@ using std::string;
 map<E_Sys, string> ionRefRec;
 map<int, int>      ionStateOutage;
 
-#define INIT_VAR_RDCB 100.0
-#define INIT_VAR_SDCB 100.0
-#define INIT_VAR_SCHP 100.0
+constexpr double INIT_VAR_RDCB = 100.0;
+constexpr double INIT_VAR_SDCB = 100.0;
+constexpr double INIT_VAR_SCHP = 100.0;
 
 void ionosphereSsrUpdate(Trace& trace, KFState& kfState)
 {

@@ -8,10 +8,10 @@
 #include "common/ephemeris.hpp"
 #include "common/navigation.hpp"
 #include "pea/ppp.hpp"
-#define ORBEX_VER 0.09
-#define NO_PV_STD 99999.9
-#define NO_CLK 9999999.9999999
-#define NO_CLK_STD 9999999.999
+constexpr double ORBEX_VER  = 0.09;
+constexpr double NO_PV_STD  = 99999.9;
+constexpr double NO_CLK     = 9999999.9999999;
+constexpr double NO_CLK_STD = 9999999.999;
 
 /** ORBEX entry to write out
  */

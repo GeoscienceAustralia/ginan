@@ -20,9 +20,9 @@ struct GTow;
 struct MjDateTT;
 struct MjDateUtc;
 
-#define GPS_SUB_UTC_2000 +13
-#define GPS_SUB_UTC_2006 +14
-#define GPS_SUB_TAI -19
+constexpr int GPS_SUB_UTC_2000 = +13;
+constexpr int GPS_SUB_UTC_2006 = +14;
+constexpr int GPS_SUB_TAI      = -19;
 
 extern const GTime  GPS_t0;
 extern const double MJD_j2000;

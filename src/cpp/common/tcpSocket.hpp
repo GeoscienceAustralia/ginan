@@ -44,19 +44,19 @@ using ssl_socket = ssl::stream<tcp::socket>;
  * https://www.boost.org/doc/libs/1_40_0/doc/html/boost_asio/example/http/client/async_client.cpp
  */
 
-#define ERROR_OUTPUT_RECONNECT_AND_RETURN                                                  \
-    {                                                                                      \
-        string message = err.message();                                                    \
-        std::erase(message, '\r');                                                         \
-        std::erase(message, '\n');                                                         \
-        onErrorStatistics(err, __FUNCTION__);                                              \
-        BOOST_LOG_TRIVIAL(error) << "Error: NTRIP - " << message << " in " << __FUNCTION__ \
-                                 << " for " << url.sanitised();                            \
-                                                                                           \
-        if (err != boost::asio::error::operation_aborted)                                  \
-            delayedReconnect();                                                            \
-                                                                                           \
-        return;                                                                            \
+#define ERROR_OUTPUT_RECONNECT_AND_RETURN                                                      \
+    {                                                                                          \
+        string message = err.message();                                                        \
+        std::erase(message, '\r');                                                             \
+        std::erase(message, '\n');                                                             \
+        onErrorStatistics(err, __FUNCTION__);                                                  \
+        BOOST_LOG_TRIVIAL(error) << "NTRIP - " << message << " in " << __FUNCTION__ << " for " \
+                                 << url.sanitised();                                           \
+                                                                                               \
+        if (err != boost::asio::error::operation_aborted)                                      \
+            delayedReconnect();                                                                \
+                                                                                               \
+        return;                                                                                \
     }
 
 struct Base64

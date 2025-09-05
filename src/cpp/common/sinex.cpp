@@ -467,7 +467,7 @@ bool readSnxHeader(std::ifstream& in)
 
     if (in.eof())
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: empty file";
+        BOOST_LOG_TRIVIAL(error) << "Empty file";
         return false;
     }
 
@@ -475,7 +475,7 @@ bool readSnxHeader(std::ifstream& in)
     if (line[0] != '%' || line[1] != '=' || line[2] != 'S' || line[3] != 'N' || line[4] != 'X')
     {
         // error. not a sinex file
-        BOOST_LOG_TRIVIAL(error) << "Error: Not a sinex file";
+        BOOST_LOG_TRIVIAL(error) << "Not a sinex file";
         return false;
     }
 
@@ -517,8 +517,7 @@ bool readSnxHeader(std::ifstream& in)
         {
             // error, not enough parameters
             BOOST_LOG_TRIVIAL(error)
-                << "Error: Not enough parameters on header line (expected min 15), got "
-                << readcount;
+                << "Not enough parameters on header line (expected min 15), got " << readcount;
             return false;
         }
 
@@ -3119,7 +3118,7 @@ bool readSinex(const string& filepath)
         if (!filestream)
         {
             // error - did not find closure line. Report and clean up.
-            BOOST_LOG_TRIVIAL(error) << "Error: Closure line not found before end.";
+            BOOST_LOG_TRIVIAL(error) << "Closure line not found before end.";
 
             failure = true;
             break;
@@ -3135,9 +3134,8 @@ bool readSinex(const string& filepath)
 
             if (line != closure)
             {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Error: Incorrect section closure line encountered on line " << lineNumber
-                    << ": " << closure << " != " << line;
+                BOOST_LOG_TRIVIAL(error) << "Incorrect section closure line encountered on line "
+                                         << lineNumber << ": " << closure << " != " << line;
             }
         }
         else if (line[0] == ' ')
@@ -3149,13 +3147,13 @@ bool readSinex(const string& filepath)
             }
             catch (std::out_of_range& e)
             {
-                BOOST_LOG_TRIVIAL(error) << "Error: Sinex line width error on line " << lineNumber
-                                         << ": '" << line << "'";
+                BOOST_LOG_TRIVIAL(error)
+                    << "Sinex line width error on line " << lineNumber << ": '" << line << "'";
             }
             catch (...)
             {
                 BOOST_LOG_TRIVIAL(error)
-                    << "Error: Sinex parsing error on line " << lineNumber << ": '" << line << "'";
+                    << "Sinex parsing error on line " << lineNumber << ": '" << line << "'";
             }
         }
         else if (line[0] == '+')
@@ -3326,7 +3324,7 @@ bool readSinex(const string& filepath)
             else
             {
                 parseFunction = nullFunction;
-                BOOST_LOG_TRIVIAL(warning) << "Warning: unknown header line: " << line;
+                BOOST_LOG_TRIVIAL(warning) << "Unknown header line: " << line;
             }  // Skip unknown sections
 
             // 			int 	i;
@@ -3336,7 +3334,7 @@ bool readSinex(const string& filepath)
             // && !theSinex.list_solepochs.empty())
             // 					{
             // 						BOOST_LOG_TRIVIAL(error)
-            // 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks.";
+            // 						<< "Cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks.";
             //
             // 						failure = true;
             // 						break;
@@ -3351,7 +3349,7 @@ bool readSinex(const string& filepath)
             // 					if (theSinex.epochs_have_bias && !theSinex.list_solepochs.empty())
             // 					{
             // 						BOOST_LOG_TRIVIAL(error)
-            // 						<< "cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks.";
+            // 						<< "Cannot combine BIAS/EPOCHS and SOLUTION/EPOCHS blocks.";
             //
             // 						failure = true;
             // 						break;
@@ -3400,8 +3398,7 @@ bool readSinex(const string& filepath)
             if (line != "%ENDSNX")
             {
                 // error in file. report it.
-                BOOST_LOG_TRIVIAL(error) << "Error: line starting '%' met not final line" << "\n"
-                                         << line;
+                BOOST_LOG_TRIVIAL(error) << "Line starting '%' met not final line" << "\n" << line;
 
                 failure = true;
             }
@@ -4057,8 +4054,8 @@ void getSlrRecBias(string id, string prn, GTime time, map<char, double>& recBias
 
         if (unitsFactor < 0)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: unhandled units in " << __FUNCTION__
-                                     << ", model code " << code << " : " << dataHandling.unit;
+            BOOST_LOG_TRIVIAL(error) << "Unhandled units in " << __FUNCTION__ << ", model code "
+                                     << code << " : " << dataHandling.unit;
             continue;
         }
 

@@ -19,7 +19,7 @@ using std::string;
 using std::stringstream;
 using std::chrono::system_clock;
 
-#define NMAX 3 /* order of polynomial interpolation */
+constexpr int NMAX = 3; /* order of polynomial interpolation */
 
 ERPValues ERPValues::operator+(const ERPValues& rhs)
 {
@@ -496,7 +496,7 @@ ERPValues getErp(
         {
             if (erpvs.back().isPredicted)
             {
-                BOOST_LOG_TRIVIAL(warning) << "Warning: Predicted ERP used for interpolation.\n";
+                BOOST_LOG_TRIVIAL(warning) << "Predicted ERP used for interpolation.\n";
             }
 
             // interpolation done
@@ -520,11 +520,11 @@ ERPValues getErp(
         erpv.isPredicted = true;
 
         BOOST_LOG_TRIVIAL(warning)
-            << "Warning: No suitable data for ERP interpolation, extrapolated ERP in use.\n";
+            << "No suitable data for ERP interpolation, extrapolated ERP in use.\n";
     }
     else
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: failed to get ERP at " << time.to_string() << ".\n";
+        BOOST_LOG_TRIVIAL(warning) << "Failed to get ERP at " << time.to_string() << ".\n";
     }
 
     return erpv;

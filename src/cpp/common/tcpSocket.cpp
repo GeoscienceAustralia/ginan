@@ -190,7 +190,7 @@ void TcpSocket::readHandlerChunked(const boost::system::error_code& err)
             catch (std::exception& e)
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << "\nError Message Header, string not an integer: " << hexLength;
+                    << "Error Message Header, string not an integer: " << hexLength;
                 logChunkError();
                 start = endOfHeader;
                 continue;
@@ -199,7 +199,7 @@ void TcpSocket::readHandlerChunked(const boost::system::error_code& err)
             if (messageLength > 10000)
             {
                 BOOST_LOG_TRIVIAL(warning)
-                    << "\nError Message Header, Body too Long: " << messageLength;
+                    << "Error Message Header, Body too Long: " << messageLength;
                 logChunkError();
                 start = endOfHeader;
                 continue;
@@ -219,7 +219,7 @@ void TcpSocket::readHandlerChunked(const boost::system::error_code& err)
 
             if (postAmble1 != '\r' || postAmble2 != '\n')
             {
-                BOOST_LOG_TRIVIAL(warning) << "\nMissing Termination of Chunk Message.\n";
+                BOOST_LOG_TRIVIAL(warning) << "Missing Termination of Chunk Message.\n";
                 start = endOfHeader;
                 continue;
             }
@@ -264,8 +264,7 @@ void TcpSocket::timeoutHandler(const boost::system::error_code& err)
     if (isConnected == false)
     {
         BOOST_LOG_TRIVIAL(error
-        ) << "Error: "
-          << url.sanitised()
+        ) << url.sanitised()
           << " connection timed out, check paths, usernames + passwords, and ports";
         delayedReconnect();
     }
@@ -363,8 +362,8 @@ void NtripResponder::requestResponseHandler(const boost::system::error_code& err
         std::erase(statusMessage, '\r');
         std::erase(statusMessage, '\n');
 
-        BOOST_LOG_TRIVIAL(error) << "Error: NTRIP - " << statusCode << " " << statusMessage
-                                 << " in " << __FUNCTION__ << " for " << url.sanitised()
+        BOOST_LOG_TRIVIAL(error) << "NTRIP - " << statusCode << " " << statusMessage << " in "
+                                 << __FUNCTION__ << " for " << url.sanitised()
                                  << ", reconnecting in " << reconnectDelay;
 
         delayedReconnect();
@@ -503,7 +502,7 @@ void TcpSocket::resolveHandler(
 {
     if (err)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: check url and any usernames/passwords";
+        BOOST_LOG_TRIVIAL(error) << "Check url and any usernames/passwords";
         ERROR_OUTPUT_RECONNECT_AND_RETURN;
     }
 
@@ -576,7 +575,7 @@ void TcpSocket::connectionError(const boost::system::error_code& err, string ope
 
     if (!logStream)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening log file.\n";
+        BOOST_LOG_TRIVIAL(warning) << "Error opening log file.\n";
         return;
     }
 
@@ -602,7 +601,7 @@ void NtripStream::serverResponse(unsigned int statusCode, string httpVersion)
 
     if (!logStream)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening log file.\n";
+        BOOST_LOG_TRIVIAL(warning) << "Error opening log file.\n";
         return;
     }
 

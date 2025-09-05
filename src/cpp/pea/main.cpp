@@ -166,14 +166,14 @@ void mainOncePerEpochPerStation(Receiver& rec, Network& net, bool& emptyEpoch, K
             trace << "\n"
                   << "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Receiver " << rec.id << " rejected due to lack of " << thing;
+                << "Receiver " << rec.id << " rejected due to lack of " << thing;
 
             rec.invalid = true;
 
             return true;
         }
 
-        BOOST_LOG_TRIVIAL(warning) << "Warning: " << thing << " not found for " << rec.id;
+        BOOST_LOG_TRIVIAL(warning) << thing << " not found for " << rec.id;
 
         return false;
     };
@@ -273,7 +273,7 @@ void mainOncePerEpochPerSatellite(
         auto it = nav.svnMap[Sat].lower_bound(time);
         if (it == nav.svnMap[Sat].end())
         {
-            BOOST_LOG_TRIVIAL(warning) << "Warning: SVN not found for " << Sat.id();
+            BOOST_LOG_TRIVIAL(warning) << "SVN not found for " << Sat.id();
 
             Sat.setSvn("UNKNOWN");
         }
@@ -292,7 +292,7 @@ void mainOncePerEpochPerSatellite(
         if (it == nav.blocktypeMap.end())
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Warning: Block type not found for " << Sat.id()
+                << "Block type not found for " << Sat.id()
                 << ", attitude modelling etc may be affected, check sinex file";
 
             Sat.setBlockType("UNKNOWN");
@@ -406,7 +406,7 @@ void mainOncePerEpoch(Network& pppNet, Network& ionNet, ReceiverMap& receiverMap
 
     if (emptyEpoch)
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Epoch " << epoch << " has no observations";
+        BOOST_LOG_TRIVIAL(warning) << "Epoch " << epoch << " has no observations";
     }
 
     if (acsConfig.process_ppp)
@@ -503,8 +503,7 @@ void mainPostProcessing(Network& pppNet, Network& ionNet, ReceiverMap& receiverM
                 );
                 if (pass == false)
                 {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: No sat pos found for " << satPos.Sat.id() << ".";
+                    BOOST_LOG_TRIVIAL(warning) << "No sat pos found for " << satPos.Sat.id() << ".";
                     continue;
                 }
 
@@ -608,7 +607,7 @@ int main(int argc, char** argv)
     bool pass = configure(argc, argv);
     if (pass == false)
     {
-        BOOST_LOG_TRIVIAL(error) << "Error: Incorrect configuration";
+        BOOST_LOG_TRIVIAL(error) << "Incorrect configuration";
         BOOST_LOG_TRIVIAL(info) << "PEA finished";
         TcpSocket::ioContext.stop();
         return EXIT_FAILURE;
@@ -678,16 +677,13 @@ int main(int argc, char** argv)
         pppNet.kfState.measRejectCallbacks.push_back(incrementPhaseSignalError);
         pppNet.kfState.measRejectCallbacks.push_back(incrementSatelliteErrors);
         pppNet.kfState.measRejectCallbacks.push_back(incrementReceiverErrors);
-        pppNet.kfState.measRejectCallbacks.push_back(
-            pseudoMeasTest
+        pppNet.kfState.measRejectCallbacks.push_back(pseudoMeasTest
         );  // Eugene: should this go first (before deweightMeas)?
 
-        pppNet.kfState.stateRejectCallbacks.push_back(
-            satelliteGlitchReaction
+        pppNet.kfState.stateRejectCallbacks.push_back(satelliteGlitchReaction
         );  // This goes before reject by state
         pppNet.kfState.stateRejectCallbacks.push_back(incrementStateErrors);
-        pppNet.kfState.stateRejectCallbacks.push_back(
-            rejectWorstMeasByState
+        pppNet.kfState.stateRejectCallbacks.push_back(rejectWorstMeasByState
         );  // Assume the state error is caused by a single measurement error and try removing it
             // first
         pppNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
@@ -837,8 +833,7 @@ int main(int argc, char** argv)
             nextEpoch = false;
             epoch++;
 
-            BOOST_LOG_TRIVIAL(info) << "\n"
-                                    << "Starting epoch #" << epoch;
+            BOOST_LOG_TRIVIAL(info) << "Starting epoch #" << epoch;
 
             nominalLoopStartTime +=
                 std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
@@ -898,8 +893,7 @@ int main(int argc, char** argv)
 
         if (loopEpochs)
         {
-            BOOST_LOG_TRIVIAL(info) << "\n"
-                                    << "Starting epoch #" << epoch;
+            BOOST_LOG_TRIVIAL(info) << "Starting epoch #" << epoch;
 
             waitMessage = false;
         }
@@ -907,8 +901,7 @@ int main(int argc, char** argv)
         if (system_clock::now() > breakTime)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "\n"
-                << "Warning: Excessive time elapsed, skipping epoch " << epoch
+                << "Excessive time elapsed, skipping epoch " << epoch
                 << ". Configuration 'wait_next_epoch' is " << acsConfig.wait_next_epoch;
 
             nextEpoch = true;
