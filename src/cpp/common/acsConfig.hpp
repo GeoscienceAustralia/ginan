@@ -456,9 +456,8 @@ struct SatelliteErrorHandler
 
 struct StateErrorHandler
 {
-    bool   enable                = true;
-    bool   scale_by_design_entry = false;
-    double deweight_factor       = 1000;
+    bool   enable          = true;
+    double deweight_factor = 1000;
 };
 
 struct MeasErrorHandler
@@ -469,7 +468,7 @@ struct MeasErrorHandler
 
 struct ErrorAccumulationHandler
 {
-    bool enable                           = true;
+    bool enable                           = false;
     int  receiver_error_count_threshold   = 4;
     int  receiver_error_epochs_threshold  = 4;
     int  satellite_error_count_threshold  = 4;

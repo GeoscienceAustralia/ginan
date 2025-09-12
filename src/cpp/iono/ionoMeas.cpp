@@ -381,7 +381,7 @@ void obsIonoDataFromFilter(
             tracepdeex(
                 4,
                 trace,
-                "    sTEC for %s %s found: %.4f -> %.4f\n",
+                "    STEC for %s %s found: %.4f -> %.4f\n",
                 obs.Sat.id().c_str(),
                 obs.mount.c_str(),
                 obs.stecVal,

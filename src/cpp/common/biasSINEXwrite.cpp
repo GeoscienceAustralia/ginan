@@ -324,10 +324,10 @@ int addBiasEntry(
     tracepdeex(
         3,
         trace,
-        "\n Searched %s bias for %s %2d %s:  ",
+        "\n Searched %s bias for %s %3s %s:  ",
         (measType == CODE) ? "CODE " : "PHASE",
         kfKey.Sat.id().c_str(),
-        kfKey.num,
+        kfKey.code().c_str(),
         tini.to_string().c_str()
     );
 

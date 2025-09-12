@@ -239,9 +239,10 @@ struct GObs : Observation, GObsMeta, SatPos
 
 struct PObs : Observation
 {
-    SatSys   Sat = {};  ///> Satellite ID (system, prn)
-    Vector3d pos = Vector3d::Zero();
-    Vector3d vel = Vector3d::Zero();
+    SatSys   Sat        = {};  ///> Satellite ID (system, prn)
+    Vector3d pos        = Vector3d::Zero();
+    Vector3d vel        = Vector3d::Zero();
+    SatNav*  satNav_ptr = nullptr;  ///< Pointer to a navigation object for this satellite
 
     operator shared_ptr<PObs>()
     {

@@ -428,7 +428,8 @@ void mongoMeasResiduals(
             if (obsKey.comment.empty() == false)
                 commentString = obsKey.comment + "-";
 
-            string name = commentString + std::to_string(obsKey.num);
+            string name =
+                commentString + std::to_string(obsKey.num);  // Eugene: convert num to code?
 
             lookup[{obsKey.str, obsKey.Sat.id()}].push_back(i);
         }
@@ -455,7 +456,8 @@ void mongoMeasResiduals(
                 if (obsKey.comment.empty() == false)
                     commentString = obsKey.comment + "-";
 
-                string name = commentString + std::to_string(obsKey.num);
+                string name =
+                    commentString + std::to_string(obsKey.num);  // Eugene: convert num to code?
 
                 doc << name + "-Prefit" << kfMeas.V(i) << name + "-Postfit" << kfMeas.VV(i)
                     << name + "-Sigma" << sqrt(kfMeas.R(i, i));

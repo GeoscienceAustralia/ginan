@@ -101,7 +101,7 @@ void rtsOutput(
                 std::ofstream ofs(filename, std::ofstream::out | std::ofstream::app);
                 if (ofs && acsConfig.output_residuals)
                 {
-                    outputResiduals(ofs, archiveMeas, -1, "/RTS", 0, archiveMeas.obsKeys.size());
+                    outputResiduals(ofs, archiveMeas, "/RTS");
                 }
 
                 if (acsConfig.mongoOpts.output_measurements)
@@ -323,15 +323,6 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                     return;
                 }
 
-                if (acsConfig.rts_only && kfState.time == GTime::noTime())
-                {
-                    kfState.time = kalmanPlus.time;
-                }
-
-                lag = (kfState.time - kalmanPlus.time).to_double();
-
-                BOOST_LOG_TRIVIAL(info) << "RTS lag: " << lag;
-
                 if (smoothedPready == false)
                 {
                     kalmanPlus.metaDataMap = kfState.metaDataMap;
@@ -362,6 +353,15 @@ void rtsSmoothing(KFState& kfState, ReceiverMap& receiverMap, bool write)
                 {
                     break;
                 }
+
+                if (acsConfig.rts_only && kfState.time == GTime::noTime())
+                {
+                    kfState.time = kalmanPlus.time;
+                }
+
+                lag = (kfState.time - kalmanPlus.time).to_double();
+
+                BOOST_LOG_TRIVIAL(info) << "RTS lag: " << lag;
 
                 InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
 

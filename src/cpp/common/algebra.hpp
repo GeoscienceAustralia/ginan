@@ -52,53 +52,115 @@ struct KFKey
     bool operator==(const KFKey& b) const;
     bool operator<(const KFKey& b) const;
 
+    string code() const
+    {
+        string code;
+
+        // Measurements or per-measurement states
+        if (type == KF::CODE_MEAS || type == KF::PHAS_MEAS || type == KF::AMBIGUITY ||
+            type == KF::Z_AMB || type == KF::CODE_BIAS || type == KF::PHASE_BIAS)
+        {
+            // IFLC combined
+            if (num > 100)
+            {
+                int num1 = num / 100;
+                int num2 = num % 100;
+
+                string code1 = E_ObsCode::_from_integral(num1)._to_string();
+                string code2 = E_ObsCode::_from_integral(num2)._to_string();
+                code         = code1 + "-" + code2;
+            }
+
+            // Uncombined
+            else
+            {
+                code = E_ObsCode::_from_integral(num)._to_string();
+            }
+
+            return code;
+        }
+
+        // STEC
+        if (type == KF::IONO_STEC && acsConfig.pppOpts.ionoOpts.common_ionosphere == false)
+        {
+            code = (num == CODE) ? "CODE" : "PHASE";
+
+            return code;
+        }
+
+        int component = 0;
+
+        // Empirical force coefficients
+        if (type >= KF::EMP_D_0 && type <= KF::EMP_Q_4 && (type - KF::EMP_D_0) % 5 != 0)
+        {
+            component = E_TrigType::COS + num;
+
+            code = E_TrigType::_from_integral(E_TrigType::COS + num)._to_string();
+
+            return code;
+        }
+
+        // Cartesian coordinates
+        if ((type >= KF::REC_POS && type <= KF::ACC) ||
+            (type > KF::BEGIN_INERTIAL_STATES && type < KF::END_INERTIAL_STATES) ||
+            type == KF::ORBIT || type == KF::ORBIT_MEAS || type == KF::XFORM_XLATE ||
+            type == KF::XFORM_RTATE || type == KF::XFORM_XLATE_RATE || type == KF::XFORM_RTATE_RATE)
+        {
+            component = E_StateComponent::X + num;
+        }
+
+        // Quaternions
+        else if (type == KF::ORIENTATION)
+        {
+            component = E_StateComponent::W + num;
+        }
+
+        // Local tangental coordinates
+        else if (type == KF::TROP_GRAD || type == KF::ANT_DELTA)
+        {
+            component = E_StateComponent::E + num;
+        }
+
+        // EOP parameters
+        else if (type == KF::EOP || type == KF::EOP_RATE)
+        {
+            component = E_StateComponent::XP + num;
+        }
+
+        code = E_StateComponent::_from_integral(component)._to_string();
+        std::replace(code.begin(), code.end(), '_', '-');
+
+        return code;
+    }
+
     /** Create a string with the same spacing as ordinary outputs
      */
     static string emptyString()
     {
         KFKey  key;
-        string str = key;
-        for (auto& c : str)
+        string keyStr = key;
+        for (auto& c : keyStr)
         {
             if (c != '\t')
                 c = ' ';
         }
 
-        return str;
+        return keyStr;
     }
 
     operator string() const
     {
         char buff[100];
 
-        if (num > 100)
-        {
-            int num1 = num / 100;
-            int num2 = num % 100;
-
-            snprintf(
-                buff,
-                sizeof(buff),
-                "%10s\t%4s\t%4s\t%3s_%3s",
-                KF::_from_integral(type)._to_string(),
-                Sat.id().c_str(),
-                str.c_str(),
-                E_ObsCode::_from_integral(num1)._to_string(),
-                E_ObsCode::_from_integral(num2)._to_string()
-            );
-        }
-        else
-        {
-            snprintf(
-                buff,
-                sizeof(buff),
-                "%10s\t%4s\t%4s\t%3s",
-                KF::_from_integral(type)._to_string(),
-                Sat.id().c_str(),
-                str.c_str(),
-                E_ObsCode::_from_integral(num)._to_string()
-            );
-        }
+        snprintf(
+            buff,
+            sizeof(buff),
+            "%10s\t%4s\t%4s\t%7s",
+            KF::_from_integral(type)._to_string(),
+            Sat.id().c_str(),
+            str.c_str(),
+            this->code().c_str()
+        );
 
         return string(buff);
     }
@@ -109,22 +171,21 @@ struct KFKey
         snprintf(
             buff,
             sizeof(buff),
-            "%s,%s,%s,%d",
+            "%s,%s,%s,%s",
             KF::_from_integral(type)._to_string(),
             Sat.id().c_str(),
             str.c_str(),
-            num
+            this->code().c_str()
         );
-        string str = buff;
-        to_upper(str);
+        string keyStr = buff;
 
-        return str;
+        return keyStr;
     }
 
     friend ostream& operator<<(ostream& os, const KFKey& kfKey)
     {
-        string str = kfKey;
-        os << str;
+        string keyStr = kfKey;
+        os << keyStr;
 
         return os;
     }
@@ -194,6 +255,8 @@ struct KFMeas
     MatrixXd H;                  ///< Design matrix between measurements and state
     MatrixXd H_star;             ///< Design matrix between measurements and noise states
     VectorXd uncorrelatedNoise;  ///< Uncorellated noise for measurements
+    VectorXd prefitRatios;       ///< Prefit sigma check or omega test ratios of measurements
+    VectorXd postfitRatios;      ///< Postfit sigma check or omega test ratios of measurements
 
     map<KFKey, int> noiseIndexMap;  ///< Map from key to indexes of parameters in the noise vector
     vector<KFKey>
@@ -350,10 +413,10 @@ struct RejectCallbackDetails
     {
     }
 
-    KFKey  kfKey;  ///< Key to the state that has worst ratio (only if worse than badMeasIndex)
-    int    measIndex = -1;  ///< Index of the measurement that has the worst ratio
-    bool   postFit   = false;
-    double scalar    = 0;
+    KFKey kfKey;            ///< Key to the state that is flagged as an error
+    int   stateIndex = -1;  ///< Index of the state that is flagged as an error
+    int   measIndex  = -1;  ///< Index of the measurement that is flagged as an outlier
+    bool  postFit    = false;
 };
 
 typedef bool (*StateRejectCallback)(RejectCallbackDetails rejectCallbackDetails);
@@ -381,6 +444,8 @@ struct KFState_ : FilterOptions
     VectorXd x;                  ///< State
     MatrixXd P;                  ///< State Covariance
     VectorXd dx;                 ///< Last filter update
+    VectorXd prefitRatios;       ///< Prefit sigma check or omega test ratios of states
+    VectorXd postfitRatios;      ///< Postfit sigma check or omega test ratios of states
 
     map<KFKey, int> kfIndexMap;  ///< Map from key to indexes of parameters in the state vector
 
@@ -623,7 +688,8 @@ struct KFState : KFState_
 
     void chiQC(Trace& trace, KFMeas& kfMeas);
 
-    void outputStates(Trace& trace, string suffix = "", int begX = 0, int numX = -1);
+    void
+    outputStates(Trace& trace, string suffix = "", int iteration = -1, int begX = 0, int numX = -1);
 
     void outputConditionNumber(Trace& trace);
 
@@ -794,10 +860,10 @@ MatrixXi correlationMatrix(MatrixXd& P);
 void outputResiduals(
     Trace&  trace,
     KFMeas& kfMeas,
-    int     iteration,
-    string  suffix,
-    int     begH,
-    int     numH
+    string  suffix    = "",
+    int     iteration = -1,
+    int     begH      = 0,
+    int     numH      = -1
 );
 
 bool isPositiveSemiDefinite(MatrixXd& mat);

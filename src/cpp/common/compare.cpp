@@ -267,9 +267,9 @@ void compareOrbits(vector<string> files)
             tracepdeex(
                 0,
                 trace,
-                "^ %-10s %d averaged %+12.4e %-5s with std %12.4e over %d epochs\n",
+                "^ %-10s %-3s averaged %+12.4e %-5s with std %12.4e over %d epochs\n",
                 KF::_from_integral(key.type)._to_string(),
-                key.num,
+                key.code().c_str(),
                 avg,
                 key.comment.c_str(),
                 std,

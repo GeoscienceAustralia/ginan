@@ -30,8 +30,8 @@ inputs:
     nav_files: [brdm1990.19p]
     clk_files: [IGS2R03FIN_20191990000_01D_30S_CLK.CLK]
 
-  pseudo_observations:            # Use data from pre-processed data products as observations
-    eci_pseudoobs:  false       # Pseudo observations are provided in eci frame rather than standard ECEF SP3 files
+  pseudo_observations: # Use data from pre-processed data products as observations
+    eci_pseudoobs: false # Pseudo observations are provided in eci frame rather than standard ECEF SP3 files
     sp3_inputs: [IGS2R03FIN_20191990000_01D_05M_ORB.SP3]
 
   gnss_observations:
@@ -128,9 +128,9 @@ outputs:
     filename: <CONFIG>_<YYYY><DDD><HH>.CLK
 
   # erp:
-  #     output:                       true
-  #     directory:                    ./
-  #     filename:                     <CONFIG>_<YYYY><DDD><HH>.ERP
+  #   output: true
+  #   directory: ./
+  #   filename: <CONFIG>_<YYYY><DDD><HH>.ERP
 
   orbex:
     output: true
@@ -139,7 +139,7 @@ outputs:
 
 satellite_options:
   global:
-    #clock_codes:                       [AUTO, AUTO]
+    # clock_codes: [AUTO, AUTO]
 
     models:
       clock:
@@ -255,9 +255,9 @@ receiver_options: # Options to configure individual stations or global configs
     apriori_sigma_enu: [0.003, 0.003, 0.009] # Use these fixed igma'sfor sites listed below
     mincon_scale_apriori_sigma: 1 # Use ALL fixed and/or SINEX file sigma's (!! first preference to the fixed sigma's !!)
     mincon_scale_filter_sigma: 0
-  #ABMF: {mincon_scale_apriori_sigma: 3 }
-  #ALBH: {mincon_scale_apriori_sigma: 3 }
-  #ALGO: {mincon_scale_apriori_sigma: 3 }
+  # ABMF: {mincon_scale_apriori_sigma: 3 }
+  # ALBH: {mincon_scale_apriori_sigma: 3 }
+  # ALGO: {mincon_scale_apriori_sigma: 3 }
 
 processing_options:
   process_modes:
@@ -282,20 +282,20 @@ processing_options:
         reject_eclipse: false
         code_priorities: [L1W, L1C, L2W]
       # gal:
-      #     process:                  true
-      #     ambiguity_resolution:     false
-      #     reject_eclipse:           false
-      #     code_priorities:          [ L1C, L5Q, L1X, L5X ]
+      #   process: true
+      #   ambiguity_resolution: false
+      #   reject_eclipse: false
+      #   code_priorities: [L1C, L5Q, L1X, L5X]
       # glo:
-      #     process:                  true
-      #     ambiguity_resolution:     false
-      #     reject_eclipse:           true
-      #     code_priorities:          [ L1P, L1C, L2P, L2C ]
+      #   process: true
+      #   ambiguity_resolution: false
+      #   reject_eclipse: true
+      #   code_priorities: [L1P, L1C, L2P, L2C]
       # qzs:
-      #     process:                  true
-      #     ambiguity_resolution:     false
-      #     reject_eclipse:           true
-      #     code_priorities:          [ L1C, L2L, L2X ]
+      #   process: true
+      #   ambiguity_resolution: false
+      #   reject_eclipse: true
+      #   code_priorities: [L1C, L2L, L2X]
 
   spp:
     always_reinitialise: false
@@ -312,16 +312,16 @@ processing_options:
     outlier_screening:
       prefit:
         max_iterations: 2
-        sigma_check: true
+        sigma_check: false
         omega_test: false
         state_sigma_threshold: 5 # Sigma threshold for states
-        meas_sigma_threshold:  5 # Sigma threshold for measurements
+        meas_sigma_threshold: 5 # Sigma threshold for measurements
       postfit:
-        max_iterations: 10
+        max_iterations: 20
         sigma_check: false
         omega_test: true
         state_sigma_threshold: 8 # Sigma threshold for states
-        meas_sigma_threshold:  6 # Sigma threshold for measurements
+        meas_sigma_threshold: 6 # Sigma threshold for measurements
 
     rts:
       enable: true
@@ -329,7 +329,12 @@ processing_options:
 
   model_error_handling:
     error_accumulation: # Any receivers or satellites that are consistently getting many measurement rejections may be reinitialiased
-      enable: false
+      enable: true # Enable reinitialisation of receivers upon many rejections
+      receiver_error_count_threshold: 0 # Number of errors for a receiver to be considered in error for a single epoch
+      receiver_error_epochs_threshold: 0 # Number of consecutive epochs with receiver in error before it is removed and reinitialised
+      satellite_error_count_threshold: 0 # Number of errors for a satellite to be considered in error for a single epoch
+      satellite_error_epochs_threshold: 0 # Number of consecutive epochs with satellite in error before it is reinitialised using the orbit_errors configs
+      state_error_count_threshold: 3 # Number of consecutive epochs with satellite in error before it is reinitialised using the orbit_errors configs
     meas_deweighting:
       deweight_factor: 10000
     state_deweighting:
@@ -410,10 +415,10 @@ estimation_parameters:
 
   receivers:
     PIVOT:
-      #clock:
-      #    estimated:         [true]
-      #    process_noise:     [0]
-      #    sigma:             [1e-9]
+      # clock:
+      #   estimated: [true]
+      #   process_noise: [0]
+      #   sigma: [1e-9]
       code_bias:
         estimated: [false]
 
@@ -422,7 +427,7 @@ estimation_parameters:
         estimated: [true]
         sigma: [1]
         process_noise: [0.0]
-        # process_noise_dt:     second
+        # process_noise_dt: second
       clock:
         estimated: [true]
         sigma: [1000]
@@ -432,17 +437,17 @@ estimation_parameters:
         sigma: [1000]
         process_noise: [0]
         outage_limit: [900]
-        # process_noise_dt:     day
+        # process_noise_dt: day
       trop:
         estimated: [true]
         sigma: [0.3]
         process_noise: [0.0001]
-        # process_noise_dt:     second
+        # process_noise_dt: second
       trop_grads:
         estimated: [true]
         sigma: [0.03]
         process_noise: [1.0E-6]
-        # process_noise_dt:     second
+        # process_noise_dt: second
       ion_stec:
         estimated: [true]
         sigma: [500]
@@ -453,10 +458,10 @@ estimation_parameters:
         sigma: [20]
         process_noise: [0]
     # USN7:
-    #     clk:
-    #         estimated:            [false]     # Set reference (pivot) station clock
-    #     code_bias:
-    #         estimated:            [false]
+    #   clk:
+    #     estimated: [false] # Set reference (pivot) station clock
+    #   code_bias:
+    #     estimated: [false]
 
   satellites:
     global:
@@ -465,7 +470,7 @@ estimation_parameters:
         sigma: [1000]
         process_noise: [1]
         tau: [100]
-        #mu:                    [10000]
+        # mu: [10000]
       code_bias:
         estimated: [true]
         sigma: [10]
@@ -484,8 +489,8 @@ estimation_parameters:
       emp_b_1: { estimated: [true], sigma: [1] }
 
       emp_d_2: { estimated: [true], sigma: [1] }
-      # emp_y_2:  { estimated: [true], sigma: [1]}
-      # emp_b_2:  { estimated: [true], sigma: [1]}
+      # emp_y_2: { estimated: [true], sigma: [1]}
+      # emp_b_2: { estimated: [true], sigma: [1]}
 
       # emp_d_3: { estimated: [true], sigma: [1]}
       # emp_y_3: { estimated: [true], sigma: [1]}
@@ -497,7 +502,7 @@ estimation_parameters:
 
 mongo:
   enable: primary
-  #enable:                        none
+  # enable: none
   output_components: primary
   output_states: primary
   output_measurements: primary
@@ -505,9 +510,8 @@ mongo:
   output_trace: primary
   delete_history: primary
 
-debug:
-  # instrument:       true
-  #output_mincon:     true
-  #mincon_filename:   preMinconState.bin
-  #mincon_only:       true
-  # mincon_only:      true
+# debug:
+#   instrument: true
+#   output_mincon: true
+#   mincon_filename: preMinconState.bin
+#   mincon_only: true

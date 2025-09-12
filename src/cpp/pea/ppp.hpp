@@ -102,7 +102,7 @@ void selectAprioriSource(
 
 void selectAprioriSource(SatSys& Sat, GTime& time, KFState& kfState, KFState* remote_ptr = nullptr);
 
-void postFilterChecks(const GTime& time, KFMeas& kfMeas);
+void postFilterChecks(const GTime& time, KFState& kfState, KFMeas& kfMeas);
 
 bool deweightMeas(RejectCallbackDetails rejectDetails);
 bool pseudoMeasTest(RejectCallbackDetails rejectDetails);
@@ -115,10 +115,10 @@ bool rejectWorstMeasByState(RejectCallbackDetails rejectDetails);
 bool rejectAllMeasByState(RejectCallbackDetails rejectDetails);
 bool clockGlitchReaction(RejectCallbackDetails rejectDetails);
 bool satelliteGlitchReaction(RejectCallbackDetails rejectDetails);
+bool relaxState(RejectCallbackDetails rejectDetails);
 
-bool resetPhaseSignalError(const GTime& time, KFMeas& kfMeas, int index);
-
-bool resetIonoSignalOutage(const GTime& time, KFMeas& kfMeas, int index);
+void resetPhaseSignalError(const GTime& time, KFMeas& kfMeas, int index);
+void resetIonoSignalOutage(const GTime& time, KFMeas& kfMeas, int index);
 
 void receiverUducGnss(
     Trace&           pppTrace,
@@ -169,7 +169,7 @@ bool queryBiasUC(
     E_ObsCode  code,
     double&    bias,
     double&    vari,
-    E_MeasType typ
+    E_MeasType type
 );
 
 void pseudoRecDcb(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList);

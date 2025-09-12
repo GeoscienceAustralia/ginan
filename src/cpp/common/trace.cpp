@@ -83,9 +83,8 @@ void ConsoleLog::consume(
         warned = true;
     }
 
-    string output;
+    string output = "";
 
-    output += "\n";
     string ending = "";
     if (acsConfig.colourise_terminal)
     {

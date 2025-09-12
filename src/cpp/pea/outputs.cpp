@@ -116,9 +116,8 @@ void replaceTimes(
     if (YY.empty() && replaced)
     {
         // replacing with nothing here may cause issues - kill the entire string to prevent damage
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: " << __FUNCTION__ << ": time to replace with is invalid, setting "
-            << origStr << " to empty string";
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": time to replace with is invalid, setting "
+                                 << origStr << " to empty string";
 
         str = "";
     }

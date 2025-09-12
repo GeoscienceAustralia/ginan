@@ -251,6 +251,32 @@ BETTER_ENUM(
     RANGE
 )
 
+BETTER_ENUM(
+    E_StateComponent,
+    short int,
+    NONE,
+
+    X,
+    Y,
+    Z,
+    VX,
+    VY,
+    VZ,
+
+    E,
+    N,
+    U,
+
+    XP,
+    YP,
+    UT1_UTC,
+
+    W,
+    QX,
+    QY,
+    QZ
+)
+
 BETTER_ENUM(KEPLER, short int, LX, LY, LZ, EU, EV, M)
 
 BETTER_ENUM(E_PolyType, short int, CONSTANT, LAT, LON, LAT_LON, LAT_SQRD, LON_SQRD)

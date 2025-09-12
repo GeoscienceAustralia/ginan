@@ -1667,8 +1667,9 @@ void updateFilter(
     KFState&     kfState       ///< Kalman filter object containing the network state parameters
 )
 {
-    removeBadSatellites(trace, kfState);
-    removeBadReceivers(trace, kfState, receiverMap);
+    removeBadSatellites(trace,
+                        kfState);  // todo Eugene: revisit this as it doesn't work well
+    removeBadReceivers(trace, kfState, receiverMap);  // todo Eugene: revisit this as well
     removeBadAmbiguities(trace, kfState, receiverMap);
     removeBadIonospheres(trace, kfState);
     resetFilterbyConfig(trace, kfState);
@@ -1881,7 +1882,7 @@ void ppp(
 
     kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
 
-    postFilterChecks(tsync, kfMeas);
+    postFilterChecks(tsync, kfState, kfMeas);
 
     // output chunks if we are actually chunking still
     if (acsConfig.pppOpts.receiver_chunking)

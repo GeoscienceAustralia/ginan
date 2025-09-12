@@ -749,7 +749,7 @@ E_Solution estpos(
         if (traceLevel >= 4)
         {
             kfMeas.V = kfMeas.Y;
-            outputResiduals(trace, kfMeas, iter, suffix, 0, kfMeas.H.rows());
+            outputResiduals(trace, kfMeas, suffix, iter);
         }
 
         adjustment = dx.norm();
@@ -759,13 +759,13 @@ E_Solution estpos(
             removals < acsConfig.sppOpts.postfitOpts.max_iterations)
         {
             // Use 'array' for component-wise calculations
-            auto measVariations = kfMeas.Y.array().square();  // delta squared
+            auto measVariations = kfMeas.Y.array();
 
             auto measVariances = kfMeas.R.diagonal().array().max(SQR(adjustment));
 
             // trace << measVariances.sqrt();
 
-            ArrayXd measRatios = measVariations / measVariances;
+            ArrayXd measRatios = measVariations / measVariances.sqrt();
             measRatios         = measRatios.isFinite().select(measRatios, 0);
 
             // If any are outside the expected values, flag an error
@@ -774,13 +774,13 @@ E_Solution estpos(
 
             // 			std::cout << "\nmeasRatios\n" << measRatios;
 
-            double maxMeasRatio = measRatios.maxCoeff(&measIndex);
+            double maxMeasRatio = measRatios.abs().maxCoeff(&measIndex);
 
-            if (maxMeasRatio > SQR(acsConfig.sppOpts.postfitOpts.meas_sigma_threshold))
+            if (maxMeasRatio > acsConfig.sppOpts.postfitOpts.meas_sigma_threshold)
             {
                 trace << "\n"
-                      << "LARGE MEAS  ERROR OF " << maxMeasRatio << " AT " << measIndex << " : "
-                      << kfMeas.obsKeys[measIndex];
+                      << obsList.front()->time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio
+                      << "\tAT " << measIndex << " :\t" << kfMeas.obsKeys[measIndex];
 
                 GObs& badObs = *(GObs*)kfMeas.metaDataMaps[measIndex]["sppObs_ptr"];
 

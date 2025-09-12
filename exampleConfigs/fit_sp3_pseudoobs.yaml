@@ -40,10 +40,10 @@ outputs:
   outputs_root: outputs/<CONFIG>/
 
   metadata:
-    config_description: fit_sp3_pseudoobs
+    config_description: fit_sp3_pseudoobs_<BRANCH>
     analysis_agency: GAA
     analysis_centre: Geoscience Australia
-    analysis_program: Ginan
+    analysis_software: Ginan
     rinex_comment: AUSNETWORK1
 
   trace:
@@ -148,8 +148,18 @@ processing_options:
     integrator_time_step: 900
     egm_degree: 15
 
+  ppp_filter:
+    outlier_screening:
+      prefit:
+        sigma_check: false
+        omega_test: false
+      postfit:
+        max_iterations: 10
+        sigma_check: false
+        omega_test: true
+
   model_error_handling:
-    orbit_errors:
+    satellite_errors:
       enable: true
       pos_process_noise: 100
       vel_process_noise: 1

@@ -16,22 +16,20 @@ using std::ostringstream;
 bool deweightMeas(RejectCallbackDetails rejectDetails)
 {
     auto& trace     = rejectDetails.trace;
-    auto& kfMeas    = rejectDetails.kfMeas;
     auto& kfState   = rejectDetails.kfState;
+    auto& kfMeas    = rejectDetails.kfMeas;
     auto& measIndex = rejectDetails.measIndex;
     auto& postFit   = rejectDetails.postFit;
 
     if (acsConfig.measErrors.enable == false)
     {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Warning: Bad measurement detected but `meas_deweighting` not enabled";
+
         return true;
     }
 
-    double deweightFactor;
-
-    if (rejectDetails.scalar)
-        deweightFactor = acsConfig.stateErrors.deweight_factor * rejectDetails.scalar;
-    else
-        deweightFactor = acsConfig.measErrors.deweight_factor;
+    double deweightFactor = acsConfig.measErrors.deweight_factor;
 
     auto& key = kfMeas.obsKeys[measIndex];
 
@@ -59,9 +57,9 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
         key,
         "Measurement Deweighted",
         description,
-        {{"preDeweightSigma", preSigma},
-         {description + "Residual", residual},
-         {description + "Ratio", abs(residual / preSigma)}}
+        {{description + "Residual", residual},
+         {"preDeweightSigma", preSigma},
+         {"postDeweightSigma", preSigma * deweightFactor}}
     );
 
     kfMeas.R.row(measIndex) *= deweightFactor;
@@ -83,7 +81,7 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
         otherNoiseMatrix.col(otherIndex) *= deweightFactor;
     }
 
-    return true;
+    return false;
 }
 
 /** Call state rejection functions when a measurement is a pseudo observation
@@ -99,17 +97,19 @@ bool pseudoMeasTest(RejectCallbackDetails rejectDetails)
         return true;
     }
 
-    for (auto& [key, state] : kfState.kfIndexMap)  // Eugene: no need to iterate all states as
-                                                   // satelliteGlitchReaction() itself will do this?
+    for (auto& [key, stateIndex] : kfState.kfIndexMap)
     {
-        if (kfMeas.H(measIndex, state) && key.type == KF::ORBIT)
+        if (kfMeas.H(measIndex, stateIndex) &&
+            key.type == KF::ORBIT)  // Eugene: do this to other pseudoObs as well?
         {
-            satelliteGlitchReaction(rejectDetails
-            );  // Eugene: this will reset satllite clocks as well?
+            rejectDetails.kfKey      = key;
+            rejectDetails.stateIndex = stateIndex;
+
+            return relaxState(rejectDetails);
         }
     }
 
-    return true;
+    return false;
 }
 
 /** Deweight measurement and its relatives
@@ -133,7 +133,7 @@ bool deweightStationMeas(RejectCallbackDetails rejectDetails)
             continue;
         }
 
-        double deweightFactor = acsConfig.stateErrors.deweight_factor;
+        double deweightFactor = acsConfig.measErrors.deweight_factor;
 
         addRejectDetails(
             kfState.time,
@@ -170,7 +170,8 @@ bool deweightStationMeas(RejectCallbackDetails rejectDetails)
             otherNoiseMatrix.col(otherIndex) *= deweightFactor;
         }
     }
-    return true;
+
+    return false;
 }
 
 /** Count worst measurement
@@ -317,26 +318,29 @@ bool incrementStateErrors(RejectCallbackDetails rejectDetails)
     auto& kfState = rejectDetails.kfState;
     auto& kfKey   = rejectDetails.kfKey;
 
+    KFKey kfKeyCopy = kfKey;
+    kfKeyCopy.num   = 0;
+
     if (acsConfig.errorAccumulation.enable == false)
     {
         return true;
     }
 
-    if (kfState.errorCountMap.find(kfKey) == kfState.errorCountMap.end())
+    if (kfState.errorCountMap.find(kfKeyCopy) == kfState.errorCountMap.end())
     {
-        kfState.errorCountMap[kfKey] = 0;
+        kfState.errorCountMap[kfKeyCopy] = 0;  // initialise error count upon first occurance
     }
 
-    kfState.errorCountMap[kfKey]++;
+    kfState.errorCountMap[kfKeyCopy]++;
 
     trace << "\n"
-          << kfState.time << "\tIncrementing stateErrorCount      on\t" << kfKey << "\tto "
-          << kfState.errorCountMap[kfKey];
+          << kfState.time << "\tIncrementing stateErrorCount      on\t" << kfKeyCopy << "\tto "
+          << kfState.errorCountMap[kfKeyCopy];
 
     return true;
 }
 
-bool resetPhaseSignalError(const GTime& time, KFMeas& kfMeas, int index)
+void resetPhaseSignalError(const GTime& time, KFMeas& kfMeas, int index)
 {
     map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
@@ -349,7 +353,7 @@ bool resetPhaseSignalError(const GTime& time, KFMeas& kfMeas, int index)
 
         if (phaseRejectCount_ptr == nullptr)
         {
-            return true;
+            return;
         }
 
         unsigned int& phaseRejectCount = *phaseRejectCount_ptr;
@@ -357,10 +361,10 @@ bool resetPhaseSignalError(const GTime& time, KFMeas& kfMeas, int index)
         phaseRejectCount = 0;
     }
 
-    return true;
+    return;
 }
 
-bool resetIonoSignalOutage(const GTime& time, KFMeas& kfMeas, int index)
+void resetIonoSignalOutage(const GTime& time, KFMeas& kfMeas, int index)
 {
     map<string, void*>& metaDataMap = kfMeas.metaDataMaps[index];
 
@@ -370,7 +374,7 @@ bool resetIonoSignalOutage(const GTime& time, KFMeas& kfMeas, int index)
 
         if (lastIonTime_ptr == nullptr)
         {
-            return true;
+            return;
         }
 
         GTime& lastIonTime = *lastIonTime_ptr;
@@ -378,7 +382,7 @@ bool resetIonoSignalOutage(const GTime& time, KFMeas& kfMeas, int index)
         lastIonTime = time;
     }
 
-    return true;
+    return;
 }
 
 /** Reject worst measurement attached to worst state using measurement reject callback list
@@ -391,11 +395,15 @@ bool rejectWorstMeasByState(RejectCallbackDetails rejectDetails)
     auto& kfKey     = rejectDetails.kfKey;
     auto& measIndex = rejectDetails.measIndex;
 
+    KFKey kfKeyCopy = kfKey;
+    kfKeyCopy.num   = 0;
+
     if (acsConfig.errorAccumulation.enable &&
-        kfState.errorCountMap[kfKey] >= acsConfig.errorAccumulation.state_error_count_threshold)
+        acsConfig.errorAccumulation.state_error_count_threshold > 0 &&
+        kfState.errorCountMap[kfKeyCopy] >= acsConfig.errorAccumulation.state_error_count_threshold)
     {
         trace << "\n"
-              << "High state error counts: " << kfKey;
+              << "High state error counts: " << kfKeyCopy;
 
         return true;
     }
@@ -413,42 +421,26 @@ bool rejectWorstMeasByState(RejectCallbackDetails rejectDetails)
  */
 bool rejectAllMeasByState(RejectCallbackDetails rejectDetails)
 {
-    auto& trace   = rejectDetails.trace;
-    auto& kfState = rejectDetails.kfState;
-    auto& kfMeas  = rejectDetails.kfMeas;
-    auto& kfKey   = rejectDetails.kfKey;
-
-    if (acsConfig.stateErrors.enable == false)
-    {
-        return true;
-    }
+    auto& trace      = rejectDetails.trace;
+    auto& kfState    = rejectDetails.kfState;
+    auto& kfMeas     = rejectDetails.kfMeas;
+    auto& kfKey      = rejectDetails.kfKey;
+    auto& stateIndex = rejectDetails.stateIndex;
 
     trace << "\n"
           << "Bad state detected " << kfKey << " - rejecting all referencing measurements" << "\n";
 
-    kfState.statisticsMap["State rejection"]++;
-
-    int stateIndex = kfState.getKFIndex(kfKey);
-
-    for (int meas = 0; meas < kfMeas.H.rows(); meas++)
+    for (int measIndex = 0; measIndex < kfMeas.H.rows(); measIndex++)
     {
-        rejectDetails.measIndex = meas;
-        rejectDetails.scalar    = abs(kfMeas.H(meas, stateIndex));
-
-        if (rejectDetails.scalar == 0)
+        if (kfMeas.H(measIndex, stateIndex))
         {
-            continue;
-        }
+            rejectDetails.measIndex = measIndex;
 
-        if (acsConfig.stateErrors.scale_by_design_entry == false)
-        {
-            rejectDetails.scalar = 1;
+            kfState.doMeasRejectCallbacks(rejectDetails);
         }
-
-        kfState.doMeasRejectCallbacks(rejectDetails);
     }
 
-    return true;
+    return false;
 }
 
 /** Immediately executed reaction to orbital state errors.
@@ -552,8 +544,8 @@ bool satelliteGlitchReaction(RejectCallbackDetails rejectDetails)
 
         if (index >= 0)
         {
-            trace << "\n - Pre-transition state sigma for " << kfKey << ": "
-                  << kfState.P(index, index);
+            trace << "\n - Pre-transition  state sigma for " << kfKey << ": "
+                  << sqrt(kfState.P(index, index));
         }
 
         kfState.manualStateTransition(trace, kfState.time, F, Q);
@@ -561,8 +553,89 @@ bool satelliteGlitchReaction(RejectCallbackDetails rejectDetails)
         if (index >= 0)
         {
             trace << "\n - Post-transition state sigma for " << kfKey << ": "
-                  << kfState.P(index, index);
+                  << sqrt(kfState.P(index, index));
         }
+
+        return false;
+    }
+
+    return true;
+}
+
+/** Relax state
+ */
+bool relaxState(RejectCallbackDetails rejectDetails)
+{
+    auto& trace      = rejectDetails.trace;
+    auto& kfState    = rejectDetails.kfState;
+    auto& kfKey      = rejectDetails.kfKey;
+    auto& stateIndex = rejectDetails.stateIndex;
+    auto& postFit    = rejectDetails.postFit;
+
+    if (acsConfig.stateErrors.enable == false)
+    {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Warning: Bad state detected but `state_deweighting` not enabled";
+
+        return true;
+    }
+
+    double deweightFactor =
+        abs(postFit ? kfState.postfitRatios(stateIndex) : kfState.prefitRatios(stateIndex));
+    // deweightFactor = std::min(abs(deweightFactor), 5000.0);  // To avoid breaking
+    // filter, maximum process noise allowed is 5000 times of prefit sigma
+
+    trace << "\n"
+          << "Bad state detected " << kfKey << " - relaxing state";
+
+    kfState.statisticsMap["State rejection"]++;
+
+    MatrixXd F = MatrixXd::Identity(kfState.x.rows(), kfState.x.rows());
+    MatrixXd Q = MatrixXd::Zero(kfState.x.rows(), kfState.x.rows());
+
+    Exponential exponentialNoise;
+    exponentialNoise.value = SQR(acsConfig.satelliteErrors.vel_proc_noise_trail);
+    exponentialNoise.tau   = acsConfig.satelliteErrors.vel_proc_noise_trail_tau;
+
+    bool transitionRequired = false;
+
+    for (auto& [key, index] : kfState.kfIndexMap)
+    {
+        // relax states for all components
+        if (key.type != kfKey.type || key.str != kfKey.str || key.Sat != kfKey.Sat)
+        {
+            continue;
+        }
+
+        double procNoise = deweightFactor * sqrt(kfState.P(index, index));
+
+        trace << "\n - Adding " << procNoise << " to sigma of " << key;
+
+        Q(index, index) = SQR(procNoise);
+
+        if (key.type == KF::ORBIT && key.num >= 3 && acsConfig.satelliteErrors.enable &&
+            acsConfig.satelliteErrors.vel_proc_noise_trail &&
+            acsConfig.satelliteErrors.vel_proc_noise_trail_tau)
+        {
+            trace << "\n - Adding exponential " << acsConfig.satelliteErrors.vel_proc_noise_trail
+                  << " (per square root second) to process noise sigma of " << key
+                  << " from next epoch";
+
+            kfState.setExponentialNoise(key, exponentialNoise);
+        }
+
+        transitionRequired = true;
+    }
+
+    if (transitionRequired)
+    {
+        trace << "\n - Pre-transition  state sigma for " << kfKey << ": "
+              << sqrt(kfState.P(stateIndex, stateIndex));
+
+        kfState.manualStateTransition(trace, kfState.time, F, Q);
+
+        trace << "\n - Post-transition state sigma for " << kfKey << ": "
+              << sqrt(kfState.P(stateIndex, stateIndex));
 
         return false;
     }

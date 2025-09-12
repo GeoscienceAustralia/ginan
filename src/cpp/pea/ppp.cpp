@@ -732,14 +732,45 @@ void addRejectDetails(
             );
             kfState.statisticsMap[buff]++;
         }
-        //		{	KFKey subKey; subKey.Sat	= key.Sat;		snprintf(buff, sizeof(buff),
-        //"%-25s\t%s\t%s",	action.c_str(), description, ((string) subKey).c_str());
-        // kfState.statisticsMap[buff]++;	 } 		{	KFKey subKey; subKey.num	= key.num;
-        // snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",	action.c_str(), description, ((string)
-        // subKey).c_str());		kfState.statisticsMap[buff]++;	 } 		{	KFKey subKey;
-        // subKey.type = key.type;		snprintf(buff, sizeof(buff), "%-25s\t%s\t%s",
-        // action.c_str(), description, ((string) subKey).c_str());
-        // kfState.statisticsMap[buff]++;	 }
+        // {
+        //     KFKey subKey;
+        //     subKey.Sat = key.Sat;
+        //     snprintf(
+        //         buff,
+        //         sizeof(buff),
+        //         "%-25s\t%s\t%s",
+        //         action.c_str(),
+        //         description,
+        //         ((string)subKey).c_str()
+        //     );
+        //     kfState.statisticsMap[buff]++;
+        // }
+        // {
+        //     KFKey subKey;
+        //     subKey.num = key.num;
+        //     snprintf(
+        //         buff,
+        //         sizeof(buff),
+        //         "%-25s\t%s\t%s",
+        //         action.c_str(),
+        //         description,
+        //         ((string)subKey).c_str()
+        //     );
+        //     kfState.statisticsMap[buff]++;
+        // }
+        // {
+        //     KFKey subKey;
+        //     subKey.type = key.type;
+        //     snprintf(
+        //         buff,
+        //         sizeof(buff),
+        //         "%-25s\t%s\t%s",
+        //         action.c_str(),
+        //         description,
+        //         ((string)subKey).c_str()
+        //     );
+        //     kfState.statisticsMap[buff]++;
+        // }
     }
     traceJson(
         0,
@@ -748,7 +779,7 @@ void addRejectDetails(
         {{"data", action},
          {Constants::Mongo::SAT_VAR, key.Sat.id()},
          {Constants::Mongo::STR_VAR, key.str},
-         {Constants::Mongo::NUM_VAR, std::to_string(key.num)}},
+         {Constants::Mongo::NUM_VAR, std::to_string(key.num)}},  // Eugene: convert num to code?
         details
     );
 }
@@ -804,7 +835,8 @@ void removeBadAmbiguities(
 
             if (sigStat.phaseRejectCount >= acsConfig.ambErrors.phase_reject_limit)
             {
-                sigStat.phaseRejectCount = 0;
+                sigStat.phaseRejectCount =
+                    0;  // Reset phase reject count once an ambiguity state is removed
 
                 addRejectDetails(tsync, trace, kfState, key, "Ambiguity Removed", "REJECT");
 
@@ -926,8 +958,9 @@ void removeBadSatellites(
 
     for (auto& [Sat, satNav] : nav.satNavMap)
     {
-        if (satNav.satelliteErrorCount >=
-            acsConfig.errorAccumulation.satellite_error_count_threshold)
+        if (acsConfig.errorAccumulation.satellite_error_count_threshold > 0 &&
+            satNav.satelliteErrorCount >=
+                acsConfig.errorAccumulation.satellite_error_count_threshold)
         {
             satNav.satelliteErrorEpochs++;
 
@@ -940,18 +973,20 @@ void removeBadSatellites(
         }
         else
         {
-            satNav.satelliteErrorEpochs = 0;
+            satNav.satelliteErrorEpochs =
+                0;  // Reset error epochs if error count doen't exceed threshold at this epoch
         }
 
-        satNav.satelliteErrorCount = 0;
+        satNav.satelliteErrorCount = 0;  // Reset error count each epoch
 
-        if (satNav.satelliteErrorEpochs <
-            acsConfig.errorAccumulation.satellite_error_epochs_threshold)
+        if (acsConfig.errorAccumulation.satellite_error_epochs_threshold <= 0 ||
+            satNav.satelliteErrorEpochs <
+                acsConfig.errorAccumulation.satellite_error_epochs_threshold)
         {
             continue;
         }
 
-        satNav.satelliteErrorEpochs = 0;
+        satNav.satelliteErrorEpochs = 0;  // Reset error epochs once a satellite is removed
 
         for (auto [key, index] : kfState.kfIndexMap)
             if (key.Sat == Sat)
@@ -979,7 +1014,8 @@ void removeBadReceivers(
 
     for (auto& [id, rec] : receiverMap)
     {
-        if (rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)
+        if (acsConfig.errorAccumulation.receiver_error_count_threshold > 0 &&
+            rec.receiverErrorCount >= acsConfig.errorAccumulation.receiver_error_count_threshold)
         {
             rec.receiverErrorEpochs++;
 
@@ -992,17 +1028,19 @@ void removeBadReceivers(
         }
         else
         {
-            rec.receiverErrorEpochs = 0;
+            rec.receiverErrorEpochs =
+                0;  // Reset error epochs if error count doen't exceed threshold at this epoch
         }
 
-        rec.receiverErrorCount = 0;
+        rec.receiverErrorCount = 0;  // Reset error count each epoch
 
-        if (rec.receiverErrorEpochs < acsConfig.errorAccumulation.receiver_error_epochs_threshold)
+        if (acsConfig.errorAccumulation.receiver_error_epochs_threshold <= 0 ||
+            rec.receiverErrorEpochs < acsConfig.errorAccumulation.receiver_error_epochs_threshold)
         {
             continue;
         }
 
-        rec.receiverErrorEpochs = 0;
+        rec.receiverErrorEpochs = 0;  // Reset error epochs once a receiver is removed
 
         for (auto [key, index] : kfState.kfIndexMap)
             if (key.str == rec.id)
@@ -1055,8 +1093,10 @@ void removeBadIonospheres(
     }
 }
 
-void postFilterChecks(const GTime& time, KFMeas& kfMeas)
+void postFilterChecks(const GTime& time, KFState& kfState, KFMeas& kfMeas)
 {
+    kfState.errorCountMap.clear();  // Reset all state error counts each epoch
+
     for (int i = 0; i < kfMeas.V.rows(); i++)
     {
         resetPhaseSignalError(time, kfMeas, i);
@@ -1121,9 +1161,9 @@ void outputPppNmea(Trace& trace, KFState& kfState, string id)
             string grad;
             double trop    = 0;
             double tropVar = 0;
-            if (key.num == 1)
+            if (key.num == 1)  // Eugene: key.type == KF::TROP_GRAD?
                 grad = "_N";
-            if (key.num == 2)
+            if (key.num == 2)  // Eugene: key.type == KF::TROP_GRAD?
                 grad = "_E";
             kfState.getKFValue(key, trop, &tropVar);
             tracepdeex(

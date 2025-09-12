@@ -245,6 +245,9 @@ void orbitPseudoObs(
             continue;
         }
 
+        obs.satNav_ptr = &nav.satNavMap[obs.Sat];
+        SatNav& satNav = *obs.satNav_ptr;
+
         SatPos satPos;
         satPos.Sat = obs.Sat;
 
@@ -387,6 +390,9 @@ void orbitPseudoObs(
             kfMeasEntry.obsKey.Sat               = obs.Sat;
             kfMeasEntry.obsKey.num               = i;
             kfMeasEntry.metaDataMap["pseudoObs"] = (void*)true;
+
+            kfMeasEntry.metaDataMap["satelliteErrorCount"]  = &satNav.satelliteErrorCount;
+            kfMeasEntry.metaDataMap["satelliteErrorEpochs"] = &satNav.satelliteErrorEpochs;
 
             kfMeasEntry.addNoiseEntry(kfMeasEntry.obsKey, 1, SQR(satOpts.pseudo_sigma));
 

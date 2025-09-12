@@ -673,19 +673,17 @@ int main(int argc, char** argv)
         pppNet.kfState.output_residuals        = acsConfig.output_residuals;
         pppNet.kfState.outputMongoMeasurements = acsConfig.mongoOpts.output_measurements;
 
-        pppNet.kfState.measRejectCallbacks.push_back(deweightMeas);
         pppNet.kfState.measRejectCallbacks.push_back(incrementPhaseSignalError);
         pppNet.kfState.measRejectCallbacks.push_back(incrementSatelliteErrors);
         pppNet.kfState.measRejectCallbacks.push_back(incrementReceiverErrors);
-        pppNet.kfState.measRejectCallbacks.push_back(pseudoMeasTest
-        );  // Eugene: should this go first (before deweightMeas)?
+        pppNet.kfState.measRejectCallbacks.push_back(pseudoMeasTest);
+        pppNet.kfState.measRejectCallbacks.push_back(deweightMeas);
 
-        pppNet.kfState.stateRejectCallbacks.push_back(satelliteGlitchReaction
-        );  // This goes before reject by state
         pppNet.kfState.stateRejectCallbacks.push_back(incrementStateErrors);
         pppNet.kfState.stateRejectCallbacks.push_back(rejectWorstMeasByState
         );  // Assume the state error is caused by a single measurement error and try removing it
             // first
+        pppNet.kfState.stateRejectCallbacks.push_back(relaxState);
         pppNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
     }
 
@@ -701,7 +699,10 @@ int main(int argc, char** argv)
         ionNet.kfState.measRejectCallbacks.push_back(deweightMeas);
 
         pppNet.kfState.stateRejectCallbacks.push_back(incrementStateErrors);
-        ionNet.kfState.stateRejectCallbacks.push_back(rejectWorstMeasByState);
+        ionNet.kfState.stateRejectCallbacks.push_back(rejectWorstMeasByState
+        );  // Assume the state error is caused by a single measurement error and try removing it
+            // first
+        pppNet.kfState.stateRejectCallbacks.push_back(relaxState);
         ionNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
     }
 

@@ -149,11 +149,11 @@ void applyUCAmbiguities(
             tracepdeex(
                 4,
                 trace,
-                "%+3.0f A(%s,%s,%2d) ",
+                "%+3.0f A(%s,%s,%3s) ",
                 Z(i, j),
                 key.str.c_str(),
                 key.Sat.id().c_str(),
-                key.num
+                key.code().c_str()
             );
 
             InitialState init;

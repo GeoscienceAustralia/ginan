@@ -123,7 +123,6 @@ int KFMeas::getNoiseIndex(const KFKey& key)  ///< Key to search for in noise vec
 void KFState::initFilterEpoch(Trace& trace)
 {
     initNoiseMap.clear();
-    errorCountMap.clear();
 
     for (auto& [key1, mapp] : stateTransitionMap)
     {
@@ -784,11 +783,11 @@ void KFState::stateTransition(
 
             auto& expNoise = exponential.value;
 
-            if (expNoise > 0.01)
-            {
-                trace << "\n"
-                      << "Adding : " << expNoise << " to process noise for " << dest << " \n";
-            }
+            // if (expNoise > 0.01)
+            // {
+            trace << "\n"
+                  << "Adding " << expNoise << " (per second) to process noise for " << dest << "\n";
+            // }
 
             int destIndex = destIter->second;
 
@@ -1031,8 +1030,8 @@ void KFState::preFitSigmaChecks(
     int                    numH         ///< Number of measurements to process
 )
 {
-    auto& kfMeas = callbackDetails.kfMeas;
     auto& trace  = callbackDetails.trace;
+    auto& kfMeas = callbackDetails.kfMeas;
 
     auto V = kfMeas.V.segment(begH, numH);
     auto R = kfMeas.R.block(begH, begH, numH, numH);
@@ -1045,46 +1044,46 @@ void KFState::preFitSigmaChecks(
 
     if (prefitOpts.sigma_check)
     {
-        // 		trace << "\n" << "DOING PRE SIGMA CHECK: ";
-
         // use 'array' for component-wise calculations
-        auto measVariations = V.array().square();  // delta squared
+        auto measVariations = V.array();
         auto measVariances  = (HPH_.diagonal() + R.diagonal()).array();
 
-        measRatios = measVariations / measVariances;
+        measRatios = measVariations / measVariances.sqrt();
     }
-    else if (prefitOpts.omega_test)
+    else if (prefitOpts.omega_test)  // Eugene: will be gone
     {
-        // 		trace << "\n" << "DOING OMEGA-TEST: ";
-
         MatrixXd Qinv   = (HPH_ + R).inverse();
         MatrixXd H_Qinv = H.transpose() * Qinv;
 
         // use 'array' for component-wise calculations
-        auto measNumerator  = (Qinv * V).array().square();  // weighted residuals squared
-        auto stateNumerator = (H_Qinv * V).array().square();
+        auto measNumerator  = (Qinv * V).array();
+        auto stateNumerator = (H_Qinv * V).array();
 
-        auto measDenominator  = Qinv.diagonal().array();  // weights
+        auto measDenominator  = Qinv.diagonal().array();
         auto stateDenominator = (H_Qinv * H).diagonal().array();
 
-        measRatios  = measNumerator / measDenominator;
-        stateRatios = stateNumerator / stateDenominator;
+        measRatios  = measNumerator / measDenominator.sqrt();
+        stateRatios = stateNumerator / stateDenominator.sqrt();
     }
 
+    // Eugene: do abs() here
     measRatios = measRatios.isFinite().select(
         measRatios,
         0
     );  // set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
     stateRatios = stateRatios.isFinite().select(stateRatios, 0);
 
-    statistics.sumOfSquares = measRatios.sum();
+    kfMeas.prefitRatios.segment(begH, numH) = measRatios;
+    this->prefitRatios.segment(begX, numX)  = stateRatios;
+
+    statistics.sumOfSquares = measRatios.square().sum();
     statistics.averageRatio = measRatios.mean();
 
     Eigen::ArrayXd::Index stateIndex;
     Eigen::ArrayXd::Index measIndex;
 
-    double maxStateRatio = stateRatios.maxCoeff(&stateIndex);
-    double maxMeasRatio  = measRatios.maxCoeff(&measIndex);
+    double maxStateRatio = stateRatios.abs().maxCoeff(&stateIndex);
+    double maxMeasRatio  = measRatios.abs().maxCoeff(&measIndex);
 
     int stateChunkIndex = stateIndex + begX;
     int measChunkIndex  = measIndex + begH;
@@ -1095,8 +1094,8 @@ void KFState::preFitSigmaChecks(
     auto& [stateKey, dummy] = *it;
 
     // if any are outside the expected values, flag an error
-    if (maxStateRatio * 0.95 > maxMeasRatio &&
-        maxStateRatio > SQR(prefitOpts.state_sigma_threshold))
+    if (maxStateRatio * sqrt(0.95) > maxMeasRatio &&
+        maxStateRatio > prefitOpts.state_sigma_threshold)
     {
         trace << "\n"
               << time << "\tLARGE STATE   ERROR OF : " << maxStateRatio << "\tAT "
@@ -1111,17 +1110,26 @@ void KFState::preFitSigmaChecks(
         measRatios.array() *=
             mask.cast<double>();  // Set measRatios of non-referencing measurements to 0
 
-        maxMeasRatio   = measRatios.maxCoeff(&measIndex);
+        maxMeasRatio   = measRatios.abs().maxCoeff(&measIndex);
         measChunkIndex = measIndex + begH;
 
         trace << "\n"
-              << "Worst ref meas error is: " << maxMeasRatio << "\tAT " << measChunkIndex << " :\t"
-              << kfMeas.obsKeys[measChunkIndex] << "\n";
+              << time << "\tLargest  ref meas error is: " << maxMeasRatio << "\tAT "
+              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
-        callbackDetails.kfKey     = stateKey;
-        callbackDetails.measIndex = measChunkIndex;
+        callbackDetails.kfKey      = stateKey;
+        callbackDetails.stateIndex = stateChunkIndex;
+        callbackDetails.measIndex  = measChunkIndex;
+
+        measRatios          = (measRatios == 0).select(INFINITY, measRatios);
+        double minMeasRatio = measRatios.abs().minCoeff(&measIndex);
+        measChunkIndex      = measIndex + begH;
+
+        trace << "\n"
+              << time << "\tSmallest ref meas error is: " << minMeasRatio << "\tAT "
+              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
     }
-    else if (maxMeasRatio > SQR(prefitOpts.meas_sigma_threshold))
+    else if (maxMeasRatio > prefitOpts.meas_sigma_threshold)
     {
         trace << "\n"
               << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measChunkIndex
@@ -1129,31 +1137,32 @@ void KFState::preFitSigmaChecks(
         trace << "\n"
               << time << "\tLargest state error is : " << maxStateRatio << "\tAT "
               << stateChunkIndex << " :\t" << stateKey << "\n";
-        ;
 
         callbackDetails.measIndex = measChunkIndex;
     }
 }
 
 void outputResiduals(
-    Trace&  trace,      ///< Trace file to output to
+    Trace&  output,     ///< Trace file to output to
     KFMeas& kfMeas,     ///< Measurements, noise, and design matrix
-    int     iteration,  ///< Number of iterations prior to this check
     string  suffix,     ///< Suffix to use in header
+    int     iteration,  ///< Number of iterations prior to this check
     int     begH,       ///< Index of first measurement to process
     int     numH        ///< Number of measurements to process
 )
 {
-    tracepdeex(0, trace, "\n");
+    tracepdeex(0, output, "\n");
 
     string name = "RESIDUALS";
     name += suffix;
-    Block block(trace, name);
+
+    InteractiveTerminal trace(name, output);
+    Block               block(trace, name);
 
     tracepdeex(
         0,
         trace,
-        "#\t%2s\t%22s\t%10s\t%4s\t%4s\t%5s\t%13s\t%13s\t%16s\t %s\n",
+        "#\t%2s\t%22s\t%12s\t%4s\t%4s\t%7s\t%13s\t%13s\t%16s",
         "It",
         "Time",
         "Type",
@@ -1162,32 +1171,65 @@ void outputResiduals(
         "Code",
         "Prefit Res",
         "Postfit Res",
-        "Meas Sigma",
-        "Comments"
+        "Meas Sigma"
     );
-    for (int i = begH; i < begH + numH; i++)
+    tracepdeex(5, trace, "\t%16s", "Prefit Ratio");
+    tracepdeex(5, trace, "\t%16s", "Postfit Ratio");
+    tracepdeex(2, trace, "\t%s", "Comments");
+    tracepdeex(0, trace, "\n");
+
+    int endH;
+    if (numH < 0)
+        endH = kfMeas.obsKeys.size();
+    else
+        endH = begH + numH;
+
+    for (int i = begH; i < endH; i++)
     {
-        char var[32];
+        char sigmaStr[20];
+        char preRatioStr[20];
+        char postRatioStr[20];
 
         double sigma = sqrt(kfMeas.R(i, i));
 
         if (sigma == 0 || (fabs(sigma) > 0.0001 && fabs(sigma) < 1e7))
-            snprintf(var, sizeof(var), "%16.7f", sigma);
+            snprintf(sigmaStr, sizeof(sigmaStr), "%16.7f", sigma);
         else
-            snprintf(var, sizeof(var), "%16.3e", sigma);
+            snprintf(sigmaStr, sizeof(sigmaStr), "%16.3e", sigma);
+
+        double preRatio = 0;
+        if (i < kfMeas.prefitRatios.rows())
+            preRatio = kfMeas.prefitRatios(i);
+
+        if (preRatio == 0 || (fabs(preRatio) > 0.0001 && fabs(preRatio) < 1e7))
+            snprintf(preRatioStr, sizeof(preRatioStr), "%16.7f", preRatio);
+        else
+            snprintf(preRatioStr, sizeof(preRatioStr), "%16.3e", preRatio);
+
+        double postRatio = 0;
+        if (i < kfMeas.postfitRatios.rows())
+            postRatio = kfMeas.postfitRatios(i);
+
+        if (postRatio == 0 || (fabs(postRatio) > 0.0001 && fabs(postRatio) < 1e7))
+            snprintf(postRatioStr, sizeof(postRatioStr), "%16.7f", postRatio);
+        else
+            snprintf(postRatioStr, sizeof(postRatioStr), "%16.3e", postRatio);
 
         tracepdeex(
             0,
             trace,
-            "%%\t%2d\t%21s\t%20s\t%13.8f\t%13.8f\t%s\t %s\n",
+            "%%\t%2d\t%22s\t%30s\t%13.8f\t%13.8f\t%16s",
             iteration,
             kfMeas.time.to_string(2).c_str(),
             ((string)kfMeas.obsKeys[i]).c_str(),
             kfMeas.V(i),
             kfMeas.VV(i),
-            var,
-            kfMeas.obsKeys[i].comment.c_str()
+            sigmaStr
         );
+        tracepdeex(5, trace, "\t%16s", preRatioStr);
+        tracepdeex(5, trace, "\t%16s", postRatioStr);
+        tracepdeex(2, trace, "\t%s", kfMeas.obsKeys[i].comment.c_str());
+        tracepdeex(0, trace, "\n");
     }
 }
 
@@ -1205,8 +1247,8 @@ void KFState::postFitSigmaChecks(
     int                    numH         ///< Number of measurements to process
 )
 {
-    auto& kfMeas = callbackDetails.kfMeas;
     auto& trace  = callbackDetails.trace;
+    auto& kfMeas = callbackDetails.kfMeas;
 
     auto V  = kfMeas.V.segment(begH, numH);
     auto VV = kfMeas.VV.segment(begH, numH);
@@ -1220,42 +1262,46 @@ void KFState::postFitSigmaChecks(
     if (postfitOpts.sigma_check)
     {
         // use 'array' for component-wise calculations
-        auto measVariations  = VV.array().square();  // delta squared
-        auto stateVariations = dx.segment(begX, numX).array().square();
+        auto measVariations  = VV.array();
+        auto stateVariations = dx.segment(begX, numX).array();
 
         auto measVariances  = R.diagonal().array();
         auto stateVariances = P.diagonal().array();
 
-        measRatios  = measVariations / measVariances;
-        stateRatios = stateVariations / stateVariances;
+        measRatios  = measVariations / measVariances.sqrt();
+        stateRatios = stateVariations / stateVariances.sqrt();
     }
     else if (postfitOpts.omega_test)
     {
         // use 'array' for component-wise calculations
-        auto measNumerator  = (Qinv * V).array().square();  // weighted residuals squared
-        auto stateNumerator = (QinvH.transpose() * V).array().square();
+        auto measNumerator  = (Qinv * V).array();
+        auto stateNumerator = (QinvH.transpose() * V).array();
 
-        auto measDenominator  = Qinv.diagonal().array();  // weights
+        auto measDenominator  = Qinv.diagonal().array();
         auto stateDenominator = (QinvH.transpose() * H).diagonal().array();
 
-        measRatios  = measNumerator / measDenominator;
-        stateRatios = stateNumerator / stateDenominator;
+        measRatios  = measNumerator / measDenominator.sqrt();
+        stateRatios = stateNumerator / stateDenominator.sqrt();
     }
 
+    // Eugene: do abs() here
     measRatios = measRatios.isFinite().select(
         measRatios,
         0
     );  // set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
     stateRatios = stateRatios.isFinite().select(stateRatios, 0);
 
-    statistics.sumOfSquares = measRatios.sum();
+    kfMeas.postfitRatios.segment(begH, numH) = measRatios;
+    this->postfitRatios.segment(begX, numX)  = stateRatios;
+
+    statistics.sumOfSquares = measRatios.square().sum();
     statistics.averageRatio = measRatios.mean();
 
     Eigen::ArrayXd::Index stateIndex;
     Eigen::ArrayXd::Index measIndex;
 
-    double maxStateRatio = stateRatios.maxCoeff(&stateIndex);
-    double maxMeasRatio  = measRatios.maxCoeff(&measIndex);
+    double maxStateRatio = stateRatios.abs().maxCoeff(&stateIndex);
+    double maxMeasRatio  = measRatios.abs().maxCoeff(&measIndex);
 
     int stateChunkIndex = stateIndex + begX;
     int measChunkIndex  = measIndex + begH;
@@ -1266,8 +1312,8 @@ void KFState::postFitSigmaChecks(
     auto& [stateKey, dummy] = *it;
 
     // if any are outside the expected values, flag an error
-    if (maxStateRatio * 0.95 > maxMeasRatio &&
-        maxStateRatio > SQR(postfitOpts.state_sigma_threshold))
+    if (maxStateRatio * sqrt(0.95) > maxMeasRatio &&
+        maxStateRatio > postfitOpts.state_sigma_threshold)
     {
         trace << "\n"
               << time << "\tLARGE STATE   ERROR OF : " << maxStateRatio << "\tAT "
@@ -1282,17 +1328,26 @@ void KFState::postFitSigmaChecks(
         measRatios.array() *=
             mask.cast<double>();  // Set measRatios of non-referencing measurements to 0
 
-        maxMeasRatio   = measRatios.maxCoeff(&measIndex);
+        maxMeasRatio   = measRatios.abs().maxCoeff(&measIndex);
         measChunkIndex = measIndex + begH;
 
         trace << "\n"
-              << "Worst ref meas error is: " << maxMeasRatio << "\tAT " << measChunkIndex << " :\t"
-              << kfMeas.obsKeys[measChunkIndex] << "\n";
+              << time << "\tLargest  ref meas error is: " << maxMeasRatio << "\tAT "
+              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
-        callbackDetails.kfKey     = stateKey;
-        callbackDetails.measIndex = measChunkIndex;
+        callbackDetails.kfKey      = stateKey;
+        callbackDetails.stateIndex = stateChunkIndex;
+        callbackDetails.measIndex  = measChunkIndex;
+
+        measRatios          = (measRatios == 0).select(INFINITY, measRatios);
+        double minMeasRatio = measRatios.abs().minCoeff(&measIndex);
+        measChunkIndex      = measIndex + begH;
+
+        trace << "\n"
+              << time << "\tSmallest ref meas error is: " << minMeasRatio << "\tAT "
+              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
     }
-    else if (maxMeasRatio > SQR(postfitOpts.meas_sigma_threshold))
+    else if (maxMeasRatio > postfitOpts.meas_sigma_threshold)
     {
         trace << "\n"
               << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measChunkIndex
@@ -1832,6 +1887,9 @@ KFMeas::KFMeas(
     H      = MatrixXd::Zero(numMeas, kfState.x.rows());
     H_star = MatrixXd::Zero(numMeas, uncorrelatedNoise.rows());
 
+    prefitRatios  = VectorXd::Zero(numMeas);
+    postfitRatios = VectorXd::Zero(numMeas);
+
     obsKeys.resize(numMeas);
     metaDataMaps.resize(numMeas);
     componentsMaps.resize(numMeas);
@@ -2060,6 +2118,8 @@ void KFState::filterKalman(
 
     TestStatistics testStatistics;
 
+    prefitRatios = VectorXd::Zero(x.rows());
+
     for (auto& [id, fc] : filterChunkMap)
     {
         if (fc.numH == 0)
@@ -2156,6 +2216,8 @@ void KFState::filterKalman(
     MatrixXd Pp = P;
     dx          = VectorXd::Zero(x.rows());
 
+    postfitRatios = VectorXd::Zero(x.rows());
+
     statisticsMap["States"] = x.rows();
     BOOST_LOG_TRIVIAL(info) << " ------- FILTERING BY CHUNK " << filterChunkMap.size()
                             << "         --------\n";
@@ -2198,13 +2260,6 @@ void KFState::filterKalman(
                         dx.segment(fc.begX, fc.numX);
             }
 
-            if (output_residuals)
-            {
-                InteractiveTerminal ss("Residuals" + suffix, trace);
-
-                outputResiduals(ss, kfMeas, i, suffix, fc.begH, fc.numH);
-            }
-
             if (postfitOpts.sigma_check == false && postfitOpts.omega_test == false)
             {
                 break;
@@ -2226,6 +2281,20 @@ void KFState::filterKalman(
                 fc.begH,
                 fc.numH
             );
+
+            if (output_residuals)
+            {
+                outputResiduals(trace, kfMeas, suffix, i, fc.begH, fc.numH);
+            }
+
+            if (traceLevel >= 5)
+            {
+                KFState kfStateCopy = *this;
+                kfStateCopy.x       = xp;
+                kfStateCopy.P       = Pp;
+
+                kfStateCopy.outputStates(trace, suffix, i, fc.begH, fc.numH);
+            }
 
             bool stopIterating = true;
             if (rejectCallbackDetails.kfKey.type)
@@ -2292,7 +2361,7 @@ void KFState::filterKalman(
         testStatistics.averageRatioPost += statistics.averageRatio / filterChunkMap.size();
     }
 
-    if (postfitOpts.sigma_check)
+    if (postfitOpts.sigma_check || postfitOpts.omega_test)
         trace << "\n"
               << "Sum-of-squared test statistics (postfit): " << testStatistics.sumOfSquaresPost
               << "\n";
@@ -2720,10 +2789,11 @@ KFState KFState::getSubState(vector<KF> types, KFMeas* meas_ptr) const
 /** Output keys and states in human readable format
  */
 void KFState::outputStates(
-    Trace& output,  ///< Trace to output to
-    string suffix,  ///< Suffix to append to state block info tag in trace files
-    int    begX,    ///< Index of first state element to process
-    int    numX     ///< Number of state elements to process
+    Trace& output,     ///< Trace to output to
+    string suffix,     ///< Suffix to append to state block info tag in trace files
+    int    iteration,  ///< Number of iterations prior to this check
+    int    begX,       ///< Index of first state element to process
+    int    numX        ///< Number of state elements to process
 )
 {
     tracepdeex(1, output, "\n");
@@ -2737,16 +2807,19 @@ void KFState::outputStates(
     tracepdeex(
         1,
         trace,
-        "#\t%20s\t%20s\t%5s\t%3s\t%7s\t%17s\t%17s\t%15s",
+        "#\t%2s\t%22s\t%12s\t%4s\t%4s\t%7s\t%17s\t%17s\t%15s",
+        "It",
         "Time",
         "Type",
-        "Str",
         "Sat",
-        "Num",
+        "Str",
+        "Code",
         "State",
         "Sigma",
         "Adjust"
     );
+    tracepdeex(5, trace, "\t%16s", "Prefit Ratio");
+    tracepdeex(5, trace, "\t%16s", "Postfit Ratio");
     tracepdeex(5, trace, "\t%17s", "Mu");
     tracepdeex(2, trace, "\t%s", "Comments");
     tracepdeex(1, trace, "\n");
@@ -2770,33 +2843,55 @@ void KFState::outputStates(
             continue;
         }
 
-        double _x  = x(index);
-        double _dx = 0;
-        if (index < dx.rows())
-            _dx = dx(index);
-        double _sigma = sqrt(P(index, index));
-        string type   = KF::_from_integral(key.type)._to_string();
-
-        char dStr[20];
         char xStr[20];
-        char pStr[20];
+        char sigmaStr[20];
+        char dxStr[20];
+        char preRatioStr[20];
+        char postRatioStr[20];
         char muStr[20];
-        if (noAdjust)
-            snprintf(dStr, sizeof(dStr), "%15.0s", "");
-        else if (_dx == 0 || (fabs(_dx) > 0.0001 && fabs(_dx) < 1e5))
-            snprintf(dStr, sizeof(dStr), "%15.8f", _dx);
-        else
-            snprintf(dStr, sizeof(dStr), "%15.4e", _dx);
+
+        double _x = x(index);
 
         if (_x == 0 || (fabs(_x) > 0.0001 && fabs(_x) < 1e8))
             snprintf(xStr, sizeof(xStr), "%17.7f", _x);
         else
             snprintf(xStr, sizeof(xStr), "%17.3e", _x);
 
+        double _sigma = sqrt(P(index, index));
+
         if (_sigma == 0 || (fabs(_sigma) > 0.0001 && fabs(_sigma) < 1e8))
-            snprintf(pStr, sizeof(pStr), "%17.8f", _sigma);
+            snprintf(sigmaStr, sizeof(sigmaStr), "%17.8f", _sigma);
         else
-            snprintf(pStr, sizeof(pStr), "%17.4e", _sigma);
+            snprintf(sigmaStr, sizeof(sigmaStr), "%17.4e", _sigma);
+
+        double _dx = 0;
+        if (index < dx.rows())
+            _dx = dx(index);
+
+        if (noAdjust)
+            snprintf(dxStr, sizeof(dxStr), "%15.0s", "");
+        else if (_dx == 0 || (fabs(_dx) > 0.0001 && fabs(_dx) < 1e5))
+            snprintf(dxStr, sizeof(dxStr), "%15.8f", _dx);
+        else
+            snprintf(dxStr, sizeof(dxStr), "%15.4e", _dx);
+
+        double preRatio = 0;
+        if (index < prefitRatios.rows())
+            preRatio = prefitRatios(index);
+
+        if (preRatio == 0 || (fabs(preRatio) > 0.0001 && fabs(preRatio) < 1e7))
+            snprintf(preRatioStr, sizeof(preRatioStr), "%16.7f", preRatio);
+        else
+            snprintf(preRatioStr, sizeof(preRatioStr), "%16.3e", preRatio);
+
+        double postRatio = 0;
+        if (index < postfitRatios.rows())
+            postRatio = postfitRatios(index);
+
+        if (postRatio == 0 || (fabs(postRatio) > 0.0001 && fabs(postRatio) < 1e7))
+            snprintf(postRatioStr, sizeof(postRatioStr), "%16.7f", postRatio);
+        else
+            snprintf(postRatioStr, sizeof(postRatioStr), "%16.3e", postRatio);
 
         double mu = 0;
         auto   it = gaussMarkovMuMap.find(key);
@@ -2813,19 +2908,19 @@ void KFState::outputStates(
         tracepdeex(
             1,
             trace,
-            "*\t%20s\t%20s\t%5s\t%3s\t%7d\t%s\t%s\t%s",
-            time.to_string(0).c_str(),
-            type.c_str(),
-            key.str.c_str(),
-            key.Sat.id().c_str(),
-            key.num,
+            "*\t%2d\t%22s\t%30s\t%17s\t%17s\t%15s",
+            iteration,
+            time.to_string(2).c_str(),
+            ((string)key).c_str(),
             xStr,
-            pStr,
-            dStr
+            sigmaStr,
+            dxStr
         );
+        tracepdeex(5, trace, "\t%16s", preRatioStr);
+        tracepdeex(5, trace, "\t%16s", postRatioStr);
         tracepdeex(5, trace, "\t%17s", muStr);
         tracepdeex(6, trace, "\t%x", key.rec_ptr);
-        tracepdeex(2, trace, "\t%-40s", key.comment.c_str());
+        tracepdeex(2, trace, "\t%s", key.comment.c_str());
         tracepdeex(1, trace, "\n");
     }
 }

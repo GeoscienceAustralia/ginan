@@ -976,7 +976,7 @@ void mincon(
                 sizeof(line),
                 " Minimum Constraints Transform: %12s:%c %+9f %6s +- %8f",
                 KF::_from_integral(key.type)._to_string(),
-                'X' + key.num,
+                'X' + key.num,  // Eugene: convert num to code?
                 kfStateTrans.x(index),
                 key.comment.c_str(),
                 sqrt(kfStateTrans.P(index, index))

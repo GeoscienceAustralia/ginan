@@ -7042,12 +7042,6 @@ bool ACSConfig::parse(
                         "Enable deweighting of all referencing measurements"
                     );
                     tryGetFromYaml(
-                        stateErrors.scale_by_design_entry,
-                        state_deweighting,
-                        {"! scale_by_design_entry"},
-                        "Scale the deweighting by the magnitude of the design entry"
-                    );
-                    tryGetFromYaml(
                         stateErrors.deweight_factor,
                         state_deweighting,
                         {"! deweight_factor"},
@@ -7158,7 +7152,7 @@ bool ACSConfig::parse(
                         satelliteErrors.vel_proc_noise_trail_tau,
                         satellite_errors,
                         {"@ vel_process_noise_trail_tau"},
-                        "Time constant for exponentially decauing noise"
+                        "Time constant for exponentially decaying noise"
                     );
                 }
 
