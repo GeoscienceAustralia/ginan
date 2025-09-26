@@ -121,19 +121,19 @@ def download_brdc(
             reference_dt += timedelta(days=1)
 
 
-def download_geomagnetic_model(download_dir: Path, model: str = "igrf13", if_file_present: str = "prompt_user") -> Path:
+def download_geomagnetic_model(download_dir: Path, model: str = "igrf14", if_file_present: str = "prompt_user") -> Path:
     """
     Download the International Geomagnetic Reference Field model file necessary for running the PPP example
     provided the download directory (download_dir)
-    Default: IGRF13 coefficients
+    Default: IGRF14 coefficients
     """
-    if model == "igrf13":
+    if model == "igrf14":
         ensure_folders([download_dir])
         download_filepath = attempt_url_download(
             download_dir=download_dir,
-            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/igrf13coeffs.txt.gz",
-            filename="igrf13coeffs.txt.gz",
-            type_of_file="Geomagnetic Field coefficients - IGRF13",
+            url="https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/igrf14coeffs.txt.gz",
+            filename="igrf14coeffs.txt.gz",
+            type_of_file="Geomagnetic Field coefficients - IGRF14",
             if_file_present=if_file_present,
         )
     else:
