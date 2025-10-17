@@ -429,13 +429,13 @@ void updateAprioriRecPos(
             }
             case E_Source::SPP:
             {
-                if (rec.sol.sppRRec.isZero())
+                if (rec.sol.sppPos.isZero())
                 {
                     continue;
                 }
 
                 rec.aprioriTime = rec.sol.sppTime;
-                rec.aprioriPos  = rec.sol.sppRRec;
+                rec.aprioriPos  = rec.sol.sppPos;
 
                 sppUsed = true;
 
@@ -557,7 +557,7 @@ void updateAprioriRecClk(
                 }
 
                 rec.aprioriClk    = rec.sol.dtRec_m[E_Sys::GPS];
-                rec.aprioriClkVar = SQR(30);
+                rec.aprioriClkVar = SQR(30);  // todo Eugene: use estimated var
 
                 break;
             }
@@ -628,19 +628,19 @@ void selectAprioriSource(
 
         Matrix3d varianceXYZ = E.transpose() * enuNoise * E;
 
-        rec.aprioriPosVar = varianceXYZ;
+        rec.aprioriPosVar = varianceXYZ;  // todo Eugene: use estimated var for SPP
     }
     else
     {
         rec.aprioriPosVar = rec.snx.var.asDiagonal();
     }
 
-    if (rec.sol.sppRRec.norm() < 0.001)
+    if (rec.sol.sppPos.norm() < 0.001)
     {
         return;
     }
 
-    Vector3d delta = rec.aprioriPos - rec.sol.sppRRec;
+    Vector3d delta = rec.aprioriPos - rec.sol.sppPos;
 
     double distance = delta.norm();
 

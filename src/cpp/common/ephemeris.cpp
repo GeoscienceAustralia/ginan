@@ -15,6 +15,7 @@
 #include "common/ssr.hpp"
 #include "common/trace.hpp"
 #include "orbprop/coordinates.hpp"
+
 /** URA SSR by variance
  */
 double ephVarToUra(double ephVar)

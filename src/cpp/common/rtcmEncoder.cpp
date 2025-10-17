@@ -6,6 +6,7 @@
 #include "common/constants.hpp"
 #include "common/ephemeris.hpp"
 #include "common/navigation.hpp"
+
 /** Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE
  */
 int uraToClassValue(double ura)

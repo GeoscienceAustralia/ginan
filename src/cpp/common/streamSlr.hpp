@@ -2,6 +2,7 @@
 
 #include "common/streamObs.hpp"
 #include "slr/slr.hpp"
+
 /** Interface for slr streams
  */
 struct SlrParser : Parser, ObsLister

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
 OceanPoleTide oceanPoleTide;
 
 void OceanPoleTide::read(const string& filename, int maxDeg)

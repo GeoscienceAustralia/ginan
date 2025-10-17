@@ -11,27 +11,31 @@ using std::pair;
 using std::vector;
 
 /* constants/macros */
-template<typename T> constexpr T SQR(T x)
+template <typename T>
+constexpr T SQR(T x)
 {
     return x * x;
 }
-template<typename T> constexpr T POW4(T x)
+template <typename T>
+constexpr T POW4(T x)
 {
     return x * x * x * x;
 }
-template<typename T> constexpr T SQRT(T x)
+template <typename T>
+constexpr T SQRT(T x)
 {
     return (x) <= 0.0 ? 0.0 : sqrt(x);
 }
-template<typename T> constexpr T ROUND(T x)
+template <typename T>
+constexpr T ROUND(T x)
 {
     return (int)floor((x) + 0.5);
 }
-template<typename T> constexpr T SGN(T x)
+template <typename T>
+constexpr T SGN(T x)
 {
     return (x) <= 0.0 ? -1.0 : 1.0;
 }
-
 
 struct SatSys;
 struct SatPos;

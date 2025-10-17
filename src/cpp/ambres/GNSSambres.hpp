@@ -8,6 +8,7 @@
 #include "common/receiver.hpp"
 #include "common/satSys.hpp"
 #include "common/trace.hpp"
+
 extern double FIXED_AMB_VAR;
 extern bool   AR_VERBO;
 

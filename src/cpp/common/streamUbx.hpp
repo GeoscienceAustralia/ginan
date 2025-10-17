@@ -4,6 +4,7 @@
 #include "common/streamObs.hpp"
 #include "common/streamParser.hpp"
 #include "common/ubxDecoder.hpp"
+
 #define UBX_PREAMBLE1 0xB5
 #define UBX_PREAMBLE2 0x62
 

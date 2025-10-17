@@ -6,6 +6,7 @@
 #include "common/streamObs.hpp"
 #include "common/streamParser.hpp"
 #include "other_ssr/otherSSR.hpp"
+
 #define CLEAN_UP_AND_RETURN_ON_FAILURE \
                                        \
     if (inputStream.fail())            \

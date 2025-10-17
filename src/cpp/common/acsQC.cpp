@@ -13,6 +13,7 @@
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
 #include "rtklib/lambda.h"
+
 #define THRES_MW_JUMP 10.0
 #define PDEGAP 60.0
 #define PDESLIPTHRESHOLD 0.5

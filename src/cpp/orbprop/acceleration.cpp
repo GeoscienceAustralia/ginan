@@ -5,6 +5,7 @@
 #include <boost/log/trivial.hpp>
 #include "common/common.hpp"
 #include "common/constants.hpp"
+
 Legendre::Legendre()
 {
     nmax = 0;

@@ -250,8 +250,8 @@ void getUserAliases(vector<string>& aliasPairs)
  */
 void replaceTags(string& str)  ///< String to replace macros within
 {
-    string todayStr = "<YYYY><MM><DD>";
-    string nowStr = "<HH><mm>";
+    string                   todayStr = "<YYYY><MM><DD>";
+    string                   nowStr   = "<HH><mm>";
     boost::posix_time::ptime nowptime = boost::posix_time::second_clock::local_time();
     replaceTimes(todayStr, nowptime);
     replaceTimes(nowStr, nowptime);

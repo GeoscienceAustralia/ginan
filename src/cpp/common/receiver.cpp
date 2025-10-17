@@ -1,5 +1,6 @@
 #include "common/receiver.hpp"
 #include "common/sinex.hpp"
+
 SinexSiteId   dummySiteid;
 SinexReceiver dummyReceiver;
 SinexAntenna  dummyAntenna;

@@ -315,8 +315,8 @@ bool pclkMapClk(
     auto& [key, pclkMap] = *it;
 
     if ((pclkMap.size() < 2) || (time < pclkMap.begin()->first - nav.pclkInterval) ||
-        (time >
-         pclkMap.rbegin()->first + nav.pclkInterval))  // Extrapolate for at most one data interval
+        (time > pclkMap.rbegin()->first + nav.pclkInterval
+        ))  // Extrapolate for at most one data interval
     {
         BOOST_LOG_TRIVIAL(debug) << "no prec clock " << time.to_string() << " for " << id;
 

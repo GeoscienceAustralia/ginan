@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/trace.hpp"
+
 struct ObsList;
 
 int lsqqc(

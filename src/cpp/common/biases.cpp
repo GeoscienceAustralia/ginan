@@ -6,6 +6,7 @@
 #include "common/acsConfig.hpp"
 #include "common/constants.hpp"
 #include "common/enums.h"
+
 FileType BSX__() {}
 
 BiasMap biasMaps;  ///< Multi dimensional map, as biasMaps[measType][id][code1][code2][time]

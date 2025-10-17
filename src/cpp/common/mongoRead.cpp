@@ -1132,8 +1132,9 @@ void mongoReadFilter(
                 kfKey.num = doc[Constants::Mongo::NUM_VAR].get_array().value[i].get_int32();
 
                 x.push_back(doc[Constants::Mongo::X_VAR].get_array().value[i].get_double());
-                P.push_back(SQR(static_cast<double>(doc[Constants::Mongo::SIGMA_VAR].get_array().value[i].get_double()))
-                );
+                P.push_back(SQR(static_cast<double>(
+                    doc[Constants::Mongo::SIGMA_VAR].get_array().value[i].get_double()
+                )));
 
                 kfState.kfIndexMap[kfKey] = index;
                 index++;

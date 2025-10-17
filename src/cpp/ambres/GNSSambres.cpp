@@ -1,5 +1,6 @@
 #include "ambres/GNSSambres.hpp"
 #include <math.h>
+
 #define LOG_PI 1.14472988584940017
 #define SQRT2 1.41421356237309510
 #define AMB_RANG 10

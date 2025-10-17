@@ -7,6 +7,7 @@
 #include "orbprop/acceleration.hpp"
 #include "orbprop/coordinates.hpp"
 #include "orbprop/planets.hpp"
+
 Legendre ionLeg;
 double   ionSPHLastColatitude = -100;
 

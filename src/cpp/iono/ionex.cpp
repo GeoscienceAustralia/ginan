@@ -13,6 +13,7 @@
 #include "common/common.hpp"
 #include "common/constants.hpp"
 #include "common/navigation.hpp"
+
 /* get index
  */
 int getindex(double value, const double* range)

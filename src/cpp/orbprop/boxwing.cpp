@@ -7,6 +7,7 @@
 #include "common/common.hpp"
 #include "common/constants.hpp"
 #include "common/eigenIncluder.hpp"
+
 Vector3d getNormal(
     const Vector3d&       eD,
     const Vector3d&       eX,

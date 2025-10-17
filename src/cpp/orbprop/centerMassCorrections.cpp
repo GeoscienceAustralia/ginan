@@ -2,6 +2,7 @@
 #include <boost/log/trivial.hpp>
 #include <fstream>
 #include <iostream>
+
 CenterMassCorrections cmc;
 
 void CenterMassCorrections::read(const string& filename)

@@ -2,6 +2,7 @@
 
 #include "common/streamParser.hpp"
 #include <map>
+
 multimap<string, StreamParserPtr> streamParserMultimap;
 map<string, bool>                 streamDOAMap;
 

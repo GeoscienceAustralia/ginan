@@ -7,6 +7,7 @@
 #include "common/gTime.hpp"
 #include "common/navigation.hpp"
 #include "common/observations.hpp"
+
 map<string, map<GTime, Vector3d, std::greater<GTime>>> CustomDecoder::gyroDataMaps;
 map<string, map<GTime, Vector3d, std::greater<GTime>>> CustomDecoder::acclDataMaps;
 map<string, map<GTime, double, std::greater<GTime>>>   CustomDecoder::tempDataMaps;

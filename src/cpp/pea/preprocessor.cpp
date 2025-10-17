@@ -13,6 +13,7 @@
 #include "common/trace.hpp"
 #include "orbprop/coordinates.hpp"
 #include "pea/ppp.hpp"
+
 /** Use linear combinations of primary signals to detect jumps in carrier phase observations
  */
 Architecture Cycle_Slip_Detection__() {}

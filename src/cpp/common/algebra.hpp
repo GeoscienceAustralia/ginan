@@ -785,7 +785,8 @@ struct KFMeasEntry
         const InitialState& initialState = {}  ///< Initial conditions for new states
     )
     {
-        if (value == 0)
+        if (value ==
+            0)  // Eugene: Design entry value can be 0 in theory but still needs intial state?
         {
             return;
         }

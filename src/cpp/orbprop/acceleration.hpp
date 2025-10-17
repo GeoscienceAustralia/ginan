@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/eigenIncluder.hpp"
+
 struct Legendre
 {
     Legendre();

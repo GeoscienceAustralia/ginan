@@ -2,6 +2,7 @@
 #include "common/common.hpp"
 #include "common/observations.hpp"
 #include "iono/ionoModel.hpp"
+
 struct BspBasis
 {
     int    ind;    /* layer number */

@@ -3,6 +3,7 @@
 #include <mutex>
 #include "common/streamSerial.hpp"
 #include "common/tcpSocket.hpp"
+
 struct NtripResponder : TcpSocket
 {
     NtripResponder(const string& url_str) : TcpSocket(url_str) {}

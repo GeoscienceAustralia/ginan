@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/trace.hpp"
+
 struct PacketStatistics
 {
     long int numPreambleFound   = 0;

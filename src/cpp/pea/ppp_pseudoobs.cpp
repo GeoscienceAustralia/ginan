@@ -19,7 +19,7 @@
 #include "pea/minimumConstraints.hpp"
 #include "trop/tropModels.hpp"
 
-constexpr double PIVOT_MEAS_VARIANCE = 1e-5*1e-5;
+constexpr double PIVOT_MEAS_VARIANCE = 1e-5 * 1e-5;
 
 Architecture Pseudo_Observations__() {}
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
 Aod aod;
 
 void Aod::read(const string& filename, int maxDeg)

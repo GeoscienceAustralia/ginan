@@ -13,7 +13,7 @@
 #include "orbprop/coordinates.hpp"
 
 constexpr double PHASE_BIAS_STD = 0.05;
-bool ionoConfigured = false;
+bool             ionoConfigured = false;
 
 bool ippInRange(GTime time, VectorPos& ionPP)
 {

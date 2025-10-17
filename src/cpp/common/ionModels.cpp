@@ -13,13 +13,13 @@
 #include "common/trace.hpp"
 #include "orbprop/coordinates.hpp"
 
-constexpr double VAR_IONO = 60.0*60.0;  // init variance iono-delay
-constexpr double VAR_IONEX = 0.0*0.0;
-constexpr double ERR_BRDCI = 0.5;       // broadcast iono model error factor
+constexpr double VAR_IONO  = 60.0 * 60.0;  // init variance iono-delay
+constexpr double VAR_IONEX = 0.0 * 0.0;
+constexpr double ERR_BRDCI = 0.5;          // broadcast iono model error factor
 
-constexpr double VAR_NOTEC = 30.0*30.0; /* variance of no tec */
-constexpr double MIN_EL = 0.0;          /* min elevation angle (rad) */
-constexpr double MIN_HGT = -1000.0;     /* min user height (m) */
+constexpr double VAR_NOTEC = 30.0 * 30.0;  // variance of no tec
+constexpr double MIN_EL    = 0.0;          // min elevation angle (rad)
+constexpr double MIN_HGT   = -1000.0;      // min user height (m)
 
 int dataindex(int i, int j, int k, const int* ndata);
 
@@ -116,6 +116,7 @@ double ionmapf(
 
     return 1 / sqrt(1 - SQR(rp));
 }
+
 /* ionospheric pierce point position -------------------------------------------
  * compute ionospheric pierce point (ipp) position and slant factor
  * args   : double *pos      I   receiver position {lat,lon,h} (rad,m)
@@ -462,7 +463,7 @@ bool ionoModel(
         }
         case E_IonoMode::ESTIMATE:
         {
-            dion = ionoState;
+            dion = ionoState;  // Eugene: need to convert stec to delay (m)?
             var  = 0;
 
             return true;

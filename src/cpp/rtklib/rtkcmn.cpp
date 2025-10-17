@@ -11,6 +11,7 @@
 #include "common/enums.h"
 #include "common/navigation.hpp"
 #include "orbprop/coordinates.hpp"
+
 void updateLamMap(const GTime& time, SatPos& satPos)
 {
     E_Sys sys = satPos.Sat.sys;

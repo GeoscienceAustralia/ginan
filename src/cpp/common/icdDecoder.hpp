@@ -2,6 +2,7 @@
 
 #include "common/ephemeris.hpp"
 #include "common/rtcmDecoder.hpp"
+
 signed int gpsBitSFromWord(vector<int>& words, int word, int offset, int len);
 
 unsigned int gpsBitUFromWord(vector<int>& words, int word, int offset, int len);

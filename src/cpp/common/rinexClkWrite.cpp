@@ -19,8 +19,9 @@
 #include "common/sinex.hpp"
 #include "pea/inputsOutputs.hpp"
 
-constexpr double VERSION = 3.00;
 using std::map;
+
+constexpr double VERSION = 3.00;
 
 /* macro defintions */
 

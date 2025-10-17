@@ -9,6 +9,7 @@
 #include <ncurses.h>
 #include <thread>
 #include <unistd.h>
+
 WINDOW* window;
 WINDOW* menu;
 WINDOW* bar;

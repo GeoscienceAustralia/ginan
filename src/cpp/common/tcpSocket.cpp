@@ -263,7 +263,8 @@ void TcpSocket::timeoutHandler(const boost::system::error_code& err)
 
     if (isConnected == false)
     {
-        BOOST_LOG_TRIVIAL(error
+        BOOST_LOG_TRIVIAL(
+            error
         ) << url.sanitised()
           << " connection timed out, check paths, usernames + passwords, and ports";
         delayedReconnect();
@@ -450,13 +451,13 @@ void TcpSocket::sslHandshakeHandler(const boost::system::error_code& err)
 }
 
 void TcpSocket::connectHandler(
-    const boost::system::error_code& err,
-    tcp::resolver::iterator          endpointIterator
+    const boost::system::error_code&      err,
+    tcp::resolver::results_type::iterator endpointIterator
 )
 {
     if (err)
     {
-        if (endpointIterator != tcp::resolver::iterator())
+        if (endpointIterator != tcp::resolver::results_type::iterator())
         {
             // The connection failed. Try the next endpoint in the list.
             tcp::endpoint endpoint = *endpointIterator;
@@ -497,7 +498,7 @@ void TcpSocket::connectHandler(
 
 void TcpSocket::resolveHandler(
     const boost::system::error_code& err,
-    tcp::resolver::iterator          endpointIterator
+    tcp::resolver::results_type      results
 )
 {
     if (err)
@@ -511,9 +512,9 @@ void TcpSocket::resolveHandler(
     // Attempt a connection to the first endpoint in the list. Each endpoint will be tried until we
     // successfully establish a connection.
 
-    tcp::endpoint endpoint = *endpointIterator;
+    auto endpointIterator = results.begin();
     socket_ptr->async_connect(
-        endpoint,
+        *endpointIterator,
         boost::bind(&TcpSocket::connectHandler, this, bp::error, ++endpointIterator)
     );
 }
@@ -540,10 +541,9 @@ void TcpSocket::connect()
 
     // tcp::resolver::query query(url.host, url.portStr,
     // boost::asio::ip::resolver_query_base::numeric_service);
-    tcp::resolver::query query(boost::asio::ip::tcp::v4(), url.host, url.portStr);
-
     _resolver->async_resolve(
-        query,
+        url.host,
+        url.portStr,
         boost::bind(&TcpSocket::resolveHandler, this, bp::error, bp::iterator)
     );
 }

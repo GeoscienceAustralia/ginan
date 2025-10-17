@@ -2,34 +2,42 @@
 #include <fstream>
 #include "pea/peaCommitVersion.h"
 #include "pea/peaLibVersion.h"
+
 string ginanCommitHash()
 {
     return GINAN_COMMIT_HASH;
 }
+
 string ginanCommitVersion()
 {
     return GINAN_COMMIT_VERSION;
 }
+
 string ginanBranchName()
 {
     return GINAN_BRANCH_NAME;
 }
+
 string ginanCommitDate()
 {
     return GINAN_COMMIT_DATE;
 }
+
 string ginanEigenVersion()
 {
     return GINAN_EIGEN;
 }
+
 string ginanMongoVersion()
 {
     return GINAN_MONGOCXX;
 }
+
 string ginanCompilerVersion()
 {
     return GINAN_COMPILER;
 }
+
 string ginanBoostVersion()
 {
     return GINAN_BOOST;

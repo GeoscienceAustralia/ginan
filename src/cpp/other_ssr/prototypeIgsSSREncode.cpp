@@ -4,6 +4,7 @@
 #include "common/satSys.hpp"
 #include "common/ssr.hpp"
 #include "other_ssr/otherSSR.hpp"
+
 map<SatSys, SSRClk> last_clock;
 
 unsigned short IGS_SSR_subtype(IgsSSRSubtype type, E_Sys sys)

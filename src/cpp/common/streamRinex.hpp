@@ -3,6 +3,7 @@
 #include "common/navigation.hpp"
 #include "common/rinex.hpp"
 #include "common/streamObs.hpp"
+
 struct RinexParser : Parser, ObsLister
 {
     char                           ctype;

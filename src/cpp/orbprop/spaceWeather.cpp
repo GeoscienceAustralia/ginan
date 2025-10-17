@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
 SpaceWeather spaceWeatherData;
 
 /** Parser of each data line

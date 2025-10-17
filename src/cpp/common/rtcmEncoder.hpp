@@ -13,8 +13,7 @@ typedef map<SatSys, SSRUra>      SsrUraMap;
 typedef map<SatSys, SSRHRClk>    SsrHRClkMap;
 typedef map<SatSys, SSRCodeBias> SsrCBMap;
 typedef map<SatSys, SSRPhasBias> SsrPBMap;
-
-typedef map<SatSys, SSROut> SsrOutMap;
+typedef map<SatSys, SSROut>      SsrOutMap;
 
 void calculateSsrComb(
     GTime      referenceTime,

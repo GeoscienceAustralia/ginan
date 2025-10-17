@@ -2,6 +2,7 @@
 
 #include "common/mongo.hpp"
 #include "common/rtcmEncoder.hpp"
+
 struct SSRMeta;
 
 SsrOutMap mongoReadOrbClk(GTime referenceTime, SSRMeta& ssrMeta, int masterIod, E_Sys targetSys);

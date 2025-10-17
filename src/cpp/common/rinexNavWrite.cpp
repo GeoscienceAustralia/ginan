@@ -10,6 +10,7 @@
 #include "common/rinexClkWrite.hpp"
 #include "common/rinexObsWrite.hpp"
 #include "common/trace.hpp"
+
 struct RinexNavFileOutput
 {
     map<E_Sys, bool> sysMap;

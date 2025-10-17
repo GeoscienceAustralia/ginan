@@ -16,6 +16,7 @@
 #include "common/erp.hpp"
 #include "orbprop/iers2010.hpp"
 #include "orbprop/planets.hpp"
+
 array<FrameSwapper, 2> FrameSwapper::cacheArr;
 
 FrameSwapper::FrameSwapper(GTime time, const ERPValues& erpv) : time0{time}, erpv{erpv}

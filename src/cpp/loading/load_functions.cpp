@@ -15,6 +15,7 @@
 #include "loading/loading.h"
 #include "loading/tide.h"
 #include "loading/utils.h"
+
 /** Compute the loading of a single point
  */
 void load_1_point(

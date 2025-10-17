@@ -41,12 +41,12 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
     string description;
     if (postFit)
     {
-        description = "postfit";
+        description = "Postfit";
         residual    = kfMeas.VV(measIndex);
     }
     else
     {
-        description = "prefit";
+        description = "Prefit";
         residual    = kfMeas.V(measIndex);
     }
 

@@ -4,6 +4,7 @@
 #include "common/enums.h"
 #include "common/gTime.hpp"
 #include "common/trace.hpp"
+
 /** Persistent data for yaw model
  */
 struct AttStatus

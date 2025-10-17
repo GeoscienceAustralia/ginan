@@ -4,6 +4,7 @@
 #include <boost/log/trivial.hpp>
 #include <stdexcept>
 #include "common/constants.hpp"
+
 const double ura_eph[] =  ///< URA values (ref [3] 20.3.3.3.1.1)
     {2.4, 3.4, 4.85, 6.85, 9.65, 13.65, 24, 48, 96, 192, 384, 768, 1536, 3072, 6144};
 

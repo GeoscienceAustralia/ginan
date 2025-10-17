@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+
 /** Space Weather data struct
  */
 struct SpaceWeatherData

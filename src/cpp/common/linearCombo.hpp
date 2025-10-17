@@ -8,6 +8,11 @@
 
 using std::map;
 
+// forward declarations
+struct Navigation;
+struct ObsList;
+struct GObs;
+
 struct S_LC
 {
     bool valid = false;
@@ -48,11 +53,6 @@ struct lc_t
 
     map<std::pair<E_FType, E_FType>, S_LC> lcMap;  ///< interfrequency linear combination parameters
 };
-
-// forward declarations
-struct Navigation;
-struct ObsList;
-struct GObs;
 
 S_LC getLC(
     double  L_A,

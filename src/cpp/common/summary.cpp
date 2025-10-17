@@ -4,6 +4,7 @@
 #include "common/acsConfig.hpp"
 #include "common/interactiveTerminal.hpp"
 #include "common/receiver.hpp"
+
 void outputStatistics(
     Trace&            trace,
     map<string, int>& statisticsMap,

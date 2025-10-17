@@ -786,6 +786,8 @@ void updateRecClocks(
 
     for (auto& [id, rec] : receiverMap)
     {
+        auto trace = getTraceFile(rec);
+
         if (rec.isPseudoRec)
         {
             continue;
@@ -798,12 +800,11 @@ void updateRecClocks(
             continue;
         }
 
-        auto  trace   = getTraceFile(rec);
         auto& recOpts = acsConfig.getRecOpts(id);
 
-        InitialState init = initialStateFromConfig(recOpts.clk);
+        InitialState clkInit = initialStateFromConfig(recOpts.clk);
 
-        if (init.estimate == false)
+        if (clkInit.estimate == false)
         {
             continue;
         }
@@ -813,33 +814,33 @@ void updateRecClocks(
         clkKey.str     = id;
         clkKey.rec_ptr = &rec;
 
-        double C_dtRecAdj = rec.sol.dtRec_m[E_Sys::GPS] - rec.sol.dtRec_m_pppp_old[E_Sys::GPS];
+        double recClkAdj =
+            rec.sol.dtRec_m[E_Sys::GPS] -
+            rec.sol
+                .dtRec_m_pppp_old[E_Sys::GPS];  // Adjust rec clock prediction by SPP clock change
 
-        // for non-first epochs, and if enabled, do rounding
+        // Do rounding if only adjust receiver clock jumps (i.e. integer times of
+        // half-milliseconds)
         if (rec.sol.dtRec_m_pppp_old[E_Sys::GPS] && acsConfig.adjust_clocks_for_jumps_only)
         {
             const double scalar = 1000 * 2 / CLIGHT;
 
-            double halfMilliseconds = C_dtRecAdj * scalar;
+            double halfMilliseconds = recClkAdj * scalar;
 
-            C_dtRecAdj = round(halfMilliseconds) / scalar;
+            recClkAdj = round(halfMilliseconds) / scalar;
 
-            if (C_dtRecAdj)
+            if (recClkAdj)
             {
                 trace << "\n"
                       << "Jump of " << halfMilliseconds * 0.5 << "ms found, rounding";
             }
         }
 
-        // if (C_dtRecAdj)
-        {
-            trace << "\n"
-                  << "Adjusting " << clkKey.str << " clock by " << C_dtRecAdj;
-        }
+        trace << "\n" << tsync << "\tAdjusting " << clkKey.str << " clock by " << recClkAdj;
 
         rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = rec.sol.dtRec_m[E_Sys::GPS];
 
-        kfState.setKFTrans(clkKey, KFState::oneKey, C_dtRecAdj, init);
+        kfState.setKFTrans(clkKey, KFState::oneKey, recClkAdj, clkInit);
     }
 }
 

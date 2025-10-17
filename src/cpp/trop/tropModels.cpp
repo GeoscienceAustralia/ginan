@@ -10,6 +10,7 @@
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
 #include "orbprop/coordinates.hpp"
+
 struct TropMapBasis
 {
     int         regionID; /* Atmospheric region ID */

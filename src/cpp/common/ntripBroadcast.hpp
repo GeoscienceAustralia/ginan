@@ -8,6 +8,7 @@
 #include "common/rtcmEncoder.hpp"
 #include "common/streamNtrip.hpp"
 #include "common/tcpSocket.hpp"
+
 struct NtripUploader : NtripResponder, RtcmEncoder
 {
     boost::posix_time::ptime timeNextMessage;

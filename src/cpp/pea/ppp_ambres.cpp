@@ -17,6 +17,7 @@
 #include "common/common.hpp"
 #include "common/eigenIncluder.hpp"
 #include "common/trace.hpp"
+
 static bool filterError = false;
 
 bool recordFilterError(RejectCallbackDetails rejectDetails)

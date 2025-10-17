@@ -8,19 +8,19 @@
 #include "common/observations.hpp"
 #include "common/satStat.hpp"
 #include "pea/ppp.hpp"
+
 /** Solution of user mode processing functinos
  */
 struct Solution
 {
-    /* solution type */
     GTime              sppTime;           ///< time (GPST)
+    KFState            sppState;          ///< SPP filter object
+    VectorEcef         sppPos;            ///< Position vector from SPP
     map<E_Sys, double> dtRec_m;           ///< receiver clock bias to time systems (m)
     map<E_Sys, double> dtRec_m_pppp_old;  ///< previous receiver clock bias to time systems (m)
     E_Solution         status;            ///< solution status
-    int                numMeas = 0;       ///< number of valid satellites
-    KFState            sppState;          ///< SPP filter object
-    Dops               dops;              ///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
-    VectorEcef         sppRRec;           ///< Position vector from SPP
+    int                numMeas = 0;  ///< number of valid measurements used to estimate solution
+    Dops               dops;         ///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
 };
 
 struct RinexStation

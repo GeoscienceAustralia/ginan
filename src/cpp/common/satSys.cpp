@@ -1,6 +1,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "common/satSys.hpp"
+
 map<SatSys, SatSys::SatData> SatSys::satDataMap = {
 
 };

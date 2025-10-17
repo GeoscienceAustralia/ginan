@@ -4,10 +4,9 @@
 #include "iono/ionoModel.hpp"
 #include "orbprop/coordinates.hpp"
 
-constexpr int                    LEG_ITER_NUM = 100;
-constexpr double                 LEG_EPSILON0 = (1.e-7);  // Legendre function accuracy
-constexpr double                 LEG_EPSILON1 = (1.e-7);  // Legendre function degree accuracy
-
+constexpr int    LEG_ITER_NUM = 100;
+constexpr double LEG_EPSILON0 = (1.e-7);  // Legendre function accuracy
+constexpr double LEG_EPSILON1 = (1.e-7);  // Legendre function degree accuracy
 
 struct ScpBasis
 {

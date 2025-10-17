@@ -2,6 +2,7 @@
 
 #include "common/eigenIncluder.hpp"
 #include "common/trace.hpp"
+
 struct SatPos;
 
 VectorEci keplers2Inertial(Trace& trace, const Vector6d& keplers0);

@@ -482,7 +482,7 @@ inline static void pppRecPCO(COMMON_PPP_ARGS)
             kfKey.str  = rec.id;
             kfKey.num  = i;
 
-            measEntry.addDsgnEntry(kfKey, -bodyPCO.dot(dEdQ.col(i)));
+            measEntry.addDsgnEntry(kfKey, -bodyPCO.dot(dEdQ.col(i)));  // Eugene: init?
         }
 
     // todo aaron, needs noise
@@ -947,9 +947,8 @@ inline static void pppIonStec3(COMMON_PPP_ARGS)
 
         double vtec = ionosphere_stec / fs;  // restore VTEC for nMax calculation
 
-        double nMax = 20.0e12 + 14.0e12 / 3.17e18 *
-                                    (vtec * 1e16 - 4.55e18
-                                    );  // calculate nMax with linear interpolation, ref: GAMIT code
+        // calculate nMax with linear interpolation
+        double nMax = 20.0e12 + 14.0e12 / 3.17e18 * (vtec * 1e16 - 4.55e18);  // ref: GAMIT code
 
         if (nMax < 0)
             nMax = 0;  // avoid being negative
@@ -980,11 +979,9 @@ inline static void pppIonStec3(COMMON_PPP_ARGS)
             double stec = diono * SQR(FREQ1) / TEC_CONSTANT;  // restore STEC
             double vtec = stec / fs;                          // restore VTEC for nMax calculation
 
-            // nMax = 14.0e12 / 3.17e18 * stec*1e16;	// calculate nMax, see ref [1]
-            double nMax =
-                20.0e12 + 14.0e12 / 3.17e18 *
-                              (vtec * 1e16 - 4.55e18
-                              );  // calculate nMax with linear interpolation, ref: GAMIT code
+            // Calculate nMax with linear interpolation
+            // nMax = 14.0e12 / 3.17e18 * stec * 1e16;	// ref [1]
+            double nMax = 20.0e12 + 14.0e12 / 3.17e18 * (vtec * 1e16 - 4.55e18);  // ref: GAMIT code
 
             if (nMax < 0)
                 nMax = 0;  // avoid being negative
@@ -1442,7 +1439,7 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
     {
         BOOST_LOG_TRIVIAL(warning)
             << "Satellite phase bias not found for " << Sat.id() << " : " << sig.code._to_string()
-            << ". Using undefined_sigma: " << recOpts.phaseBiasModel.undefined_sigma;
+            << ". Using undefined_sigma: " << satOpts.phaseBiasModel.undefined_sigma;
     }
 
     measEntry.addNoiseEntry(kfKey, 1, satPhasBiasVar);

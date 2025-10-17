@@ -15,6 +15,7 @@
 #include "common/rinexClkWrite.hpp"
 #include "common/rinexObsWrite.hpp"
 #include "orbprop/coordinates.hpp"
+
 /* macro defintions */
 constexpr double VERSION = 3.00;
 

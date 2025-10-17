@@ -5,6 +5,7 @@
 #include "common/biases.hpp"
 #include "common/constants.hpp"
 #include "common/enums.h"
+
 /** Convert observation code string to enum code
  */
 E_ObsCode str2code(

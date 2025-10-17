@@ -1,4 +1,5 @@
 #include "common/acsConfig.hpp"
+
 map<string, string> ACSConfig::docs = {
 
     {"outputs", R"config(Specifies options to enable outputs and specify file locations.

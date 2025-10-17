@@ -7,6 +7,7 @@
 #include "common/observations.hpp"
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
+
 /** Create combinations between specific observation values
  */
 S_LC getLC(

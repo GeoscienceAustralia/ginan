@@ -716,10 +716,8 @@ void KFState::stateTransition(
 
                 for (int i = 0; i < tExp; i++)
                 {
-                    scalar =
-                        tau *
-                        (tempTerm - scalar
-                        );  // recursive formula derived according to Ref: Carpenter and Lee (2008)
+                    scalar = tau * (tempTerm - scalar);  // recursive formula derived according to
+                                                         // Ref: Carpenter and Lee (2008)
                     tempTerm *= tgap / (i + 1);
                 }
 
@@ -912,9 +910,9 @@ void KFState::stateTransition(
                                                 // divide by zero
                                      - 4 * tau * (1 - exp(-1 * tgap / tau)) +
                                      1 * tau * (1 - exp(-2 * tgap / tau))
-                                    );  // correct formula re-derived according to Ref: Carpenter
-                                        // and Lee (2008)
-                                // 								Q0(sourceIndex, destIndex) +=
+                                    );  // correct formula re-derived according
+                                        // to Ref: Carpenter and Lee (2008)
+                                // Q0(sourceIndex, destIndex) +=
                                 // sourceProcessNoise / 2
                                 // * tau * tau * (1-exp(-tgap/tau)) * (1-exp(-tgap/tau));
                                 // Q0(destIndex, sourceIndex) += sourceProcessNoise / 2	* tau * tau
@@ -1104,9 +1102,8 @@ void KFState::preFitSigmaChecks(
               << time << "\tLargest meas  error is : " << maxMeasRatio << "\tAT " << measChunkIndex
               << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
-        auto mask =
-            (H.col(stateIndex).array() != 0
-            );  // Mask out referencing measurements, i.e. non-zero values in column stateIndex of H
+        auto mask = (H.col(stateIndex).array() != 0);  // Mask out referencing measurements, i.e.
+                                                       // non-zero values in column stateIndex of H
         measRatios.array() *=
             mask.cast<double>();  // Set measRatios of non-referencing measurements to 0
 
@@ -1322,9 +1319,8 @@ void KFState::postFitSigmaChecks(
               << time << "\tLargest meas  error is : " << maxMeasRatio << "\tAT " << measChunkIndex
               << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
-        auto mask =
-            (H.col(stateIndex).array() != 0
-            );  // Mask out referencing measurements, i.e. non-zero values in column stateIndex of H
+        auto mask = (H.col(stateIndex).array() != 0);  // Mask out referencing measurements, i.e.
+                                                       // non-zero values in column stateIndex of H
         measRatios.array() *=
             mask.cast<double>();  // Set measRatios of non-referencing measurements to 0
 
@@ -1459,8 +1455,9 @@ bool KFState::kFilter(
     KFMeas&   kfMeas,  ///< Measurements, noise, and design matrices
     VectorXd& xp,      ///< Post-update state vector
     MatrixXd& Pp,      ///< Post-update covariance of states
-    VectorXd& dx,     ///< Post-update state innovation	// Eugene: change name to avoid interference
-    MatrixXd& Qinv,   ///< Inverse of innovation covariance matrix
+    VectorXd&
+              dx,    ///< Post-update state innovation	 // Eugene: change name to avoid interference
+    MatrixXd& Qinv,  ///< Inverse of innovation covariance matrix
     MatrixXd& QinvH,  ///< Qinv*H matrix for omega test
     int       begX,   ///< Index of first state element to process
     int       numX,   ///< Number of state elements to process
@@ -1497,6 +1494,7 @@ bool KFState::kFilter(
             {
                 BOOST_LOG_TRIVIAL(warning)
                     << "Kalman filter inverter type " << inverter << " not supported, reverting";
+
                 inverter = E_Inverter::LDLT;
                 continue;
             }
@@ -1706,6 +1704,7 @@ bool KFState::leastSquare(
             {
                 BOOST_LOG_TRIVIAL(warning) << "Least squares inverter type " << lsq_inverter
                                            << " not supported, reverting";
+
                 lsq_inverter = E_Inverter::LDLT;
                 continue;
             }
@@ -2494,7 +2493,7 @@ void KFState::leastSquareInitStates(
     KFMeas&   kfMeas,      ///< Measurement object
     bool      initCovars,  ///< Option to also initialise off-diagonal covariance values
     VectorXd* dx_ptr,      ///< Optional output of adjustments
-    bool      innovReady   ///< Perform conversion between V & Y
+    bool      innovReady   ///< Residuals already calculated
 )
 {
     lsqRequired = false;
@@ -2568,8 +2567,10 @@ void KFState::leastSquareInitStates(
         int measIndex  = lsqMeasCount + i;
         int stateIndex = pseudoMeasStateIndicies[i];
 
-        leastSquareMeas.Y(measIndex)             = x(stateIndex);
-        leastSquareMeas.R(measIndex, measIndex)  = P(stateIndex, stateIndex);
+        leastSquareMeas.Y(measIndex) = x(stateIndex);
+        leastSquareMeas.R(measIndex, measIndex) =
+            P(stateIndex, stateIndex);  // todo Eugene: check equivalence w/ back-subsitution -
+                                        // pseudo var should be 0 instead of P, or doesn't matter?
         leastSquareMeas.H(measIndex, stateIndex) = 1;
     }
 
@@ -2638,14 +2639,14 @@ void KFState::leastSquareInitStates(
         if (dx_ptr)
         {
             x(stateRowIndex) += newStateVal;
-            P(stateRowIndex, stateRowIndex) = newStateCov;
-            kfMeas.VV                       = kfMeas.Y - kfMeas.H * dx;
+            kfMeas.VV = kfMeas.Y - kfMeas.H * dx;
         }
         else
         {
-            x(stateRowIndex)                = newStateVal;
-            P(stateRowIndex, stateRowIndex) = newStateCov;
+            x(stateRowIndex) = newStateVal;
         }
+
+        P(stateRowIndex, stateRowIndex) = newStateCov;
 
         if (initCovars)
         {

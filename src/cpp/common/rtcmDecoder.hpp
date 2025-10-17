@@ -8,6 +8,7 @@
 #include "common/rtcmEncoder.hpp"
 #include "common/rtcmTrace.hpp"
 #include "common/streamObs.hpp"
+
 struct SignalInfo
 {
     uint8_t   signal_id;

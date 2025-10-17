@@ -4,6 +4,7 @@
 #include "common/enums.h"
 #include "common/receiver.hpp"
 #include "common/streamParser.hpp"
+
 struct ObsLister
 {
     list<ObsList> obsListList;

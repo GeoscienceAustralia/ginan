@@ -6,6 +6,7 @@
 #include "common/navigation.hpp"
 #include "common/observations.hpp"
 #include "common/trace.hpp"
+
 bool satClkKalman(Trace& trace, GTime time, SatPos& satPos, const KFState* kfState_ptr)
 {
     if (kfState_ptr == nullptr)

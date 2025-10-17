@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/eigenIncluder.hpp"
+
 struct OrbitOptions;
 
 Vector3d applyBoxwingSrp(

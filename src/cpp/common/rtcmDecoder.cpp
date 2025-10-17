@@ -10,6 +10,7 @@
 #include "common/rtcmEncoder.hpp"
 #include "common/streamRtcm.hpp"
 #include "other_ssr/otherSSR.hpp"
+
 FileType RTCM__() {}
 
 FileType SSR__() {}

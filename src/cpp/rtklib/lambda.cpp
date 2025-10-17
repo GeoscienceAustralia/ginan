@@ -12,11 +12,12 @@
  *
  *-----------------------------------------------------------------------------*/
 
-#include <math.h>
 #include <algorithm>
+#include <math.h>
 #include "common/algebra.hpp"
 #include "common/common.hpp"
 #include "common/trace.hpp"
+
 /* constants/macros ----------------------------------------------------------*/
 
 constexpr int LOOPMAX = 10000; /* maximum count of search loop */

@@ -6,6 +6,7 @@
 #include "common/common.hpp"
 #include "common/trace.hpp"
 #include "pea/ppp.hpp"
+
 string noteONE = R"raw(
 This is the basic form of the outputStates function's output, describing the times, keys, values, variances, and adjustments of everything in the filter.
 Note that the filter is not empty upon initialisation, it contains a ONE element that is always present with state value 1, and used for internal calculations.
