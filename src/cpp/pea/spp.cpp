@@ -13,7 +13,6 @@
 #include "common/eigenIncluder.hpp"
 #include "common/enums.h"
 #include "common/ephPrecise.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/ionModels.hpp"
 #include "common/navigation.hpp"
 #include "common/receiver.hpp"
@@ -27,25 +26,27 @@ using std::ostringstream;
 
 Architecture SPP__() {}
 
-constexpr double ERR_ION   = 7.0;  ///< ionospheric delay std (m)
-constexpr double ERR_BRDCI = 0.5;  ///< broadcast iono model error factor
-constexpr double ERR_CBIAS = 0.3;  ///< code bias error std (m)
-
-/** Calculate pseudorange with code bias correction
+/** Calculate pseudorange and code bias correction
  */
 bool prange(
-    Trace&     trace,       ///< Trace file to output to
-    GObs&      obs,         ///< Observation to calculate pseudorange for
-    E_IonoMode ionoMode,    ///< Ionospheric correction mode
-    double&    range,       ///< Pseudorange value output
-    double&    measVar,     ///< Pseudorange variance output
-    double&    biasVar,     ///< Bias variance output
-    KFState*   kfState_ptr  ///< Optional kfstate to retrieve biases from
+    Trace&      trace,       ///< Trace file to output to
+    GObs&       obs,         ///< Observation to calculate pseudorange for
+    E_IonoMode& ionoMode,    ///< Ionospheric correction mode
+    E_FType&    ft_A,        ///< Primary frequency used for calculating pseudorange
+    E_FType&    ft_B,        ///< Secondary frequency used for calculating pseudorange
+    double&     range,       ///< Pseudorange value output
+    double&     measVar,     ///< Pseudorange variance output
+    double&     bias,        ///< Bias value output
+    double&     biasVar,     ///< Bias variance output
+    KFState*    kfState_ptr  ///< Optional kfstate to retrieve biases from
 )
 {
+    ft_A    = NONE;
+    ft_B    = NONE;
     range   = 0;
     measVar = 0;
-    biasVar = SQR(ERR_CBIAS);
+    bias    = 0;
+    biasVar = 0;
 
     E_Sys sys = obs.Sat.sys;
     if (sys == +E_Sys::NONE)
@@ -61,160 +62,115 @@ bool prange(
         return false;
     }
 
+    // list<E_FType> ftList = {f_1, f_2, f_3};
+    list<E_FType> ftList = {f_1};  // Temporary fix
+    if (f_2 != f_1)
+    {
+        ftList.push_back(f_2);
+    }
+    if (f_3 != f_1 && f_3 != f_2)
+    {
+        ftList.push_back(f_3);
+    }
+
     SatNav& satNav = *obs.satNav_ptr;
     auto&   lam    = satNav.lamMap;
 
-    if (obs.sigs[f_1].P == 0 || lam[f_1] == 0)
+    // Get the first available pseudorange and its code bias according to ftList and update
+    // ftList
+    auto getPrange = [&](E_FType& ft, double& meas, double& varMeas, double& bias, double& varBias)
     {
-        return false;
-    }
-
-    // Get a bias if the default invalid value is still present
-    double& B1     = obs.sigs[f_1].biases[CODE];
-    double& var1   = obs.sigs[f_1].biasVars[CODE];
-    bool    passB1 = true;
-    if (isnan(B1))
-    {
-        B1     = 0;
-        var1   = 0;
-        passB1 = getBias(
-            trace,
-            obs.time,
-            obs.Sat.id(),
-            obs.Sat,
-            obs.sigs[f_1].code,
-            CODE,
-            B1,
-            var1,
-            kfState_ptr
-        );
-    }
-
-    double P1 = obs.sigs[f_1].P - B1;
-
-    double PC = 0;
-    if (ionoMode == +E_IonoMode::IONO_FREE_LINEAR_COMBO) /* dual-frequency */
-    {
-        if (obs.sigs[f_2].P == 0 || lam[f_2] == 0)
+        while (ftList.size() > 0)
         {
-            return false;
-        }
+            ft = ftList.front();
+            ftList.pop_front();
 
-        double gamma = SQR(lam[f_2]) / SQR(lam[f_1]); /* f1^2/f2^2 */
+            if (obs.sigs[ft].P == 0 || lam[ft] == 0)
+            {
+                ft = NONE;
 
-        double& B2     = obs.sigs[f_2].biases[CODE];
-        double& var2   = obs.sigs[f_2].biasVars[CODE];
-        bool    passB2 = true;
-        if (isnan(B2))
-        {
-            B2     = 0;
-            var2   = 0;
-            passB2 = getBias(
+                continue;
+            }
+
+            meas    = obs.sigs[ft].P;
+            varMeas = obs.sigs[ft].codeVar;
+
+            // Get a bias if the default invalid value is still present
+            string sigName = obs.sigs[ft].code._to_string();
+            auto&  satOpts = acsConfig.getSatOpts(obs.Sat, {sigName});
+
+            bias      = 0;
+            varBias   = SQR(satOpts.codeBiasModel.undefined_sigma);
+            bool pass = getBias(
                 trace,
                 obs.time,
                 obs.Sat.id(),
                 obs.Sat,
-                obs.sigs[f_2].code,
+                obs.sigs[ft].code,
                 CODE,
-                B2,
-                var2,
+                bias,
+                varBias,
                 kfState_ptr
             );
+
+            if (pass == false)
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Bias not found for " << obs.Sat.id() << " on "
+                    << obs.sigs[ft].code._to_string()
+                    << ", using undefined_sigma: " << satOpts.codeBiasModel.undefined_sigma;
+            }
+
+            break;
         }
+    };
 
-        double P2 = obs.sigs[f_2].P - B2;
+    double P_A       = 0;
+    double var_A     = 0;
+    double bias_A    = 0;
+    double varBias_A = 0;
+    getPrange(ft_A, P_A, var_A, bias_A, varBias_A);
 
-        /* iono-free combination */
-        PC = (gamma * P1 - P2) / (gamma - 1);
-    }
-    else /* single-frequency */
+    if (P_A == 0)  // No pseudorange available
     {
-        if (P1 == 0)
-        {
-            return false;
-        }
-
-        if (passB1 == false)
-        {
-            BOOST_LOG_TRIVIAL(warning) << "Bias not found in " << __FUNCTION__ << " for "
-                                       << obs.Sat.id() << " on " << obs.sigs[f_1].code._to_string();
-        }
-
-        PC = P1;
+        return false;
     }
 
-    range   = PC;
-    measVar = obs.sigs[f_1].codeVar;  // todo aaron, use combo?
-
-    if (var1)
-        biasVar = var1;
-
-    return true;
-}
-
-/** Compute ionospheric corrections
- */
-bool ionocorr(
-    GTime      time,      ///< Time
-    VectorPos& pos,       ///< Receiver position in LLH
-    AzEl&      azel,      ///< Azimuth and elevation
-    E_IonoMode ionoMode,  ///< Ionospheric correction model
-    double&    dIono,     ///< Ionospheric delay (L1) value output
-    double&    var        ///< Ionospheric delay (L1) variance output
-)
-{
-    // 	trace(4, "ionocorr: time=%s opt=%d sat=%s pos=%.3f %.3f azel=%.3f %.3f\n",
-    // 			time.to_string(3).c_str(),
-    // 			ionoopt,
-    // 			id,
-    // 			pos.latDeg(),
-    // 			pos.lonDeg(),
-    // 			azel[0]	*R2D,
-    // 			azel[1]	*R2D);
+    range   = P_A;
+    measVar = var_A;
+    bias    = bias_A;
+    biasVar = varBias_A;
 
     if (ionoMode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
     {
-        dIono = 0;
-        var   = 0;
+        double P_B       = 0;
+        double var_B     = 0;
+        double bias_B    = 0;
+        double varBias_B = 0;
+        getPrange(ft_B, P_B, var_B, bias_B, varBias_B);
 
-        return true;
-    }
-
-    /* broadcast model */
-    if (ionoMode == +E_IonoMode::BROADCAST)
-    {
-        E_Sys        sys  = E_Sys::GPS;
-        E_NavMsgType type = defNavMsgType[sys];
-
-        auto ion_ptr = seleph<ION>(std::cout, time, sys, type, nav);
-
-        double* vals = nullptr;
-        if (ion_ptr != nullptr)
-            vals = ion_ptr->vals;
-
-        dIono = ionmodel(time, vals, pos, azel);
-        var   = SQR(dIono * ERR_BRDCI);
-
-        return true;
-    }
-
-    dIono = 0;
-    var   = SQR(ERR_ION);
-
-    /* tmp fix : KH
-    if (ionoopt ==  E_IonoMode::TOTAL_ELECTRON_CONTENT)
-    {
-        int res = iontec(time, &nav, pos, azel, 1, dIono, var);
-        if (!res)
+        if (P_B == 0 || ft_B == NONE)
         {
-            dIono = 0;
-            var =	SQR(ERR_ION);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Code measurement not available on secondary frequency for " << obs.Sat.id()
+                << ", falling back to single-frequency";
+
+            ionoMode = E_IonoMode::BROADCAST;
         }
-        return res;
+        else
+        {
+            // Iono-free combination
+            double c1 = SQR(lam[ft_B]) / (SQR(lam[ft_B]) - SQR(lam[ft_A]));
+            double c2 = 1 - c1;
+
+            range = c1 * P_A + c2 * P_B;
+            bias  = c1 * bias_A + c2 * bias_B;
+
+            measVar = SQR(c1) * var_A + SQR(c2) * var_B;
+            biasVar = abs(SQR(c1) * varBias_A - SQR(c2) * varBias_B);  // Eugene: bias_A and
+            // bias_B are expected to be fully correlated?
+        }
     }
-    */
-    // if (ionoopt != E_IonoMode::OFF)	fprintf(stderr,"SPP not unsupporting ionosphere mode %s",
-    // ionoopt._to_string());
 
     return true;
 }
@@ -275,107 +231,100 @@ void printFailures(
     ObsList&      obsList  ///< List of observations for this epoch
 )
 {
-    InteractiveTerminal ss(string("Failures/") + id, nullStream);
+    tracepdeex(4, std::cout, "\nFailures:");
+    tracepdeex(4, std::cout, "\n%20s ", "");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%c", obs.Sat.sysChar());
+    tracepdeex(4, std::cout, "\n%20s ", "");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", obs.Sat.prn / 10 % 10);
+    tracepdeex(4, std::cout, "\n%20s ", "");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", obs.Sat.prn % 10);
 
-    tracepdeex(4, ss, "\nFailures:");
-    tracepdeex(4, ss, "\n%20s ", "");
+    tracepdeex(4, std::cout, "\n%20s:", "failExclude");
     for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%c", obs.Sat.sysChar());
-    tracepdeex(4, ss, "\n%20s ", "");
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureExclude);
+    tracepdeex(4, std::cout, "\n%20s:", "failNoSatPos");
     for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", obs.Sat.prn / 10 % 10);
-    tracepdeex(4, ss, "\n%20s ", "");
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureNoSatPos);
+    tracepdeex(4, std::cout, "\n%20s:", "failNoSatClock");
     for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", obs.Sat.prn % 10);
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureNoSatClock);
+    tracepdeex(4, std::cout, "\n%20s:", "failNoPseudorange");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureNoPseudorange);
+    tracepdeex(4, std::cout, "\n%20s:", "failIodeConsistency");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureIodeConsistency);
+    tracepdeex(4, std::cout, "\n%20s:", "failBroadcastEph");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureBroadcastEph);
+    tracepdeex(4, std::cout, "\n%20s:", "failRSat");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureRSat);
+    tracepdeex(4, std::cout, "\n%20s:", "failSSRFail");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSSRFail);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrPosEmpty");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrPosEmpty);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrClkEmpty");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrClkEmpty);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrPosTime");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrPosTime);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrClkTime");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrClkTime);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrPosMag");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrPosMag);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrClkMag");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrClkMag);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrPosUdi");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrPosUdi);
+    tracepdeex(4, std::cout, "\n%20s:", "failSsrClkUdi");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureSsrClkUdi);
+    tracepdeex(4, std::cout, "\n%20s:", "failGeodist");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureGeodist);
+    tracepdeex(4, std::cout, "\n%20s:", "failElevation");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failureElevation);
+    tracepdeex(4, std::cout, "\n%20s:", "failPrange");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.failurePrange);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeElevation");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeElevation);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeEclipse");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeEclipse);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeSystem");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeSystem);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeOutlier");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeOutlier);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeBadSPP");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeBadSPP);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeConfig");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeConfig);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeSVH");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeSVH);
+    tracepdeex(4, std::cout, "\n%20s:", "excludeBadRange");
+    for (auto& obs : only<GObs>(obsList))
+        tracepdeex(4, std::cout, "%d", (bool)obs.excludeBadRange);
 
-    tracepdeex(4, ss, "\n%20s:", "failExclude");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureExclude);
-    tracepdeex(4, ss, "\n%20s:", "failNoSatPos");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureNoSatPos);
-    tracepdeex(4, ss, "\n%20s:", "failNoSatClock");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureNoSatClock);
-    tracepdeex(4, ss, "\n%20s:", "failNoPseudorange");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureNoPseudorange);
-    tracepdeex(4, ss, "\n%20s:", "failIodeConsistency");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureIodeConsistency);
-    tracepdeex(4, ss, "\n%20s:", "failBroadcastEph");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureBroadcastEph);
-    tracepdeex(4, ss, "\n%20s:", "failRSat");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureRSat);
-    tracepdeex(4, ss, "\n%20s:", "failSSRFail");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSSRFail);
-    tracepdeex(4, ss, "\n%20s:", "failSsrPosEmpty");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrPosEmpty);
-    tracepdeex(4, ss, "\n%20s:", "failSsrClkEmpty");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrClkEmpty);
-    tracepdeex(4, ss, "\n%20s:", "failSsrPosTime");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrPosTime);
-    tracepdeex(4, ss, "\n%20s:", "failSsrClkTime");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrClkTime);
-    tracepdeex(4, ss, "\n%20s:", "failSsrPosMag");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrPosMag);
-    tracepdeex(4, ss, "\n%20s:", "failSsrClkMag");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrClkMag);
-    tracepdeex(4, ss, "\n%20s:", "failSsrPosUdi");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrPosUdi);
-    tracepdeex(4, ss, "\n%20s:", "failSsrClkUdi");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureSsrClkUdi);
-    tracepdeex(4, ss, "\n%20s:", "failGeodist");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureGeodist);
-    tracepdeex(4, ss, "\n%20s:", "failElevation");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureElevation);
-    tracepdeex(4, ss, "\n%20s:", "failPrange");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failurePrange);
-    tracepdeex(4, ss, "\n%20s:", "failIonocorr");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.failureIonocorr);
-    tracepdeex(4, ss, "\n%20s:", "excludeElevation");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeElevation);
-    tracepdeex(4, ss, "\n%20s:", "excludeEclipse");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeEclipse);
-    tracepdeex(4, ss, "\n%20s:", "excludeSystem");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeSystem);
-    tracepdeex(4, ss, "\n%20s:", "excludeOutlier");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeOutlier);
-    tracepdeex(4, ss, "\n%20s:", "excludeBadSPP");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeBadSPP);
-    tracepdeex(4, ss, "\n%20s:", "excludeConfig");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeConfig);
-    tracepdeex(4, ss, "\n%20s:", "excludeSVH");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeSVH);
-    tracepdeex(4, ss, "\n%20s:", "excludeBadRange");
-    for (auto& obs : only<GObs>(obsList))
-        tracepdeex(4, ss, "%d", (bool)obs.excludeBadRange);
-
-    tracepdeex(4, ss, "\n\n");
-
-    BOOST_LOG_TRIVIAL(debug) << ss.str();
+    tracepdeex(4, std::cout, "\n\n");
 }
 
 void removeUnmeasuredStates(
@@ -438,11 +387,17 @@ E_Solution estpos(
     }
 
     kfState.FilterOptions::operator=(acsConfig.sppOpts);
+    kfState.output_residuals = false;  // Residuals can be outputted each SPP iteration but not each
+                                       // least squares iteration
 
-    int    iter;
-    int    numMeas    = 0;
-    int    removals   = 0;
-    double adjustment = 10000;
+    kfState.measRejectCallbacks.clear();
+    kfState.measRejectCallbacks.push_back(deweightMeas);
+
+    int      iter;
+    int      numMeas    = 0;
+    double   adjustment = 100000;
+    Vector3d rRec       = receiverMap[id].aprioriPos;
+    double   dtRec      = receiverMap[id].aprioriClk;
 
     tracepdeex(5, trace, "\n\n ---- STARTING SPP LSQ ----");
 
@@ -453,11 +408,7 @@ E_Solution estpos(
         kfState.initFilterEpoch(trace);
 
         // Rec apriori pos
-        Vector3d rRec  = Vector3d::Zero();  // todo Eugene: use apriori pos
-        double   dtRec = 0;                 // todo Eugene: use apriori pos
-
         KFKey recPosKeys[3];
-
         for (short i = 0; i < 3; i++)
         {
             recPosKeys[i].type = KF::REC_POS;
@@ -489,40 +440,50 @@ E_Solution estpos(
         {
             obs.sppValid = false;
 
-            tracepdeex(2, trace, "\nSPP meas: sat=%s", obs.Sat.id().c_str());
+            std::stringstream traceBuffer;
+            traceBuffer << "\nSPP meas: sat=" << obs.Sat.id().c_str();
 
             if (obs.exclude)
             {
                 obs.failureExclude = true;
 
-                tracepdeex(2, trace, " ... SPP exclusion: %x", obs.exclude);
+                traceBuffer << " ... SPP exclusion: " << obs.exclude;
 
                 continue;
             }
 
             // Pseudorange and code bias
-            double range;
-            double varMeas;
-            double varBias;
-            bool   pass = prange(
-                trace,
-                obs,
-                acsConfig.sppOpts.iono_mode,
-                range,
-                varMeas,
-                varBias,
-                kfState_ptr
-            );
+            E_IonoMode ionoMode = acsConfig.sppOpts.iono_mode;
+            E_FType    ft1;
+            E_FType    ft2;
+            double     range;
+            double     varMeas;
+            double     bias;
+            double     varBias;
+            bool       pass =
+                prange(trace, obs, ionoMode, ft1, ft2, range, varMeas, bias, varBias, kfState_ptr);
             if (pass == false)
             {
                 obs.failurePrange = true;
 
-                tracepdeex(2, trace, " ... Pseudorange fail");
+                traceBuffer << " ... Pseudorange fail";
 
                 continue;
             }
 
-            tracepdeex(2, trace, ", range+bias=%12.3f", range);
+            string codeStr = obs.sigs[ft1].code._to_string();
+            if (ft2 != NONE)
+                codeStr = codeStr + "-" + obs.sigs[ft2].code._to_string();
+
+            tracepdeex(
+                2,
+                trace,
+                "%s, obs=%s, range=%12.3f, bias=%12.3f",
+                traceBuffer.str(),
+                codeStr,
+                range,
+                bias
+            );
 
             // Sat pos
             Vector3d rSat      = obs.rSatApc;
@@ -555,7 +516,7 @@ E_Solution estpos(
             satazel(pos, satStat.e, satStat);
 
             double elevation = satStat.el * R2D;
-            if (elevation < recOpts.elevation_mask_deg && adjustment < 1000)
+            if (elevation < acsConfig.sppOpts.elevation_mask_deg && adjustment < 50000)
             {
                 obs.failureElevation = true;
 
@@ -588,29 +549,26 @@ E_Solution estpos(
             tracepdeex(2, trace, ", recClk=%12.3f", dtRec);
 
             // Ionospheric correction
+            double dummy   = 0;
             double dIono   = 0;
             double varIono = 0;
-            pass = ionocorr(obs.time, pos, satStat, acsConfig.sppOpts.iono_mode, dIono, varIono);
-            if (pass == false)
-            {
-                obs.failureIonocorr = true;
+            ionoModel(
+                obs.time,
+                pos,
+                satStat,
+                recOpts.mapping_function,
+                ionoMode,
+                recOpts.mapping_function_layer_height,
+                dummy,
+                dIono,
+                varIono
+            );
 
-                tracepdeex(2, trace, " ... Iono fail");
-
-                continue;
-            }
-
-            if (obs.Sat.sys == +E_Sys::GLO)
+            if (dIono)
             {
-                double lamG1 = obs.satNav_ptr->lamMap[G1];
-                if (lamG1 > 0)
-                    dIono *= SQR(lamG1 * FREQ1 / CLIGHT);
-            }
-            if (obs.Sat.sys == +E_Sys::BDS)
-            {
-                double lamB1 = obs.satNav_ptr->lamMap[B1];
-                if (lamB1 > 0)
-                    dIono *= SQR(lamB1 * FREQ1 / CLIGHT);
+                double ionC = SQR(obs.satNav_ptr->lamMap[ft1] / genericWavelength[F1]);
+                dIono *= ionC;
+                varIono *= SQR(ionC);
             }
 
             tracepdeex(2, trace, ", dIono=%9.5f", dIono);
@@ -627,15 +585,12 @@ E_Solution estpos(
             tracepdeex(2, trace, ", dTrop=%9.5f", dTrop);
 
             // Pseudorange residual
-            double expected = r + dtSat + dtRec + dIono + dTrop;
+            double expected = r + bias + dtSat + dtRec + dIono + dTrop;
             double res      = range - expected;
 
             tracepdeex(2, trace, ", res=%15.6f", res);
 
             // Error variance
-            if (acsConfig.sppOpts.iono_mode == +E_IonoMode::IONO_FREE_LINEAR_COMBO)
-                varMeas *= 3;
-
             double var = varMeas + varBias + varSatPos + varSatClk + varIono + varTrop;
             var *= SQR(acsConfig.sppOpts.sigma_scaling);
 
@@ -658,20 +613,26 @@ E_Solution estpos(
 
             for (short i = 0; i < 3; i++)
             {
-                codeMeas.addDsgnEntry(recPosKeys[i], -satStat.e[i]);
+                InitialState posInit;
+                posInit.x = rRec[i];
+
+                codeMeas.addDsgnEntry(recPosKeys[i], -satStat.e[i], posInit);
             }
             {
-                codeMeas.addDsgnEntry(recSysBiasKey, 1);
+                InitialState clkInit;
+                clkInit.x = dtRec;
+
+                codeMeas.addDsgnEntry(recSysBiasKey, 1, clkInit);
             }
 
-            codeMeas.obsKey.Sat  = obs.Sat;
-            codeMeas.obsKey.str  = id;
-            codeMeas.obsKey.num  = 0;  // todo Eugene: get sig code from prange
-            codeMeas.obsKey.type = KF::CODE_MEAS;
-            codeMeas.obsKey.comment =
-                "SPP It " + std::to_string(iter);  // todo Eugene: use sig code
+            codeMeas.obsKey.Sat = obs.Sat;
+            codeMeas.obsKey.str = id;
+            codeMeas.obsKey.num =
+                ft2 ? (obs.sigs[ft1].code * 100 + obs.sigs[ft2].code) : obs.sigs[ft1].code;
+            codeMeas.obsKey.type    = KF::CODE_MEAS;
+            codeMeas.obsKey.comment = "";
 
-            codeMeas.setValue(res);
+            codeMeas.setInnov(res);
             codeMeas.setNoise(var);
 
             codeMeas.metaDataMap["sppObs_ptr"] = &obs;
@@ -695,7 +656,8 @@ E_Solution estpos(
         kfState.stateTransition(trace, tsync);
 
         // Combine the measurement list into a single matrix
-        numMeas = kfMeasEntryList.size();
+        numMeas     = kfMeasEntryList.size();
+        sol.numMeas = numMeas;
 
         KFMeas kfMeas(kfState, kfMeasEntryList, tsync);
 
@@ -725,63 +687,39 @@ E_Solution estpos(
             return E_Solution::NONE;
         }
 
-        if (rRec.isZero() && iter == 0)
-        {
-            kfMeas.Y /= 2;
-        }
-
         // Least squares estimation
-        VectorXd dx;
-        kfState.leastSquareInitStates(trace, kfMeas, true, &dx);
+        bool pass = kfState.leastSquareInitStates(trace, kfMeas, suffix, true, true);
+
+        if (pass == false)
+        {
+            tracepdeex(4, trace, "\n%s\tSPP failed due to LSQ failure", tsync.to_string().c_str());
+            return E_Solution::NONE;
+        }
 
         if (traceLevel >= 4)
         {
-            kfMeas.V = kfMeas.Y;
-            outputResiduals(trace, kfMeas, suffix, iter);
+            outputResiduals(trace, kfMeas, suffix, iter, 0, kfMeas.H.rows());
         }
 
-        adjustment = dx.norm();
+        if (traceLevel >= 5)
+        {
+            kfState.outputStates(trace, suffix, iter);
+        }
+
+        adjustment =
+            kfState.dx.cwiseAbs().maxCoeff();  // Avoid using norm() as numX may vary w/ multi-GNSS
         tracepdeex(4, trace, "\nSPP dx: %15.4f\n", adjustment);
 
-        if (adjustment < 4000 && acsConfig.sppOpts.postfitOpts.sigma_check &&
-            removals < acsConfig.sppOpts.postfitOpts.max_iterations)
+        if ((kfState.lsqOpts.sigma_check || kfState.lsqOpts.omega_test) &&
+            kfState.sigmaPass == false)
         {
-            // Use 'array' for component-wise calculations
-            auto measVariations = kfMeas.Y.array();
-
-            auto measVariances = kfMeas.R.diagonal().array().max(SQR(adjustment));
-
-            // trace << measVariances.sqrt();
-
-            ArrayXd measRatios = measVariations / measVariances.sqrt();
-            measRatios         = measRatios.isFinite().select(measRatios, 0);
-
-            // If any are outside the expected values, flag an error
-
-            Eigen::ArrayXd::Index measIndex;
-
-            // 			std::cout << "\nmeasRatios\n" << measRatios;
-
-            double maxMeasRatio = measRatios.abs().maxCoeff(&measIndex);
-
-            if (maxMeasRatio > acsConfig.sppOpts.postfitOpts.meas_sigma_threshold)
-            {
-                trace << "\n"
-                      << obsList.front()->time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio
-                      << "\tAT " << measIndex << " :\t" << kfMeas.obsKeys[measIndex];
-
-                GObs& badObs = *(GObs*)kfMeas.metaDataMaps[measIndex]["sppObs_ptr"];
-
-                badObs.excludeOutlier = true;
-                continue;
-            }
+            // Outlier(s) still present, iterate SPP again despite convergence
+            continue;
         }
 
         // Least squares converged
         if (adjustment < 1E-4)
         {
-            sol.numMeas = numMeas;
-
             if (traceLevel >= 4)
             {
                 kfState.outputStates(trace, suffix);
@@ -807,7 +745,7 @@ E_Solution estpos(
                 }
             }
 
-            bool dopPass = validateDOP(obsList, recOpts.elevation_mask_deg, &sol.dops);
+            bool dopPass = validateDOP(obsList, acsConfig.sppOpts.elevation_mask_deg, &sol.dops);
             if (dopPass == false)
             {
                 tracepdeex(
@@ -1029,13 +967,15 @@ bool raim(
  */
 void spp(
     Trace&    trace,        ///< Trace file to output to
-    ObsList&  obsList,      ///< List of observations for this epoch
-    Solution& sol,          ///< Solution object containing initial state and results
-    string    id,           ///< Id of receiver
+    Receiver& rec,          ///< Receiver to perform SPP for
     KFState*  kfState_ptr,  ///< Optional pointer to filter to take ephemerides from
     KFState*  remote_ptr    ///< Optional pointer to filter to take ephemerides from
 )
 {
+    auto&  obsList = rec.obsList;
+    auto&  sol     = rec.sol;
+    string id      = rec.id;
+
     if (obsList.empty())
     {
         BOOST_LOG_TRIVIAL(error) << "SPP failed due to no observation data on " << id;
@@ -1119,21 +1059,67 @@ void spp(
             continue;
         }
 
-        obs.excludeBadSPP = true;
+        if (obs.failureNoPseudorange || obs.failurePrange)
+        {
+            obs.excludeBadRange = true;
+        }
+        else if (obs.failureNoSatPos || obs.failureNoSatClock)
+        {
+            obs.excludeSVH = true;
+        }
+        else if (obs.failureElevation)
+        {
+            obs.excludeElevation = true;
+        }
+        else
+        {
+            obs.excludeBadSPP = true;
+        }
     }
+
+    // if (sol.status == +E_Solution::NONE)
+    // {
+    //     return;
+    // }
 
     // Copy states to often-used vectors
     for (short i = 0; i < 3; i++)
     {
         sol.sppState.getKFValue({KF::REC_POS, {}, id, i}, sol.sppPos[i]);
     }
-    for (short i = E_Sys::GPS; i < +E_Sys::SUPPORTED; i++)
+
+    auto& recOpts = acsConfig.getRecOpts(id);
+    sol.clkRefSys = recOpts.receiver_reference_system;
+
+    KFKey clkKey{KF::REC_SYS_BIAS, {sol.clkRefSys}, id};
+    bool  found = sol.sppState.getKFValue(clkKey, sol.sppClk);
+
+    if (found == false)
     {
-        E_Sys sys = E_Sys::_values()[i];
-        sol.sppState.getKFValue({KF::REC_SYS_BIAS, {sys}, id}, sol.dtRec_m[sys]);
+        for (auto [sys, proc] : acsConfig.process_sys)
+        {
+            if (proc == false || sys == sol.clkRefSys)  // Has already checked sol.clkRefSys
+            {
+                continue;
+            }
+
+            clkKey.Sat = SatSys(sys);
+            found      = sol.sppState.getKFValue(clkKey, sol.sppClk);
+
+            if (found)  // Rec clock must be available for at least one system
+            {
+                sol.clkRefSys = sys;
+                break;
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(warning)
+            << "Receiver clock for " << id << " of "
+            << recOpts.receiver_reference_system._to_string() << " system not found, using "
+            << sol.clkRefSys._to_string() << " as reference clock";
     }
 
-    sol.sppTime = tsync - sol.dtRec_m[E_Sys::GPS] / CLIGHT;
+    sol.sppTime = tsync - sol.sppClk / CLIGHT;
 
     tracepdeex(
         2,
@@ -1144,5 +1130,12 @@ void spp(
         sol.sppPos[1],
         sol.sppPos[2]
     );
-    tracepdeex(2, trace, "\n%s clk: %f\n", __FUNCTION__, sol.dtRec_m[E_Sys::GPS]);
+    tracepdeex(
+        2,
+        trace,
+        "\n%s clk (%s): %f\n",
+        __FUNCTION__,
+        sol.clkRefSys._to_string(),
+        sol.sppClk
+    );
 }

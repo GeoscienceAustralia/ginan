@@ -19,8 +19,10 @@ struct Eph;
 struct TestStatistics
 {
     int    numMeas          = 0;
+    double sumOfSquaresLsq  = 0;
     double sumOfSquaresPre  = 0;
     double sumOfSquaresPost = 0;
+    double averageRatioLsq  = 0;
     double averageRatioPre  = 0;
     double averageRatioPost = 0;
     double chiSq            = 0;

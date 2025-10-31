@@ -9,7 +9,6 @@
 #include "common/common.hpp"
 #include "common/constants.hpp"
 #include "common/eigenIncluder.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/mongo.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/trace.hpp"
@@ -909,9 +908,10 @@ void KFState::stateTransition(
                                     (+2 * tgap  // one tau from front tau3 distributed to prevent
                                                 // divide by zero
                                      - 4 * tau * (1 - exp(-1 * tgap / tau)) +
-                                     1 * tau * (1 - exp(-2 * tgap / tau))
-                                    );  // correct formula re-derived according
-                                        // to Ref: Carpenter and Lee (2008)
+                                     1 * tau *
+                                         (1 - exp(-2 * tgap /
+                                                  tau)));  // correct formula re-derived according
+                                                           // to Ref: Carpenter and Lee (2008)
                                 // Q0(sourceIndex, destIndex) +=
                                 // sourceProcessNoise / 2
                                 // * tau * tau * (1-exp(-tgap/tau)) * (1-exp(-tgap/tau));
@@ -1011,6 +1011,69 @@ void KFState::stateTransition(
     }
 
     initFilterEpoch(trace);
+}
+
+/** Compare variances of measurements and estimated parameters to detect unreasonable values
+ * Ref: to be added
+ */
+void KFState::leastSquareSigmaChecks(
+    RejectCallbackDetails& callbackDetails,
+    double                 adjustment,  ///< The adjustments from least squares estimation
+    MatrixXd&              Pp,          ///< Post-fit covariance of parameters
+    KFStatistics&          statistics   ///< Test statistics
+)
+{
+    auto& kfMeas = callbackDetails.kfMeas;
+    auto& trace  = callbackDetails.trace;
+
+    auto& V  = kfMeas.V;
+    auto& VV = kfMeas.VV;
+    auto& R  = kfMeas.R;
+    auto& H  = kfMeas.H;
+
+    ArrayXd measRatios      = ArrayXd::Zero(H.rows());
+    ArrayXd measNumerator   = ArrayXd::Zero(H.rows());
+    ArrayXd measDenominator = ArrayXd::Zero(H.rows());
+
+    if (lsqOpts.sigma_check)
+    {
+        // use 'array' for component-wise calculations
+        measNumerator =
+            V.array().square();  // delta squared  //Eugene: can't understand why prefits
+        measDenominator =
+            R.diagonal().array().max(SQR(adjustment));  // Eugene: don't know what this is doing
+    }
+    else if (lsqOpts.omega_test)
+    {
+        MatrixXd HPH_ = H * Pp * H.transpose();
+
+        // use 'array' for component-wise calculations
+        measNumerator = VV.array().square();  // weighted residuals squared, the sign doesn't matter
+        measDenominator = (R.diagonal() - HPH_.diagonal()).array();  // weights
+    }
+
+    measRatios = measNumerator / measDenominator;
+    measRatios = measRatios.isFinite().select(
+        measRatios,
+        0
+    );  // set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
+
+    statistics.sumOfSquares = measRatios.sum();
+    statistics.averageRatio = measRatios.mean();
+
+    Eigen::ArrayXd::Index measIndex;
+
+    double maxMeasRatio = measRatios.maxCoeff(&measIndex);
+
+    // if any are outside the expected values, flag an error
+    if (maxMeasRatio > SQR(lsqOpts.meas_sigma_threshold))
+    {
+        trace << "\n"
+              << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measIndex
+              << " :\t" << kfMeas.obsKeys[measIndex];
+
+        callbackDetails.measIndex = measIndex;
+    }
 }
 
 /** Compare variances of measurements and pre-filtered states to detect unreasonable values
@@ -1140,7 +1203,7 @@ void KFState::preFitSigmaChecks(
 }
 
 void outputResiduals(
-    Trace&  output,     ///< Trace file to output to
+    Trace&  trace,      ///< Trace file to output to
     KFMeas& kfMeas,     ///< Measurements, noise, and design matrix
     string  suffix,     ///< Suffix to use in header
     int     iteration,  ///< Number of iterations prior to this check
@@ -1148,13 +1211,12 @@ void outputResiduals(
     int     numH        ///< Number of measurements to process
 )
 {
-    tracepdeex(0, output, "\n");
+    tracepdeex(0, trace, "\n");
 
     string name = "RESIDUALS";
     name += suffix;
 
-    InteractiveTerminal trace(name, output);
-    Block               block(trace, name);
+    Block block(trace, name);
 
     tracepdeex(
         0,
@@ -1508,8 +1570,8 @@ bool KFState::kFilter(
                     (postfitOpts.omega_test &&
                      (Qinv = solver.solve(I), solver.info() != Eigen::ComputationInfo::Success)) ||
                     (postfitOpts.omega_test &&
-                     (QinvH = solver.solve(subH), solver.info() != Eigen::ComputationInfo::Success)
-                    ) ||
+                     (QinvH = solver.solve(subH),
+                      solver.info() != Eigen::ComputationInfo::Success)) ||
                     (advanced_postfits && (HRHQ_star = solver.solve(HRH_star).transpose(),
                                            solver.info() != Eigen::ComputationInfo::Success)))
                 {
@@ -1550,8 +1612,8 @@ bool KFState::kFilter(
                     (postfitOpts.omega_test &&
                      (Qinv = solver.solve(I), solver.info() != Eigen::ComputationInfo::Success)) ||
                     (postfitOpts.omega_test &&
-                     (QinvH = solver.solve(subH), solver.info() != Eigen::ComputationInfo::Success)
-                    ) ||
+                     (QinvH = solver.solve(subH),
+                      solver.info() != Eigen::ComputationInfo::Success)) ||
                     (advanced_postfits && (HRHQ_star = solver.solve(HRH_star).transpose(),
                                            solver.info() != Eigen::ComputationInfo::Success)))
                 {
@@ -1670,7 +1732,7 @@ bool KFState::leastSquare(
     kfMeas.W = weights.matrix();
 
     auto& H = kfMeas.H;
-    auto& Y = kfMeas.Y;
+    auto& V = kfMeas.V;
 
     int numX = H.cols();
     int numH = H.rows();
@@ -1771,7 +1833,7 @@ bool KFState::leastSquare(
         repeat = false;
     }
 
-    xp = Pp * H_W * Y;
+    xp = Pp * H_W * V;
 
     // 	std::cout << "N : " << "\n" << N;
     bool error = xp.array().isNaN().any();
@@ -1812,7 +1874,13 @@ void KFState::chiQC(
     dof = VV.rows() - (x.rows() - 1);  // ignore KF::ONE element -> -1
     if (dof < 1)
     {
-        chiQCPass = true;
+        trace << "Error with Chi-square test: dof=" << dof;
+
+        chiQCPass  = false;
+        chi2       = 0;
+        chi2PerDof = NAN;
+        qc         = 0;
+
         return;
     }
 
@@ -2142,7 +2210,7 @@ void KFState::filterKalman(
             std::stringstream stringBuffer;
 
             RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
-            rejectCallbackDetails.postFit = false;
+            rejectCallbackDetails.stage = E_FilterStage::PREFIT;
 
             preFitSigmaChecks(
                 rejectCallbackDetails,
@@ -2267,7 +2335,7 @@ void KFState::filterKalman(
             std::stringstream stringBuffer;
 
             RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
-            rejectCallbackDetails.postFit = true;
+            rejectCallbackDetails.stage = E_FilterStage::POSTFIT;
 
             postFitSigmaChecks(
                 rejectCallbackDetails,
@@ -2376,7 +2444,8 @@ void KFState::filterKalman(
 
             auto& chunkTrace = *fc.trace_ptr;
 
-            switch (chiSquareTest.mode
+            switch (
+                chiSquareTest.mode
             )  // todo Eugene: rethink Chi-Square test modes, consider keep only INNOVATION
                // and determine DOF automatically based on process noises
             {
@@ -2420,7 +2489,7 @@ void KFState::filterKalman(
 
         boost::math::chi_squared chiSqDist(testStatistics.dof);
         testStatistics.qc = quantile(complement(chiSqDist, alpha));
-        if (testStatistics.chiSq <= testStatistics.qc)
+        if (testStatistics.dof > 0 && testStatistics.chiSq <= testStatistics.qc)
             trace << "\n"
                   << "Chi-square test passed";
         else
@@ -2488,21 +2557,22 @@ void KFState::filterKalman(
  * and the minimum required measurements in order to perform least squares for the uninitialised
  * states.
  */
-void KFState::leastSquareInitStates(
-    Trace&    trace,       ///< Trace file for output
-    KFMeas&   kfMeas,      ///< Measurement object
-    bool      initCovars,  ///< Option to also initialise off-diagonal covariance values
-    VectorXd* dx_ptr,      ///< Optional output of adjustments
-    bool      innovReady   ///< Residuals already calculated
+bool KFState::leastSquareInitStates(
+    Trace&        trace,       ///< Trace file for output
+    KFMeas&       kfMeas,      ///< Measurement object
+    const string& suffix,      ///< Suffix to append to residuals block
+    bool          initCovars,  ///< Option to also initialise off-diagonal covariance values
+    bool          innovReady   ///< Apriori states available and residuals already calculated
 )
 {
     lsqRequired = false;
 
+    sigmaPass = false;  // Eugene: can also do this for filterKalman
     chiQCPass = false;  // Eugene: can also do this for filterKalman
 
-    if (innovReady)
+    if (innovReady == false)
     {
-        kfMeas.Y = kfMeas.V;
+        kfMeas.V = kfMeas.Y;  // x == 0 in this case
     }
 
     // find all the states that aren't initialised, they need least squaring.
@@ -2551,12 +2621,12 @@ void KFState::leastSquareInitStates(
     // Create new measurement objects with larger size, (using all states for now)
     KFMeas leastSquareMeas;
 
-    leastSquareMeas.Y = VectorXd::Zero(totalMeasCount);
+    leastSquareMeas.V = VectorXd::Zero(totalMeasCount);
     leastSquareMeas.R = MatrixXd::Zero(totalMeasCount, totalMeasCount);
     leastSquareMeas.H = MatrixXd::Zero(totalMeasCount, kfMeas.H.cols());
 
     // copy in the required measurements from the old set
-    leastSquareMeas.Y.head(lsqMeasCount) = kfMeas.Y(leastSquareMeasIndicies);
+    leastSquareMeas.V.head(lsqMeasCount) = kfMeas.V(leastSquareMeasIndicies);
     leastSquareMeas.R.topLeftCorner(lsqMeasCount, lsqMeasCount) =
         kfMeas.R(leastSquareMeasIndicies, leastSquareMeasIndicies);
     leastSquareMeas.H.topRows(lsqMeasCount) = kfMeas.H(leastSquareMeasIndicies, all);
@@ -2567,7 +2637,14 @@ void KFState::leastSquareInitStates(
         int measIndex  = lsqMeasCount + i;
         int stateIndex = pseudoMeasStateIndicies[i];
 
-        leastSquareMeas.Y(measIndex) = x(stateIndex);
+        if (innovReady)
+        {
+            leastSquareMeas.V(measIndex) = 0;  // take x as apriori state
+        }
+        else
+        {
+            leastSquareMeas.V(measIndex) = x(stateIndex);  // take 0 as apriori state
+        }
         leastSquareMeas.R(measIndex, measIndex) =
             P(stateIndex, stateIndex);  // todo Eugene: check equivalence w/ back-subsitution -
                                         // pseudo var should be 0 instead of P, or doesn't matter?
@@ -2587,40 +2664,119 @@ void KFState::leastSquareInitStates(
 
     // create a new meaurement object using only the required states.
     KFMeas leastSquareMeasSubs;
-    leastSquareMeasSubs.Y = leastSquareMeas.Y;
-    leastSquareMeasSubs.R = leastSquareMeas.R;
-    leastSquareMeasSubs.H = leastSquareMeas.H(all, usedStateIndicies);
+    leastSquareMeasSubs.time = kfMeas.time;
+    leastSquareMeasSubs.V    = leastSquareMeas.V;
+    leastSquareMeasSubs.R    = leastSquareMeas.R;
+    leastSquareMeasSubs.H    = leastSquareMeas.H(all, usedStateIndicies);
+
+    for (int i = 0; i < lsqMeasCount; i++)
+    {
+        int measIndex = leastSquareMeasIndicies[i];
+        leastSquareMeasSubs.obsKeys.push_back(kfMeas.obsKeys[measIndex]);
+        leastSquareMeasSubs.metaDataMaps.push_back(kfMeas.metaDataMaps[measIndex]);
+        leastSquareMeasSubs.componentsMaps.push_back(kfMeas.componentsMaps[measIndex]);
+    }
 
     int      usedStateCount = usedStateIndicies.size();
     VectorXd xp             = VectorXd::Zero(usedStateCount);
     MatrixXd Pp             = MatrixXd::Identity(usedStateCount, usedStateCount);
 
-    bool pass = leastSquare(trace, leastSquareMeasSubs, xp, Pp);
-
-    if (pass == false)
+    TestStatistics testStatistics;
+    KFStatistics   statistics;
+    for (int i = 0; i < lsqOpts.max_iterations; i++)
     {
-        trace << "LSQ FAILED" << "\n";
-        return;
-    }
+        bool pass = leastSquare(trace, leastSquareMeasSubs, xp, Pp);
 
-    leastSquareMeasSubs.VV = leastSquareMeasSubs.Y - leastSquareMeasSubs.H * xp;
+        if (pass == false)
+        {
+            trace << "LSQ FAILED" << "\n";
+            return false;
+        }
 
-    if (chiSquareTest.enable)
-    {
-        chiQC(trace, leastSquareMeasSubs);
+        leastSquareMeasSubs.VV = leastSquareMeasSubs.V - leastSquareMeasSubs.H * xp;
 
-        if (chiQCPass)
-            trace << "\nChi-square test passed: ";
+        if (output_residuals && traceLevel >= 5)
+        {
+            outputResiduals(trace, leastSquareMeasSubs, suffix, i, 0, leastSquareMeasSubs.H.rows());
+        }
+
+        double adjustment =
+            xp.cwiseAbs().maxCoeff();  // Avoid using norm() as numX may vary w/ multi-GNSS
+        if (adjustment >= 100000)      // Only check outliers nearly after converge
+            break;
+
+        if (chiSquareTest.enable)
+        {
+            chiQC(trace, leastSquareMeasSubs);
+
+            if (chiQCPass)
+                trace << "\nChi-square test passed: ";
+            else
+                trace << "\nChi-square test failed: ";
+
+            trace << "dof = " << dof << "\tchi^2 = " << chi2 << "\tthres = " << qc;
+        }
+
+        if (lsqOpts.sigma_check == false && lsqOpts.omega_test == false)
+        {
+            break;
+        }
+
+        std::stringstream stringBuffer;
+
+        RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, leastSquareMeasSubs);
+        rejectCallbackDetails.stage = E_FilterStage::LSQ;
+
+        leastSquareSigmaChecks(rejectCallbackDetails, adjustment, Pp, statistics);
+
+        bool stopIterating = true;
+        if (rejectCallbackDetails.measIndex >= 0)
+        {
+            stringBuffer << "\n"
+                         << "Least squares check failed";
+            doMeasRejectCallbacks(rejectCallbackDetails);
+            stopIterating = false;
+        }
+
+        if (stopIterating)
+        {
+            stringBuffer << "\n"
+                         << "Least squares check passed";
+            sigmaPass = true;
+        }
         else
-            trace << "\nChi-square test failed: ";
+        {
+            if (i == lsqOpts.max_iterations - 1)
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Max least squares iterations limit reached at " << time << " in " << suffix
+                    << ", limit is " << lsqOpts.max_iterations;
+                stringBuffer << "\n"
+                             << "Warning: Max least squares iterations limit reached at " << time
+                             << " in " << suffix << ", limit is " << lsqOpts.max_iterations;
 
-        trace << "dof = " << dof << "\tchi^2 = " << chi2 << "\tthres = " << qc;
+                stopIterating = true;
+                sigmaPass     = false;
+            }
+        }
+
+        trace << stringBuffer.str();
+
+        if (stopIterating)
+        {
+            // statisticsMap["Least squares iterations " + std::to_string(i+1)]++;
+
+            break;
+        }
     }
 
-    if (dx_ptr)
-    {
-        (*dx_ptr) = xp;  // Eugene: check if works for innovReady == false
-    }
+    testStatistics.sumOfSquaresLsq = statistics.sumOfSquares;
+    testStatistics.averageRatioLsq = statistics.averageRatio;
+
+    if (lsqOpts.sigma_check || lsqOpts.omega_test)
+        trace << "\n"
+              << "Sum-of-squared test statistics (least squares): "
+              << testStatistics.sumOfSquaresLsq << "\n";
 
     for (int i = 0; i < usedStateCount; i++)
     {
@@ -2636,10 +2792,9 @@ void KFState::leastSquareInitStates(
 
         dx(stateRowIndex) = newStateVal;
 
-        if (dx_ptr)
+        if (innovReady)
         {
             x(stateRowIndex) += newStateVal;
-            kfMeas.VV = kfMeas.Y - kfMeas.H * dx;
         }
         else
         {
@@ -2661,6 +2816,12 @@ void KFState::leastSquareInitStates(
             }
         }
     }
+
+    kfMeas.VV = kfMeas.V - kfMeas.H * dx;
+    kfMeas.R(leastSquareMeasIndicies, leastSquareMeasIndicies) =
+        leastSquareMeasSubs.R.topLeftCorner(lsqMeasCount, lsqMeasCount);
+
+    return true;
 }
 
 /** Get a portion of the state vector by passing a list of keys
@@ -2790,20 +2951,19 @@ KFState KFState::getSubState(vector<KF> types, KFMeas* meas_ptr) const
 /** Output keys and states in human readable format
  */
 void KFState::outputStates(
-    Trace& output,     ///< Trace to output to
+    Trace& trace,      ///< Trace to output to
     string suffix,     ///< Suffix to append to state block info tag in trace files
     int    iteration,  ///< Number of iterations prior to this check
     int    begX,       ///< Index of first state element to process
     int    numX        ///< Number of state elements to process
 )
 {
-    tracepdeex(1, output, "\n");
+    tracepdeex(1, trace, "\n");
 
     string name = "STATES";
     name += suffix;
 
-    InteractiveTerminal trace(name, output);
-    Block               block(trace, name);
+    Block block(trace, name);
 
     tracepdeex(
         1,

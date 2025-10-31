@@ -9,7 +9,6 @@
 #include "common/algebraTrace.hpp"
 #include "common/constants.hpp"
 #include "common/eigenIncluder.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/metaData.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/navigation.hpp"
@@ -347,8 +346,6 @@ void RtsProcessor::handleOutput(FilterData& filterData)
 {
     if (writeOutput)
     {
-        InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
-
         spitFilterToFile(
             filterData.smoothedKF,
             E_SerialObject::FILTER_SMOOTHED,
@@ -437,12 +434,7 @@ void RtsTimingLogger::updateTerminalProgress(
     GTime             epochStopTime
 )
 {
-    InteractiveTerminal::clearModes(
-        (string) " Processing epoch " + filterData.kalmanPlus.time.to_string(),
-        (string) " Last Epoch took " +
-            std::to_string((epochStopTime - epochStartTime).to_double()) + "s"
-    );
-    InteractiveTerminal::setMode(E_InteractiveMode::Syncing);
+    // todo: function to delete?
 }
 
 /** Calculate fractional milliseconds from time */
@@ -471,8 +463,6 @@ bool FilterData::performRtsComputation(KFState& kfState, const RtsConfiguration&
     double lag = (kfState.time - kalmanPlus.time).to_double();
 
     BOOST_LOG_TRIVIAL(info) << "RTS lag: " << lag;
-
-    InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
 
     smoothedKF.time = kalmanPlus.time;
 
@@ -883,8 +873,6 @@ void rtsOutput(
     const RtsConfiguration* config        ///< Configuration for dependency injection
 )
 {
-    InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
-
     string reversedStatesFilename = kfState.rts_basename + BACKWARD_SUFFIX;
 
     BOOST_LOG_TRIVIAL(info) << "Outputting RTS products..." << "\n";

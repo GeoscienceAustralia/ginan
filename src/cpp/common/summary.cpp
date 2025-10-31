@@ -2,7 +2,6 @@
 
 #include "common/summary.hpp"
 #include "common/acsConfig.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/receiver.hpp"
 
 void outputStatistics(
@@ -22,16 +21,14 @@ void outputStatistics(
     }
 
     {
-        InteractiveTerminal ss("Filter-Statistics/Epoch", trace);
-        Block               block(ss, "Filter-Statistics/Epoch");
+        Block block(trace, "Filter-Statistics/Epoch");
         for (auto& [str, count] : statisticsMap)
-            tracepdeex(0, ss, "! %-75s: %d\n", str.c_str(), count);
+            tracepdeex(0, trace, "! %-75s: %d\n", str.c_str(), count);
     }
     {
-        InteractiveTerminal ss("Filter-Statistics/Total", trace);
-        Block               block(ss, "Filter-Statistics/Total");
+        Block block(trace, "Filter-Statistics/Total");
         for (auto& [str, count] : statisticsMapSum)
-            tracepdeex(0, ss, "! %-75s: %d\n", str.c_str(), count);
+            tracepdeex(0, trace, "! %-75s: %d\n", str.c_str(), count);
     }
 
     statisticsMap.clear();

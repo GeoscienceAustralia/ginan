@@ -239,12 +239,9 @@ struct OutputOptions
     bool timestamp_console_logs = false;
     bool warn_once              = true;
 
-    bool             output_clocks           = false;
-    vector<E_Source> clocks_receiver_sources = {
-        E_Source::KALMAN,
-        E_Source::PRECISE,
-        E_Source::BROADCAST
-    };
+    bool             output_clocks = false;
+    vector<E_Source> clocks_receiver_sources =
+        {E_Source::KALMAN, E_Source::PRECISE, E_Source::SPP, E_Source::BROADCAST};
     vector<E_Source> clocks_satellite_sources = {
         E_Source::KALMAN,
         E_Source::PRECISE,
@@ -275,11 +272,15 @@ struct OutputOptions
         E_Source::PRECISE,
         E_Source::BROADCAST
     };
-    vector<E_Source>      orbex_attitude_sources = {E_Source::NOMINAL};
-    double                orbex_output_interval  = 1;
-    string                orbex_directory        = "<OUTPUTS_ROOT>";
-    string                orbex_filename         = "<ORBEX_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.obx";
-    vector<E_OrbexRecord> orbex_record_types     = {E_OrbexRecord::ATT};
+    vector<E_Source> orbex_attitude_sources = {
+        E_Source::PRECISE,
+        E_Source::MODEL,
+        E_Source::NOMINAL
+    };
+    double                orbex_output_interval = 1;
+    string                orbex_directory       = "<OUTPUTS_ROOT>";
+    string                orbex_filename        = "<ORBEX_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.obx";
+    vector<E_OrbexRecord> orbex_record_types    = {E_OrbexRecord::ATT};
 
     bool split_sys = false;
 
@@ -628,6 +629,14 @@ struct KalmanModel
     map<int, bool> initialisedMap;
 };
 
+struct LeastSquareOptions
+{
+    int    max_iterations       = 2;
+    bool   sigma_check          = true;
+    bool   omega_test           = false;
+    double meas_sigma_threshold = 4;
+};
+
 struct PrefitOptions
 {
     int    max_iterations        = 2;
@@ -677,9 +686,10 @@ struct FilterOptions : RtsOptions
     E_Inverter lsq_inverter = E_Inverter::INV;
     E_Inverter inverter     = E_Inverter::LDLT;
 
-    PrefitOptions    prefitOpts;
-    PostfitOptions   postfitOpts;
-    ChiSquareOptions chiSquareTest;
+    LeastSquareOptions lsqOpts;
+    PrefitOptions      prefitOpts;
+    PostfitOptions     postfitOpts;
+    ChiSquareOptions   chiSquareTest;
 };
 
 /** Options associated with the ionospheric modelling processing mode of operation
@@ -723,6 +733,7 @@ struct SppOptions : FilterOptions
 {
     bool   always_reinitialise = false;
     int    max_lsq_iterations  = 12;
+    double elevation_mask_deg  = 0;
     double max_gdop            = 30;
     double sigma_scaling       = 1;
     bool   raim                = true;
@@ -1023,8 +1034,9 @@ struct CommonOptions
 
     struct
     {
-        bool             enable  = true;
-        vector<E_Source> sources = {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+        bool             enable = true;
+        vector<E_Source> sources =
+            {E_Source::KALMAN, E_Source::PRECISE, E_Source::SPP, E_Source::BROADCAST};
     } clockModel;
 
     struct
@@ -1299,6 +1311,7 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
  */
 struct SsrOptions
 {
+    // todo Eugene: Use KALMAN source once RT POD done (same for code & phase)
     bool             extrapolate_corrections = false;
     double           prediction_interval     = 30;
     double           prediction_duration     = 0;

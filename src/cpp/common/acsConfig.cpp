@@ -20,7 +20,6 @@
 #include "common/compare.hpp"
 #include "common/constants.hpp"
 #include "common/debug.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "configurator/htmlFooterTemplate.hpp"
 #include "configurator/htmlHeaderTemplate.hpp"
 #include "pea/inputsOutputs.hpp"
@@ -2224,8 +2223,8 @@ KalmanModel& KalmanModel::operator+=(const KalmanModel& rhs)
 SatelliteOptions& SatelliteOptions::operator+=(const SatelliteOptions& rhs)
 {
     SatelliteKalmans ::operator+=(rhs);
-    CommonOptions ::operator+=(rhs);
-    OrbitOptions ::operator+=(rhs);
+    CommonOptions ::   operator+=(rhs);
+    OrbitOptions ::    operator+=(rhs);
 
     initIfNeeded(*this, rhs, error_model);
     initIfNeeded(*this, rhs, code_sigma);
@@ -2239,7 +2238,7 @@ SatelliteOptions& SatelliteOptions::operator+=(const SatelliteOptions& rhs)
 ReceiverOptions& ReceiverOptions::operator+=(const ReceiverOptions& rhs)
 {
     ReceiverKalmans ::operator+=(rhs);
-    CommonOptions ::operator+=(rhs);
+    CommonOptions ::  operator+=(rhs);
 
     rinex23Conv += rhs.rinex23Conv;
 
@@ -4279,7 +4278,6 @@ bool configure(
         ("very-quiet,Q", "Much less output")
         ("verbose,v", "More output")
         ("very-verbose,V", "Much more output")
-        ("interactive,I", "Use interactive terminal")
         ("yaml-defaults,Y", boost::program_options::value<int>(), "Print set of parsed parameters and their default values according to their priority level (1-3), and generate configurator.html for visual editing of yaml files")
         ("config_description,d", boost::program_options::value<string>(), "Configuration description")
         ("level,l", boost::program_options::value<int>(), "Trace level")
@@ -4318,7 +4316,6 @@ bool configure(
         ("end_epoch", boost::program_options::value<string>(), "Stop date/time")
         // 	("run_rts_only",					boost::program_options::value<string>(),						"RTS filename (without _xxxxx suffix)")
         ("dump-config-only", "Dump the configuration and exit")
-        ("walkthrough", "Run demonstration code interactively with commentary")
         ("compare_clocks", "Compare clock files")
         ("compare_orbits", "Compare sp3 files")
         ("compare_attitudes", "Compare orbex files")
@@ -4335,12 +4332,6 @@ bool configure(
         BOOST_LOG_TRIVIAL(info) << desc;
         BOOST_LOG_TRIVIAL(info) << "PEA finished";
 
-        exit(EXIT_SUCCESS);
-    }
-
-    if (vm.count("walkthrough"))
-    {
-        walkthrough();
         exit(EXIT_SUCCESS);
     }
 
@@ -4371,11 +4362,6 @@ bool configure(
             boost::log::trivial::severity >= boost::log::trivial::error
         );
         acsSeverity = boost::log::trivial::error;
-    }
-
-    if (vm.count("interactive"))
-    {
-        InteractiveTerminal::enable();
     }
 
     if (vm.count("yaml-defaults"))
@@ -7336,9 +7322,85 @@ bool ACSConfig::parse(
                     "outcomes in terms of processing time and accuracy and stability."
                 );
 
-                if (std::get<1>(nodeStack).find("spp") ==
-                    string::npos)  // Skip setting joseph_stabilisation and advanced_postfits for
-                                   // SPP
+                auto outlier_screening = stringsToYamlObject(
+                    nodeStack,
+                    {"! outlier_screening"},
+                    "Statistical checks allow for detection of outliers that exceed their "
+                    "confidence intervals."
+                );
+
+                {
+                    auto chi_sqaure = stringsToYamlObject(outlier_screening, {"! chi_square"});
+
+                    tryGetFromYaml(
+                        filterOpts.chiSquareTest.enable,
+                        chi_sqaure,
+                        {"@ enable"},
+                        "Enable Chi-square test"
+                    );
+                    tryGetEnumOpt(
+                        filterOpts.chiSquareTest.mode,
+                        chi_sqaure,
+                        {"@ mode"},
+                        "Chi-square test mode"
+                    );
+                    tryGetFromYaml(
+                        filterOpts.chiSquareTest.sigma_threshold,
+                        chi_sqaure,
+                        {"@ sigma_threshold"},
+                        "Chi-square test threshold in terms of 'times of sigma'"
+                    );
+                }
+
+                {
+                    auto leastSquare = stringsToYamlObject(outlier_screening, {"! least_square"});
+
+                    tryGetFromYaml(
+                        filterOpts.lsqOpts.max_iterations,
+                        leastSquare,
+                        {"! max_iterations"},
+                        "Maximum number of measurements to exclude using postfit checks in least "
+                        "squares"
+                    );
+                    tryGetFromYaml(
+                        filterOpts.lsqOpts.sigma_check,
+                        leastSquare,
+                        {"@ sigma_check"},
+                        "Enable sigma check"
+                    );
+                    tryGetFromYaml(
+                        filterOpts.lsqOpts.omega_test,
+                        leastSquare,
+                        {"@ omega_test"},
+                        "Enable omega-test"
+                    );
+                    bool found = tryGetFromYaml(
+                        filterOpts.lsqOpts.meas_sigma_threshold,
+                        leastSquare,
+                        {"@ sigma_threshold"},
+                        "Sigma threshold"
+                    );
+                    tryGetFromYaml(
+                        filterOpts.lsqOpts.meas_sigma_threshold,
+                        leastSquare,
+                        {"@ meas_sigma_threshold"},
+                        "Sigma threshold for measurements"
+                    );
+
+                    if (found)
+                    {
+                        BOOST_LOG_TRIVIAL(warning
+                        ) << "The yaml option 'least_square:sigma_threshold' is "
+                             "depreciated, better use 'least_square:meas_sigma_threshold' instead";
+                    }
+                }
+
+                if (std::get<1>(nodeStack).find("spp") !=
+                    string::npos)  // Skip setting all other filter options for SPP
+                {
+                    return;
+                }
+
                 {
                     tryGetEnumOpt(
                         filterOpts.inverter,
@@ -7362,12 +7424,6 @@ bool ACSConfig::parse(
                     );
                 }
 
-                auto outlier_screening = stringsToYamlObject(
-                    nodeStack,
-                    {"! outlier_screening"},
-                    "Statistical checks allow for detection of outliers that exceed their "
-                    "confidence intervals."
-                );
                 {
                     auto prefit = stringsToYamlObject(outlier_screening, {"! prefit"});
 
@@ -7488,31 +7544,6 @@ bool ACSConfig::parse(
                     }
                 }
 
-                {
-                    auto chi_sqaure = stringsToYamlObject(outlier_screening, {"! chi_square"});
-
-                    tryGetFromYaml(
-                        filterOpts.chiSquareTest.enable,
-                        chi_sqaure,
-                        {"@ enable"},
-                        "Enable Chi-square test"
-                    );
-                    tryGetEnumOpt(
-                        filterOpts.chiSquareTest.mode,
-                        chi_sqaure,
-                        {"@ mode"},
-                        "Chi-square test mode"
-                    );
-                    tryGetFromYaml(
-                        filterOpts.chiSquareTest.sigma_threshold,
-                        chi_sqaure,
-                        {"@ sigma_threshold"},
-                        "Chi-square test threshold in terms of 'times of sigma'"
-                    );
-                }
-
-                if (std::get<1>(nodeStack).find("spp") ==
-                    string::npos)  // Skip setting RTS options for SPP
                 {
                     auto rts = stringsToYamlObject(
                         nodeStack,
@@ -7851,6 +7882,12 @@ bool ACSConfig::parse(
                     spp,
                     {"! max_lsq_iterations"},
                     "Maximum number of iterations of least squares allowed for convergence"
+                );
+                tryGetFromYaml(
+                    sppOpts.elevation_mask_deg,
+                    spp,
+                    {"! elevation_mask"},
+                    "Minimum elevation for satellites to be processed"
                 );
                 tryGetFromYaml(
                     sppOpts.sigma_scaling,

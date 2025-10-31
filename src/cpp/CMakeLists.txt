@@ -76,7 +76,6 @@ add_executable(pea
 		common/gpx.cpp
 		common/pos.cpp
 		common/gTime.cpp
-		common/interactiveTerminal.cpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
 		common/mongo.cpp
@@ -110,7 +109,6 @@ add_executable(pea
 		common/rinexObsWrite.cpp
 		common/tides.cpp
 		common/ubxDecoder.cpp
-		common/walkthrough.cpp
 		common/localAtmosRegion.cpp
 
 		common/streamNtrip.cpp
@@ -283,15 +281,7 @@ if(ENABLE_PARALLELISATION)
 	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
 endif()
 
-if(Curses_FOUND AND NOT TARGET Curses::Curses)
-	add_library(Curses::Curses INTERFACE IMPORTED)
-	set_target_properties(
-			Curses::Curses
-			PROPERTIES
-			INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
-			INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
-	)
-endif()
+
 
 target_link_libraries(pea PUBLIC
 						m
@@ -308,7 +298,6 @@ target_link_libraries(pea PUBLIC
 						${OPENSSL_LIBRARY_DIRS}
 						${OPENSSL_LIBRARIES}
 						dl
-						Curses::Curses
 					)
 
 set_property(TARGET pea PROPERTY POSITION_INDEPENDENT_CODE FALSE)

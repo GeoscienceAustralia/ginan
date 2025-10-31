@@ -1,5 +1,6 @@
 // #pragma GCC optimize ("O0")
 
+#include "common/ionModels.hpp"
 #include <math.h>
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
@@ -16,6 +17,7 @@
 constexpr double VAR_IONO  = 60.0 * 60.0;  // init variance iono-delay
 constexpr double VAR_IONEX = 0.0 * 0.0;
 constexpr double ERR_BRDCI = 0.5;          // broadcast iono model error factor
+constexpr double ERR_ION   = 7.0;          // ionospheric delay std (m)
 
 constexpr double VAR_NOTEC = 30.0 * 30.0;  // variance of no tec
 constexpr double MIN_EL    = 0.0;          // min elevation angle (rad)
@@ -78,7 +80,8 @@ double ionmodel(GTime t, const double* ion, const VectorPos& pos, const AzEl& az
     tt -= floor(tt / 86400) * 86400; /* 0<=tt<86400 */
 
     /* slant factor */
-    double f = 1 + 16 * pow(0.53 - azel.el / PI, 3);
+    double dummy = 0;
+    double f     = ionmapf(pos, azel, E_IonoMapFn::KLOBUCHAR, dummy);
 
     /* ionospheric delay */
     double amp = ion[0] + phi * (ion[1] + phi * (ion[2] + phi * ion[3]));
@@ -477,6 +480,9 @@ bool ionoModel(
         }
         default:
         {
+            dion = 0;
+            var  = SQR(ERR_ION);  // Undefined variance
+
             return false;
         }
     }

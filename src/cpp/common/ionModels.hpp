@@ -7,6 +7,7 @@
 
 using std::string;
 
+struct AzEl;
 struct Navigation;
 
 double ionmodel(GTime t, const double* ion, const VectorPos& pos, const AzEl& azel);

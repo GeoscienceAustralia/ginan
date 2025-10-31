@@ -4,7 +4,6 @@
 #include <sstream>
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/receiver.hpp"
 #include "common/satStat.hpp"
 #include "pea/ppp.hpp"
@@ -19,7 +18,7 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
     auto& kfState   = rejectDetails.kfState;
     auto& kfMeas    = rejectDetails.kfMeas;
     auto& measIndex = rejectDetails.measIndex;
-    auto& postFit   = rejectDetails.postFit;
+    auto& stage     = rejectDetails.stage;
 
     if (acsConfig.measErrors.enable == false)
     {
@@ -33,21 +32,24 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
 
     auto& key = kfMeas.obsKeys[measIndex];
 
-    InteractiveTerminal ss("Deweights", trace, false);
-
     double preSigma = sqrt(kfMeas.R(measIndex, measIndex));
-    double residual;
+    double residual = 0;
 
     string description;
-    if (postFit)
+    if (stage == +E_FilterStage::LSQ)
     {
-        description = "Postfit";
+        description = "Least Squares";
         residual    = kfMeas.VV(measIndex);
     }
-    else
+    else if (stage == +E_FilterStage::PREFIT)
     {
         description = "Prefit";
         residual    = kfMeas.V(measIndex);
+    }
+    else if (stage == +E_FilterStage::POSTFIT)
+    {
+        description = "Postfit";
+        residual    = kfMeas.VV(measIndex);
     }
 
     addRejectDetails(
@@ -64,9 +66,21 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
 
     kfMeas.R.row(measIndex) *= deweightFactor;
     kfMeas.R.col(measIndex) *= deweightFactor;
-    kfMeas.H_star.row(measIndex) *= deweightFactor;
+    if (kfMeas.H_star.size() > 0)
+        kfMeas.H_star.row(measIndex) *= deweightFactor;
 
     map<string, void*>& metaDataMap = kfMeas.metaDataMaps[measIndex];
+
+    GObs* obs_ptr = (GObs*)metaDataMap["sppObs_ptr"];
+
+    if (obs_ptr)
+    {
+        GObs& obs = *obs_ptr;
+
+        obs.excludeOutlier = true;  // todo Eugene: exclude signal instead of obs
+
+        trace << "\n" << obs.Sat.id() << " will be excluded next SPP iteration";
+    }
 
     MatrixXd* otherNoiseMatrix_ptr = (MatrixXd*)metaDataMap["otherNoiseMatrix_ptr"];
     long int  otherIndex           = (long int)metaDataMap["otherIndex"];
@@ -120,7 +134,7 @@ bool deweightStationMeas(RejectCallbackDetails rejectDetails)
     auto& kfState   = rejectDetails.kfState;
     auto& kfMeas    = rejectDetails.kfMeas;
     auto& measIndex = rejectDetails.measIndex;
-    auto& postFit   = rejectDetails.postFit;
+    auto& stage     = rejectDetails.stage;
 
     string id = kfMeas.obsKeys[measIndex].str;
 
@@ -135,18 +149,26 @@ bool deweightStationMeas(RejectCallbackDetails rejectDetails)
 
         double deweightFactor = acsConfig.measErrors.deweight_factor;
 
-        addRejectDetails(
-            kfState.time,
-            trace,
-            kfState,
-            key,
-            "Station Meas Deweighted",
-            postFit ? "Postfit" : "Prefit"
-        );
+        string description;
+        if (stage == +E_FilterStage::LSQ)
+        {
+            description = "Least Squares";
+        }
+        else if (stage == +E_FilterStage::PREFIT)
+        {
+            description = "Prefit";
+        }
+        else if (stage == +E_FilterStage::POSTFIT)
+        {
+            description = "Postfit";
+        }
+
+        addRejectDetails(kfState.time, trace, kfState, key, "Station Meas Deweighted", description);
 
         kfMeas.R.row(i) *= deweightFactor;
         kfMeas.R.col(i) *= deweightFactor;
-        kfMeas.H_star.row(i) *= deweightFactor;
+        if (kfMeas.H_star.size() > 0)
+            kfMeas.H_star.row(i) *= deweightFactor;
 
         map<string, void*>& metaDataMap = kfMeas.metaDataMaps[i];
 
@@ -570,7 +592,7 @@ bool relaxState(RejectCallbackDetails rejectDetails)
     auto& kfState    = rejectDetails.kfState;
     auto& kfKey      = rejectDetails.kfKey;
     auto& stateIndex = rejectDetails.stateIndex;
-    auto& postFit    = rejectDetails.postFit;
+    auto& stage      = rejectDetails.stage;
 
     if (acsConfig.stateErrors.enable == false)
     {
@@ -580,8 +602,15 @@ bool relaxState(RejectCallbackDetails rejectDetails)
         return true;
     }
 
-    double deweightFactor =
-        abs(postFit ? kfState.postfitRatios(stateIndex) : kfState.prefitRatios(stateIndex));
+    double deweightFactor = 1;
+    if (stage == +E_FilterStage::PREFIT)
+    {
+        deweightFactor = abs(kfState.prefitRatios(stateIndex));
+    }
+    else if (stage == +E_FilterStage::POSTFIT)
+    {
+        deweightFactor = abs(kfState.postfitRatios(stateIndex));
+    }
     // deweightFactor = std::min(abs(deweightFactor), 5000.0);  // To avoid breaking
     // filter, maximum process noise allowed is 5000 times of prefit sigma
 

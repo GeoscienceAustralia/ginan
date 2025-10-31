@@ -153,6 +153,8 @@ void mongoTestStat(KFState& kfState, TestStatistics& testStatistics)
     }
 
     map<string, double> entries;
+    entries["StatsSumOfSquaresLsq"]    = testStatistics.sumOfSquaresLsq;
+    entries["StatsAverageRatioLsq"]    = testStatistics.averageRatioLsq;
     entries["StatsSumOfSquaresPre"]    = testStatistics.sumOfSquaresPre;
     entries["StatsAverageRatioPre"]    = testStatistics.averageRatioPre;
     entries["StatsSumOfSquaresPost"]   = testStatistics.sumOfSquaresPost;

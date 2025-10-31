@@ -19,7 +19,6 @@
 #include "common/debug.hpp"
 #include "common/fileLog.hpp"
 #include "common/gTime.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/mongoRead.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/navigation.hpp"
@@ -146,7 +145,7 @@ void mainOncePerEpochPerStation(Receiver& rec, Network& net, bool& emptyEpoch, K
 
     if (acsConfig.process_spp)
     {
-        spp(trace, rec.obsList, rec.sol, rec.id, &net.kfState, &remoteState);
+        spp(trace, rec, &net.kfState, &remoteState);
     }
 
     if (rec.ready == false || rec.invalid)
@@ -345,7 +344,6 @@ void mainOncePerEpoch(Network& pppNet, Network& ionNet, ReceiverMap& receiverMap
     predictOrbits(pppTrace, pppNet.kfState, time);
     // predictInertials(pppTrace, pppNet.kfState, time);
 
-    InteractiveTerminal::setMode(E_InteractiveMode::Preprocessing);
     BOOST_LOG_TRIVIAL(info) << " ------- PREPROCESSING STATIONS       --------" << "\n";
 
     KFState remoteState;
@@ -472,7 +470,6 @@ void mainPostProcessing(Network& pppNet, Network& ionNet, ReceiverMap& receiverM
     if (acsConfig.process_ppp && acsConfig.process_minimum_constraints &&
         acsConfig.minconOpts.once_per_epoch == false)
     {
-        InteractiveTerminal::setMode(E_InteractiveMode::MinimumConstraints);
         BOOST_LOG_TRIVIAL(info) << " ------- PERFORMING MIN-CONSTRAINTS   --------" << "\n";
 
         for (auto& [id, rec] : receiverMap)
@@ -513,11 +510,10 @@ void mainPostProcessing(Network& pppNet, Network& ionNet, ReceiverMap& receiverM
 
         MinconStatistics minconStatistics;
 
-        InteractiveTerminal minconTrace("MinimumConstraints", pppTrace);
 
-        mincon(minconTrace, pppNet.kfState, &minconStatistics);
+        mincon(pppTrace, pppNet.kfState, &minconStatistics);
 
-        pppNet.kfState.outputStates(minconTrace, "/CONSTRAINED");
+        pppNet.kfState.outputStates(pppTrace, "/CONSTRAINED");
 
         mongoStates(
             pppNet.kfState,
@@ -526,7 +522,7 @@ void mainPostProcessing(Network& pppNet, Network& ionNet, ReceiverMap& receiverM
              .queue     = acsConfig.mongoOpts.queue_outputs}
         );
 
-        outputMinconStatistics(minconTrace, minconStatistics);
+        outputMinconStatistics(pppTrace, minconStatistics);
     }
 
     if (acsConfig.output_sinex)
@@ -572,8 +568,6 @@ void tryExitGracefully(int signum)
     if (closeRequest)
     {
         // second time this is called, dont worry too much about gracefullness
-        interactiveTerminaldestructor.~InteractiveTerminalDestructor();
-
         abort();
     }
 
@@ -852,13 +846,6 @@ int main(int argc, char** argv)
                     tsync.bigTime = round(tsync.bigTime);
                 }
             }
-
-            InteractiveTerminal::clearModes(
-                (string) " Processing epoch " + std::to_string(epoch) + "    " + tsync.to_string(),
-                (string) " Last Epoch took " +
-                    std::to_string((lastEpochStopTime - lastEpochStartTime).to_double()) + "s"
-            );
-            InteractiveTerminal::setMode(E_InteractiveMode::Syncing);
 
             for (auto& [id, rec] : receiverMap)
             {
@@ -1252,20 +1239,8 @@ int main(int argc, char** argv)
                             << "\n"
                             << "\n";
 
-    InteractiveTerminal::clearModes(
-        (string) " Processing complete at epoch " + std::to_string(epoch) + "    " +
-            tsync.to_string(),
-        (string) " Processing took " + std::to_string((peaStopTime - peaStartTime).to_double()) +
-            "s"
-    );
-    InteractiveTerminal::setMode(E_InteractiveMode::Complete);
 
     BOOST_LOG_TRIVIAL(info) << "PEA finished";
-
-    while (InteractiveTerminal::enabled)
-    {
-        sleep_for(std::chrono::seconds(10));
-    }
 
     return EXIT_SUCCESS;
 }

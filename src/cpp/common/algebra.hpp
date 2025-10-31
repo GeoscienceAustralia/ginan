@@ -413,10 +413,10 @@ struct RejectCallbackDetails
     {
     }
 
-    KFKey kfKey;            ///< Key to the state that is flagged as an error
-    int   stateIndex = -1;  ///< Index of the state that is flagged as an error
-    int   measIndex  = -1;  ///< Index of the measurement that is flagged as an outlier
-    bool  postFit    = false;
+    KFKey         kfKey;            ///< Key to the state that is flagged as an error
+    int           stateIndex = -1;  ///< Index of the state that is flagged as an error
+    int           measIndex  = -1;  ///< Index of the measurement that is flagged as an outlier
+    E_FilterStage stage      = E_FilterStage::LSQ;  ///< prefit, postfit, least squares
 };
 
 typedef bool (*StateRejectCallback)(RejectCallbackDetails rejectCallbackDetails);
@@ -471,6 +471,8 @@ struct KFState_ : FilterOptions
     map<string, FilterChunk> filterChunkMap;
 
     map<string, string> metaDataMap;
+
+    bool sigmaPass = false;
 
     bool   chiQCPass  = false;
     double chi2       = 0;
@@ -627,6 +629,13 @@ struct KFState : KFState_
 
     void manualStateTransition(Trace& trace, GTime newTime, MatrixXd& stm, MatrixXd& procNoise);
 
+    void leastSquareSigmaChecks(
+        RejectCallbackDetails& callbackDetails,
+        double                 adjustment,
+        MatrixXd&              Pp,
+        KFStatistics&          statistics
+    );
+
     void preFitSigmaChecks(
         RejectCallbackDetails& callbackDetails,
         KFStatistics&          statistics,
@@ -709,12 +718,12 @@ struct KFState : KFState_
         map<string, FilterChunk>* filterChunkMap_ptr = nullptr
     );
 
-    void leastSquareInitStates(
-        Trace&    trace,
-        KFMeas&   kfMeas,
-        bool      initCovars = false,
-        VectorXd* dx_ptr     = nullptr,
-        bool      innovReady = false
+    bool leastSquareInitStates(
+        Trace&        trace,
+        KFMeas&       kfMeas,
+        const string& suffix,
+        bool          initCovars = false,
+        bool          innovReady = false
     );
 
     VectorXd getSubState(

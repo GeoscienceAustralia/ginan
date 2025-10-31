@@ -550,13 +550,12 @@ void updateAprioriRecClk(
             }
             case E_Source::SPP:
             {
-                if (rec.sol.dtRec_m.find(E_Sys::GPS) == rec.sol.dtRec_m.end() ||
-                    rec.sol.dtRec_m[E_Sys::GPS] == 0)
+                if (rec.sol.sppClk == 0)
                 {
                     continue;
                 }
 
-                rec.aprioriClk    = rec.sol.dtRec_m[E_Sys::GPS];
+                rec.aprioriClk    = rec.sol.sppClk;
                 rec.aprioriClkVar = SQR(30);  // todo Eugene: use estimated var
 
                 break;
@@ -1053,7 +1052,7 @@ void removeBadReceivers(
 
         kfState.statisticsMap["Rec error resets"]++;
 
-        rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = 0;
+        rec.sol.clkAdjustReady = false;
     }
 }
 
@@ -1093,7 +1092,53 @@ void removeBadIonospheres(
     }
 }
 
-void postFilterChecks(const GTime& time, KFState& kfState, KFMeas& kfMeas)
+void updateSppPppClkOffsets(ReceiverMap& receiverMap, KFState& kfState)
+{
+    if (acsConfig.adjust_rec_clocks_by_spp == false)
+    {
+        return;
+    }
+
+    for (auto& [id, rec] : receiverMap)
+    {
+        if (rec.isPseudoRec)
+        {
+            continue;
+        }
+
+        if (rec.sol.status != +E_Solution::SINGLE)
+        {
+            continue;
+        }
+
+        auto  trace   = getTraceFile(rec);
+        auto& recOpts = acsConfig.getRecOpts(id);
+
+        InitialState init = initialStateFromConfig(recOpts.clk);
+
+        if (init.estimate == false)
+        {
+            continue;
+        }
+
+        KFKey clkKey;
+        clkKey.type    = KF::REC_CLOCK;
+        clkKey.str     = id;
+        clkKey.rec_ptr = &rec;
+
+        double   recClk_m = 0;
+        E_Source found    = kfState.getKFValue(clkKey, recClk_m);
+
+        if (found)
+        {
+            rec.sol.sppPppClkOffset =
+                recClk_m - rec.sol.sppClk;  // Save SPP to PPP clock offset for next epoch
+            rec.sol.clkAdjustReady = true;
+        }
+    }
+}
+
+void postFilterChecks(const GTime& time, ReceiverMap& receiverMap, KFState& kfState, KFMeas& kfMeas)
 {
     kfState.errorCountMap.clear();  // Reset all state error counts each epoch
 
@@ -1102,6 +1147,8 @@ void postFilterChecks(const GTime& time, KFState& kfState, KFMeas& kfMeas)
         resetPhaseSignalError(time, kfMeas, i);
         resetIonoSignalOutage(time, kfMeas, i);
     }
+
+    updateSppPppClkOffsets(receiverMap, kfState);
 }
 
 /* write solution status for PPP

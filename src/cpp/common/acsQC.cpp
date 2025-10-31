@@ -25,6 +25,7 @@ bool satFreqs(E_Sys sys, E_FType& ft1, E_FType& ft2, E_FType& ft3)
     bool ft2Ready = false;
 
     // Add defaults in case someone forgets to initialise them...
+    // todo Eugene: Freqs may be duplicate! Initialise with NONE and return a list of unique freqs!
     ft1 = F1;
     ft2 = F2;
     ft3 = F5;

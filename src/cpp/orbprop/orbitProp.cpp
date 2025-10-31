@@ -11,7 +11,6 @@
 #include "common/eigenIncluder.hpp"
 #include "common/enums.h"
 #include "common/gTime.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/mongo.hpp"
 #include "common/navigation.hpp"
 #include "common/sinex.hpp"
@@ -1104,62 +1103,72 @@ Orbits prepareOrbits(Trace& trace, const KFState& kfState)
 
                 case KF::EMP_P_0:
                 {
-                    orbit.empInput.push_back({false, 0, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 0, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_1:
                 {
-                    orbit.empInput.push_back({false, 1, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 1, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_2:
                 {
-                    orbit.empInput.push_back({false, 2, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 2, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_3:
                 {
-                    orbit.empInput.push_back({false, 3, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 3, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_4:
                 {
-                    orbit.empInput.push_back({false, 4, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 4, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
 
                 case KF::EMP_Q_0:
                 {
-                    orbit.empInput.push_back({false, 0, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 0, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_1:
                 {
-                    orbit.empInput.push_back({false, 1, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 1, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_2:
                 {
-                    orbit.empInput.push_back({false, 2, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 2, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_3:
                 {
-                    orbit.empInput.push_back({false, 3, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 3, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_4:
                 {
-                    orbit.empInput.push_back({false, 4, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 4, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
@@ -1309,7 +1318,6 @@ void predictOrbits(Trace& trace, KFState& kfState, GTime time)
         return;
     }
 
-    InteractiveTerminal::setMode(E_InteractiveMode::PropagatingOrbits);
     BOOST_LOG_TRIVIAL(info) << " ------- PROPAGATING ORBITS           --------" << "\n";
 
     OrbitIntegrator integrator;

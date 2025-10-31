@@ -13,14 +13,16 @@
  */
 struct Solution
 {
-    GTime              sppTime;           ///< time (GPST)
-    KFState            sppState;          ///< SPP filter object
-    VectorEcef         sppPos;            ///< Position vector from SPP
-    map<E_Sys, double> dtRec_m;           ///< receiver clock bias to time systems (m)
-    map<E_Sys, double> dtRec_m_pppp_old;  ///< previous receiver clock bias to time systems (m)
-    E_Solution         status;            ///< solution status
-    int                numMeas = 0;  ///< number of valid measurements used to estimate solution
-    Dops               dops;         ///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
+    GTime      sppTime;        ///< time (GPST)
+    KFState    sppState;       ///< SPP filter object
+    VectorEcef sppPos;         ///< Position vector from SPP
+    double     sppClk    = 0;  ///< receiver clock/system biases to receiver reference system (m)
+    E_Sys      clkRefSys = E_Sys::NONE;             ///< receiver clock reference system
+    double     sppPppClkOffset = 0;                 ///< SPP to PPP offset of receiver clock
+    bool       clkAdjustReady  = false;             ///< if SPP to PPP offset is ready
+    E_Solution status          = E_Solution::NONE;  ///< solution status
+    int        numMeas         = 0;  ///< number of valid measurements used to estimate solution
+    Dops       dops;                 ///< dilution of precision (GDOP,PDOP,HDOP,VDOP)
 };
 
 struct RinexStation

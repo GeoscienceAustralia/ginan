@@ -501,9 +501,10 @@ void mincon(
                 }
             }
 
-            double innov = deltaR(xyz);
+            double value = deltaR(xyz);
 
-            meas.setValue(innov);
+            meas.setValue(value);
+            // todo Eugene: set noise
 
             // Add null measurement and continue, its needed for inverse later
 
@@ -546,9 +547,8 @@ void mincon(
         {
             trace << "\n------- LEAST SQUARES FOR MINIMUM CONSTRAINTS TRANSFORMATION --------\n";
 
-            string   suffixLsq = suffix + "_LSQ";
-            VectorXd dx;
-            kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, false, &dx);
+            string suffixLsq = suffix + "_LSQ";
+            kfStateTrans.leastSquareInitStates(trace, combinedMeasCulled, suffixLsq);
 
             kfStateTrans.dx = VectorXd::Zero(kfStateTrans.x.rows());
 
