@@ -4878,6 +4878,12 @@ bool ACSConfig::parse(
                     {"0@ output_satellites"},
                     "Output trace files for individual satellites processing"
                 );
+                tryGetFromYaml(
+                    output_observations,
+                    trace,
+                    {"0@ output_observations"},
+                    "Output detailed observation data including CN0, elevation, azimuth, and signal availability"
+                );
                 conditionalPrefix(
                     "<OUTPUTS_ROOT>",
                     trace_directory,

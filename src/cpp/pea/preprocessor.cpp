@@ -639,7 +639,10 @@ void preprocessor(
 
     excludeUnprocessed(obsList);
 
-    outputObservations(trace, jsonTrace, obsList, rec, pos);
+    if (acsConfig.output_observations)
+    {
+        outputObservations(trace, jsonTrace, obsList, rec, pos);
+    }
 
     /* linear combinations */
     for (auto& obs : only<GObs>(obsList))

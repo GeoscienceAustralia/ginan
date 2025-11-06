@@ -185,6 +185,7 @@ struct OutputOptions
     bool   output_network_trace      = false;
     bool   output_ionosphere_trace   = false;
     bool   output_satellite_trace    = false;
+    bool   output_observations       = false;
     bool   output_json_trace         = false;
     string trace_directory           = "<OUTPUTS_ROOT>";
     string receiver_trace_filename   = "<TRACE_DIRECTORY>/<RECEIVER>-<LOGTIME>.trace";
