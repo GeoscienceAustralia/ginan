@@ -209,7 +209,7 @@ void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiv
 
         // Map frequencies to receiver's tracked signals
         // Expected signals = intersection of (satellite frequencies) AND (receiver tracked signals) AND (code_priorities)
-        vector<E_ObsCode> expectedSignals;
+        set<E_ObsCode> expectedSignals;  // Use set to avoid duplicates
 
         // Get receiver's tracked signals for this constellation
         auto trackedIt = rec.trackedSignals.find(sat.sys);
@@ -235,7 +235,7 @@ void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiv
                         // Also check if it's in code_priorities
                         if (std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
                         {
-                            expectedSignals.push_back(recSig);
+                            expectedSignals.insert(recSig);
                         }
                     }
                 }
