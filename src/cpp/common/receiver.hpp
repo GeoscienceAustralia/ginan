@@ -9,6 +9,8 @@
 #include "common/satStat.hpp"
 #include "pea/ppp.hpp"
 
+struct Parser;
+
 /** Solution of user mode processing functinos
  */
 struct Solution
@@ -145,6 +147,8 @@ struct ReceiverMap : map<string, Receiver>
 };
 
 extern ReceiverMap receiverMap;
+
+void extractTrackedSignals(Receiver& rec, Parser& parser);
 
 struct Network
 {
