@@ -31,6 +31,7 @@
 #include "common/rinexObsWrite.hpp"
 #include "common/rtsSmoothing.hpp"
 #include "common/streamRinex.hpp"
+#include "common/streamRtcm.hpp"
 #include "common/sinex.hpp"
 #include "common/streamNtrip.hpp"
 #include "common/streamObs.hpp"
@@ -1122,32 +1123,67 @@ int main(int argc, char** argv)
                 rec.ready                = true;
                 rec.source               = obsStream.stream.sourceString;
 
-                // Extract tracked signals from RINEX header (first time only)
+                // Extract tracked signals from RINEX header or accumulate from RTCM observations
                 // This enables receiver-specific signal tracking mode detection
-                if (rec.trackedSignals.empty())
-                {
-                    try
-                    {
-                        auto& rinexParser = dynamic_cast<RinexParser&>(obsStream.parser);
+                string parserType = obsStream.parser.parserType();
 
-                        for (auto& [sys, codeTypeMap] : rinexParser.sysCodeTypes)
+                if (parserType == "RinexParser" && rec.trackedSignals.empty())
+                {
+                    auto& rinexParser = static_cast<RinexParser&>(obsStream.parser);
+
+                    for (auto& [sys, codeTypeMap] : rinexParser.sysCodeTypes)
+                    {
+                        vector<E_ObsCode> signals;
+                        for (auto& [idx, codeType] : codeTypeMap)
                         {
-                            vector<E_ObsCode> signals;
-                            for (auto& [idx, codeType] : codeTypeMap)
+                            if (codeType.code != +E_ObsCode::NONE)
                             {
-                                if (codeType.code != +E_ObsCode::NONE)
+                                signals.push_back(codeType.code);
+                            }
+                        }
+                        rec.trackedSignals[sys] = signals;
+                    }
+                }
+                else if (parserType == "RtcmParser")
+                {
+                    // For RTCM streams, accumulate tracked signals from observations
+                    // This builds up the signal list dynamically as we receive data
+                    auto& rtcmParser = static_cast<RtcmParser&>(obsStream.parser);
+
+                    // Extract signals from the current observation list
+                    for (auto& obsList : rtcmParser.obsListList)
+                    {
+                        for (auto& obs : only<GObs>(obsList))
+                        {
+                            E_Sys sys = obs.Sat.sys;
+                            set<E_ObsCode> signalSet;
+
+                            // If we already have signals for this system, start with those
+                            if (rec.trackedSignals.count(sys))
+                            {
+                                signalSet.insert(rec.trackedSignals[sys].begin(), rec.trackedSignals[sys].end());
+                            }
+
+                            // Add signals from this observation
+                            for (auto& [ftype, sigsList] : obs.sigsLists)
+                            {
+                                for (auto& sig : sigsList)
                                 {
-                                    signals.push_back(codeType.code);
+                                    if (sig.code != +E_ObsCode::NONE)
+                                    {
+                                        signalSet.insert(sig.code);
+                                    }
                                 }
                             }
-                            rec.trackedSignals[sys] = signals;
+
+                            // Update the tracked signals with the expanded set
+                            rec.trackedSignals[sys] = vector<E_ObsCode>(signalSet.begin(), signalSet.end());
                         }
                     }
-                    catch (...)
-                    {
-                        // Parser is not RinexParser (e.g., RTCM, UBX, or other stream type)
-                        // Skip signal extraction - only RINEX headers contain this information
-                    }
+                }
+                else
+                {
+                    // Signal extraction not supported for other parser types (UBX, Custom, etc.)
                 }
 
                 auto now = system_clock::now();
