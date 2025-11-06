@@ -490,8 +490,7 @@ void cycleslip2(
     GObs&    obs       ///< Navigation object for this satellite
 )
 {
-    GWeek week = lcBase.time;
-    GTow  tow  = lcBase.time;
+    string timeStr = lcBase.time.to_string(2);
 
     auto& recOpts = acsConfig.getRecOpts(obs.mount);
 
@@ -575,10 +574,9 @@ void cycleslip2(
     tracepdeex(
         2,
         trace,
-        "\nPDE-CS GPST DUAL  %4d %8.1f %4s %5.2f %5.3f %8.4f %7.4f %8.4f                           "
+        "\nPDE-CS GPST DUAL  %s %4s %5.2f %5.3f %8.4f %7.4f %8.4f                           "
         "     ",
-        week,
-        tow,
+        timeStr.c_str(),
         lcBase.Sat.id().c_str(),
         satStat.el * R2D,
         lamw,
@@ -611,8 +609,7 @@ void cycleslip3(
     GObs&    obs       ///< Navigation object for this satellite
 )
 {
-    GWeek week = lc.time;
-    GTow  tow  = lc.time;
+    string timeStr = lc.time.to_string(2);
 
     auto& recOpts = acsConfig.getRecOpts(obs.mount);
 
@@ -722,9 +719,8 @@ void cycleslip3(
     tracepdeex(
         2,
         trace,
-        "\nPDE-CS GPST TRIP  %4d %8.1f %4s %5.2f %5.3f %8.4f %7.4f %8.4f        %6.2f %8.4f %7.4f ",
-        week,
-        tow,
+        "\nPDE-CS GPST TRIP  %s %4s %5.2f %5.3f %8.4f %7.4f %8.4f        %6.2f %8.4f %7.4f ",
+        timeStr.c_str(),
         lc.Sat.id().c_str(),
         satStat.el * R2D,
         lamw,
@@ -767,8 +763,7 @@ void detectslip(
     char id[32];
     lc_new.Sat.getId(id);
 
-    GWeek week = lc_new.time;
-    GTow  tow  = lc_new.time;
+    string timeStr = lc_new.time.to_string(2);
 
     auto& recOpts = acsConfig.getRecOpts(obs.mount);
 
@@ -795,9 +790,8 @@ void detectslip(
             tracepdeex(
                 1,
                 trace,
-                "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --time gap --",
-                week,
-                tow,
+                "\nPDE-CS GPST       %s %4s %5.2f --time gap --",
+                timeStr.c_str(),
                 id,
                 satStat.el * R2D
             );
@@ -805,9 +799,8 @@ void detectslip(
             tracepdeex(
                 1,
                 trace,
-                "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --low_elevation --",
-                week,
-                tow,
+                "\nPDE-CS GPST       %s %4s %5.2f --low_elevation --",
+                timeStr.c_str(),
                 id,
                 satStat.el * R2D
             );
@@ -815,9 +808,8 @@ void detectslip(
             tracepdeex(
                 1,
                 trace,
-                "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --satStat.lc_pre.time.time --",
-                week,
-                tow,
+                "\nPDE-CS GPST       %s %4s %5.2f --satStat.lc_pre.time.time --",
+                timeStr.c_str(),
                 id,
                 satStat.el * R2D
             );
@@ -912,9 +904,8 @@ void detectslip(
         tracepdeex(
             1,
             trace,
-            "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --  re-tracking   --\n",
-            week,
-            tow,
+            "\nPDE-CS GPST       %s %4s %5.2f --  re-tracking   --\n",
+            timeStr.c_str(),
             id,
             satStat.el * R2D
         );
@@ -932,9 +923,8 @@ void detectslip(
         tracepdeex(
             1,
             trace,
-            "\nPDE-CS GPST       %4d %8.1f %4s %5.2f --single frequency--\n",
-            week,
-            tow,
+            "\nPDE-CS GPST       %s %4s %5.2f --single frequency--\n",
+            timeStr.c_str(),
             id,
             satStat.el * R2D
         );
@@ -984,7 +974,7 @@ void detectslips(
     tracepdeex(
         2,
         trace,
-        "\nPDE-CS GPST       week      sec  prn   el   lamw     gf12    mw12    siggf  sigmw  "
+        "\nPDE-CS GPST       epoch                  prn  el   lamw     gf12    mw12    siggf  sigmw  "
         "lamew     gf25    mw25   "
         "            LC                   N1   N2   N5\n"
     );
