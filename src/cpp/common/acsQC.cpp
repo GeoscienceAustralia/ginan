@@ -72,7 +72,7 @@ void detslp_ll(
     ObsList& obsList  ///< List of observations to detect slips within
 )
 {
-    tracepdeex(5, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
+    tracepdeex(3, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
 
     // 	auto begin_iter = boost::make_filter_iterator([]
 
@@ -111,7 +111,7 @@ void detslp_gf(
     ObsList& obsList  ///< List of observations to detect slips within
 )
 {
-    tracepdeex(5, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
+    tracepdeex(3, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
 
     for (auto& obs : only<GObs>(obsList))
     {
@@ -144,7 +144,7 @@ void detslp_gf(
         }
 
         tracepdeex(
-            5,
+            3,
             trace,
             "\n%s: sat=%s gf0=%f gf1=%f",
             __FUNCTION__,
@@ -180,7 +180,7 @@ void detslp_mw(
     ObsList& obsList  ///< List of observations to detect slips within
 )
 {
-    tracepdeex(5, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
+    tracepdeex(3, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
 
     for (auto& obs : only<GObs>(obsList))
     {
@@ -213,7 +213,7 @@ void detslp_mw(
         }
 
         tracepdeex(
-            5,
+            3,
             trace,
             "\n%s: sat=%s mw0=%f mw1=%f",
             __FUNCTION__,

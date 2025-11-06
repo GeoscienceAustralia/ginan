@@ -238,7 +238,7 @@ void obs2lc(
         lcBase.P[frq3]
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n",
         strprefix,
@@ -247,7 +247,7 @@ void obs2lc(
         lcBase.mp[frq3]
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n",
         strprefix,
@@ -256,7 +256,7 @@ void obs2lc(
         lc25.GF_Phas_m
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n",
         strprefix,
@@ -265,7 +265,7 @@ void obs2lc(
         lc25.GF_Code_m
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n",
         strprefix,
@@ -274,7 +274,7 @@ void obs2lc(
         lc25.MW_c
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n",
         strprefix,
@@ -283,7 +283,7 @@ void obs2lc(
         lc25.WL_Phas_m
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n",
         strprefix,
@@ -292,7 +292,7 @@ void obs2lc(
         lc25.IF_Phas_m
     );
     tracepdeex(
-        5,
+        3,
         trace,
         "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n",
         strprefix,
