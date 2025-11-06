@@ -43,8 +43,6 @@ Architecture Preprocessing__()
 #include "orbprop/coordinates.hpp"
 #include "pea/ppp.hpp"
 
-/** Get expected signal codes for a satellite based on its block type
- */
 // Get frequency bands that a satellite block type broadcasts
 // Returns frequencies as integers (e.g., 1, 2, 5 for L1, L2, L5)
 vector<int> getExpectedFrequencies(string blockType)
