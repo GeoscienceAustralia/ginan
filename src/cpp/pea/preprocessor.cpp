@@ -45,77 +45,54 @@ Architecture Preprocessing__()
 
 /** Get expected signal codes for a satellite based on its block type
  */
-vector<E_ObsCode> getExpectedSignals(string blockType)
+// Get frequency bands that a satellite block type broadcasts
+// Returns frequencies as integers (e.g., 1, 2, 5 for L1, L2, L5)
+vector<int> getExpectedFrequencies(string blockType)
 {
-    vector<E_ObsCode> signals;
+    vector<int> frequencies;
 
     // GPS Block types
-    if (blockType == "GPS-IIF")
+    if (blockType == "GPS-IIF" || blockType == "GPS-IIIA")
     {
-        signals = {
-            E_ObsCode::L1C, E_ObsCode::L1W, E_ObsCode::L1X,
-            E_ObsCode::L2W, E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X,
-            E_ObsCode::L5I, E_ObsCode::L5Q, E_ObsCode::L5X
-        };
-    }
-    else if (blockType == "GPS-IIIA")
-    {
-        signals = {
-            E_ObsCode::L1C, E_ObsCode::L1W, E_ObsCode::L1X,
-            E_ObsCode::L2W, E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X,
-            E_ObsCode::L5I, E_ObsCode::L5Q, E_ObsCode::L5X
-        };
+        // L1, L2, L5
+        frequencies = {1, 2, 5};
     }
     else if (blockType == "GPS-IIR-M")
     {
-        signals = {
-            E_ObsCode::L1C, E_ObsCode::L1X,
-            E_ObsCode::L2W, E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2X
-        };
+        // L1, L2 (no L5)
+        frequencies = {1, 2};
     }
-    else if (blockType == "GPS-IIR-A" || blockType == "GPS-IIR-B")
+    else if (blockType == "GPS-IIR-A" || blockType == "GPS-IIR-B" || blockType == "GPS-IIA" || blockType == "GPS-II")
     {
-        signals = {E_ObsCode::L1C, E_ObsCode::L2W};
-    }
-    else if (blockType == "GPS-IIA" || blockType == "GPS-II")
-    {
-        signals = {E_ObsCode::L1C, E_ObsCode::L2W};
+        // L1, L2 only
+        frequencies = {1, 2};
     }
     // Galileo
     else if (blockType.find("GAL") == 0)
     {
-        signals = {
-            E_ObsCode::L1C, E_ObsCode::L1X,
-            E_ObsCode::L5I, E_ObsCode::L5Q, E_ObsCode::L5X,
-            E_ObsCode::L7I, E_ObsCode::L7Q, E_ObsCode::L7X,
-            E_ObsCode::L8I, E_ObsCode::L8Q, E_ObsCode::L8X,
-            E_ObsCode::L6C, E_ObsCode::L6X
-        };
+        // E1, E5a, E5b, E5, E6
+        frequencies = {1, 5, 7, 8, 6};
     }
     // GLONASS
     else if (blockType.find("GLO") == 0)
     {
-        signals = {
-            E_ObsCode::L1C, E_ObsCode::L1P,
-            E_ObsCode::L2C, E_ObsCode::L2P
-        };
+        // G1, G2
+        frequencies = {1, 2};
     }
     // BeiDou
     else if (blockType.find("BDS") == 0)
     {
-        signals = {E_ObsCode::L1I, E_ObsCode::L2I, E_ObsCode::L6I, E_ObsCode::L7I};
+        // B1, B2, B3, B2a
+        frequencies = {1, 2, 6, 7};
     }
     // QZSS
     else if (blockType.find("QZS") == 0)
     {
-        signals = {
-            E_ObsCode::L1C, E_ObsCode::L1X,
-            E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2X,
-            E_ObsCode::L5I, E_ObsCode::L5Q, E_ObsCode::L5X
-        };
+        // L1, L2, L5
+        frequencies = {1, 2, 5};
     }
 
-    return signals;
+    return frequencies;
 }
 
 void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiver& rec, VectorPos& recPos)
@@ -217,35 +194,57 @@ void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiv
             continue;
         }
 
-        // Get capable signals for this satellite based on block type
-        vector<E_ObsCode> capableSignals;
+        // Get frequency bands that this satellite broadcasts
         string blockType = sat.blockType();
-        if (!blockType.empty())
+        if (blockType.empty())
         {
-            capableSignals = getExpectedSignals(blockType);
+            continue;  // Unknown block type, can't determine frequencies
         }
 
-        if (capableSignals.empty())
+        vector<int> satFrequencies = getExpectedFrequencies(blockType);
+        if (satFrequencies.empty())
         {
-            continue;  // Unknown block type, can't determine capable signals
+            continue;  // Unknown block type, can't determine frequencies
         }
 
-        // Filter by code_priorities - only check for signals user wants to track
-        // expectedSignals = intersection of (capable signals) AND (code_priorities)
+        // Map frequencies to receiver's tracked signals
+        // Expected signals = intersection of (satellite frequencies) AND (receiver tracked signals) AND (code_priorities)
         vector<E_ObsCode> expectedSignals;
-        auto& codePriorities = acsConfig.code_priorities[sat.sys];
-        for (auto& code : capableSignals)
+
+        // Get receiver's tracked signals for this constellation
+        auto trackedIt = rec.trackedSignals.find(sat.sys);
+        if (trackedIt != rec.trackedSignals.end())
         {
-            // Check if this signal is in code_priorities
-            if (std::find(codePriorities.begin(), codePriorities.end(), code) != codePriorities.end())
+            auto& receiverSignals = trackedIt->second;
+            auto& codePriorities = acsConfig.code_priorities[sat.sys];
+
+            // For each frequency the satellite broadcasts
+            for (auto freq : satFrequencies)
             {
-                expectedSignals.push_back(code);
+                char freqChar = '0' + freq;  // Convert int to char digit (e.g., 1 -> '1')
+
+                // Find matching signals in receiver's tracked list that match this frequency
+                for (auto& recSig : receiverSignals)
+                {
+                    string sigStr = recSig._to_string();
+
+                    // Check if signal matches frequency (e.g., L1C has freq '1', L2W has freq '2')
+                    // Signal format is like "L1C" where position [1] is the frequency digit
+                    if (sigStr.length() >= 2 && sigStr[1] == freqChar)
+                    {
+                        // Also check if it's in code_priorities
+                        if (std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
+                        {
+                            expectedSignals.push_back(recSig);
+                        }
+                    }
+                }
             }
         }
 
         if (expectedSignals.empty())
         {
-            continue;  // No intersection between capable signals and code_priorities
+            continue;  // No matching signals between satellite frequencies, receiver capabilities, and code_priorities
         }
 
         double el_deg = el * R2D;
@@ -640,7 +639,7 @@ void preprocessor(
 
     excludeUnprocessed(obsList);
 
-    outputObservations(trace, jsonTrace, obsList);
+    outputObservations(trace, jsonTrace, obsList, rec, pos);
 
     /* linear combinations */
     for (auto& obs : only<GObs>(obsList))

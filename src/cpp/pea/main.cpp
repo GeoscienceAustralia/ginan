@@ -30,6 +30,7 @@
 #include "common/rinexNavWrite.hpp"
 #include "common/rinexObsWrite.hpp"
 #include "common/rtsSmoothing.hpp"
+#include "common/streamRinex.hpp"
 #include "common/sinex.hpp"
 #include "common/streamNtrip.hpp"
 #include "common/streamObs.hpp"
@@ -1120,6 +1121,34 @@ int main(int argc, char** argv)
                 dataAvailableMap[rec.id] = true;
                 rec.ready                = true;
                 rec.source               = obsStream.stream.sourceString;
+
+                // Extract tracked signals from RINEX header (first time only)
+                // This enables receiver-specific signal tracking mode detection
+                if (rec.trackedSignals.empty())
+                {
+                    try
+                    {
+                        auto& rinexParser = dynamic_cast<RinexParser&>(obsStream.parser);
+
+                        for (auto& [sys, codeTypeMap] : rinexParser.sysCodeTypes)
+                        {
+                            vector<E_ObsCode> signals;
+                            for (auto& [idx, codeType] : codeTypeMap)
+                            {
+                                if (codeType.code != +E_ObsCode::NONE)
+                                {
+                                    signals.push_back(codeType.code);
+                                }
+                            }
+                            rec.trackedSignals[sys] = signals;
+                        }
+                    }
+                    catch (...)
+                    {
+                        // Parser is not RinexParser (e.g., RTCM, UBX, or other stream type)
+                        // Skip signal extraction - only RINEX headers contain this information
+                    }
+                }
 
                 auto now = system_clock::now();
 

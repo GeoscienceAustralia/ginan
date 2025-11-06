@@ -122,6 +122,9 @@ struct Receiver : ReceiverLogs, Rtk
 
     map<SatSys, GTime> savedSlips;
 
+    // Receiver-specific signal tracking capabilities from RINEX header
+    map<E_Sys, vector<E_ObsCode>> trackedSignals;
+
     union
     {
         const unsigned int failure = 0;
