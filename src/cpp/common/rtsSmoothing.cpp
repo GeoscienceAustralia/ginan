@@ -9,6 +9,7 @@
 #include "common/algebraTrace.hpp"
 #include "common/constants.hpp"
 #include "common/eigenIncluder.hpp"
+#include "common/lapackWrapper.hpp"
 #include "common/metaData.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/navigation.hpp"
@@ -31,13 +32,13 @@ RtsConfiguration RtsConfiguration::fromAcsConfig()
 {
     RtsConfiguration config;
     config.queue_rts_outputs   = acsConfig.pppOpts.queue_rts_outputs;
-    config.rts_inverter        = acsConfig.pppOpts.rts_inverter;
     config.rts_only            = acsConfig.rts_only;
     config.output_residuals    = acsConfig.output_residuals;
     config.retain_rts_files    = acsConfig.retain_rts_files;
     config.output_measurements = acsConfig.mongoOpts.output_measurements;
     config.queue_mongo_outputs = acsConfig.mongoOpts.queue_outputs;
     config.sleep_milliseconds  = acsConfig.sleep_milliseconds;
+    config.regularisation      = acsConfig.pppOpts.rts_regularisation;
     return config;
 }
 
@@ -446,6 +447,64 @@ int RtsTimingLogger::calculateFractionalMilliseconds(const GTime& time)
 //================================================================================
 // FilterData Mathematical Computation
 //================================================================================
+/**
+ * Solve a system of linear equations Ax = b using LAPACKE.
+ * Due to the characteristics of the matrix being used in the KF, we expect the matrix to be
+ * symmetric and positive definite Fallback order: posv -> sysv -> gesv -> fatal (positive definite,
+ * symmetric, general)
+ * TODO add chunking to solve large systems
+ * TODO move to algebra.cpp/hpp [might be needed for the KF as well]
+ */
+void solveSystem(
+    const int n,     ///< Size of the system
+    const int neqs,  ///< Number of right-hand sides
+    double*   A,     ///< Matrix A
+    double*   b
+)                    ///< Right-hand side b
+{
+    int info;
+    // Backup original matrices
+    std::vector<double> A_backup(A, A + n * n);
+    std::vector<double> b_backup(b, b + n * neqs);
+
+    // LAPACKE uses column-major order by default (LAPACK_COL_MAJOR)
+    info = LapackWrapper::dposv(LapackWrapper::COL_MAJOR, 'U', n, neqs, A, n, b, n);
+    if (info == 0)
+    {
+        return;
+    }
+    BOOST_LOG_TRIVIAL(warning) << "Solver posv failed, moving to sysv. " << info << " "
+                               << A[(info - 1) * n + info - 1];
+
+    std::vector<int> ipiv(n);
+
+    // Reinitialize matrices
+    std::memcpy(A, A_backup.data(), n * n * sizeof(double));
+    std::memcpy(b, b_backup.data(), n * neqs * sizeof(double));
+
+    info = LapackWrapper::dsysv(LapackWrapper::COL_MAJOR, 'U', n, neqs, A, n, ipiv.data(), b, n);
+    if (info == 0)
+    {
+        return;
+    }
+    BOOST_LOG_TRIVIAL(warning) << "Solver sysv failed, moving to gesv.";
+
+    // Reinitialize matrices
+    std::memcpy(A, A_backup.data(), n * n * sizeof(double));
+    std::memcpy(b, b_backup.data(), n * neqs * sizeof(double));
+
+    info = LapackWrapper::dgetrf(LapackWrapper::COL_MAJOR, n, n, A, n, ipiv.data());
+    if (info == 0)
+    {
+        info = LapackWrapper::dgetrs(LapackWrapper::COL_MAJOR, 'N', n, neqs, A, n, ipiv.data(), b, n);
+        if (info == 0)
+        {
+            return;
+        }
+    }
+    // If all solvers fail
+    BOOST_LOG_TRIVIAL(fatal) << "All LAPACK solvers failed. Something is really wrong. " << info;
+}
 
 /** Perform RTS smoothing computation for current epoch */
 bool FilterData::performRtsComputation(KFState& kfState, const RtsConfiguration& config)
@@ -459,7 +518,6 @@ bool FilterData::performRtsComputation(KFState& kfState, const RtsConfiguration&
     {
         kfState.time = kalmanPlus.time;
     }
-
     double lag = (kfState.time - kalmanPlus.time).to_double();
 
     BOOST_LOG_TRIVIAL(info) << "RTS lag: " << lag;
@@ -479,16 +537,6 @@ bool FilterData::performRtsComputation(KFState& kfState, const RtsConfiguration&
 
     MatrixXd FP = F * kalmanPlus.P;
 
-    E_Inverter inverter = config.rts_inverter;
-
-    auto failInversion = [&]()
-    {
-        auto oldInverter = inverter;
-        inverter         = E_Inverter::_from_integral(((int)inverter) + 1);
-
-        BOOST_LOG_TRIVIAL(warning) << "Inverter type " << oldInverter._to_string()
-                                   << " failed, trying " << inverter._to_string();
-    };
     VectorXd deltaX = VectorXd::Zero(kalmanPlus.x.rows());
     MatrixXd deltaP = MatrixXd::Zero(kalmanPlus.P.rows(), kalmanPlus.P.cols());
 
@@ -509,128 +557,24 @@ bool FilterData::performRtsComputation(KFState& kfState, const RtsConfiguration&
             continue;
         }
 
-        BOOST_LOG_TRIVIAL(debug) << "Filtering chunk " << id;
-        auto Q = kalmanMinus.P.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX)
-                     .triangularView<Eigen::Upper>()
-                     .transpose();
-        auto FP_ = FP.block(fcM.begX, fcP.begX, fcM.numX, fcP.numX);
-
-        MatrixXd Ck;
-
-        int pass = false;
-
-        auto solve = [&]<typename SOLVER>(SOLVER solver) -> bool
+        BOOST_LOG_TRIVIAL(info) << "Filtering chunk " << id << " size " << fcP.numX << " "
+                                << fcM.numX << " start " << fcP.begX << " " << fcM.begX;
+        if (fcP.begX == 0)
         {
-            solver.compute(Q);
-            if (solver.info())
-            {
-                pass = false;
-                return pass;
-            }
-
-            Ck = solver.solve(FP_).transpose();
-
-            if (solver.info())
-            {
-                pass = false;
-                return pass;
-            }
-
-            pass = true;
-            return pass;
-        };
-
-        while (inverter != +E_Inverter::FIRST_UNSUPPORTED && (pass == false))
-            switch (inverter)
-            {
-                default:
-                {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Inverter type " << config.rts_inverter._to_string()
-                        << " not supported, reverting to LDLT";
-
-                    // Note: We cannot modify the config here as it's const
-                    // Fall through to LDLT case
-                    inverter = E_Inverter::LDLT;
-
-                    continue;
-                }
-                case E_Inverter::FULLPIVLU:
-                case E_Inverter::INV:
-                {
-                    Eigen::FullPivLU<MatrixXd> solver(
-                        kalmanMinus.P.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX)
-                    );
-
-                    if (solver.isInvertible() == false)
-                    {
-                        failInversion();
-
-                        break;
-                    }
-
-                    MatrixXd Pinv = solver.inverse();
-
-                    Pinv = (Pinv + Pinv.transpose()).eval() / 2;
-
-                    Ck = (FP_.transpose() * Pinv);
-
-                    pass = true;
-
-                    break;
-                }
-                case E_Inverter::LLT:
-                {
-                    solve(Eigen::LLT<MatrixXd>());
-                    if (pass == false)
-                        failInversion();
-                    break;
-                }
-                case E_Inverter::LDLT:
-                {
-                    solve(Eigen::LDLT<MatrixXd>());
-                    if (pass == false)
-                        failInversion();
-                    break;
-                }
-                case E_Inverter::COLPIVHQR:
-                {
-                    solve(Eigen::ColPivHouseholderQR<MatrixXd>());
-                    if (pass == false)
-                        failInversion();
-                    break;
-                }
-                case E_Inverter::BDCSVD:
-                {
-                    solve(Eigen::BDCSVD<MatrixXd>());
-                    if (pass == false)
-                        failInversion();
-                    break;
-                }
-                case E_Inverter::JACOBISVD:
-                {
-                    solve(Eigen::JacobiSVD<MatrixXd>());
-                    if (pass == false)
-                        failInversion();
-                    break;
-                }
-            }
-
-        if (pass == false)
-        {
-            BOOST_LOG_TRIVIAL(warning) << "RTS failed to find solution to invert system of "
-                                          "equations, smoothed values may be bad";
-
-            BOOST_LOG_TRIVIAL(debug) << "P-det: " << kalmanMinus.P.determinant();
-
-            kalmanMinus.outputConditionNumber(std::cout);
-
-            BOOST_LOG_TRIVIAL(debug) << "P:\n" << kalmanMinus.P.format(heavyFmt);
-            kalmanMinus.outputCorrelations(std::cout);
-            std::cout << "\n";
-
-            return false;  // Signal failure to break out of the loop
+            fcP.begX = 1;
+            fcP.numX -= 1;
         }
+        if (fcM.begX == 0)
+        {
+            fcM.begX = 1;
+            fcM.numX -= 1;
+        }
+        MatrixXd Q    = kalmanMinus.P.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX);
+        MatrixXd FP_  = FP.block(fcM.begX, fcP.begX, fcM.numX, fcP.numX);
+        int      n    = fcM.numX;
+        int      neqs = fcP.numX;
+        Q += MatrixXd::Identity(fcM.numX, fcM.numX) * config.regularisation;
+        solveSystem(fcM.numX, fcP.numX, Q.data(), FP_.data());
 
         auto deltaX_   = deltaX.segment(fcP.begX, fcP.numX);
         auto smoothedX = smoothedKF.x.segment(fcM.begX, fcM.numX);
@@ -639,8 +583,62 @@ bool FilterData::performRtsComputation(KFState& kfState, const RtsConfiguration&
         auto smoothedP = smoothedKF.P.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX);
         auto minuxP    = kalmanMinus.P.block(fcM.begX, fcM.begX, fcM.numX, fcM.numX);
 
-        deltaX_ = Ck * (smoothedX - xMinus);
-        deltaP_ = Ck * (smoothedP - minuxP) * Ck.transpose();
+        VectorXd xChanged = smoothedX - xMinus;
+
+        // Use CBLAS for matrix-vector multiplication: deltaX_ = FP_^T * xChanged
+        LapackWrapper::dgemv(
+            LapackWrapper::COL_MAJOR,
+            LapackWrapper::CblasTrans,
+            n,
+            neqs,
+            1.0,
+            FP_.data(),
+            n,
+            xChanged.data(),
+            1,
+            0.0,
+            deltaX_.data(),
+            1
+        );
+
+        MatrixXd dP   = smoothedP - minuxP;
+        MatrixXd temp = MatrixXd::Zero(neqs, n);
+
+        // Use CBLAS for matrix-matrix multiplication: temp = FP_^T * dP
+        LapackWrapper::dgemm(
+            LapackWrapper::COL_MAJOR,
+            LapackWrapper::CblasTrans,
+            LapackWrapper::CblasNoTrans,
+            neqs,
+            n,
+            n,
+            1.0,
+            FP_.data(),
+            n,
+            dP.data(),
+            n,
+            0.0,
+            temp.data(),
+            neqs
+        );
+
+        // Use CBLAS for matrix-matrix multiplication: deltaP_ = temp * FP_
+        LapackWrapper::dgemm(
+            LapackWrapper::COL_MAJOR,
+            LapackWrapper::CblasNoTrans,
+            LapackWrapper::CblasNoTrans,
+            neqs,
+            neqs,
+            n,
+            1.0,
+            temp.data(),
+            neqs,
+            FP_.data(),
+            n,
+            0.0,
+            deltaP_.data(),
+            neqs
+        );
     }
 
     smoothedKF.dx = deltaX;

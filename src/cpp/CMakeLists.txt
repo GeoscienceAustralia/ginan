@@ -53,6 +53,7 @@ add_executable(pea
 		common/algebra.cpp
 		common/algebra_old.cpp
 		common/algebraTrace.cpp
+		common/kalmanBlas.cpp
 		common/attitude.cpp
 		common/compare.cpp
 		common/antenna.cpp
@@ -286,7 +287,6 @@ endif()
 target_link_libraries(pea PUBLIC
 						m
 						pthread
-						# openblasp
 						sofa_lib
 						${Boost_LIBRARIES}
 						${BLAS_LIBRARIES}
@@ -295,10 +295,10 @@ target_link_libraries(pea PUBLIC
 						${YAML_CPP_LIB}
 						mongo::mongocxx_shared
 						${BLAS_LIBRARY_DIRS}
-						${OPENSSL_LIBRARY_DIRS}
 						${OPENSSL_LIBRARIES}
 						dl
 					)
+target_include_directories(pea PRIVATE ${BLAS_INCLUDE_DIRS})
 
 set_property(TARGET pea PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 

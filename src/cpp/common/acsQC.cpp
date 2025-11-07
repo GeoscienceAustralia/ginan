@@ -72,7 +72,23 @@ void detslp_ll(
     ObsList& obsList  ///< List of observations to detect slips within
 )
 {
-    tracepdeex(3, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
+    if (obsList.empty())
+    {
+        tracepdeex(3, trace, "\n%s: epoch=? n=%zu (empty obsList)", __FUNCTION__, obsList.size());
+        return;
+    }
+
+    // Find first non-null element for the timestamp
+    std::string epoch = "?";
+    for (const auto& sp : obsList)
+    {
+        if (sp) {
+            epoch = sp->time.to_string(2);
+            break;
+        }
+    }
+
+    tracepdeex(3, trace, "\n%s: epoch=%s n=%zu", __FUNCTION__, epoch.c_str(), obsList.size());
 
     // 	auto begin_iter = boost::make_filter_iterator([]
 
@@ -93,8 +109,9 @@ void detslp_ll(
             tracepdeex(
                 3,
                 trace,
-                "\n%s: slip detected sat=%s f=F%d\n",
+                "\n%s: slip detected: epoch=%s sat=%s f=F%d\n",
                 __FUNCTION__,
+                obs.time.to_string(2).c_str(),
                 obs.Sat.id().c_str(),
                 ft
             );
@@ -111,7 +128,23 @@ void detslp_gf(
     ObsList& obsList  ///< List of observations to detect slips within
 )
 {
-    tracepdeex(3, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
+    if (obsList.empty())
+    {
+        tracepdeex(3, trace, "\n%s: epoch=? n=%zu (empty obsList)", __FUNCTION__, obsList.size());
+        return;
+    }
+
+    // Find first non-null element for the timestamp
+    std::string epoch = "?";
+    for (const auto& sp : obsList)
+    {
+        if (sp) {
+            epoch = sp->time.to_string(2);
+            break;
+        }
+    }
+
+    tracepdeex(3, trace, "\n%s: epoch=%s n=%zu", __FUNCTION__, epoch.c_str(), obsList.size());
 
     for (auto& obs : only<GObs>(obsList))
     {
@@ -146,8 +179,9 @@ void detslp_gf(
         tracepdeex(
             3,
             trace,
-            "\n%s: sat=%s gf0=%f gf1=%f",
+            "\n%s: epoch=%s sat=%s gf0=%f gf1=%f",
             __FUNCTION__,
+            obs.time.to_string(2).c_str(),
             obs.Sat.id().c_str(),
             gf0,
             gf1
@@ -158,8 +192,9 @@ void detslp_gf(
             tracepdeex(
                 3,
                 trace,
-                "\n%s: slip detected: sat=%s gf0=%f gf1=%f",
+                "\n%s: slip detected: epoch=%s sat=%s gf0=%f gf1=%f",
                 __FUNCTION__,
+                obs.time.to_string(2).c_str(),
                 obs.Sat.id().c_str(),
                 gf0,
                 gf1
@@ -180,7 +215,23 @@ void detslp_mw(
     ObsList& obsList  ///< List of observations to detect slips within
 )
 {
-    tracepdeex(3, trace, "\n%s: n=%d", __FUNCTION__, obsList.size());
+    if (obsList.empty())
+    {
+        tracepdeex(3, trace, "\n%s: epoch=? n=%zu (empty obsList)", __FUNCTION__, obsList.size());
+        return;
+    }
+
+    // Find first non-null element for the timestamp
+    std::string epoch = "?";
+    for (const auto& sp : obsList)
+    {
+        if (sp) {
+            epoch = sp->time.to_string(2);
+            break;
+        }
+    }
+
+    tracepdeex(3, trace, "\n%s: epoch=%s n=%zu", __FUNCTION__, epoch.c_str(), obsList.size());
 
     for (auto& obs : only<GObs>(obsList))
     {
@@ -215,8 +266,9 @@ void detslp_mw(
         tracepdeex(
             3,
             trace,
-            "\n%s: sat=%s mw0=%f mw1=%f",
+            "\n%s: epoch=%s sat=%s mw0=%f mw1=%f",
             __FUNCTION__,
+            obs.time.to_string(2).c_str(),
             obs.Sat.id().c_str(),
             mw0,
             mw1
@@ -227,8 +279,9 @@ void detslp_mw(
             tracepdeex(
                 3,
                 trace,
-                "\n%s: slip detected: sat=%s mw0=%f mw1=%f",
+                "\n%s: slip detected: epoch=%s sat=%s mw0=%f mw1=%f",
                 __FUNCTION__,
+                obs.time.to_string(2).c_str(),
                 obs.Sat.id().c_str(),
                 mw0,
                 mw1
@@ -974,7 +1027,7 @@ void detectslips(
     tracepdeex(
         2,
         trace,
-        "\nPDE-CS GPST       epoch                  prn  el   lamw     gf12    mw12    siggf  sigmw  "
+        "\nPDE-CS GPST       epoch                   prn  el   lamw    gf12    mw12     siggf  sigmw  "
         "lamew     gf25    mw25   "
         "            LC                   N1   N2   N5\n"
     );

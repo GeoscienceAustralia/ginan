@@ -612,12 +612,13 @@ struct GlobalOptions
  */
 struct KalmanModel
 {
-    vector<double> sigma            = {-1};  //{0} is very necessary
-    vector<double> sigma_limit      = {0};
-    vector<double> outage_limit     = {0};
-    vector<double> apriori_value    = {0};
-    vector<double> process_noise    = {0};
-    vector<double> tau              = {-1
+    vector<double> sigma         = {-1};  //{0} is very necessary
+    vector<double> sigma_limit   = {0};
+    vector<double> outage_limit  = {0};
+    vector<double> apriori_value = {0};
+    vector<double> process_noise = {0};
+    vector<double> tau           = {
+        -1
     };  // tau<0 (inf): Random Walk model; tau>0: First Order Gauss Markov model
     vector<double> mu               = {0};
     vector<bool>   estimate         = {false};
@@ -672,7 +673,7 @@ struct RtsOptions
 
     bool queue_rts_outputs = false;
 
-    E_Inverter rts_inverter = E_Inverter::LDLT;
+    double rts_regularisation = 1e-12;
 };
 
 struct FilterOptions : RtsOptions
@@ -962,9 +963,9 @@ struct SatelliteKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
     SatelliteKalmans& operator+=(const SatelliteKalmans& rhs)
     {
-        CommonKalmans ::operator+=(rhs);
+        CommonKalmans ::  operator+=(rhs);
         InertialKalmans ::operator+=(rhs);
-        EmpKalmans ::operator+=(rhs);
+        EmpKalmans ::     operator+=(rhs);
 
         return *this;
     }
@@ -985,9 +986,9 @@ struct ReceiverKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
     ReceiverKalmans& operator+=(const ReceiverKalmans& rhs)
     {
-        CommonKalmans ::operator+=(rhs);
+        CommonKalmans ::  operator+=(rhs);
         InertialKalmans ::operator+=(rhs);
-        EmpKalmans ::operator+=(rhs);
+        EmpKalmans ::     operator+=(rhs);
 
         ambiguity += rhs.ambiguity;
         strain_rate += rhs.strain_rate;
@@ -1292,12 +1293,24 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
 
     bool queue_outputs = false;
 
-    vector<KF> used_predictions =
-        {KF::ORBIT, KF::REC_POS, KF::SAT_CLOCK, KF::CODE_BIAS, KF::PHASE_BIAS, KF::EOP, KF::EOP_RATE
-        };
-    vector<KF> sent_predictions =
-        {KF::ORBIT, KF::REC_POS, KF::SAT_CLOCK, KF::CODE_BIAS, KF::PHASE_BIAS, KF::EOP, KF::EOP_RATE
-        };
+    vector<KF> used_predictions = {
+        KF::ORBIT,
+        KF::REC_POS,
+        KF::SAT_CLOCK,
+        KF::CODE_BIAS,
+        KF::PHASE_BIAS,
+        KF::EOP,
+        KF::EOP_RATE
+    };
+    vector<KF> sent_predictions = {
+        KF::ORBIT,
+        KF::REC_POS,
+        KF::SAT_CLOCK,
+        KF::CODE_BIAS,
+        KF::PHASE_BIAS,
+        KF::EOP,
+        KF::EOP_RATE
+    };
 
     double prediction_offset           = 0;
     double prediction_interval         = 30;

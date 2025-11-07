@@ -7605,13 +7605,12 @@ bool ACSConfig::parse(
                         {"@ suffix"},
                         "Suffix to be applied to smoothed versions of files"
                     );
-                    tryGetEnumOpt(
-                        filterOpts.rts_inverter,
+                    tryGetFromYaml(
+                        filterOpts.rts_regularisation,
                         rts,
-                        {"@ inverter"},
-                        "Inverter to be used within the rts processor, which may provide different "
-                        "performance "
-                        "outcomes in terms of processing time and accuracy and stability."
+                        {"@ regularisation"},
+                        "Regularisation term for RTS smoothing; has to be very very small (e.g. "
+                        "1e-12)"
                     );
                 }
             };
