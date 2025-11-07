@@ -1121,7 +1121,7 @@ int main(int argc, char** argv)
                 rec.ready                = true;
                 rec.source               = obsStream.stream.sourceString;
 
-                extractTrackedSignals(rec, obsStream.parser);
+                extractTrackedSignals(rec, obsStream.parser, &rec.obsList);
 
                 auto now = system_clock::now();
 

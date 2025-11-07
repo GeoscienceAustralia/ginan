@@ -15,7 +15,7 @@ SinexSatEcc      dummySinexSatEcc;
 
 ReceiverMap receiverMap;
 
-void extractTrackedSignals(Receiver& rec, Parser& parser)
+void extractTrackedSignals(Receiver& rec, Parser& parser, ObsList* obsList)
 {
     // Extract tracked signals from RINEX header or accumulate from RTCM observations
     // This enables receiver-specific signal tracking mode detection
@@ -38,41 +38,37 @@ void extractTrackedSignals(Receiver& rec, Parser& parser)
             rec.trackedSignals[sys] = signals;
         }
     }
-    else if (parserType == "RtcmParser")
+    else if (parserType == "RtcmParser" && obsList != nullptr)
     {
         // For RTCM streams, accumulate tracked signals from observations
         // This builds up the signal list dynamically as we receive data
-        auto& rtcmParser = static_cast<RtcmParser&>(parser);
 
-        // Extract signals from the current observation list
-        for (auto& obsList : rtcmParser.obsListList)
+        // Extract signals from the provided observation list
+        for (auto& obs : only<GObs>(*obsList))
         {
-            for (auto& obs : only<GObs>(obsList))
+            E_Sys sys = obs.Sat.sys;
+            set<E_ObsCode> signalSet;
+
+            // If we already have signals for this system, start with those
+            if (rec.trackedSignals.count(sys))
             {
-                E_Sys sys = obs.Sat.sys;
-                set<E_ObsCode> signalSet;
+                signalSet.insert(rec.trackedSignals[sys].begin(), rec.trackedSignals[sys].end());
+            }
 
-                // If we already have signals for this system, start with those
-                if (rec.trackedSignals.count(sys))
+            // Add signals from this observation
+            for (auto& [ftype, sigsList] : obs.sigsLists)
+            {
+                for (auto& sig : sigsList)
                 {
-                    signalSet.insert(rec.trackedSignals[sys].begin(), rec.trackedSignals[sys].end());
-                }
-
-                // Add signals from this observation
-                for (auto& [ftype, sigsList] : obs.sigsLists)
-                {
-                    for (auto& sig : sigsList)
+                    if (sig.code != +E_ObsCode::NONE)
                     {
-                        if (sig.code != +E_ObsCode::NONE)
-                        {
-                            signalSet.insert(sig.code);
-                        }
+                        signalSet.insert(sig.code);
                     }
                 }
-
-                // Update the tracked signals with the expanded set
-                rec.trackedSignals[sys] = vector<E_ObsCode>(signalSet.begin(), signalSet.end());
             }
+
+            // Update the tracked signals with the expanded set
+            rec.trackedSignals[sys] = vector<E_ObsCode>(signalSet.begin(), signalSet.end());
         }
     }
     else

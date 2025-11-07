@@ -148,7 +148,7 @@ struct ReceiverMap : map<string, Receiver>
 
 extern ReceiverMap receiverMap;
 
-void extractTrackedSignals(Receiver& rec, Parser& parser);
+void extractTrackedSignals(Receiver& rec, Parser& parser, ObsList* obsList = nullptr);
 
 struct Network
 {
