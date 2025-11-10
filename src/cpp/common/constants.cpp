@@ -148,12 +148,12 @@ map<E_Block, vector<E_FType>> blockTypeFrequencies = {
     {E_Block::GPS_IIIA,   {F1, F2, F5}},       // L1, L2, L5
 
     // GLONASS Block Types
-    {E_Block::GLO_M,      {G1, G2}},           // G1, G2
-    {E_Block::GLO,        {G1, G2}},           // G1, G2
-    {E_Block::GLO_K1A,    {G1, G2}},           // G1, G2
-    {E_Block::GLO_K1B,    {G1, G2, G3}},       // G1, G2, G3
-    {E_Block::GLO_K2,     {G1, G2, G3}},       // G1, G2, G3
-    {E_Block::GLO_MP,     {G1, G2, G3}},       // G1, G2, G3
+    {E_Block::GLO_M,      {G1, G2}},             // G1, G2
+    {E_Block::GLO,        {G1, G2}},             // G1, G2
+    {E_Block::GLO_K1A,    {G1, G2}},             // G1, G2
+    {E_Block::GLO_K1B,    {G1, G2, G3}},         // G1, G2, G3
+    {E_Block::GLO_K2,     {G1, G2, G3, G4, G6}}, // G1, G2, G3, G4, G6
+    {E_Block::GLO_MP,     {G1, G2, G3}},         // G1, G2, G3
 
     // Galileo Block Types
     {E_Block::GAL_0A,     {F1, F5, F7, F8, F6}},  // E1, E5a, E5b, E5, E6
