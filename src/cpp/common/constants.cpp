@@ -190,6 +190,12 @@ map<E_Block, vector<E_FType>> blockTypeFrequencies = {
     {E_Block::IRS_1I,     {F5, I9}},           // L5, S9
     {E_Block::IRS_1G,     {F5, I9}},           // L5, S9
     {E_Block::IRS_2G,     {F5, I9}},           // L5, S9
+
+    // SBAS Block Types
+    {E_Block::SBS,        {F1, F5}},           // L1, L5
+
+    // LEO Block Types
+    {E_Block::LEO,        {F1, F2, F5}},       // L1, L2, L5
 };
 
 // Get frequency bands that a satellite block type broadcasts

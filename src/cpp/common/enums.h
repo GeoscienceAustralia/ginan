@@ -89,7 +89,9 @@ BETTER_ENUM(
     QZS_2A,
     IRS_1I,
     IRS_1G,
-    IRS_2G
+    IRS_2G,
+    SBS,
+    LEO
 )
 
 BETTER_ENUM(E_OffsetType, short int, UNSPECIFIED, APC, COM)
