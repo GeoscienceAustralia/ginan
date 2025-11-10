@@ -94,20 +94,40 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
     const char* statusStr = obsStatusToString(rec.status);
     GTime time = rec.time;  // Make mutable copy for traceJson (expects non-const reference)
 
-    tracepdeex(
-        4,
-        trace,
-        "\n%s %5s %5s %14s %14s %8s %6.2f %6.2f %s",
-        rec.time.to_string().c_str(),
-        rec.sat.id().c_str(),
-        rec.code._to_string(),
-        (rec.status == E_ObsStatus::OBSERVED) ? std::to_string(rec.P).c_str() : "NaN",
-        (rec.status == E_ObsStatus::OBSERVED) ? std::to_string(rec.L).c_str() : "NaN",
-        (rec.status == E_ObsStatus::OBSERVED) ? std::to_string(rec.snr).c_str() : "NaN",
-        rec.el_deg,
-        rec.az_deg,
-        statusStr
-    );
+    if (rec.status == E_ObsStatus::OBSERVED)
+    {
+        tracepdeex(
+            4,
+            trace,
+            "\n%s %5s %5s %16.6f %16.6f %8.2f %6.2f %6.2f %s",
+            rec.time.to_string().c_str(),
+            rec.sat.id().c_str(),
+            rec.code._to_string(),
+            rec.P,
+            rec.L,
+            rec.snr,
+            rec.el_deg,
+            rec.az_deg,
+            statusStr
+        );
+    }
+    else
+    {
+        tracepdeex(
+            4,
+            trace,
+            "\n%s %5s %5s %16s %16s %8s %6.2f %6.2f %s",
+            rec.time.to_string().c_str(),
+            rec.sat.id().c_str(),
+            rec.code._to_string(),
+            "NaN",
+            "NaN",
+            "NaN",
+            rec.el_deg,
+            rec.az_deg,
+            statusStr
+        );
+    }
 
     if (rec.status == E_ObsStatus::OBSERVED)
     {
