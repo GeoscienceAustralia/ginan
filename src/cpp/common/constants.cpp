@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include "common/enums.h"
+#include "common/satSys.hpp"
 
 using std::map;
 
@@ -132,6 +133,88 @@ map<E_Sys, map<E_ObsCode, E_FType>> code2Freq = {
 
       {E_ObsCode::L5I, F5},    {E_ObsCode::L5Q, F5}, {E_ObsCode::L5X, F5}}}
 };
+
+// Map satellite block types to their broadcast frequency bands
+// Based on RINEX 4.02 specification and satellite constellation signal plans
+map<E_Block, vector<E_FType>> blockTypeFrequencies = {
+    // GPS Block Types
+    {E_Block::GPS_I,      {F1, F2}},           // L1, L2
+    {E_Block::GPS_II,     {F1, F2}},           // L1, L2
+    {E_Block::GPS_IIA,    {F1, F2}},           // L1, L2
+    {E_Block::GPS_IIR_A,  {F1, F2}},           // L1, L2
+    {E_Block::GPS_IIR_B,  {F1, F2}},           // L1, L2
+    {E_Block::GPS_IIR_M,  {F1, F2}},           // L1, L2 (SVN49 has F5, handled separately)
+    {E_Block::GPS_IIF,    {F1, F2, F5}},       // L1, L2, L5
+    {E_Block::GPS_IIIA,   {F1, F2, F5}},       // L1, L2, L5
+
+    // GLONASS Block Types
+    {E_Block::GLO_M,      {G1, G2}},           // G1, G2
+    {E_Block::GLO,        {G1, G2}},           // G1, G2
+    {E_Block::GLO_K1A,    {G1, G2}},           // G1, G2
+    {E_Block::GLO_K1B,    {G1, G2, G3}},       // G1, G2, G3
+    {E_Block::GLO_K2,     {G1, G2, G3}},       // G1, G2, G3
+    {E_Block::GLO_MP,     {G1, G2, G3}},       // G1, G2, G3
+
+    // Galileo Block Types
+    {E_Block::GAL_0A,     {F1, F5, F7, F8, F6}},  // E1, E5a, E5b, E5, E6
+    {E_Block::GAL_0B,     {F1, F5, F7, F8, F6}},  // E1, E5a, E5b, E5, E6
+    {E_Block::GAL_1,      {F1, F5, F7, F8, F6}},  // E1, E5a, E5b, E5, E6
+    {E_Block::GAL_2,      {F1, F5, F7, F8, F6}},  // E1, E5a, E5b, E5, E6
+
+    // BeiDou Block Types
+    // BDS-2: B1I, B2I, B3I
+    // Note: RINEX uses L2 designation for B1I (B1=1561.098 MHz), L7 for B2I, L6 for B3I
+    {E_Block::BDS_2M,     {B1, F7, B3}},
+    {E_Block::BDS_2G,     {B1, F7, B3}},
+    {E_Block::BDS_2I,     {B1, F7, B3}},
+
+    // BDS-3: B1I, B1C, B2a, B2I, B2(a+b), B3I
+    // Note: RINEX uses L2 for B1I, L1 for B1C, L5 for B2a, L7 for B2I, L8 for B2(a+b), L6 for B3I
+    {E_Block::BDS_3SI_SECM,  {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3SM_CAST,  {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3SI_CAST,  {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3SM_SECM,  {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3M_CAST,   {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3M_SECM_A, {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3G,        {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3I,        {B1, F1, F5, F7, F8, B3}},
+    {E_Block::BDS_3M_SECM_B, {B1, F1, F5, F7, F8, B3}},
+
+    // QZSS Block Types
+    {E_Block::QZS_1,      {F1, F2, F5}},       // L1, L2, L5
+    {E_Block::QZS_2I,     {F1, F2, F5, F6}},   // L1, L2, L5, L6
+    {E_Block::QZS_2G,     {F1, F2, F5, F6}},   // L1, L2, L5, L6
+    {E_Block::QZS_2A,     {F1, F2, F5, F6}},   // L1, L2, L5, L6
+
+    // NavIC/IRNSS Block Types
+    {E_Block::IRS_1I,     {F5, I9}},           // L5, S9
+    {E_Block::IRS_1G,     {F5, I9}},           // L5, S9
+    {E_Block::IRS_2G,     {F5, I9}},           // L5, S9
+};
+
+// Get frequency bands that a satellite block type broadcasts
+// Returns E_FType frequencies (e.g., F1, F2, F5 for L1, L2, L5)
+// Uses the blockTypeFrequencies map defined above
+vector<E_FType> getExpectedFrequencies(E_Block block, const SatSys* sat)
+{
+    vector<E_FType> frequencies;
+
+    // Look up frequencies in the centralized map
+    auto it = blockTypeFrequencies.find(block);
+    if (it != blockTypeFrequencies.end())
+    {
+        frequencies = it->second;
+    }
+
+    // Special case: GPS IIR-M SVN49 had L5 demonstration payload (all other GPS IIR-M satellites do not)
+    // SVN49 was the first GPS satellite to broadcast L5 signal in 2009
+    if (sat && block == +E_Block::GPS_IIR_M && (sat->svn() == "49" || sat->svn() == "SVN49"))
+    {
+        frequencies = {F1, F2, F5};
+    }
+
+    return frequencies;
+}
 
 const unsigned int tbl_CRC24Q[] = {
     0x000000, 0x864CFB, 0x8AD50D, 0x0C99F6, 0x93E6E1, 0x15AA1A, 0x1933EC, 0x9F7F17, 0xA18139,

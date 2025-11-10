@@ -2,9 +2,13 @@
 
 #include <boost/bimap.hpp>
 #include <map>
+#include <vector>
 #include "common/enums.h"
 
+struct SatSys;
+
 using std::map;
+using std::vector;
 
 constexpr double PI     = 3.141592653589793238462643383279502884197169399375105820974; /* pi */
 constexpr double PI2    = (PI * 2);                                                    /* pi*2 */
@@ -122,6 +126,9 @@ constexpr double P2_66 = 1.355252715606881E-20;    /* 2^-66 */
 
 extern map<E_Sys, map<E_ObsCode, E_FType>> code2Freq;
 extern map<E_FType, double>                genericWavelength;
+extern map<E_Block, vector<E_FType>>       blockTypeFrequencies;
+
+vector<E_FType> getExpectedFrequencies(E_Block block, const SatSys* sat = nullptr);
 
 extern const unsigned int tbl_CRC24Q[];
 

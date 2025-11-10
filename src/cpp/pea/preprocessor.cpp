@@ -43,56 +43,6 @@ Architecture Preprocessing__()
 #include "orbprop/coordinates.hpp"
 #include "pea/ppp.hpp"
 
-// Get frequency bands that a satellite block type broadcasts
-// Returns frequencies as integers (e.g., 1, 2, 5 for L1, L2, L5)
-vector<int> getExpectedFrequencies(string blockType)
-{
-    vector<int> frequencies;
-
-    // GPS Block types
-    if (blockType == "GPS-IIF" || blockType == "GPS-IIIA")
-    {
-        // L1, L2, L5
-        frequencies = {1, 2, 5};
-    }
-    else if (blockType == "GPS-IIR-M")
-    {
-        // L1, L2 (no L5)
-        frequencies = {1, 2};
-    }
-    else if (blockType == "GPS-IIR-A" || blockType == "GPS-IIR-B" || blockType == "GPS-IIA" || blockType == "GPS-II")
-    {
-        // L1, L2 only
-        frequencies = {1, 2};
-    }
-    // Galileo
-    else if (blockType.find("GAL") == 0)
-    {
-        // E1, E5a, E5b, E5, E6
-        frequencies = {1, 5, 7, 8, 6};
-    }
-    // GLONASS
-    else if (blockType.find("GLO") == 0)
-    {
-        // G1, G2
-        frequencies = {1, 2};
-    }
-    // BeiDou
-    else if (blockType.find("BDS") == 0)
-    {
-        // B1, B2, B3, B2a
-        frequencies = {1, 2, 6, 7};
-    }
-    // QZSS
-    else if (blockType.find("QZS") == 0)
-    {
-        // L1, L2, L5
-        frequencies = {1, 2, 5};
-    }
-
-    return frequencies;
-}
-
 void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiver& rec, VectorPos& recPos)
 {
     if (obsList.empty())
@@ -193,13 +143,24 @@ void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiv
         }
 
         // Get frequency bands that this satellite broadcasts
-        string blockType = sat.blockType();
-        if (blockType.empty())
+        string blockTypeStr = sat.blockType();
+        if (blockTypeStr.empty())
         {
             continue;  // Unknown block type, can't determine frequencies
         }
 
-        vector<int> satFrequencies = getExpectedFrequencies(blockType);
+        // Convert string block type (e.g., "GPS-IIR-M") to E_Block enum (e.g., GPS_IIR_M)
+        // SINEX files use hyphens, enum uses underscores
+        string enumStr = blockTypeStr;
+        std::replace(enumStr.begin(), enumStr.end(), '-', '_');
+
+        auto blockOpt = E_Block::_from_string_nothrow(enumStr.c_str());
+        if (!blockOpt)
+        {
+            continue;  // Unknown block type, can't determine frequencies
+        }
+
+        vector<E_FType> satFrequencies = getExpectedFrequencies(*blockOpt, &sat);
         if (satFrequencies.empty())
         {
             continue;  // Unknown block type, can't determine frequencies
@@ -217,23 +178,24 @@ void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiv
             auto& codePriorities = acsConfig.code_priorities[sat.sys];
 
             // For each frequency the satellite broadcasts
-            for (auto freq : satFrequencies)
+            for (auto ftype : satFrequencies)
             {
-                char freqChar = '0' + freq;  // Convert int to char digit (e.g., 1 -> '1')
-
                 // Find matching signals in receiver's tracked list that match this frequency
                 for (auto& recSig : receiverSignals)
                 {
-                    string sigStr = recSig._to_string();
-
-                    // Check if signal matches frequency (e.g., L1C has freq '1', L2W has freq '2')
-                    // Signal format is like "L1C" where position [1] is the frequency digit
-                    if (sigStr.length() >= 2 && sigStr[1] == freqChar)
+                    // Check if this signal code matches the frequency type
+                    // Use code2Freq map to get the frequency type for this signal+constellation
+                    auto sysCodeIt = code2Freq.find(sat.sys);
+                    if (sysCodeIt != code2Freq.end())
                     {
-                        // Also check if it's in code_priorities
-                        if (std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
+                        auto codeIt = sysCodeIt->second.find(recSig);
+                        if (codeIt != sysCodeIt->second.end() && codeIt->second == ftype)
                         {
-                            expectedSignals.insert(recSig);
+                            // Signal matches frequency and check if it's in code_priorities
+                            if (std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
+                            {
+                                expectedSignals.insert(recSig);
+                            }
                         }
                     }
                 }
