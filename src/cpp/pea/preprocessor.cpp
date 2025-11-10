@@ -341,6 +341,9 @@ set<E_ObsCode> determineExpectedSignals(
         return expectedSignals;
     }
 
+    // Convert to set for faster lookup
+    set<E_FType> satFreqSet(satFrequencies.begin(), satFrequencies.end());
+
     // Get receiver's tracked signals for this constellation
     auto trackedIt = rec.trackedSignals.find(sat.sys);
     if (trackedIt == rec.trackedSignals.end())
@@ -351,24 +354,27 @@ set<E_ObsCode> determineExpectedSignals(
     auto& receiverSignals = trackedIt->second;
     auto& codePriorities = acsConfig.code_priorities[sat.sys];
 
-    // Find signals that match satellite frequencies AND receiver capabilities AND code priorities
-    for (auto ftype : satFrequencies)
+    // Get code2Freq map for this constellation
+    auto sysCodeIt = code2Freq.find(sat.sys);
+    if (sysCodeIt == code2Freq.end())
     {
-        for (auto& recSig : receiverSignals)
+        return expectedSignals;
+    }
+
+    // Find receiver signals that match satellite frequencies AND are in code priorities
+    for (auto& recSig : receiverSignals)
+    {
+        // Use code2Freq to get frequency type for this signal
+        auto codeIt = sysCodeIt->second.find(recSig);
+        if (codeIt != sysCodeIt->second.end())
         {
-            // Check if this receiver signal matches the satellite's frequency type
-            auto sysCodeIt = code2Freq.find(sat.sys);
-            if (sysCodeIt != code2Freq.end())
+            E_FType sigFreq = codeIt->second;
+
+            // Check if satellite broadcasts this frequency AND signal is in code priorities
+            if (satFreqSet.count(sigFreq) &&
+                std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
             {
-                auto codeIt = sysCodeIt->second.find(recSig);
-                if (codeIt != sysCodeIt->second.end() && codeIt->second == ftype)
-                {
-                    // Signal matches frequency - check if it's in code_priorities
-                    if (std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
-                    {
-                        expectedSignals.insert(recSig);
-                    }
-                }
+                expectedSignals.insert(recSig);
             }
         }
     }
