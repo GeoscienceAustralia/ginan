@@ -274,33 +274,27 @@ bool computeSatellitePosition(
     }
 
     // Satellite not observed - compute position ourselves
-    GObs tempObs = {};
-    tempObs.Sat = sat;
-    tempObs.time = time;
-    tempObs.mount = rec.id;
-    tempObs.rec_ptr = &rec;
-    tempObs.satNav_ptr = &satNav;
-    tempObs.satStat_ptr = &satStat;
+    //  For NOT_TRACKED detection, we only need satellite position, not clock or pseudorange
+    SatPos satPos = {};
+    satPos.Sat = sat;
+    satPos.satNav_ptr = &satNav;
 
-    updateLamMap(time, tempObs);
-
-    satPosClk(
+    bool posFound = satpos(
         trace,
         time,
-        tempObs,
-        nav,
+        time,  // teph = time
+        satPos,
         satOpts.posModel.sources,
-        satOpts.clockModel.sources,
-        nullptr,
-        nullptr,
-        E_OffsetType::APC
+        E_OffsetType::APC,
+        nav
     );
 
-    Vector3d rSat = tempObs.rSatApc;
-    if (rSat.isZero())
+    if (!posFound || satPos.rSatApc.isZero())
     {
         return false;
     }
+
+    Vector3d rSat = satPos.rSatApc;
 
     Vector3d e;
     double r = geodist(rSat, rec.aprioriPos, e);
