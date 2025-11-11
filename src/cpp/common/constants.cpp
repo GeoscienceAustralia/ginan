@@ -143,7 +143,7 @@ map<E_Block, vector<E_FType>> blockTypeFrequencies = {
     {E_Block::GPS_IIA,    {F1, F2}},           // L1, L2
     {E_Block::GPS_IIR_A,  {F1, F2}},           // L1, L2
     {E_Block::GPS_IIR_B,  {F1, F2}},           // L1, L2
-    {E_Block::GPS_IIR_M,  {F1, F2}},           // L1, L2 (SVN49 has F5, handled separately)
+    {E_Block::GPS_IIR_M,  {F1, F2}},           // L1, L2
     {E_Block::GPS_IIF,    {F1, F2, F5}},       // L1, L2, L5
     {E_Block::GPS_IIIA,   {F1, F2, F5}},       // L1, L2, L5
 
@@ -197,37 +197,6 @@ map<E_Block, vector<E_FType>> blockTypeFrequencies = {
     // LEO Block Types
     {E_Block::LEO,        {F1, F2, F5}},       // L1, L2, L5
 };
-
-// Get frequency bands that a satellite block type broadcasts
-// Returns E_FType frequencies (e.g., F1, F2, F5 for L1, L2, L5)
-// Uses the blockTypeFrequencies map defined above
-vector<E_FType> getExpectedFrequencies(E_Block block, const SatSys* sat)
-{
-    vector<E_FType> frequencies;
-
-    // Look up frequencies in the centralized map
-    auto it = blockTypeFrequencies.find(block);
-    if (it != blockTypeFrequencies.end())
-    {
-        frequencies = it->second;
-    }
-
-    // Special case: GPS IIR-M SVN49 had L5 demonstration payload (all other GPS IIR-M satellites do not)
-    // SVN49 was the first GPS satellite to broadcast L5 signal in 2009
-    if (sat && block == +E_Block::GPS_IIR_M)
-    {
-        string svn = sat->svn();
-        // SVN format can be "49", "SVN49", "G049", or "049"
-        bool isSVN49 = (svn == "49" || svn == "SVN49" || svn == "G049" || svn == "049");
-
-        if (isSVN49)
-        {
-            frequencies = {F1, F2, F5};
-        }
-    }
-
-    return frequencies;
-}
 
 const unsigned int tbl_CRC24Q[] = {
     0x000000, 0x864CFB, 0x8AD50D, 0x0C99F6, 0x93E6E1, 0x15AA1A, 0x1933EC, 0x9F7F17, 0xA18139,

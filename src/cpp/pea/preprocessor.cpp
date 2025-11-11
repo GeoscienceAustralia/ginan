@@ -329,11 +329,13 @@ set<E_ObsCode> determineExpectedSignals(
     }
 
     // Get frequencies that this satellite broadcasts
-    vector<E_FType> satFrequencies = getExpectedFrequencies(*blockOpt, &sat);
-    if (satFrequencies.empty())
+    auto freqIt = blockTypeFrequencies.find(*blockOpt);
+    if (freqIt == blockTypeFrequencies.end())
     {
-        return expectedSignals;
+        return expectedSignals;  // Block type not found
     }
+
+    vector<E_FType> satFrequencies = freqIt->second;
 
     // Convert to set for faster lookup
     set<E_FType> satFreqSet(satFrequencies.begin(), satFrequencies.end());
