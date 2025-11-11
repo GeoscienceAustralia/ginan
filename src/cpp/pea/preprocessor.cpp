@@ -365,8 +365,10 @@ set<E_ObsCode> determineExpectedSignals(
             E_FType sigFreq = codeIt->second;
 
             // Check if satellite broadcasts this frequency AND signal is in code priorities
-            if (satFreqSet.count(sigFreq) &&
-                std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end())
+            bool inSatFreqs = satFreqSet.count(sigFreq);
+            bool inCodePriorities = std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end();
+
+            if (inSatFreqs && inCodePriorities)
             {
                 expectedSignals.insert(recSig);
             }
