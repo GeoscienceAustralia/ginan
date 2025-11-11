@@ -214,9 +214,16 @@ vector<E_FType> getExpectedFrequencies(E_Block block, const SatSys* sat)
 
     // Special case: GPS IIR-M SVN49 had L5 demonstration payload (all other GPS IIR-M satellites do not)
     // SVN49 was the first GPS satellite to broadcast L5 signal in 2009
-    if (sat && block == +E_Block::GPS_IIR_M && (sat->svn() == "49" || sat->svn() == "SVN49"))
+    if (sat && block == +E_Block::GPS_IIR_M)
     {
-        frequencies = {F1, F2, F5};
+        string svn = sat->svn();
+        // SVN format can be "49", "SVN49", "G049", or "049"
+        bool isSVN49 = (svn == "49" || svn == "SVN49" || svn == "G049" || svn == "049");
+
+        if (isSVN49)
+        {
+            frequencies = {F1, F2, F5};
+        }
     }
 
     return frequencies;
