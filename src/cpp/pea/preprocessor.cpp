@@ -118,7 +118,8 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
     tracepdeex(
         0,
         trace,
-        "\nepoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s status= %s",
+        "\n%s: epoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s status= %s",
+        __FUNCTION__,
         rec.time.to_string().c_str(),
         rec.sat.id().c_str(),
         rec.code._to_string(),
