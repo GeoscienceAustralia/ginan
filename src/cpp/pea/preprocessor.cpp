@@ -86,6 +86,7 @@ struct ObservationRecord
     double el_deg = 0;
     double az_deg = 0;
     E_ObsStatus status;
+    string blockType;
 };
 
 // Output a single observation record to trace files
@@ -99,7 +100,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
         tracepdeex(
             4,
             trace,
-            "\n%s %5s %5s %16.6f %16.6f %8.2f %6.2f %6.2f %s",
+            "\n%s %5s %5s %16.6f %16.6f %8.2f %6.2f %6.2f %12s %s",
             rec.time.to_string().c_str(),
             rec.sat.id().c_str(),
             rec.code._to_string(),
@@ -108,6 +109,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
             rec.snr,
             rec.el_deg,
             rec.az_deg,
+            rec.blockType.c_str(),
             statusStr
         );
     }
@@ -116,7 +118,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
         tracepdeex(
             4,
             trace,
-            "\n%s %5s %5s %16s %16s %8s %6.2f %6.2f %s",
+            "\n%s %5s %5s %16s %16s %8s %6.2f %6.2f %12s %s",
             rec.time.to_string().c_str(),
             rec.sat.id().c_str(),
             rec.code._to_string(),
@@ -125,6 +127,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
             "NaN",
             rec.el_deg,
             rec.az_deg,
+            rec.blockType.c_str(),
             statusStr
         );
     }
@@ -146,6 +149,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
                 {"D", 0.0},  // Not stored in record currently
                 {"el", rec.el_deg},
                 {"az", rec.az_deg},
+                {"blockType", rec.blockType},
                 {"status", statusStr}
             }
         );
@@ -163,6 +167,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
             {
                 {"el", rec.el_deg},
                 {"az", rec.az_deg},
+                {"blockType", rec.blockType},
                 {"status", statusStr}
             }
         );
@@ -178,6 +183,7 @@ void classifySignals(
     vector<ObservationRecord>& records)
 {
     set<E_ObsCode> observedSignals;
+    string blockType = obs->Sat.blockType();
 
     // Collect OBSERVED signals
     for (auto& [ft, sigs] : obs->sigsLists)
@@ -203,6 +209,7 @@ void classifySignals(
             rec.el_deg = el_deg;
             rec.az_deg = az_deg;
             rec.status = E_ObsStatus::OBSERVED;
+            rec.blockType = blockType;
             records.push_back(rec);
         }
     }
@@ -220,6 +227,7 @@ void classifySignals(
             rec.el_deg = el_deg;
             rec.az_deg = az_deg;
             rec.status = E_ObsStatus::MISSING;
+            rec.blockType = blockType;
             records.push_back(rec);
         }
     }
@@ -235,6 +243,8 @@ void createNotTrackedRecords(
     double az_deg,
     vector<ObservationRecord>& records)
 {
+    string blockType = sat.blockType();
+
     for (auto& expectedCode : expectedSignals)
     {
         ObservationRecord rec;
@@ -245,6 +255,7 @@ void createNotTrackedRecords(
         rec.el_deg = el_deg;
         rec.az_deg = az_deg;
         rec.status = E_ObsStatus::NOT_TRACKED;
+        rec.blockType = blockType;
         records.push_back(rec);
     }
 }
