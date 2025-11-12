@@ -116,7 +116,7 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
     else            snprintf(sStr, sizeof(sStr), "%s", "NaN");
 
     tracepdeex(
-        4,
+        0,
         trace,
         "\nepoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s status= %s",
         rec.time.to_string().c_str(),
@@ -133,7 +133,7 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
 
     // Output JSON trace - always include all fields, use NaN for unavailable measurements
     traceJson(
-        4,
+        0,
         jsonTrace,
         time,
         {{"data", "observations"},
