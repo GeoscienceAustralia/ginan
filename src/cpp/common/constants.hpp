@@ -128,6 +128,10 @@ extern map<E_Sys, map<E_ObsCode, E_FType>> code2Freq;
 extern map<E_FType, double>                genericWavelength;
 extern map<E_Block, vector<E_FType>>       blockTypeFrequencies;
 
+// Filter signal codes based on block type capabilities
+// Returns true if the signal code is supported by the given block type
+bool isSignalSupportedByBlockType(E_ObsCode code, E_Block blockType);
+
 extern const unsigned int tbl_CRC24Q[];
 
 const unsigned char RTCM_PREAMBLE = 0xD3;

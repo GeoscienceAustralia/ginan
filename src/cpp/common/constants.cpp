@@ -3,12 +3,14 @@
 #include <boost/assign.hpp>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include "common/enums.h"
 #include "common/satSys.hpp"
 
 using std::map;
+using std::set;
 
 map<E_FType, double> genericWavelength = {
     {F1, CLIGHT / FREQ1},
@@ -197,6 +199,38 @@ map<E_Block, vector<E_FType>> blockTypeFrequencies = {
     // LEO Block Types
     {E_Block::LEO,        {F1, F2, F5}},       // L1, L2, L5
 };
+
+// Map of block types to their unsupported signal codes
+// Background: GPS satellites have evolved their signal capabilities over time:
+// - Older blocks (I, II, IIA, IIR-A, IIR-B): Only legacy L2 signals (L2P, L2W, L2Y)
+// - IIR-M and newer (IIF, IIIA): Added modernised L2C signals (L2C, L2S, L2L, L2X)
+//
+// This map lists signals that are NOT supported by each block type.
+// If a block type is not in this map, all signals are supported (default behavior).
+static const map<E_Block, set<E_ObsCode>> unsupportedSignalsByBlockType = {
+    // Older GPS blocks do not support modernised L2C signals
+    {E_Block::GPS_I,     {E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X}},
+    {E_Block::GPS_II,    {E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X}},
+    {E_Block::GPS_IIA,   {E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X}},
+    {E_Block::GPS_IIR_A, {E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X}},
+    {E_Block::GPS_IIR_B, {E_ObsCode::L2C, E_ObsCode::L2S, E_ObsCode::L2L, E_ObsCode::L2X}},
+    // IIR-M and newer support L2C signals, so they're not in this list
+};
+
+// Filter signal codes based on block type capabilities
+// Returns true if the signal code is supported by the given block type
+bool isSignalSupportedByBlockType(E_ObsCode code, E_Block blockType)
+{
+    auto it = unsupportedSignalsByBlockType.find(blockType);
+    if (it != unsupportedSignalsByBlockType.end())
+    {
+        // Block type has restrictions - check if this signal is unsupported
+        return it->second.find(code) == it->second.end();
+    }
+
+    // Block type not in map - all signals supported (default behavior)
+    return true;
+}
 
 const unsigned int tbl_CRC24Q[] = {
     0x000000, 0x864CFB, 0x8AD50D, 0x0C99F6, 0x93E6E1, 0x15AA1A, 0x1933EC, 0x9F7F17, 0xA18139,

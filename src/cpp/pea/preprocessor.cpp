@@ -382,7 +382,12 @@ set<E_ObsCode> determineExpectedSignals(
             bool inSatFreqs = satFreqSet.count(sigFreq);
             bool inCodePriorities = std::find(codePriorities.begin(), codePriorities.end(), recSig) != codePriorities.end();
 
-            if (inSatFreqs && inCodePriorities)
+            // Filter out signals not supported by this block type (e.g., L2C not on older GPS blocks)
+            // This prevents false "MISSING" reports for signals that a satellite block type
+            // physically cannot transmit.
+            bool supportedByBlock = isSignalSupportedByBlockType(recSig, *blockOpt);
+
+            if (inSatFreqs && inCodePriorities && supportedByBlock)
             {
                 expectedSignals.insert(recSig);
             }
