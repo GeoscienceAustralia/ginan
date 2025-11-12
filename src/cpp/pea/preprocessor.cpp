@@ -90,7 +90,7 @@ struct ObservationRecord
 };
 
 // Output a single observation record to trace files
-void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
+void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
 {
     const char* statusStr = obsStatusToString(rec.status);
     GTime time = rec.time;  // Make mutable copy for traceJson (expects non-const reference)
@@ -100,7 +100,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
         tracepdeex(
             4,
             trace,
-            "\n%s %5s %5s %16.6f %16.6f %8.2f %6.2f %6.2f %12s %s",
+            "\nepoch= %s sat= %5s sig= %5s P= %16.6f L= %16.6f S= %8.2f el= %6.2f az= %6.2f block= %12s status= %s",
             rec.time.to_string().c_str(),
             rec.sat.id().c_str(),
             rec.code._to_string(),
@@ -118,7 +118,7 @@ void traceObservationRecord(Trace& trace, Trace& jsonTrace, const ObservationRec
         tracepdeex(
             4,
             trace,
-            "\n%s %5s %5s %16s %16s %8s %6.2f %6.2f %12s %s",
+            "\nepoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s status= %s",
             rec.time.to_string().c_str(),
             rec.sat.id().c_str(),
             rec.code._to_string(),
@@ -471,7 +471,7 @@ void outputObservations(Trace& trace, Trace& jsonTrace, ObsList& obsList, Receiv
         // Output all records to trace files
         for (const auto& record : records)
         {
-            traceObservationRecord(trace, jsonTrace, record);
+            obsRec(trace, jsonTrace, record);
         }
     }
 }
