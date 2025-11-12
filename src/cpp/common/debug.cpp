@@ -212,7 +212,7 @@ void minimumTest(Trace& trace)
         {
             trace << "\n"
                   << "-------DOING LEAST SQUARES--------";
-            kfStateStations.leastSquareInitStates(trace, combinedMeas, true);
+            kfStateStations.leastSquareInitStates(trace, combinedMeas, "", true);
         }
 
         kfStateStations.filterKalman(trace, combinedMeas, "", true);

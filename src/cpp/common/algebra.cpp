@@ -3,13 +3,14 @@
 #include <boost/math/distributions/normal.hpp>
 #include <sstream>
 #include <utility>
+#include "common/lapackWrapper.hpp"
 #include "architectureDocs.hpp"
 #include "common/acsConfig.hpp"
 #include "common/algebraTrace.hpp"
 #include "common/common.hpp"
 #include "common/constants.hpp"
 #include "common/eigenIncluder.hpp"
-#include "common/interactiveTerminal.hpp"
+#include "common/kalmanBlas.hpp"
 #include "common/mongo.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/trace.hpp"
@@ -909,9 +910,10 @@ void KFState::stateTransition(
                                     (+2 * tgap  // one tau from front tau3 distributed to prevent
                                                 // divide by zero
                                      - 4 * tau * (1 - exp(-1 * tgap / tau)) +
-                                     1 * tau * (1 - exp(-2 * tgap / tau))
-                                    );  // correct formula re-derived according
-                                        // to Ref: Carpenter and Lee (2008)
+                                     1 * tau *
+                                         (1 - exp(-2 * tgap /
+                                                  tau)));  // correct formula re-derived according
+                                                           // to Ref: Carpenter and Lee (2008)
                                 // Q0(sourceIndex, destIndex) +=
                                 // sourceProcessNoise / 2
                                 // * tau * tau * (1-exp(-tgap/tau)) * (1-exp(-tgap/tau));
@@ -1011,6 +1013,69 @@ void KFState::stateTransition(
     }
 
     initFilterEpoch(trace);
+}
+
+/** Compare variances of measurements and estimated parameters to detect unreasonable values
+ * Ref: to be added
+ */
+void KFState::leastSquareSigmaChecks(
+    RejectCallbackDetails& callbackDetails,
+    double                 adjustment,  ///< The adjustments from least squares estimation
+    MatrixXd&              Pp,          ///< Post-fit covariance of parameters
+    KFStatistics&          statistics   ///< Test statistics
+)
+{
+    auto& kfMeas = callbackDetails.kfMeas;
+    auto& trace  = callbackDetails.trace;
+
+    auto& V  = kfMeas.V;
+    auto& VV = kfMeas.VV;
+    auto& R  = kfMeas.R;
+    auto& H  = kfMeas.H;
+
+    ArrayXd measRatios      = ArrayXd::Zero(H.rows());
+    ArrayXd measNumerator   = ArrayXd::Zero(H.rows());
+    ArrayXd measDenominator = ArrayXd::Zero(H.rows());
+
+    if (lsqOpts.sigma_check)
+    {
+        // use 'array' for component-wise calculations
+        measNumerator =
+            V.array().square();  // delta squared  //Eugene: can't understand why prefits
+        measDenominator =
+            R.diagonal().array().max(SQR(adjustment));  // Eugene: don't know what this is doing
+    }
+    else if (lsqOpts.omega_test)
+    {
+        MatrixXd HPH_ = H * Pp * H.transpose();
+
+        // use 'array' for component-wise calculations
+        measNumerator = VV.array().square();  // weighted residuals squared, the sign doesn't matter
+        measDenominator = (R.diagonal() - HPH_.diagonal()).array();  // weights
+    }
+
+    measRatios = measNumerator / measDenominator;
+    measRatios = measRatios.isFinite().select(
+        measRatios,
+        0
+    );  // set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
+
+    statistics.sumOfSquares = measRatios.sum();
+    statistics.averageRatio = measRatios.mean();
+
+    Eigen::ArrayXd::Index measIndex;
+
+    double maxMeasRatio = measRatios.maxCoeff(&measIndex);
+
+    // if any are outside the expected values, flag an error
+    if (maxMeasRatio > SQR(lsqOpts.meas_sigma_threshold))
+    {
+        trace << "\n"
+              << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measIndex
+              << " :\t" << kfMeas.obsKeys[measIndex];
+
+        callbackDetails.measIndex = measIndex;
+    }
 }
 
 /** Compare variances of measurements and pre-filtered states to detect unreasonable values
@@ -1140,7 +1205,7 @@ void KFState::preFitSigmaChecks(
 }
 
 void outputResiduals(
-    Trace&  output,     ///< Trace file to output to
+    Trace&  trace,      ///< Trace file to output to
     KFMeas& kfMeas,     ///< Measurements, noise, and design matrix
     string  suffix,     ///< Suffix to use in header
     int     iteration,  ///< Number of iterations prior to this check
@@ -1148,13 +1213,12 @@ void outputResiduals(
     int     numH        ///< Number of measurements to process
 )
 {
-    tracepdeex(0, output, "\n");
+    tracepdeex(0, trace, "\n");
 
     string name = "RESIDUALS";
     name += suffix;
 
-    InteractiveTerminal trace(name, output);
-    Block               block(trace, name);
+    Block block(trace, name);
 
     tracepdeex(
         0,
@@ -1471,136 +1535,411 @@ bool KFState::kFilter(
     auto& H_star = kfMeas.H_star;
 
     auto noise     = kfMeas.uncorrelatedNoise.asDiagonal();  // todo Eugene: check chunking indices
-    auto subR      = R.block(begH, begH, numH, numH);
-    auto subH      = H.block(begH, begX, numH, numX);
-    auto subP      = P.block(begX, begX, numX, numX);
-    auto subV      = V.segment(begH, numH);
-    auto subH_star = H_star.middleRows(begH, numH);  // todo Eugene: check chunking indices
+
+    // Get pointers to block data (no copying!)
+    const double* H_ptr = H.data() + begH + begX * H.rows();  // H block starting point
+    const double* P_ptr = P.data() + begX + begX * P.rows();  // P block starting point
+    const double* R_ptr = R.data() + begH + begH * R.rows();  // R block starting point
+    const double* V_ptr = V.data() + begH;                    // V segment starting point
+
+    int ldH = H.rows();  // Leading dimension of full H matrix
+    int ldP = P.rows();  // Leading dimension of full P matrix
+    int ldR = R.rows();  // Leading dimension of full R matrix
 
     MatrixXd I        = MatrixXd::Identity(numH, numH);
+    auto subH_star = H_star.middleRows(begH, numH);
     MatrixXd HRH_star = subH_star * noise * subH_star.transpose();
-    MatrixXd HP       = subH * subP;
-    MatrixXd Q        = HP * subH.transpose() + subR;
+
+    // Compute HP = H * P using BLAS directly on blocks (no copy!)
+    MatrixXd HP(numH, numX);
+    LapackWrapper::dgemm(
+        LapackWrapper::CblasColMajor,
+        LapackWrapper::CblasNoTrans, LapackWrapper::CblasNoTrans,
+        numH, numX, numX,
+        1.0, H_ptr, ldH,
+        P_ptr, ldP,
+        0.0, HP.data(), numH
+    );
+
+    // Compute Q = HP * H' + R using BLAS directly
+    MatrixXd Q(numH, numH);
+    // First: Q = R (copy R block)
+    for (int j = 0; j < numH; j++) {
+        LapackWrapper::dcopy(numH, R_ptr + j * ldR, 1, Q.data() + j * numH, 1);
+    }
+    // Then: Q = HP * H' + Q
+    LapackWrapper::dgemm(
+        LapackWrapper::CblasColMajor,
+        LapackWrapper::CblasNoTrans, LapackWrapper::CblasTrans,
+        numH, numH, numX,
+        1.0, HP.data(), numH,
+        H_ptr, ldH,
+        1.0, Q.data(), numH
+    );
 
     MatrixXd K;
     MatrixXd HRHQ_star;
 
-    bool repeat = true;
-    while (repeat)
+    // Sequential solver fallback chain using separate factorization and solve
+    // This allows us to factorize Q once and reuse it for multiple solves
+    // Order: dpotrf/dpotrs -> dsytrf/dsytrs -> dgetrf/dgetrs
+
+    int info;
+    std::vector<int> ipiv(numH);
+    MatrixXd Q_work = Q;  // Working copy for factorization
+    char uplo = 'U';
+    int solver_used = 0;  // 1=Cholesky, 2=LDLT, 3=LU
+
+    // Try 1: Cholesky factorization (dpotrf) - fastest, for symmetric positive definite
+    info = LapackWrapper::dpotrf(LapackWrapper::COL_MAJOR, uplo, numH, Q_work.data(), numH);
+
+    if (info == 0)
     {
-        switch (inverter)
+        solver_used = 1;
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(warning)
+            << "dpotrf (Cholesky factorization) failed with info = " << info
+            << ", trying dsytrf (symmetric indefinite)";
+
+        // Cholesky failed, restore Q and try symmetric indefinite
+        Q_work = Q;
+
+        // Try 2: Symmetric indefinite factorization (dsytrf)
+        info = LapackWrapper::dsytrf(LapackWrapper::COL_MAJOR, uplo, numH, Q_work.data(), numH, ipiv.data());
+
+        if (info == 0)
         {
-            default:
-            {
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Kalman filter inverter type " << inverter << " not supported, reverting";
+            solver_used = 2;
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "dsytrf (symmetric indefinite factorization) failed with info = " << info
+                << ", trying dgetrf (general LU)";
 
-                inverter = E_Inverter::LDLT;
-                continue;
+            // Both symmetric solvers failed, try general LU
+            Q_work = Q;
+
+            // Try 3: General LU factorization (dgetrf)
+            info = LapackWrapper::dgetrf(LapackWrapper::COL_MAJOR, numH, numH, Q_work.data(), numH, ipiv.data());
+
+            if (info == 0)
+            {
+                solver_used = 3;
             }
-            case E_Inverter::LDLT:
+            else
             {
-                auto           QQ = Q.triangularView<Eigen::Upper>().transpose();
-                LDLT<MatrixXd> solver;
-                if ((solver.compute(QQ), solver.info() != Eigen::ComputationInfo::Success) ||
-                    (K = solver.solve(HP).transpose(),
-                     solver.info() != Eigen::ComputationInfo::Success) ||
-                    (postfitOpts.omega_test &&
-                     (Qinv = solver.solve(I), solver.info() != Eigen::ComputationInfo::Success)) ||
-                    (postfitOpts.omega_test &&
-                     (QinvH = solver.solve(subH), solver.info() != Eigen::ComputationInfo::Success)
-                    ) ||
-                    (advanced_postfits && (HRHQ_star = solver.solve(HRH_star).transpose(),
-                                           solver.info() != Eigen::ComputationInfo::Success)))
-                {
-                    xp = x;
-                    Pp = P;
-                    dx = VectorXd::Zero(xp.rows());
+                // All factorizations failed
+                BOOST_LOG_TRIVIAL(error)
+                    << "dgetrf (general LU factorization) failed with info = " << info
+                    << " - all factorization methods exhausted";
 
-                    BOOST_LOG_TRIVIAL(error)
-                        << "Failed to calculate kalman gain, see trace file for matrices";
+                xp = x;
+                Pp = P;
+                dx = VectorXd::Zero(xp.rows());
 
-                    trace << "\n"
-                          << "Kalman Filter Error";
-                    trace << "\n"
-                          << "Q: " << "\n"
-                          << Q;
-                    trace << "\n"
-                          << "H: " << "\n"
-                          << subH;
-                    trace << "\n"
-                          << "R: " << "\n"
-                          << subR;
-                    trace << "\n"
-                          << "P: " << "\n"
-                          << subP;
+                trace << "\n" << "Kalman Filter Error - Matrix Factorization Failed";
+                trace << "\n" << "Q: " << "\n" << Q;
+                trace << "\n" << "H block size: " << numH << "x" << numX;
+                trace << "\n" << "R block size: " << numH << "x" << numH;
+                trace << "\n" << "P block size: " << numX << "x" << numX;
 
-                    return false;
-                }
-
-                break;
-            }
-            case E_Inverter::LLT:
-            {
-                auto          QQ = Q.triangularView<Eigen::Upper>().transpose();
-                LLT<MatrixXd> solver;
-                if ((solver.compute(QQ), solver.info() != Eigen::ComputationInfo::Success) ||
-                    (K = solver.solve(HP).transpose(),
-                     solver.info() != Eigen::ComputationInfo::Success) ||
-                    (postfitOpts.omega_test &&
-                     (Qinv = solver.solve(I), solver.info() != Eigen::ComputationInfo::Success)) ||
-                    (postfitOpts.omega_test &&
-                     (QinvH = solver.solve(subH), solver.info() != Eigen::ComputationInfo::Success)
-                    ) ||
-                    (advanced_postfits && (HRHQ_star = solver.solve(HRH_star).transpose(),
-                                           solver.info() != Eigen::ComputationInfo::Success)))
-                {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Innovation covariance matrix not invertible with LLT "
-                           "inverter, trying LDLT inverter instead";
-
-                    inverter = E_Inverter::LDLT;
-                    continue;
-                }
-
-                break;
-            }
-            case E_Inverter::INV:
-            {
-                Qinv = Q.inverse();
-
-                if (Qinv.array().isNaN().any() || Qinv.array().isInf().any())
-                {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Innovation covariance matrix not invertible with INV "
-                           "inverter, trying LDLT inverter instead";
-
-                    inverter = E_Inverter::LDLT;
-                    continue;
-                }
-
-                QinvH = Qinv * subH;
-                K     = HP.transpose() * Qinv;
-
-                if (advanced_postfits)
-                {
-                    HRHQ_star = HRH_star * Qinv;
-                }
-
-                break;
+                return false;
             }
         }
+    }
 
-        repeat = false;
+    // Now Q_work contains the factorization, solve multiple systems using the same factorization
+
+    // System 1: Compute Kalman gain: Solve Q * K' = HP for K'
+    MatrixXd KT = HP;  // Will be overwritten with solution
+
+    if (solver_used == 1)
+    {
+        // Cholesky solve
+        info = LapackWrapper::dpotrs(LapackWrapper::COL_MAJOR, uplo, numH, numX,
+                             Q_work.data(), numH, KT.data(), numH);
+    }
+    else if (solver_used == 2)
+    {
+        // Symmetric indefinite solve
+        info = LapackWrapper::dsytrs(LapackWrapper::COL_MAJOR, uplo, numH, numX,
+                             Q_work.data(), numH, ipiv.data(), KT.data(), numH);
+    }
+    else  // solver_used == 3
+    {
+        // General LU solve
+        info = LapackWrapper::dgetrs(LapackWrapper::COL_MAJOR, 'N', numH, numX,
+                             Q_work.data(), numH, ipiv.data(), KT.data(), numH);
+    }
+
+    if (info != 0)
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "Solve failed for Kalman gain with info = " << info;
+
+        xp = x;
+        Pp = P;
+        dx = VectorXd::Zero(xp.rows());
+        return false;
+    }
+
+    // Transpose to get K = (K')'
+    K = KT.transpose();
+
+    // System 3: Compute HRHQ_star for advanced postfits (do this FIRST - no copy needed)
+    // Reuse the same factorization from Q_work directly
+    if (advanced_postfits)
+    {
+        HRHQ_star = HRH_star;
+
+        if (solver_used == 1)
+        {
+            // Cholesky solve: Q * HRHQ_star = HRH_star
+            info = LapackWrapper::dpotrs(
+                LapackWrapper::COL_MAJOR,
+                uplo,
+                numH,
+                numH,
+                Q_work.data(),
+                numH,
+                HRHQ_star.data(),
+                numH
+            );
+        }
+        else if (solver_used == 2)
+        {
+            // Symmetric indefinite solve: Q * HRHQ_star = HRH_star
+            info = LapackWrapper::dsytrs(
+                LapackWrapper::COL_MAJOR,
+                uplo,
+                numH,
+                numH,
+                Q_work.data(),
+                numH,
+                ipiv.data(),
+                HRHQ_star.data(),
+                numH
+            );
+        }
+        else  // solver_used == 3
+        {
+            // General LU solve: Q * HRHQ_star = HRH_star
+            info = LapackWrapper::dgetrs(
+                LapackWrapper::COL_MAJOR,
+                'N',
+                numH,
+                numH,
+                Q_work.data(),
+                numH,
+                ipiv.data(),
+                HRHQ_star.data(),
+                numH
+            );
+        }
+
+        if (info == 0)
+        {
+            HRHQ_star.transposeInPlace();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Failed to compute HRHQ_star for advanced postfits (info = " << info << ")";
+        }
+    }
+
+    // System 2: Compute Qinv if needed for omega test (do this LAST)
+    // Use direct matrix inversion (dpotri/dsytri/dgetri) working directly on Q_work
+    // Since System 3 is already done, Q_work is no longer needed
+    if (postfitOpts.omega_test)
+    {
+        // Work directly on Q_work (will be overwritten with inverse, no copy needed!)
+        if (solver_used == 1)
+        {
+            // Cholesky: Compute inverse directly from L*L' factorization
+            info = LapackWrapper::dpotri(LapackWrapper::COL_MAJOR, uplo, numH, Q_work.data(), numH);
+
+            if (info == 0)
+            {
+                // dpotri only fills upper triangle (uplo='U'), copy to lower using pointer access
+                double* Q_ptr = Q_work.data();
+                for (int j = 0; j < numH; j++)
+                {
+                    for (int i = j + 1; i < numH; i++)
+                    {
+                        Q_ptr[j * numH + i] =
+                            Q_ptr[i * numH + j];  // Column-major: copy upper to lower
+                    }
+                }
+            }
+        }
+        else if (solver_used == 2)
+        {
+            // Symmetric indefinite: Compute inverse directly from LDLT factorization
+            info = LapackWrapper::dsytri(LapackWrapper::COL_MAJOR, uplo, numH, Q_work.data(), numH, ipiv.data());
+
+            if (info == 0)
+            {
+                // dsytri only fills upper triangle (uplo='U'), copy to lower using pointer access
+                double* Q_ptr = Q_work.data();
+                for (int j = 0; j < numH; j++)
+                {
+                    for (int i = j + 1; i < numH; i++)
+                    {
+                        Q_ptr[j * numH + i] =
+                            Q_ptr[i * numH + j];  // Column-major: copy upper to lower
+                    }
+                }
+            }
+        }
+        else  // solver_used == 3
+        {
+            // General LU: Compute inverse directly from PLU factorization
+            info = LapackWrapper::dgetri(LapackWrapper::COL_MAJOR, numH, Q_work.data(), numH, ipiv.data());
+            // dgetri fills the full matrix, no symmetrization needed
+        }
+
+        if (info == 0)
+        {
+            // Quick validation - sample diagonal elements for NaN/Inf (faster than checking all n²)
+            bool is_valid = true;
+            const int sample_stride = std::max(1, numH / 10);  // Sample ~10 elements
+            for (int i = 0; i < numH; i += sample_stride)
+            {
+                if (!std::isfinite(Q_work(i, i)))  // Check diagonal
+                {
+                    is_valid = false;
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Matrix inversion produced invalid diagonal value (NaN/Inf) at row " << i
+                        << ", solver_used=" << solver_used;
+                    break;
+                }
+            }
+
+            if (is_valid)
+            {
+                // Assign inverted Q_work to Qinv (move semantics, no copy!)
+                Qinv = std::move(Q_work);
+
+                // Compute QinvH = Qinv * H
+                QinvH.resize(numH, numX);
+                LapackWrapper::dgemm(
+                    LapackWrapper::CblasColMajor,
+                    LapackWrapper::CblasNoTrans,
+                    LapackWrapper::CblasNoTrans,
+                    numH,
+                    numX,
+                    numH,
+                    1.0,
+                    Qinv.data(),
+                    numH,
+                    H_ptr,
+                    ldH,
+                    0.0,
+                    QinvH.data(),
+                    numH
+                );
+            }
+            else
+            {
+                // Fallback: compute Qinv by solving if inversion produced invalid values
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Falling back to solving Q*Qinv=I due to invalid inversion result";
+
+                Qinv = MatrixXd::Identity(numH, numH);
+
+                // Re-copy factorization (it was overwritten)
+                LapackWrapper::dcopy(numH * numH, Q_work.data(), 1, Qinv.data(), 1);
+
+                if (solver_used == 1)
+                {
+                    LapackWrapper::dpotrs(
+                        LapackWrapper::COL_MAJOR,
+                        uplo,
+                        numH,
+                        numH,
+                        Q_work.data(),
+                        numH,
+                        Qinv.data(),
+                        numH
+                    );
+                }
+                else if (solver_used == 2)
+                {
+                    LapackWrapper::dsytrs(
+                        LapackWrapper::COL_MAJOR,
+                        uplo,
+                        numH,
+                        numH,
+                        Q_work.data(),
+                        numH,
+                        ipiv.data(),
+                        Qinv.data(),
+                        numH
+                    );
+                }
+                else
+                {
+                    LapackWrapper::dgetrs(
+                        LapackWrapper::COL_MAJOR,
+                        'N',
+                        numH,
+                        numH,
+                        Q_work.data(),
+                        numH,
+                        ipiv.data(),
+                        Qinv.data(),
+                        numH
+                    );
+                }
+
+                QinvH.resize(numH, numX);
+                LapackWrapper::dgemm(
+                    LapackWrapper::CblasColMajor,
+                    LapackWrapper::CblasNoTrans,
+                    LapackWrapper::CblasNoTrans,
+                    numH,
+                    numX,
+                    numH,
+                    1.0,
+                    Qinv.data(),
+                    numH,
+                    H_ptr,
+                    ldH,
+                    0.0,
+                    QinvH.data(),
+                    numH
+                );
+            }
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(error) << "Matrix inversion failed with info = " << info
+                                     << ", solver_used=" << solver_used;
+        }
     }
 
     if (advanced_postfits)
     {
-        kfMeas.VV.segment(begH, numH) = HRHQ_star * subV;
+        kfMeas.VV.segment(begH, numH) = HRHQ_star * VectorXd::Map(V_ptr, numH);
     }
 
-    dx.segment(begX, numX) = K * subV;
-    xp.segment(begX, numX) = x.segment(begX, numX) + dx.segment(begX, numX);
+    // Use BLAS-optimized state update: dx = K * v
+    LapackWrapper::dgemv(
+        LapackWrapper::CblasColMajor,
+        LapackWrapper::CblasNoTrans,
+        numX, numH,
+        1.0, K.data(), numX,
+        V_ptr, 1,
+        0.0, dx.data() + begX, 1
+    );
+
+    // xp = x + dx
+    LapackWrapper::dcopy(numX, x.data() + begX, 1, xp.data() + begX, 1);
+    LapackWrapper::daxpy(numX, 1.0, dx.data() + begX, 1, xp.data() + begX, 1);
 
     // 	trace << "\n" << "H "	<< "\n" << subH;
     // 	trace << "\n" << "Hp "	<< "\n" << HP;
@@ -1610,15 +1949,81 @@ bool KFState::kFilter(
     // 	trace << "\n" << "dx"	<< "\n" << dx.segment(begX, numX);
     // 	trace << "\n" << "xp"	<< "\n" << xp.segment(begX, numX);
 
-    MatrixXd subPp;
+    // Use BLAS-optimized covariance update
+    MatrixXd subPp(numX, numX);
     if (joseph_stabilisation)
     {
-        MatrixXd IKH = MatrixXd::Identity(numX, numX) - K * subH;
-        subPp        = IKH * subP * IKH.transpose() + K * subR * K.transpose();
+        // Joseph form: Pp = (I-K*H)*P*(I-K*H)' + K*R*K'
+
+        // Step 1: IKH = I - K*H
+        MatrixXd IKH = MatrixXd::Identity(numX, numX);
+        LapackWrapper::dgemm(LapackWrapper::CblasColMajor, LapackWrapper::CblasNoTrans, LapackWrapper::CblasNoTrans,
+                   numX, numX, numH,
+                   -1.0, K.data(), numX,
+                   H_ptr, ldH,
+                   1.0, IKH.data(), numX);
+
+        // Step 2: temp = IKH * P
+        MatrixXd temp(numX, numX);
+        double* P_block = const_cast<double*>(P_ptr);
+        LapackWrapper::dgemm(LapackWrapper::CblasColMajor, LapackWrapper::CblasNoTrans, LapackWrapper::CblasNoTrans,
+                   numX, numX, numX,
+                   1.0, IKH.data(), numX,
+                   P_block, ldP,
+                   0.0, temp.data(), numX);
+
+        // Step 3: subPp = temp * IKH'
+        LapackWrapper::dgemm(LapackWrapper::CblasColMajor, LapackWrapper::CblasNoTrans, LapackWrapper::CblasTrans,
+                   numX, numX, numX,
+                   1.0, temp.data(), numX,
+                   IKH.data(), numX,
+                   0.0, subPp.data(), numX);
+
+        // Step 4: temp2 = K * R
+        MatrixXd temp2(numX, numH);
+        double* R_block = const_cast<double*>(R_ptr);
+        LapackWrapper::dgemm(LapackWrapper::CblasColMajor, LapackWrapper::CblasNoTrans, LapackWrapper::CblasNoTrans,
+                   numX, numH, numH,
+                   1.0, K.data(), numX,
+                   R_block, ldR,
+                   0.0, temp2.data(), numX);
+
+        // Step 5: subPp += temp2 * K'
+        LapackWrapper::dgemm(LapackWrapper::CblasColMajor, LapackWrapper::CblasNoTrans, LapackWrapper::CblasTrans,
+                   numX, numX, numH,
+                   1.0, temp2.data(), numX,
+                   K.data(), numX,
+                   1.0, subPp.data(), numX);
     }
     else
     {
-        subPp = subP - K * HP;
+        // Standard form: Pp = P - K*HP
+
+        // Copy P block into subPp
+        double* P_block = const_cast<double*>(P_ptr);
+        for (int j = 0; j < numX; j++) {
+            LapackWrapper::dcopy(numX, P_block + j * ldP, 1, subPp.data() + j * numX, 1);
+        }
+
+        // Compute KHP = K * HP
+        MatrixXd KHP(numX, numX);
+        LapackWrapper::dgemm(LapackWrapper::CblasColMajor, LapackWrapper::CblasNoTrans, LapackWrapper::CblasNoTrans,
+                   numX, numX, numH,
+                   1.0, K.data(), numX,
+                   HP.data(), numH,
+                   0.0, KHP.data(), numX);
+
+        // subPp = subPp - KHP
+        LapackWrapper::daxpy(numX * numX, -1.0, KHP.data(), 1, subPp.data(), 1);
+    }
+
+    // Symmetrize for numerical stability
+    for (int i = 0; i < numX; i++) {
+        for (int j = i + 1; j < numX; j++) {
+            double avg = (subPp(i, j) + subPp(j, i)) / 2.0;
+            subPp(i, j) = avg;
+            subPp(j, i) = avg;
+        }
     }
 
     Pp.block(begX, begX, numX, numX) = (subPp + subPp.transpose()).eval() / 2;
@@ -1633,17 +2038,17 @@ bool KFState::kFilter(
                   << "x :" << "\n"
                   << x.segment(begX, numX);
         std::cout << "\n"
-                  << "P :" << "\n"
-                  << subP;
+                  << "P block:" << "\n"
+                  << P.block(begX, begX, numX, numX);
         std::cout << "\n"
-                  << "R :" << "\n"
-                  << subR;
+                  << "R block:" << "\n"
+                  << R.block(begH, begH, numH, numH);
         std::cout << "\n"
                   << "K :" << "\n"
                   << K;
         std::cout << "\n"
-                  << "V :" << "\n"
-                  << subV;
+                  << "V segment:" << "\n"
+                  << V.segment(begH, numH);
         std::cout << "\n";
         std::cout << "NAN found. Exiting...";
         std::cout << "\n";
@@ -1670,7 +2075,7 @@ bool KFState::leastSquare(
     kfMeas.W = weights.matrix();
 
     auto& H = kfMeas.H;
-    auto& Y = kfMeas.Y;
+    auto& V = kfMeas.V;
 
     int numX = H.cols();
     int numH = H.rows();
@@ -1771,7 +2176,7 @@ bool KFState::leastSquare(
         repeat = false;
     }
 
-    xp = Pp * H_W * Y;
+    xp = Pp * H_W * V;
 
     // 	std::cout << "N : " << "\n" << N;
     bool error = xp.array().isNaN().any();
@@ -1812,7 +2217,13 @@ void KFState::chiQC(
     dof = VV.rows() - (x.rows() - 1);  // ignore KF::ONE element -> -1
     if (dof < 1)
     {
-        chiQCPass = true;
+        trace << "Error with Chi-square test: dof=" << dof;
+
+        chiQCPass  = false;
+        chi2       = 0;
+        chi2PerDof = NAN;
+        qc         = 0;
+
         return;
     }
 
@@ -2142,7 +2553,7 @@ void KFState::filterKalman(
             std::stringstream stringBuffer;
 
             RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
-            rejectCallbackDetails.postFit = false;
+            rejectCallbackDetails.stage = E_FilterStage::PREFIT;
 
             preFitSigmaChecks(
                 rejectCallbackDetails,
@@ -2267,7 +2678,7 @@ void KFState::filterKalman(
             std::stringstream stringBuffer;
 
             RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, kfMeas);
-            rejectCallbackDetails.postFit = true;
+            rejectCallbackDetails.stage = E_FilterStage::POSTFIT;
 
             postFitSigmaChecks(
                 rejectCallbackDetails,
@@ -2376,7 +2787,8 @@ void KFState::filterKalman(
 
             auto& chunkTrace = *fc.trace_ptr;
 
-            switch (chiSquareTest.mode
+            switch (
+                chiSquareTest.mode
             )  // todo Eugene: rethink Chi-Square test modes, consider keep only INNOVATION
                // and determine DOF automatically based on process noises
             {
@@ -2420,7 +2832,7 @@ void KFState::filterKalman(
 
         boost::math::chi_squared chiSqDist(testStatistics.dof);
         testStatistics.qc = quantile(complement(chiSqDist, alpha));
-        if (testStatistics.chiSq <= testStatistics.qc)
+        if (testStatistics.dof > 0 && testStatistics.chiSq <= testStatistics.qc)
             trace << "\n"
                   << "Chi-square test passed";
         else
@@ -2488,21 +2900,22 @@ void KFState::filterKalman(
  * and the minimum required measurements in order to perform least squares for the uninitialised
  * states.
  */
-void KFState::leastSquareInitStates(
-    Trace&    trace,       ///< Trace file for output
-    KFMeas&   kfMeas,      ///< Measurement object
-    bool      initCovars,  ///< Option to also initialise off-diagonal covariance values
-    VectorXd* dx_ptr,      ///< Optional output of adjustments
-    bool      innovReady   ///< Residuals already calculated
+bool KFState::leastSquareInitStates(
+    Trace&        trace,       ///< Trace file for output
+    KFMeas&       kfMeas,      ///< Measurement object
+    const string& suffix,      ///< Suffix to append to residuals block
+    bool          initCovars,  ///< Option to also initialise off-diagonal covariance values
+    bool          innovReady   ///< Apriori states available and residuals already calculated
 )
 {
     lsqRequired = false;
 
+    sigmaPass = false;  // Eugene: can also do this for filterKalman
     chiQCPass = false;  // Eugene: can also do this for filterKalman
 
-    if (innovReady)
+    if (innovReady == false)
     {
-        kfMeas.Y = kfMeas.V;
+        kfMeas.V = kfMeas.Y;  // x == 0 in this case
     }
 
     // find all the states that aren't initialised, they need least squaring.
@@ -2551,12 +2964,12 @@ void KFState::leastSquareInitStates(
     // Create new measurement objects with larger size, (using all states for now)
     KFMeas leastSquareMeas;
 
-    leastSquareMeas.Y = VectorXd::Zero(totalMeasCount);
+    leastSquareMeas.V = VectorXd::Zero(totalMeasCount);
     leastSquareMeas.R = MatrixXd::Zero(totalMeasCount, totalMeasCount);
     leastSquareMeas.H = MatrixXd::Zero(totalMeasCount, kfMeas.H.cols());
 
     // copy in the required measurements from the old set
-    leastSquareMeas.Y.head(lsqMeasCount) = kfMeas.Y(leastSquareMeasIndicies);
+    leastSquareMeas.V.head(lsqMeasCount) = kfMeas.V(leastSquareMeasIndicies);
     leastSquareMeas.R.topLeftCorner(lsqMeasCount, lsqMeasCount) =
         kfMeas.R(leastSquareMeasIndicies, leastSquareMeasIndicies);
     leastSquareMeas.H.topRows(lsqMeasCount) = kfMeas.H(leastSquareMeasIndicies, all);
@@ -2567,7 +2980,14 @@ void KFState::leastSquareInitStates(
         int measIndex  = lsqMeasCount + i;
         int stateIndex = pseudoMeasStateIndicies[i];
 
-        leastSquareMeas.Y(measIndex) = x(stateIndex);
+        if (innovReady)
+        {
+            leastSquareMeas.V(measIndex) = 0;  // take x as apriori state
+        }
+        else
+        {
+            leastSquareMeas.V(measIndex) = x(stateIndex);  // take 0 as apriori state
+        }
         leastSquareMeas.R(measIndex, measIndex) =
             P(stateIndex, stateIndex);  // todo Eugene: check equivalence w/ back-subsitution -
                                         // pseudo var should be 0 instead of P, or doesn't matter?
@@ -2587,40 +3007,119 @@ void KFState::leastSquareInitStates(
 
     // create a new meaurement object using only the required states.
     KFMeas leastSquareMeasSubs;
-    leastSquareMeasSubs.Y = leastSquareMeas.Y;
-    leastSquareMeasSubs.R = leastSquareMeas.R;
-    leastSquareMeasSubs.H = leastSquareMeas.H(all, usedStateIndicies);
+    leastSquareMeasSubs.time = kfMeas.time;
+    leastSquareMeasSubs.V    = leastSquareMeas.V;
+    leastSquareMeasSubs.R    = leastSquareMeas.R;
+    leastSquareMeasSubs.H    = leastSquareMeas.H(all, usedStateIndicies);
+
+    for (int i = 0; i < lsqMeasCount; i++)
+    {
+        int measIndex = leastSquareMeasIndicies[i];
+        leastSquareMeasSubs.obsKeys.push_back(kfMeas.obsKeys[measIndex]);
+        leastSquareMeasSubs.metaDataMaps.push_back(kfMeas.metaDataMaps[measIndex]);
+        leastSquareMeasSubs.componentsMaps.push_back(kfMeas.componentsMaps[measIndex]);
+    }
 
     int      usedStateCount = usedStateIndicies.size();
     VectorXd xp             = VectorXd::Zero(usedStateCount);
     MatrixXd Pp             = MatrixXd::Identity(usedStateCount, usedStateCount);
 
-    bool pass = leastSquare(trace, leastSquareMeasSubs, xp, Pp);
-
-    if (pass == false)
+    TestStatistics testStatistics;
+    KFStatistics   statistics;
+    for (int i = 0; i < lsqOpts.max_iterations; i++)
     {
-        trace << "LSQ FAILED" << "\n";
-        return;
-    }
+        bool pass = leastSquare(trace, leastSquareMeasSubs, xp, Pp);
 
-    leastSquareMeasSubs.VV = leastSquareMeasSubs.Y - leastSquareMeasSubs.H * xp;
+        if (pass == false)
+        {
+            trace << "LSQ FAILED" << "\n";
+            return false;
+        }
 
-    if (chiSquareTest.enable)
-    {
-        chiQC(trace, leastSquareMeasSubs);
+        leastSquareMeasSubs.VV = leastSquareMeasSubs.V - leastSquareMeasSubs.H * xp;
 
-        if (chiQCPass)
-            trace << "\nChi-square test passed: ";
+        if (output_residuals && traceLevel >= 5)
+        {
+            outputResiduals(trace, leastSquareMeasSubs, suffix, i, 0, leastSquareMeasSubs.H.rows());
+        }
+
+        double adjustment =
+            xp.cwiseAbs().maxCoeff();  // Avoid using norm() as numX may vary w/ multi-GNSS
+        if (adjustment >= 100000)      // Only check outliers nearly after converge
+            break;
+
+        if (chiSquareTest.enable)
+        {
+            chiQC(trace, leastSquareMeasSubs);
+
+            if (chiQCPass)
+                trace << "\nChi-square test passed: ";
+            else
+                trace << "\nChi-square test failed: ";
+
+            trace << "dof = " << dof << "\tchi^2 = " << chi2 << "\tthres = " << qc;
+        }
+
+        if (lsqOpts.sigma_check == false && lsqOpts.omega_test == false)
+        {
+            break;
+        }
+
+        std::stringstream stringBuffer;
+
+        RejectCallbackDetails rejectCallbackDetails(stringBuffer, *this, leastSquareMeasSubs);
+        rejectCallbackDetails.stage = E_FilterStage::LSQ;
+
+        leastSquareSigmaChecks(rejectCallbackDetails, adjustment, Pp, statistics);
+
+        bool stopIterating = true;
+        if (rejectCallbackDetails.measIndex >= 0)
+        {
+            stringBuffer << "\n"
+                         << "Least squares check failed";
+            doMeasRejectCallbacks(rejectCallbackDetails);
+            stopIterating = false;
+        }
+
+        if (stopIterating)
+        {
+            stringBuffer << "\n"
+                         << "Least squares check passed";
+            sigmaPass = true;
+        }
         else
-            trace << "\nChi-square test failed: ";
+        {
+            if (i == lsqOpts.max_iterations - 1)
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Max least squares iterations limit reached at " << time << " in " << suffix
+                    << ", limit is " << lsqOpts.max_iterations;
+                stringBuffer << "\n"
+                             << "Warning: Max least squares iterations limit reached at " << time
+                             << " in " << suffix << ", limit is " << lsqOpts.max_iterations;
 
-        trace << "dof = " << dof << "\tchi^2 = " << chi2 << "\tthres = " << qc;
+                stopIterating = true;
+                sigmaPass     = false;
+            }
+        }
+
+        trace << stringBuffer.str();
+
+        if (stopIterating)
+        {
+            // statisticsMap["Least squares iterations " + std::to_string(i+1)]++;
+
+            break;
+        }
     }
 
-    if (dx_ptr)
-    {
-        (*dx_ptr) = xp;  // Eugene: check if works for innovReady == false
-    }
+    testStatistics.sumOfSquaresLsq = statistics.sumOfSquares;
+    testStatistics.averageRatioLsq = statistics.averageRatio;
+
+    if (lsqOpts.sigma_check || lsqOpts.omega_test)
+        trace << "\n"
+              << "Sum-of-squared test statistics (least squares): "
+              << testStatistics.sumOfSquaresLsq << "\n";
 
     for (int i = 0; i < usedStateCount; i++)
     {
@@ -2636,10 +3135,9 @@ void KFState::leastSquareInitStates(
 
         dx(stateRowIndex) = newStateVal;
 
-        if (dx_ptr)
+        if (innovReady)
         {
             x(stateRowIndex) += newStateVal;
-            kfMeas.VV = kfMeas.Y - kfMeas.H * dx;
         }
         else
         {
@@ -2661,6 +3159,12 @@ void KFState::leastSquareInitStates(
             }
         }
     }
+
+    kfMeas.VV = kfMeas.V - kfMeas.H * dx;
+    kfMeas.R(leastSquareMeasIndicies, leastSquareMeasIndicies) =
+        leastSquareMeasSubs.R.topLeftCorner(lsqMeasCount, lsqMeasCount);
+
+    return true;
 }
 
 /** Get a portion of the state vector by passing a list of keys
@@ -2790,20 +3294,19 @@ KFState KFState::getSubState(vector<KF> types, KFMeas* meas_ptr) const
 /** Output keys and states in human readable format
  */
 void KFState::outputStates(
-    Trace& output,     ///< Trace to output to
+    Trace& trace,      ///< Trace to output to
     string suffix,     ///< Suffix to append to state block info tag in trace files
     int    iteration,  ///< Number of iterations prior to this check
     int    begX,       ///< Index of first state element to process
     int    numX        ///< Number of state elements to process
 )
 {
-    tracepdeex(1, output, "\n");
+    tracepdeex(1, trace, "\n");
 
     string name = "STATES";
     name += suffix;
 
-    InteractiveTerminal trace(name, output);
-    Block               block(trace, name);
+    Block block(trace, name);
 
     tracepdeex(
         1,

@@ -240,12 +240,9 @@ struct OutputOptions
     bool timestamp_console_logs = false;
     bool warn_once              = true;
 
-    bool             output_clocks           = false;
-    vector<E_Source> clocks_receiver_sources = {
-        E_Source::KALMAN,
-        E_Source::PRECISE,
-        E_Source::BROADCAST
-    };
+    bool             output_clocks = false;
+    vector<E_Source> clocks_receiver_sources =
+        {E_Source::KALMAN, E_Source::PRECISE, E_Source::SPP, E_Source::BROADCAST};
     vector<E_Source> clocks_satellite_sources = {
         E_Source::KALMAN,
         E_Source::PRECISE,
@@ -276,11 +273,15 @@ struct OutputOptions
         E_Source::PRECISE,
         E_Source::BROADCAST
     };
-    vector<E_Source>      orbex_attitude_sources = {E_Source::NOMINAL};
-    double                orbex_output_interval  = 1;
-    string                orbex_directory        = "<OUTPUTS_ROOT>";
-    string                orbex_filename         = "<ORBEX_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.obx";
-    vector<E_OrbexRecord> orbex_record_types     = {E_OrbexRecord::ATT};
+    vector<E_Source> orbex_attitude_sources = {
+        E_Source::PRECISE,
+        E_Source::MODEL,
+        E_Source::NOMINAL
+    };
+    double                orbex_output_interval = 1;
+    string                orbex_directory       = "<OUTPUTS_ROOT>";
+    string                orbex_filename        = "<ORBEX_DIRECTORY>/<CONFIG>-<LOGTIME>_<SYS>.obx";
+    vector<E_OrbexRecord> orbex_record_types    = {E_OrbexRecord::ATT};
 
     bool split_sys = false;
 
@@ -612,12 +613,13 @@ struct GlobalOptions
  */
 struct KalmanModel
 {
-    vector<double> sigma            = {-1};  //{0} is very necessary
-    vector<double> sigma_limit      = {0};
-    vector<double> outage_limit     = {0};
-    vector<double> apriori_value    = {0};
-    vector<double> process_noise    = {0};
-    vector<double> tau              = {-1
+    vector<double> sigma         = {-1};  //{0} is very necessary
+    vector<double> sigma_limit   = {0};
+    vector<double> outage_limit  = {0};
+    vector<double> apriori_value = {0};
+    vector<double> process_noise = {0};
+    vector<double> tau           = {
+        -1
     };  // tau<0 (inf): Random Walk model; tau>0: First Order Gauss Markov model
     vector<double> mu               = {0};
     vector<bool>   estimate         = {false};
@@ -627,6 +629,14 @@ struct KalmanModel
     KalmanModel& operator+=(const KalmanModel& rhs);
 
     map<int, bool> initialisedMap;
+};
+
+struct LeastSquareOptions
+{
+    int    max_iterations       = 2;
+    bool   sigma_check          = true;
+    bool   omega_test           = false;
+    double meas_sigma_threshold = 4;
 };
 
 struct PrefitOptions
@@ -664,7 +674,7 @@ struct RtsOptions
 
     bool queue_rts_outputs = false;
 
-    E_Inverter rts_inverter = E_Inverter::LDLT;
+    double rts_regularisation = 1e-12;
 };
 
 struct FilterOptions : RtsOptions
@@ -678,9 +688,10 @@ struct FilterOptions : RtsOptions
     E_Inverter lsq_inverter = E_Inverter::INV;
     E_Inverter inverter     = E_Inverter::LDLT;
 
-    PrefitOptions    prefitOpts;
-    PostfitOptions   postfitOpts;
-    ChiSquareOptions chiSquareTest;
+    LeastSquareOptions lsqOpts;
+    PrefitOptions      prefitOpts;
+    PostfitOptions     postfitOpts;
+    ChiSquareOptions   chiSquareTest;
 };
 
 /** Options associated with the ionospheric modelling processing mode of operation
@@ -724,6 +735,7 @@ struct SppOptions : FilterOptions
 {
     bool   always_reinitialise = false;
     int    max_lsq_iterations  = 12;
+    double elevation_mask_deg  = 0;
     double max_gdop            = 30;
     double sigma_scaling       = 1;
     bool   raim                = true;
@@ -952,9 +964,9 @@ struct SatelliteKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
     SatelliteKalmans& operator+=(const SatelliteKalmans& rhs)
     {
-        CommonKalmans ::operator+=(rhs);
+        CommonKalmans ::  operator+=(rhs);
         InertialKalmans ::operator+=(rhs);
-        EmpKalmans ::operator+=(rhs);
+        EmpKalmans ::     operator+=(rhs);
 
         return *this;
     }
@@ -975,9 +987,9 @@ struct ReceiverKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
     ReceiverKalmans& operator+=(const ReceiverKalmans& rhs)
     {
-        CommonKalmans ::operator+=(rhs);
+        CommonKalmans ::  operator+=(rhs);
         InertialKalmans ::operator+=(rhs);
-        EmpKalmans ::operator+=(rhs);
+        EmpKalmans ::     operator+=(rhs);
 
         ambiguity += rhs.ambiguity;
         strain_rate += rhs.strain_rate;
@@ -1024,8 +1036,9 @@ struct CommonOptions
 
     struct
     {
-        bool             enable  = true;
-        vector<E_Source> sources = {E_Source::KALMAN, E_Source::PRECISE, E_Source::BROADCAST};
+        bool             enable = true;
+        vector<E_Source> sources =
+            {E_Source::KALMAN, E_Source::PRECISE, E_Source::SPP, E_Source::BROADCAST};
     } clockModel;
 
     struct
@@ -1281,12 +1294,24 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
 
     bool queue_outputs = false;
 
-    vector<KF> used_predictions =
-        {KF::ORBIT, KF::REC_POS, KF::SAT_CLOCK, KF::CODE_BIAS, KF::PHASE_BIAS, KF::EOP, KF::EOP_RATE
-        };
-    vector<KF> sent_predictions =
-        {KF::ORBIT, KF::REC_POS, KF::SAT_CLOCK, KF::CODE_BIAS, KF::PHASE_BIAS, KF::EOP, KF::EOP_RATE
-        };
+    vector<KF> used_predictions = {
+        KF::ORBIT,
+        KF::REC_POS,
+        KF::SAT_CLOCK,
+        KF::CODE_BIAS,
+        KF::PHASE_BIAS,
+        KF::EOP,
+        KF::EOP_RATE
+    };
+    vector<KF> sent_predictions = {
+        KF::ORBIT,
+        KF::REC_POS,
+        KF::SAT_CLOCK,
+        KF::CODE_BIAS,
+        KF::PHASE_BIAS,
+        KF::EOP,
+        KF::EOP_RATE
+    };
 
     double prediction_offset           = 0;
     double prediction_interval         = 30;
@@ -1300,6 +1325,7 @@ struct MongoOptions : array<MongoInstanceOptions, 3>
  */
 struct SsrOptions
 {
+    // todo Eugene: Use KALMAN source once RT POD done (same for code & phase)
     bool             extrapolate_corrections = false;
     double           prediction_interval     = 30;
     double           prediction_duration     = 0;

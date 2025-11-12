@@ -12,7 +12,6 @@
 #include "common/algebra.hpp"
 #include "common/common.hpp"
 #include "common/eigenIncluder.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/metaData.hpp"
 #include "common/mongoRead.hpp"
 #include "common/mongoWrite.hpp"
@@ -88,12 +87,10 @@ void explainMeasurements(Trace& trace, KFMeas& kfMeas, KFState& kfState)
             continue;
         }
 
-        InteractiveTerminal output((string) "Partials/" + (string)obsKey, trace);
-
-        output << "\n"
-               << "============================";
-        output << "\n"
-               << "Explaining " << obsKey << " : " << obsKey.comment;
+        trace << "\n"
+              << "============================";
+        trace << "\n"
+              << "Explaining " << obsKey << " : " << obsKey.comment;
 
         for (auto duo :
              {Duo{kfState.kfIndexMap, kfMeas.H}, Duo{kfMeas.noiseIndexMap, kfMeas.H_star}})
@@ -101,8 +98,8 @@ void explainMeasurements(Trace& trace, KFMeas& kfMeas, KFState& kfState)
             {
                 if (col == 0)
                 {
-                    output << "\n"
-                           << "============================";
+                    trace << "\n"
+                          << "============================";
                 }
 
                 double entry = duo.designMatrix(i, col);
@@ -116,16 +113,16 @@ void explainMeasurements(Trace& trace, KFMeas& kfMeas, KFState& kfState)
                 {
                     if (index == col)
                     {
-                        output << "\n";
+                        trace << "\n";
                         if (traceLevel >= 4)
-                            output << kfState.time << " " << obsKey;
+                            trace << kfState.time << " " << obsKey;
 
-                        output << kfKey << " : " << entry;
+                        trace << kfKey << " : " << entry;
                         break;
                     }
                 }
             }
-        output << "\n";
+        trace << "\n";
     }
 }
 
@@ -810,37 +807,62 @@ void updateRecClocks(
         }
 
         KFKey clkKey;
-        clkKey.type    = KF::REC_CLOCK;
-        clkKey.str     = id;
-        clkKey.rec_ptr = &rec;
+        clkKey.type = KF::REC_CLOCK;
+        clkKey.str  = id;
 
-        double recClkAdj =
-            rec.sol.dtRec_m[E_Sys::GPS] -
-            rec.sol
-                .dtRec_m_pppp_old[E_Sys::GPS];  // Adjust rec clock prediction by SPP clock change
+        double   recClk_m = 0;
+        E_Source found    = kfState.getKFValue(
+            clkKey,
+            recClk_m
+        );  // Get filtered rec clock of last epoch (not updated yet)
 
-        // Do rounding if only adjust receiver clock jumps (i.e. integer times of
-        // half-milliseconds)
-        if (rec.sol.dtRec_m_pppp_old[E_Sys::GPS] && acsConfig.adjust_clocks_for_jumps_only)
+        if (found == +E_Source::KALMAN && rec.sol.clkAdjustReady)
         {
-            const double scalar = 1000 * 2 / CLIGHT;
+            KFKey rateKey = clkKey;
+            rateKey.type  = KF::REC_CLOCK_RATE;
 
-            double halfMilliseconds = recClkAdj * scalar;
+            double clkRate = 0;
+            found          = kfState.getKFValue(rateKey, clkRate);
 
-            recClkAdj = round(halfMilliseconds) / scalar;
+            double dt = (tsync - kfState.time).to_double();
+            recClk_m += clkRate * dt;     // Expected rec clock prediction
+            double recClkAdj = rec.sol.sppClk + rec.sol.sppPppClkOffset -
+                               recClk_m;  // Adjust rec clock prediction by SPP clock change
+
+            // Do rounding if only adjust receiver clock jumps (i.e. integer times of
+            // half-milliseconds)
+            if (acsConfig.adjust_clocks_for_jumps_only)
+            {
+                const double scalar = 1000 * 2 / CLIGHT;
+
+                double halfMilliseconds = recClkAdj * scalar;
+
+                recClkAdj = round(halfMilliseconds) / scalar;
+
+                if (recClkAdj)
+                {
+                    trace << "\n"
+                          << "Jump of " << halfMilliseconds * 0.5 << "ms found, rounding";
+                }
+            }
+
+            trace << "\n"
+                  << tsync << "\tAdjusting " << clkKey.str << " clock by " << recClkAdj
+                  << "\t- Pre-adjustment: " << recClk_m
+                  << "\t- Post-adjustment: " << recClk_m + recClkAdj;
 
             if (recClkAdj)
             {
-                trace << "\n"
-                      << "Jump of " << halfMilliseconds * 0.5 << "ms found, rounding";
+                kfState.setKFTrans(clkKey, KFState::oneKey, recClkAdj, clkInit);
+
+                InitialState rateInit = initialStateFromConfig(recOpts.clk_rate);
+                if (rateInit.estimate && found == +E_Source::KALMAN)
+                {
+                    double clkRateAjd = recClkAdj / dt;
+                    kfState.setKFTrans(rateKey, KFState::oneKey, clkRateAjd, rateInit);
+                }
             }
         }
-
-        trace << "\n" << tsync << "\tAdjusting " << clkKey.str << " clock by " << recClkAdj;
-
-        rec.sol.dtRec_m_pppp_old[E_Sys::GPS] = rec.sol.dtRec_m[E_Sys::GPS];
-
-        kfState.setKFTrans(clkKey, KFState::oneKey, recClkAdj, clkInit);
     }
 }
 
@@ -1754,8 +1776,6 @@ void ppp(
     // add process noise and dynamics to existing states as a prediction of current state
     if (kfState.assume_linearity == false)
     {
-        InteractiveTerminal::setMode(E_InteractiveMode::StateTransition1);
-
         BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
         kfState.stateTransition(trace, tsync);
@@ -1781,8 +1801,6 @@ void ppp(
     }
 
     {
-        InteractiveTerminal::setMode(E_InteractiveMode::OMCCalculations);
-
         BOOST_LOG_TRIVIAL(info) << " ------- CALCULATING PPP MEASUREMENTS --------" << "\n";
 
         // calculate the measurements for each receiver
@@ -1828,8 +1846,6 @@ void ppp(
     }
 
     // use state transition to initialise new state elements
-    InteractiveTerminal::setMode(E_InteractiveMode::StateTransition2);
-
     BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
     kfState.stateTransition(trace, tsync);
@@ -1867,10 +1883,10 @@ void ppp(
     {
         BOOST_LOG_TRIVIAL(info) << "-------INITIALISING PPPPP USING LEAST SQUARES--------" << "\n";
 
-        VectorXd dx;
-        kfState.leastSquareInitStates(trace, kfMeas, false, &dx, true);
+        string suffix = "/LSQ";
+        kfState.leastSquareInitStates(trace, kfMeas, suffix, false, true);
 
-        kfState.outputStates(trace, "/LSQ");
+        kfState.outputStates(trace, suffix);
     }
 
     map<string, FilterChunk>   filterChunkMap;
@@ -1878,12 +1894,11 @@ void ppp(
 
     chunkFilter(trace, kfState, kfMeas, receiverMap, filterChunkMap, traceList);
 
-    InteractiveTerminal::setMode(E_InteractiveMode::Filtering);
     BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << "\n";
 
     kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
 
-    postFilterChecks(tsync, kfState, kfMeas);
+    postFilterChecks(tsync, receiverMap, kfState, kfMeas);
 
     // output chunks if we are actually chunking still
     if (acsConfig.pppOpts.receiver_chunking)

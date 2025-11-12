@@ -347,7 +347,7 @@ void filterIonosphere(
         trace << "\n"
               << "-------INITIALISING IONO USING LEAST SQUARES--------" << "\n";
 
-        kfState.leastSquareInitStates(std::cout, kfMeas, true);
+        kfState.leastSquareInitStates(std::cout, kfMeas, suffix, true);
     }
     else
     {

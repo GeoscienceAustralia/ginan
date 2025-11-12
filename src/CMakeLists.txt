@@ -180,8 +180,6 @@ if (NOT NetCDF_FOUND)
 	message(STATUS "NetCDF library not found, skip compiling loading packages.")
 endif()
 
-find_package(Curses REQUIRED)
-message(STATUS "Found curses library:     " ${CURSES_LIBRARY} , ${CURSES_INCLUDE_DIR})
 
 # message(STATUS "...NETCDF     >>>>>>   ${NETCDF_LIBRARIES}     ${NETCDF_INCLUDES}" )
 # message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )

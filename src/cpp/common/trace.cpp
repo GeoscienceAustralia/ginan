@@ -14,7 +14,6 @@
 #include "common/common.hpp"
 #include "common/constants.hpp"
 #include "common/gTime.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/navigation.hpp"
 #include "common/observations.hpp"
@@ -24,8 +23,6 @@
 using std::unordered_map;
 
 boost::iostreams::stream<boost::iostreams::null_sink> nullStream((boost::iostreams::null_sink()));
-
-bool ConsoleLog::useInteractive = false;
 
 /** Semi-formatted text-based outputs.
  * Trace files are the best record of the processing that occurs within the Pea.
@@ -112,26 +109,7 @@ void ConsoleLog::consume(
     output += ending;
 
     output += "\r\n";
-
-    if (useInteractive)
-    {
-        InteractiveTerminal::addString("Messages/All", logString);
-
-        if (sev == boost::log::trivial::debug)
-            InteractiveTerminal::addString("Messages/Debug", logString);
-        else if (sev == boost::log::trivial::info)
-            InteractiveTerminal::addString("Messages/Info", logString);
-        else if (sev == boost::log::trivial::warning)
-            InteractiveTerminal::addString("Messages/Warnings", logString);
-        else if (sev >= boost::log::trivial::error)
-            InteractiveTerminal::addString("Messages/Errors", logString);
-
-        // std::cerr << output << std::flush;
-    }
-    else
-    {
-        std::cout << output << std::flush;
-    }
+    std::cout << output << std::flush;
 }
 
 int traceLevel = 0;  ///< level of trace

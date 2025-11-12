@@ -30,8 +30,8 @@ struct RtsConfiguration
     bool queue_mongo_outputs = false;
 
     // Sleep timing
-    int sleep_milliseconds = 10;
-
+    int    sleep_milliseconds = 10;
+    double regularisation     = 1e-10;  ///< Regularisation term for RTS smoothing
     /** Create configuration from global acsConfig */
     static RtsConfiguration fromAcsConfig();
 };

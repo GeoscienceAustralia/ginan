@@ -91,9 +91,6 @@ struct Sig : RawSig
 
     double codeVar = 0;  ///< Variance of code measurement
     double phasVar = 0;  ///< Variance of phase measurement
-
-    double biases[NUM_MEAS_TYPES]   = {std::nan("")};
-    double biasVars[NUM_MEAS_TYPES] = {};
 };
 
 struct IonoPP
@@ -209,7 +206,6 @@ struct SatPos
             unsigned failureRSat : 1;
             unsigned failureElevation : 1;
             unsigned failurePrange : 1;
-            unsigned failureIonocorr : 1;
         };
     };
 };

@@ -263,8 +263,7 @@ void TcpSocket::timeoutHandler(const boost::system::error_code& err)
 
     if (isConnected == false)
     {
-        BOOST_LOG_TRIVIAL(
-            error
+        BOOST_LOG_TRIVIAL(error
         ) << url.sanitised()
           << " connection timed out, check paths, usernames + passwords, and ports";
         delayedReconnect();

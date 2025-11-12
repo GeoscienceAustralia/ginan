@@ -11,7 +11,6 @@
 #include "common/enums.h"
 #include "common/fileLog.hpp"
 #include "common/gpx.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/metaData.hpp"
 #include "common/mongoWrite.hpp"
 #include "common/navigation.hpp"
@@ -686,7 +685,6 @@ void outputPredictedStates(Trace& trace, KFState& kfState)
         return;
     }
 
-    InteractiveTerminal::setMode(E_InteractiveMode::PredictingStates);
     BOOST_LOG_TRIVIAL(info) << " ------- PREDICTING STATES            --------" << "\n";
 
     tuple<double, double> forward = {+1, acsConfig.mongoOpts.forward_prediction_duration};
@@ -872,8 +870,6 @@ void perEpochPostProcessingAndOutputs(
     bool         firstRtsEpoch
 )
 {
-    InteractiveTerminal::setMode(E_InteractiveMode::Outputs);
-
     string _RTS;
     string META_SUFFIX;
 
@@ -997,17 +993,15 @@ void perEpochPostProcessingAndOutputs(
 
             MinconStatistics minconStatistics;
 
-            InteractiveTerminal minconTrace("MinimumConstraints", pppTrace);
-
             mincon(
-                minconTrace,
+                pppTrace,
                 augmentedKF,
                 &minconStatistics
             );  // todo aaron, orbits apriori need etting
 
-            augmentedKF.outputStates(minconTrace, "/CONSTRAINED" + _RTS);
+            augmentedKF.outputStates(pppTrace, "/CONSTRAINED" + _RTS);
 
-            outputMinconStatistics(minconTrace, minconStatistics);
+            outputMinconStatistics(pppTrace, minconStatistics);
 
             mongoStates(
                 augmentedKF,

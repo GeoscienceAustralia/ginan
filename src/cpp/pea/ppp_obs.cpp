@@ -11,7 +11,6 @@
 #include "common/common.hpp"
 #include "common/eigenIncluder.hpp"
 #include "common/gTime.hpp"
-#include "common/interactiveTerminal.hpp"
 #include "common/ionModels.hpp"
 #include "common/receiver.hpp"
 #include "common/tides.hpp"
@@ -2591,9 +2590,7 @@ void receiverUducGnss(
                     autoSender.pushValueKVP(1, {"Az", satStat.az});
                     autoSender.pushValueKVP(1, {"Nadir", satStat.nadir});
 
-                    InteractiveTerminal ss(string("Chains/") + (string)measEntry.obsKey, trace);
-
-                    double residual = netResidualAndChainOutputs(ss, obs, measEntry);
+                    double residual = netResidualAndChainOutputs(trace, obs, measEntry);
 
                     measEntry.setInnov(residual);
 

@@ -45,9 +45,7 @@ void outputPppNmea(Trace& trace, KFState& kfState, string id);
 
 void spp(
     Trace&    trace,
-    ObsList&  obsList,
-    Solution& sol,
-    string    id,
+    Receiver& rec,
     KFState*  kfState_ptr = nullptr,
     KFState*  remote_ptr  = nullptr
 );
@@ -102,7 +100,12 @@ void selectAprioriSource(
 
 void selectAprioriSource(SatSys& Sat, GTime& time, KFState& kfState, KFState* remote_ptr = nullptr);
 
-void postFilterChecks(const GTime& time, KFState& kfState, KFMeas& kfMeas);
+void postFilterChecks(
+    const GTime& time,
+    ReceiverMap& receiverMap,
+    KFState&     kfState,
+    KFMeas&      kfMeas
+);
 
 bool deweightMeas(RejectCallbackDetails rejectDetails);
 bool pseudoMeasTest(RejectCallbackDetails rejectDetails);
