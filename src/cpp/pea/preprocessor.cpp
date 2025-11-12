@@ -46,7 +46,9 @@ Architecture Preprocessing__()
 // Observation status for signal tracking
 enum class E_ObsStatus
 {
-    OBSERVED,      // Signal was observed by receiver
+    OBSERVED,      // Signal was observed by receiver (both code and phase)
+    CODE_ONLY,     // Only code measurement available
+    PHASE_ONLY,    // Only phase measurement available (this is unlikely as code is demodulated first and then try to extract phase)
     MISSING,       // Signal was expected, and we have other signals for this sat, but this one was not in rinex
     NOT_TRACKED    // Satellite not observed at all (above elevation mask but not in observation data)
 };
@@ -57,6 +59,8 @@ const char* obsStatusToString(E_ObsStatus status)
     switch (status)
     {
         case E_ObsStatus::OBSERVED:    return "OBSERVED";
+        case E_ObsStatus::CODE_ONLY:   return "CODE_ONLY";
+        case E_ObsStatus::PHASE_ONLY:  return "PHASE_ONLY";
         case E_ObsStatus::MISSING:     return "MISSING";
         case E_ObsStatus::NOT_TRACKED: return "NOT_TRACKED";
         default:                       return "UNKNOWN";
@@ -95,83 +99,58 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
     const char* statusStr = obsStatusToString(rec.status);
     GTime time = rec.time;  // Make mutable copy for traceJson (expects non-const reference)
 
-    if (rec.status == E_ObsStatus::OBSERVED)
-    {
-        tracepdeex(
-            4,
-            trace,
-            "\nepoch= %s sat= %5s sig= %5s P= %16.6f L= %16.6f S= %8.2f el= %6.2f az= %6.2f block= %12s status= %s",
-            rec.time.to_string().c_str(),
-            rec.sat.id().c_str(),
-            rec.code._to_string(),
-            rec.P,
-            rec.L,
-            rec.snr,
-            rec.el_deg,
-            rec.az_deg,
-            rec.blockType.c_str(),
-            statusStr
-        );
-    }
-    else
-    {
-        tracepdeex(
-            4,
-            trace,
-            "\nepoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s status= %s",
-            rec.time.to_string().c_str(),
-            rec.sat.id().c_str(),
-            rec.code._to_string(),
-            "NaN",
-            "NaN",
-            "NaN",
-            rec.el_deg,
-            rec.az_deg,
-            rec.blockType.c_str(),
-            statusStr
-        );
-    }
+    // Determine which values to show based on status
+    bool hasCode = (rec.status == E_ObsStatus::OBSERVED || rec.status == E_ObsStatus::CODE_ONLY);
+    bool hasPhase = (rec.status == E_ObsStatus::OBSERVED || rec.status == E_ObsStatus::PHASE_ONLY);
+    bool hasSnr = (rec.status == E_ObsStatus::OBSERVED || rec.status == E_ObsStatus::CODE_ONLY || rec.status == E_ObsStatus::PHASE_ONLY);
 
-    if (rec.status == E_ObsStatus::OBSERVED)
-    {
-        traceJson(
-            4,
-            jsonTrace,
-            time,
-            {{"data", "observations"},
-             {"Sat", rec.sat.id()},
-             {"Rec", rec.recId},
-             {"Sig", rec.code._to_string()}},
-            {
-                {"SNR", rec.snr},
-                {"L", rec.L},
-                {"P", rec.P},
-                {"D", 0.0},  // Not stored in record currently
-                {"el", rec.el_deg},
-                {"az", rec.az_deg},
-                {"blockType", rec.blockType},
-                {"status", statusStr}
-            }
-        );
-    }
-    else
-    {
-        traceJson(
-            4,
-            jsonTrace,
-            time,
-            {{"data", "observations"},
-             {"Sat", rec.sat.id()},
-             {"Rec", rec.recId},
-             {"Sig", rec.code._to_string()}},
-            {
-                {"el", rec.el_deg},
-                {"az", rec.az_deg},
-                {"blockType", rec.blockType},
-                {"status", statusStr}
-            }
-        );
-    }
+    // Format values as strings (without width specifiers - will be applied in tracepdeex format)
+    char pStr[32], lStr[32], sStr[32];
+    if (hasCode)    snprintf(pStr, sizeof(pStr), "%.6f", rec.P);
+    else            snprintf(pStr, sizeof(pStr), "%s", "NaN");
+
+    if (hasPhase)   snprintf(lStr, sizeof(lStr), "%.6f", rec.L);
+    else            snprintf(lStr, sizeof(lStr), "%s", "NaN");
+
+    if (hasSnr)     snprintf(sStr, sizeof(sStr), "%.2f", rec.snr);
+    else            snprintf(sStr, sizeof(sStr), "%s", "NaN");
+
+    tracepdeex(
+        4,
+        trace,
+        "\nepoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s status= %s",
+        rec.time.to_string().c_str(),
+        rec.sat.id().c_str(),
+        rec.code._to_string(),
+        pStr,
+        lStr,
+        sStr,
+        rec.el_deg,
+        rec.az_deg,
+        rec.blockType.c_str(),
+        statusStr
+    );
+
+    // Output JSON trace - always include all fields, use NaN for unavailable measurements
+    traceJson(
+        4,
+        jsonTrace,
+        time,
+        {{"data", "observations"},
+         {"Sat", rec.sat.id()},
+         {"Rec", rec.recId},
+         {"Sig", rec.code._to_string()}},
+        {
+            {"SNR", hasSnr ? rec.snr : std::nan("")},
+            {"L", hasPhase ? rec.L : std::nan("")},
+            {"P", hasCode ? rec.P : std::nan("")},
+            {"D", 0.0},  // Not stored in record currently
+            {"el", rec.el_deg},
+            {"az", rec.az_deg},
+            {"blockType", rec.blockType},
+            {"status", statusStr}
+        }
+    );
 }
 
 // Classify observed signals vs expected signals
@@ -208,7 +187,28 @@ void classifySignals(
             rec.snr = sig.snr;
             rec.el_deg = el_deg;
             rec.az_deg = az_deg;
-            rec.status = E_ObsStatus::OBSERVED;
+
+            // Determine status based on which measurements are available
+            bool hasCode = (sig.P != 0);
+            bool hasPhase = (sig.L != 0);
+
+            if (hasCode && hasPhase)
+            {
+                rec.status = E_ObsStatus::OBSERVED;
+            }
+            else if (hasCode && !hasPhase)
+            {
+                rec.status = E_ObsStatus::CODE_ONLY;
+            }
+            else if (!hasCode && hasPhase)
+            {
+                rec.status = E_ObsStatus::PHASE_ONLY;
+            }
+            else
+            {
+                rec.status = E_ObsStatus::MISSING;
+            }
+
             rec.blockType = blockType;
             records.push_back(rec);
         }
