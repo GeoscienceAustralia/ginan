@@ -49,7 +49,7 @@ def bernese_timeseries(time_series_ztd_file):
 
     result = pd.read_csv(
         time_series_ztd_file,
-        delim_whitespace=True,
+        sep="\\s+",  # delim_whitespace is deprecated
         header=None,
         names=names,
     )
@@ -170,7 +170,7 @@ def plot_station_2(station_code, year, doy_pair, output_folder, smooth_input_fol
         & (df_pea["datetime"] <= (datetime(year, 1, 1) + timedelta(days=end_doy)))
     ]
     df_pea["epoch"] = list(range(len(df_pea)))
-    # df_bern = pd.read_csv(f'{ROOT}/bernese_time_series/{station_code}_time_series.ztd',delim_whitespace=True,header=None)
+    # df_bern = pd.read_csv(f'{ROOT}/bernese_time_series/{station_code}_time_series.ztd',sep="\\s+",header=None)
 
     bucket_name = "jamiacstest"
     s3_client = boto3.client("s3")

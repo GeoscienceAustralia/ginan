@@ -31,18 +31,34 @@ def init_page(template: str) -> str:
     content = []
     return render_template(template, content=content, extra=extra, exlcude=0, selection=session[template.split(".")[0]])
 
+
 def initialize_session():
-    if not session.get('session_initialized'):
-        session['measurements'] = {
+    if not session.get("session_initialized"):
+        session["measurements"] = {"plot": "Line", "series": [], "site": [], "sat": [], "xaxis": "Epoch"}
+
+        session["measurements_diff"] = {
             "plot": "Line",
             "series": [],
+            "series_base": "",
             "site": [],
             "sat": [],
-            "xaxis": "Epoch"
+            "xaxis": "Epoch",
         }
+
         session["states"] = {
             "type": "Line",
             "series": [],
+            "site": [],
+            "sat": [],
+            "xaxis": "Epoch",
+            "yaxis": "x",
+            "degree": "0",
+            "process": "None",
+        }
+        session["states_diff"] = {
+            "type": "Line",
+            "series": [],
+            "series_base": "",
             "site": [],
             "sat": [],
             "xaxis": "Epoch",
@@ -55,19 +71,14 @@ def initialize_session():
             "series": [],
             "series_base": "",
         }
-        session["clocks"] = {
-            "series": "",
-            "series_base": "",
-            "subset": [],
-            "modes": [],
-            "clockType": ""
-        }
+        session["clocks"] = {"series": "", "series_base": "", "subset": [], "modes": [], "clockType": ""}
         session["orbits"] = {
             "orbitType": "",
             "series": [],
             "sat": [],
         }
-        session['session_initialized'] = True
+        session["session_initialized"] = True
+
 
 def generate_fig(trace):
     fig = go.Figure(data=trace)
@@ -82,17 +93,14 @@ def generate_fig(trace):
 
 
 def generate_figs(traces):
-    fig = make_subplots(rows=max(1,len(traces)), cols=1,
-                    shared_xaxes=True,
-                    vertical_spacing=0.2
-                    )
-    for i in range( len(traces)):
+    fig = make_subplots(rows=max(1, len(traces)), cols=1, shared_xaxes=True, vertical_spacing=0.2)
+    for i in range(len(traces)):
         for trace in traces[i]:
             fig.add_trace(trace, row=i + 1, col=1)
 
     fig.update_layout(
-        xaxis={"rangeslider":{"visible":True}, "showgrid":current_app.config["EDA_GRID"]},
-        yaxis={"fixedrange":False, "tickformat":".3e", "showgrid":current_app.config["EDA_GRID"]},
+        xaxis={"rangeslider": {"visible": True}, "showgrid": current_app.config["EDA_GRID"]},
+        yaxis={"fixedrange": False, "tickformat": ".3e", "showgrid": current_app.config["EDA_GRID"]},
         height=1200,
         # template=current_app.config["EDA_THEME"],
     )
@@ -189,6 +197,7 @@ def get_distinct_vals(ip, port, db, coll, element, reshape_on=None):
             current_app.logger.warning(err)
             pass
 
+
 def extract_database_series(series):
     db_, series_ = series.split("\\")
-    return db_,series_
+    return db_, series_

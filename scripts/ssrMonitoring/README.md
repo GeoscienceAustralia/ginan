@@ -32,8 +32,11 @@ aws configure
 This script is master script that calls following individual scripts to automatically download required real-time products and start PEA instances to record and decode SSR streams, compare their orbits and clocks against IGS rapid products, and upload output files to an AWS S3 bucket.
 
 ```bash
-python auto_record_ssr_streams.py --job-dir /path/to/job/folder/ --product-dir /path/to/ginan/products/ --template-config /path/to/ginan/debugConfigs/record_ssr_stream.yaml --ssr-streams 'SSRA00BKG0, SSRA00GFZ0, SSRA00WHU0, SSRA02IGS0, SSRA03IGS0' --aws-profile aws-credentials-profile --s3-bucket target-s3-bucket --s3-root-dir target/s3/prefix --cull-file-types '.rtcm, .rnx, .json'
+python auto_record_ssr_streams.py --job-dir /path/to/job/folder/ --product-dir /path/to/ginan/products/ --pea-dir /data/acs/ginan/bin/ --template-config /path/to/ginan/debugConfigs/record_ssr_stream.yaml --ntrip-cred-file-path ntrip_cred.json --ssr-streams 'SSRA00BKG0, SSRA00GFZ0, SSRA00WHU0, SSRA02IGS0, SSRA03IGS0' --aws-profile aws-credentials-profile --s3-bucket target-s3-bucket --s3-root-dir target/s3/prefix --cull-file-types '.rtcm, .rnx, .json'
 ```
+
+The NTRIP credential file 'ntrip_cred.json' should be of a JSON format as below:
+{"username": "your_ntrip_username", "password": "your_ntrip_password"}
 
 ## Use of individual scripts
 
@@ -58,7 +61,7 @@ python download_rt_products.py --product-dir /path/to/ginan/products/ --interval
 This script is to start a PEA instance to record and decode a SSR stream in real-time. The PEA instance will run infinitely once it is started.
 
 ```bash
-python record_ssr_stream.py --template-config /path/to/ginan/debugConfigs/record_ssr_stream.yaml --job-dir /path/to/job/folder/ --product-dir /path/to/ginan/products/ --ssr-mountpoint SSRA00BKG0 --rotation-period 86400 --interval 1
+python record_ssr_stream.py --pea-dir /data/acs/ginan/bin/ --template-config /path/to/ginan/debugConfigs/record_ssr_stream.yaml --job-dir /path/to/job/folder/ --product-dir /path/to/ginan/products/ --ntrip-username ntrip-username --ntrip-password ntrip-password --ssr-mountpoint SSRA00BKG0 --rotation-period 86400 --interval 1
 ```
 
 # `analyse_orbit_clock.py`
@@ -67,7 +70,7 @@ This script is to compare orbits and clocks in SP3 and CLK files against corresp
 
 Post processing mode:
 ```bash
-python analyse_orbit_clock.py --job-dir /path/to/job/folder/ --ref-dir /path/to/ginan/products/ --start-yrdoy 2024204 --end-yrdoy 2024215 --session-len 1 --clk-norm-types 'epoch, daily' --rel-output-dir gnssanalysis
+python analyse_orbit_clock.py --job-dir /path/to/job/folder/ --ref-dir /path/to/ginan/products/ --sub-jobs 'sub-job-1, sub-job-2' --start-yrdoy 2024204 --end-yrdoy 2024215 --session-len 1 --clk-norm-types 'epoch, daily' --rel-output-dir gnssanalysis
 ```
 
 Real-time mode:

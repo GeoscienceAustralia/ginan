@@ -1,0 +1,303 @@
+inputs:
+    inputs_root:  #USER_SET
+
+    atx_files: [igs20.atx] # Required
+    igrf_files: [tables/igrf14coeffs.txt]
+    erp_files: [finals.data.iau2000.txt]
+    planetary_ephemeris_files: [tables/DE436.1950.2050]
+
+    troposphere:
+        gpt2grid_files: [tables/gpt_25.grd]
+
+    tides:
+        ocean_tide_loading_blq_files: [tables/OLOAD_GO.BLQ] # Required if ocean loading is applied
+        atmos_tide_loading_blq_files: [tables/ALOAD_GO.BLQ] # Required if atmospheric tide loading is applied
+        ocean_pole_tide_loading_files: [tables/opoleloadcoefcmcor.txt] # Required if ocean pole tide loading is applied
+
+    snx_files:
+        # Use a wild card (*) to include all files matching the description in the directory
+        - igs_satellite_metadata.snx
+        - tables/sat_yaw_bias_rate.snx
+        - tables/qzss_yaw_modes.snx
+        - tables/bds_yaw_modes.snx
+        #- "*.SNX"
+
+    satellite_data:
+        nav_files: # Not required
+            - "BRDC*"
+
+        clk_files:
+            - "*.CLK"
+
+        bsx_files:
+            - "*.BIA"
+
+        sp3_files:
+            - "*.SP3"
+
+
+    gnss_observations:
+        gnss_observations_root: #USER_SET
+        rnx_inputs:
+            # - "*.rnx"
+            -  #USER_SET
+
+
+outputs:
+    metadata:
+        config_description: default_config_<BRANCH> #USER_SET [default_config]_<BRANCH>
+    outputs_root: #USER_SET
+
+    gpx:
+        output: true
+        filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.GPX
+    pos:
+        output: true
+        filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.POS
+
+
+
+
+
+satellite_options:
+    global:
+        error_model: ELEVATION_DEPENDENT #  {uniform,elevation_dependent}
+        code_sigma: 0 # Standard deviation of code measurements
+        phase_sigma: 0 # Standard deviation of phase measurmeents
+        models:
+            phase_bias:
+                enable: true
+
+receiver_options:
+    global:
+        elevation_mask: 15 # degrees
+        error_model: ELEVATION_DEPENDENT # {uniform,elevation_dependent}
+        code_sigma: 0.3 # Standard deviation of code measurements, m
+        phase_sigma: 0.003 # Standard deviation of phase measurmeents, m
+        clock_codes: [AUTO, AUTO]
+        zero_dcb_codes: [AUTO, AUTO]
+
+        rec_reference_system: GPS
+        models:
+            phase_bias:
+                enable: false
+            troposphere: # Tropospheric modelling accounts for delays due to refraction of light in water vapour
+                enable: true
+                models: [gpt2] # List of models to use for troposphere [standard,sbas,vmf3,gpt2,cssr]
+            tides:
+                atl: true # Enable atmospheric tide loading
+                enable: true # Enable modelling of tidal disaplacements
+                opole: true # Enable ocean pole tides
+                otl: true # Enable ocean tide loading
+                solid: true # Enable solid Earth tides
+                spole: true # Enable solid Earth pole tides
+            ionospheric_components:
+                use_2nd_order:  true
+                use_3rd_order:  true
+        gps:
+            rinex2:
+                rnx_code_conversions:
+                    P1: L1W
+                    P2: L2W
+                    C1: L1C
+                    C2: L2C
+                rnx_phase_conversions:
+                    L1: [ L1W, L1C ]
+                    L2: [ L2W, L2C ]
+        glo:
+            rinex2:
+                rnx_code_conversions:
+                    P1: L1P
+                    P2: L2P
+                    C1: L1C
+                    C2: L2C
+                rnx_phase_conversions:
+                    L1: [ L1P, L1C ]
+                    L2: [ L2P, L2C ]
+
+    TEST: #change to header name of RNX
+        receiver_type:       # #USER_SET (string)
+        antenna_type:        # #USER_SET (string)
+        models:
+            eccentricity:
+                enable: true
+                offset: [ 0.0000,   0.0000,   0.0000 ] # [floats] #USER_SET
+
+processing_options:
+    process_modes:
+        preprocessor: true # Preprocessing and quality checks
+        spp: true # Perform SPP on receiver data
+        ppp: true # Perform PPP network or end user mode
+        ionosphere: false # Compute Ionosphere models based on GNSS measurements
+        slr: false # Process SLR observations
+
+    epoch_control:
+        start_epoch:         #RNX
+        end_epoch:           #RNX
+        #max_epochs:         2880 # Future user set.
+        epoch_interval:      #USER SET
+        wait_next_epoch: 3600  #USER_SET seconds (make large for post-processing)
+
+    gnss_general:
+        #eop_comp
+        add_eop_component: true
+        use_primary_signals: true
+        sys_options:
+            gps:
+                process: false
+                reject_eclipse: false
+                code_priorities: [L1W, L1C, L1X, L2W, L2C, L2X, L2S, L2L, L5Q, L5X]
+            gal:
+                process: false
+                reject_eclipse: false
+                # clock_codes: []
+                code_priorities: [L1C, L1X, L5Q, L5X, L6C, L6X, L7Q, L7X]
+
+            bds:
+                process: false
+                reject_eclipse: false
+                # clock_codes: []
+                code_priorities: [L2I, L7I, L6I, L5P]
+
+
+            glo:
+                process: false
+                reject_eclipse: false
+                # clock_codes: []
+                code_priorities: [L1P, L1C, L2P, L2C]
+
+            qzs:
+                process: false
+                reject_eclipse: false
+                # clock_codes: []
+                code_priorities: [L1C, L1X, L2L, L2X, L5Q, L5X]
+
+
+
+    preprocessor: # Configurations for the kalman filter and its sub processes
+        cycle_slips: # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
+            mw_process_noise: 0 # Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips
+            slip_threshold: 0.05 # Value used to determine when a slip has occurred
+        preprocess_all_data: true
+
+    spp:
+        # always_reinitialise: false # Reset SPP state to zero to avoid potential for lock-in of bad states
+        max_lsq_iterations: 12 # Maximum number of iterations of least squares allowed for convergence
+        outlier_screening:
+            raim:
+                enable: true # Enable Receiver Autonomous Integrity Monitoring
+            max_gdop: 30 # Maximum dilution of precision before error is flagged
+
+    ppp_filter:
+        outlier_screening:
+            chi_square:
+                enable: false # Enable Chi-square test
+                mode: innovation # Chi-square test mode {none,innovation,measurement,state}
+            prefit:
+                max_iterations: 3 # Maximum number of measurements to exclude using prefit checks before attempting to filter
+                omega_test: false # Enable omega-test
+                sigma_check: true # Enable sigma check
+                state_sigma_threshold: 4 # Sigma threshold for states
+                meas_sigma_threshold: 4 # Sigma threshold for measurements
+            postfit:
+                max_iterations: 10 # Maximum number of measurements to exclude using postfit checks while iterating filter
+                sigma_check: true # Enable sigma check
+                state_sigma_threshold: 4 # Sigma threshold for states
+                meas_sigma_threshold: 4 # Sigma threshold for measurements
+
+        ionospheric_components: # Slant ionospheric components
+            common_ionosphere: true # Use the same ionosphere state for code and phase observations
+            use_gf_combo: false # Combine 'uncombined' measurements to simulate a geometry-free solution
+            use_if_combo: false # Combine 'uncombined' measurements to simulate an ionosphere-free solution
+
+        chunking:
+            by_receiver: false # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
+            size: 0
+
+        rts: # Rauch-Tung-Striebel (RTS) backwards smoothing
+            enable: true
+            lag: -1
+            # interval:               86400
+            inverter: LDLT # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
+            filename: <CONFIG>_<RECEIVER>.rts
+        periodic_reset:
+            # enable:                 true
+            # interval:              86400
+            # states:                [REC_POS]
+
+    model_error_handling:
+        meas_deweighting: # Measurements that are outside the expected confidence bounds may be deweighted so that outliers do not contaminate the filtered solution
+            deweight_factor: 1000 # Factor to downweight the variance of measurements with statistically detected errors
+            enable: true # Enable deweighting of all rejected measurement
+        state_deweighting: # Any "state" errors cause deweighting of all measurements that reference the state
+            deweight_factor: 1000 # Factor to downweight the variance of measurements with statistically detected errors
+            enable: true # Enable deweighting of all referencing measurements
+        error_accumulation:
+            enable: true
+            receiver_error_count_threshold: 10
+            receiver_error_epochs_threshold: 4
+        ambiguities:
+            phase_reject_limit: 2 # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)
+            reset_on: # Reset ambiguities when slip is detected by the following
+                gf: true # GF test
+                lli: true # LLI test
+                mw: true # MW test
+                scdia: true # SCDIA test
+
+estimation_parameters:
+    
+    receivers:
+        global:
+            pos:
+                estimated: [true]
+                sigma: [100]
+                process_noise: [] #USER_SET [int]
+            pos_rate: # Velocity
+                estimated: [false] # [bools] Estimate state in kalman filter
+                sigma: [0] # [floats] Apriori sigma values
+                process_noise: [0] # [floats] Process noise sigmas
+                # process_noise_dt:   SECOND  # (enum) Time unit for process noise - sqrt_sec, sqrt_day etc
+                # apriori_val:        [0]     # [floats] Apriori state values
+                # mu:                 [0]     # [floats] Desired mean value for gauss markov states
+                # tau:                [-1]    # [floats] Correlation times for gauss markov noise, defaults to -1 -> inf (Random Walk)
+
+            clock:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [100]
+            clock_rate:
+                estimated: [false]
+                sigma: [0.005]
+                process_noise: [1e-4]
+            ambiguities:
+                estimated: [true]
+                sigma: [1000]
+                process_noise: [0]
+                outage_limit: [300]
+            ion_stec: # Ionospheric slant delay
+                estimated: [true] # Estimate state in kalman filter
+                sigma: [200] # Apriori sigma values
+                process_noise: [10] # Process noise sigmas
+            trop:
+                estimated: [true]
+                sigma: [0.3]
+                process_noise: [0.0001]
+            trop_grads:
+                estimated: [true]
+                sigma: [0.03]
+                process_noise: [1.0E-6]
+            code_bias:
+                estimated: [true] # false
+                sigma: [20]
+                process_noise: [0]
+            phase_bias:
+                estimated: [false]
+                sigma: [10]
+                process_noise: [0]
+            gps:
+                l5q:
+                    phase_bias:
+                        estimated: [true]
+                        sigma: [10]
+                        process_noise: [0.001]    
+

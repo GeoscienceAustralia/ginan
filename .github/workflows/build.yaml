@@ -1,0 +1,483 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main, develop, develop-weekly ]
+  pull_request:
+    branches: [ main, develop, develop-weekly ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-latest
+            triplet: x64-linux
+            artifact-name: ginan-linux-x64
+            build-dir: linux-Release
+            cache-key: vcpkg-linux-v4
+            install-deps: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config git
+            preset: release
+            
+          - name: macOS ARM64
+            os: macos-14
+            triplet: arm64-osx
+            artifact-name: ginan-macos-arm64
+            build-dir: mac-arm64-Release
+            cache-key: vcpkg-macos-arm64-v4
+            install-deps: |
+              brew install cmake ninja pkg-config libomp gcc
+              echo "/opt/homebrew/bin" >> $GITHUB_PATH
+            preset: macos-arm64-release
+            
+          - name: macOS x64
+            os: macos-15-intel
+            triplet: x64-osx
+            artifact-name: ginan-macos-x64
+            build-dir: mac-x64-Release
+            cache-key: vcpkg-macos-x64-v3
+            install-deps: |
+              brew install cmake ninja pkg-config libomp gcc
+              echo "/usr/local/bin" >> $GITHUB_PATH
+            preset: macos-x64-release
+            
+          - name: Windows x64 (Cross)
+            os: ubuntu-latest
+            triplet: x64-mingw-static
+            artifact-name: ginan-windows-x64
+            build-dir: windows-cross-Release
+            cache-key: vcpkg-windows-cross-v4
+            install-deps: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config git mingw-w64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
+            preset: windows-cross-release
+            vcpkg-extra-flags: --allow-unsupported
+    
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install system dependencies
+      run: ${{ matrix.install-deps }}
+    
+    - name: Setup vcpkg binary cache
+      run: |
+        mkdir -p ${{ github.workspace }}/.vcpkg-cache
+        echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite" >> $GITHUB_ENV
+        echo "VCPKG_BUILD_TYPE=release" >> $GITHUB_ENV
+    
+    - name: Cache vcpkg
+      uses: actions/cache@v4
+      with:
+        path: |
+          .vcpkg-cache
+          vcpkg
+        key: ${{ matrix.cache-key }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          ${{ matrix.cache-key }}-
+    
+    - name: Setup vcpkg
+      run: |
+        if [ ! -d "vcpkg" ]; then
+          git clone https://github.com/Microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        fi
+        echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $GITHUB_ENV
+    
+    - name: Install vcpkg dependencies
+      run: |
+        export VCPKG_BUILD_TYPE=release
+        cd ${{ github.workspace }}
+        # Retry logic for transient network failures
+        for i in 1 2 3; do
+          ./vcpkg/vcpkg install --triplet ${{ matrix.triplet }} --x-install-root=./vcpkg_installed ${{ matrix.vcpkg-extra-flags }} && break || {
+            echo "vcpkg install attempt $i failed, retrying...";
+            sleep 10;
+          }
+        done
+    
+    - name: Clean build directory
+      working-directory: src
+      run: rm -rf build/${{ matrix.build-dir }}
+    
+    - name: Configure CMake
+      working-directory: src
+      run: cmake --preset ${{ matrix.preset }}
+    
+    - name: Build
+      working-directory: src
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          cmake --build build/${{ matrix.build-dir }} --parallel $(nproc)
+        else
+          cmake --build build/${{ matrix.build-dir }} --parallel $(sysctl -n hw.ncpu)
+        fi
+    
+    - name: Collect artifacts
+      run: |
+        mkdir -p artifacts
+        cp -r bin/* artifacts/ || true
+        find . -name "*.exe" -exec cp {} artifacts/ \; 2>/dev/null || true
+        
+        # Include required runtime libraries for macOS
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          if [ -f "/opt/homebrew/lib/libomp.dylib" ]; then
+            cp /opt/homebrew/lib/libomp.dylib artifacts/
+          elif [ -f "/usr/local/lib/libomp.dylib" ]; then
+            cp /usr/local/lib/libomp.dylib artifacts/
+          fi
+          if [ -f "/opt/homebrew/lib/libgfortran.5.dylib" ]; then
+            cp /opt/homebrew/lib/libgfortran.5.dylib artifacts/ || true
+          elif [ -f "/usr/local/lib/libgfortran.5.dylib" ]; then
+            cp /usr/local/lib/libgfortran.5.dylib artifacts/ || true
+          fi
+        fi
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact-name }}
+        path: artifacts/
+        retention-days: 30
+
+  build-gui:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-latest
+            binary-artifact: ginan-linux-x64
+            gui-artifact: ginan-gui-linux-x64
+            ui-sed-cmd: sed -i '24s/.*/from scripts.GinanUI.app.resources import ginan_logo_rc/' app/views/main_window_ui.py
+            pyinstaller-args: --windowed
+            extra-steps: ""
+            
+          - name: macOS ARM64
+            os: macos-15
+            binary-artifact: ginan-macos-arm64
+            gui-artifact: ginan-gui-macos-arm64
+            ui-sed-cmd: sed -i '' '24s/.*/from scripts.GinanUI.app.resources import ginan_logo_rc/' app/views/main_window_ui.py
+            pyinstaller-args: --onedir --clean --target-arch arm64 --noconfirm
+            extra-steps: macos
+            
+          - name: macOS x64
+            os: macos-15-intel
+            binary-artifact: ginan-macos-x64
+            gui-artifact: ginan-gui-macos-x64
+            ui-sed-cmd: sed -i '' '24s/.*/from scripts.GinanUI.app.resources import ginan_logo_rc/' app/views/main_window_ui.py
+            pyinstaller-args: --onedir --clean --noconfirm
+            extra-steps: macos
+            
+          - name: Windows x64
+            os: windows-latest
+            binary-artifact: ginan-windows-x64
+            gui-artifact: ginan-gui-windows-x64
+            ui-sed-cmd: |
+              (Get-Content app/views/main_window_ui.py) | ForEach-Object {
+                if ($_.ReadCount -eq 24) {
+                  "from scripts.GinanUI.app.resources import ginan_logo_rc"
+                } else {
+                  $_
+                }
+              } | Set-Content app/views/main_window_ui.py
+            pyinstaller-args: --windowed
+            pyinstaller-separator: ";"
+            extra-steps: ""
+    
+    name: Build GUI ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Download binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.binary-artifact }}
+        path: bin/
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        pip install -r scripts/GinanUI/requirements.txt
+        pip install pyinstaller
+    
+    - name: Convert UI files to Python (Unix)
+      if: runner.os != 'Windows'
+      working-directory: scripts/GinanUI
+      run: |
+        pyside6-uic app/views/main_window.ui -o app/views/main_window_ui.py
+        ${{ matrix.ui-sed-cmd }}
+    
+    - name: Convert UI files to Python (Windows)
+      if: runner.os == 'Windows'
+      working-directory: scripts/GinanUI
+      shell: pwsh
+      run: |
+        pyside6-uic app/views/main_window.ui -o app/views/main_window_ui.py
+        ${{ matrix.ui-sed-cmd }}
+    
+    - name: Make binaries executable (Unix)
+      if: runner.os != 'Windows'
+      run: chmod +x bin/*
+    
+    - name: Install OpenMP (macOS)
+      if: matrix.extra-steps == 'macos'
+      run: |
+        echo "Installing OpenMP via Homebrew..."
+        brew install libomp
+        echo "OpenMP installed, checking location..."
+        ls -la /opt/homebrew/lib/libomp* 2>/dev/null || ls -la /usr/local/lib/libomp* 2>/dev/null || true
+    
+    - name: Copy required libraries (macOS)
+      if: matrix.extra-steps == 'macos'
+      run: |
+        echo "Looking for OpenMP library..."
+        
+        # libomp is keg-only, so check Cellar and opt paths
+        LIBOMP_PATH=""
+        if [ -f "/opt/homebrew/opt/libomp/lib/libomp.dylib" ]; then
+          LIBOMP_PATH="/opt/homebrew/opt/libomp/lib/libomp.dylib"
+        elif [ -f "/usr/local/opt/libomp/lib/libomp.dylib" ]; then
+          LIBOMP_PATH="/usr/local/opt/libomp/lib/libomp.dylib"
+        elif [ -f "/opt/homebrew/lib/libomp.dylib" ]; then
+          LIBOMP_PATH="/opt/homebrew/lib/libomp.dylib"
+        elif [ -f "/usr/local/lib/libomp.dylib" ]; then
+          LIBOMP_PATH="/usr/local/lib/libomp.dylib"
+        fi
+        
+        if [ -n "$LIBOMP_PATH" ]; then
+          echo "Found libomp at: $LIBOMP_PATH"
+          cp -v "$LIBOMP_PATH" bin/
+          chmod 644 bin/libomp.dylib
+        else
+          echo "ERROR: libomp.dylib not found!"
+          echo "Searching in Cellar..."
+          find /usr/local/Cellar/libomp -name "libomp.dylib" 2>/dev/null || true
+          find /opt/homebrew/Cellar/libomp -name "libomp.dylib" 2>/dev/null || true
+          exit 1
+        fi
+        
+        # Copy other potential dependencies
+        if [ -f "/opt/homebrew/lib/libgfortran.5.dylib" ]; then
+          cp /opt/homebrew/lib/libgfortran.5.dylib bin/ || true
+        elif [ -f "/usr/local/lib/libgfortran.5.dylib" ]; then
+          cp /usr/local/lib/libgfortran.5.dylib bin/ || true
+        fi
+        
+        echo "Contents of bin/ after library copy:"
+        ls -lh bin/*.dylib 2>/dev/null || echo "No .dylib files in bin/"
+    
+    - name: Build GUI with PyInstaller (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        python -m PyInstaller --name GinanUI \
+          ${{ matrix.pyinstaller-args }} \
+          --add-data "scripts/GinanUI/app:app" \
+          --add-data "scripts/plot_pos.py:scripts" \
+          --add-binary "bin/*:bin" \
+          --hidden-import PySide6 \
+          --hidden-import PySide6.QtWebEngineWidgets \
+          --hidden-import PySide6.QtWebEngineCore \
+          --hidden-import plotly \
+          --hidden-import scripts.plot_pos \
+          --hidden-import scripts.GinanUI.app \
+          --hidden-import scripts.GinanUI.app.models \
+          --hidden-import scripts.GinanUI.app.models.execution \
+          --hidden-import scripts.GinanUI.app.controllers \
+          --hidden-import scripts.GinanUI.app.controllers.input_controller \
+          --hidden-import scripts.GinanUI.app.controllers.visualisation_controller \
+          --hidden-import scripts.GinanUI.app.utils \
+          --hidden-import scripts.GinanUI.app.utils.workers \
+          --hidden-import scripts.GinanUI.app.utils.cddis_credentials \
+          --hidden-import scripts.GinanUI.app.utils.cddis_email \
+          --hidden-import scripts.GinanUI.app.utils.common_dirs \
+          --hidden-import scripts.GinanUI.app.utils.gn_functions \
+          --hidden-import scripts.GinanUI.app.utils.yaml \
+          --hidden-import scripts.GinanUI.app.views.main_window_ui \
+          --collect-all scripts.GinanUI \
+          scripts/GinanUI/main.py
+    
+    - name: Build GUI with PyInstaller (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        pyinstaller --name GinanUI `
+          ${{ matrix.pyinstaller-args }} `
+          --add-data "scripts/GinanUI/app;app" `
+          --add-data "scripts/plot_pos.py;scripts" `
+          --add-binary "bin/*;bin" `
+          --hidden-import PySide6 `
+          --hidden-import PySide6.QtWebEngineWidgets `
+          --hidden-import PySide6.QtWebEngineCore `
+          --hidden-import plotly `
+          --hidden-import scripts.plot_pos `
+          --hidden-import scripts.GinanUI.app `
+          --hidden-import scripts.GinanUI.app.models `
+          --hidden-import scripts.GinanUI.app.models.execution `
+          --hidden-import scripts.GinanUI.app.controllers `
+          --hidden-import scripts.GinanUI.app.controllers.input_controller `
+          --hidden-import scripts.GinanUI.app.controllers.visualisation_controller `
+          --hidden-import scripts.GinanUI.app.utils `
+          --hidden-import scripts.GinanUI.app.utils.workers `
+          --hidden-import scripts.GinanUI.app.utils.cddis_credentials `
+          --hidden-import scripts.GinanUI.app.utils.cddis_email `
+          --hidden-import scripts.GinanUI.app.utils.common_dirs `
+          --hidden-import scripts.GinanUI.app.utils.gn_functions `
+          --hidden-import scripts.GinanUI.app.utils.yaml `
+          --hidden-import scripts.GinanUI.app.views.main_window_ui `
+          --collect-all scripts.GinanUI `
+          scripts/GinanUI/main.py
+    
+    # Post-build cleanup
+    - name: Remove unnecessary files (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd dist/GinanUI
+        # Only remove clearly unnecessary files
+        find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+        find . -type f -name "*.pyc" -delete 2>/dev/null || true
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          find . -name ".DS_Store" -delete 2>/dev/null || true
+        fi
+    
+    - name: Remove unnecessary files (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd dist/GinanUI
+        # Only remove clearly unnecessary files
+        Get-ChildItem -Recurse -Directory | Where-Object { $_.Name -eq "__pycache__" } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Get-ChildItem -Recurse -File -Filter "*.pyc" | Remove-Item -Force -ErrorAction SilentlyContinue
+    
+    # macOS-specific post-build steps
+    - name: Copy Qt WebEngine resources (macOS)
+      if: matrix.extra-steps == 'macos'
+      run: |
+        set -e
+        PYSIDE_DIR=$(python -c 'import PySide6, os; print(os.path.dirname(PySide6.__file__))')
+        QT_DIR="$PYSIDE_DIR/Qt"
+        RES_SRC1="$QT_DIR/resources"
+        RES_SRC2="$QT_DIR/lib/QtWebEngineCore.framework/Resources"
+        RES_DEST="dist/GinanUI/_internal/PySide6/Qt/resources"
+        mkdir -p "$RES_DEST"
+        copied=false
+        if [ -d "$RES_SRC1" ]; then
+          cp -R "$RES_SRC1"/* "$RES_DEST/" 2>/dev/null || true
+          copied=true
+        fi
+        if [ -d "$RES_SRC2" ]; then
+          cp -R "$RES_SRC2"/* "$RES_DEST/" 2>/dev/null || true
+          copied=true
+        fi
+        if [ "$copied" != true ]; then
+          echo "Qt WebEngine resources not found; build may fail";
+        fi
+    
+    - name: Create launcher script (macOS)
+      if: matrix.extra-steps == 'macos'
+      run: |
+        cat > dist/GinanUI/run.sh << 'EOF'
+        #!/usr/bin/env zsh
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        export QTWEBENGINEPROCESS_PATH="$SCRIPT_DIR/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+        export QTWEBENGINE_RESOURCES_PATH="$SCRIPT_DIR/_internal/PySide6/Qt/resources"
+        export QTWEBENGINE_LOCALES_PATH="$SCRIPT_DIR/_internal/PySide6/Qt/resources/qtwebengine_locales"
+        export QTWEBENGINE_DISABLE_SANDBOX=1
+        export QTWEBENGINE_CHROMIUM_FLAGS="--no-sandbox --disable-gpu-sandbox --disable-seccomp-filter-sandbox --disable-logging --log-level=3"
+        export DYLD_FRAMEWORK_PATH="$SCRIPT_DIR/_internal/PySide6/Qt/lib"
+        export DYLD_LIBRARY_PATH="$SCRIPT_DIR/_internal/PySide6/Qt/lib"
+        if command -v xattr >/dev/null 2>&1; then
+          xattr -dr com.apple.quarantine "$SCRIPT_DIR" 2>/dev/null || true
+        fi
+        exec "$SCRIPT_DIR/GinanUI"
+        EOF
+        chmod +x dist/GinanUI/run.sh
+    
+    - name: Copy QtWebEngineProcess (macOS)
+      if: matrix.extra-steps == 'macos'
+      run: |
+        PYSIDE_PATH=$(python -c "import PySide6; import os; print(os.path.dirname(PySide6.__file__))")
+        mkdir -p dist/GinanUI/Helpers
+        if [ -d "$PYSIDE_PATH/Qt/libexec/QtWebEngineProcess.app" ]; then
+          cp -R "$PYSIDE_PATH/Qt/libexec/QtWebEngineProcess.app" dist/GinanUI/Helpers/
+        elif [ -d "$PYSIDE_PATH/Qt/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app" ]; then
+          cp -R "$PYSIDE_PATH/Qt/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app" dist/GinanUI/Helpers/
+        fi
+    
+    - name: Copy runtime libraries to package (macOS)
+      if: matrix.extra-steps == 'macos'
+      run: |
+        echo "Checking for libraries to copy..."
+        ls -lh bin/*.dylib 2>/dev/null || echo "No .dylib files in bin/"
+        
+        # Copy OpenMP and other libraries into the package
+        mkdir -p dist/GinanUI/_internal/lib
+        
+        if [ -f "bin/libomp.dylib" ]; then
+          echo "Copying libomp.dylib to package..."
+          cp -v bin/libomp.dylib dist/GinanUI/_internal/lib/
+          chmod 644 dist/GinanUI/_internal/lib/libomp.dylib
+        else
+          echo "ERROR: bin/libomp.dylib not found!"
+          exit 1
+        fi
+        
+        if [ -f "bin/libgfortran.5.dylib" ]; then
+          echo "Copying libgfortran.5.dylib to package..."
+          cp -v bin/libgfortran.5.dylib dist/GinanUI/_internal/lib/
+        fi
+        
+        echo "Libraries copied to package:"
+        ls -lh dist/GinanUI/_internal/lib/
+        
+        # Update binaries to look in @executable_path/../lib for libraries
+        echo "Updating binary rpaths..."
+        for binary in dist/GinanUI/_internal/bin/*; do
+          if [ -f "$binary" ] && file "$binary" | grep -q "Mach-O"; then
+            echo "Processing $binary"
+            install_name_tool -add_rpath "@executable_path/../lib" "$binary" 2>/dev/null || true
+            # Update libomp reference
+            install_name_tool -change "/opt/homebrew/lib/libomp.dylib" "@rpath/libomp.dylib" "$binary" 2>/dev/null || true
+            install_name_tool -change "/usr/local/lib/libomp.dylib" "@rpath/libomp.dylib" "$binary" 2>/dev/null || true
+          fi
+        done
+        
+        echo "Verifying binary rpaths after update:"
+        otool -L dist/GinanUI/_internal/bin/pea | grep -i omp || echo "No OpenMP reference found"
+    
+    - name: Code sign binaries (macOS)
+      if: matrix.extra-steps == 'macos'
+      working-directory: dist/GinanUI
+      run: |
+        find . -type f -perm +111 -exec codesign --force --deep -s - {} \;
+        find . -name "*.dylib" -exec codesign --force -s - {} \;
+        find . -name "*.so" -exec codesign --force -s - {} \;
+        codesign --force -s - _internal/Python || true
+        codesign --force --deep -s - Helpers/QtWebEngineProcess.app || true
+        find _internal/PySide6/Qt/resources -type f -name "*.pak" -exec codesign --force --sign - {} \; || true
+    
+    - name: Upload GUI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.gui-artifact }}
+        path: dist/GinanUI/
+        retention-days: 30

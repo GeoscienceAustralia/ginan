@@ -14,7 +14,7 @@
         </div>
         <div id="collapseOne" class="collapse" aria-labelledby="infraOne" data-parent="#accordion">
             <div class="card-body">
-                <p>Ginan is a precise point positioning software toolkit. It can calculate positions with centimetre-level accuracy using observations of global navigation satellite systems (GNSS) and correction data. It can also be used to create that correction data. <a href="https://geoscienceaustralia.github.io/ginan/aboutGinan.html" target="_blank">More</a></p>
+                <p>Ginan is a precise point positioning software toolkit. It can calculate positions with centimetre-level accuracy using observations of global navigation satellite systems (GNSS) and correction data. It can also be used to create that correction data. <a href="https://geoscienceaustralia.github.io/ginan/page.html?p=aboutGinan.md" target="_blank">More</a></p>
             </div>
         </div>
     </div><!-- close card-->
@@ -57,7 +57,7 @@
         <div id="collapseFour" class="collapse" aria-labelledby="infraFour" data-parent="#accordion">
             <div class="card-body">
                 <p>The Ginan software is available from the <a href="https://github.com/GeoscienceAustralia/ginan" target="_blank">Geoscience Australia GitHub site</a>.</p>
-                <p>Geoscience Australia uses Ginan to produce <a href="https://geoscienceaustralia.github.io/ginan/products.html" target="_blank">precise positioning products and data correction streams</a>. These are also free to use.</p>
+                <p>Geoscience Australia uses Ginan to produce <a href="https://geoscienceaustralia.github.io/ginan/page.html?c=on&p=products.md" target="_blank">precise positioning products and data correction streams</a>. These are also free to use.</p>
             </div>
         </div>
     </div><!-- card-->						
@@ -120,7 +120,7 @@
         </div>
         <div id="collapseSeven" class="collapse" aria-labelledby="infraSeven" data-parent="#accordion">
             <div class="card-body">
-                <p>The science of calculating a position on Earth using observations of GNSS satellites is well known and has become a ubiquitous feature of our lives. Ginan uses the well-established State Space Representation (SSR) positioning model to enable users to achieve Precise Point Positioning (PPP). In the standard GNSS positioning process, small error sources limit the users calculated position accuracy at the meter level.  The SSR methodology enables augmenting the users GNSS observations with corrections for those small errors, allowing Ginan to calculate PPP positions at the decimetre to millimetre level of accuracy, depending on the quality of PPP corrections used. <a href="https://geoscienceaustralia.github.io/ginan/ppp.html" target="_blank">More</a></p>
+                <p>The science of calculating a position on Earth using observations of GNSS satellites is well known and has become a ubiquitous feature of our lives. Ginan uses the well-established State Space Representation (SSR) positioning model to enable users to achieve Precise Point Positioning (PPP). In the standard GNSS positioning process, small error sources limit the users calculated position accuracy at the meter level.  The SSR methodology enables augmenting the users GNSS observations with corrections for those small errors, allowing Ginan to calculate PPP positions at the decimetre to millimetre level of accuracy, depending on the quality of PPP corrections used. <a href="https://geoscienceaustralia.github.io/ginan/page.html?p=ppp.md" target="_blank">More</a></p>
             </div>
         </div>
     </div><!-- card-->
@@ -134,7 +134,7 @@
         </div>
         <div id="collapseEight" class="collapse" aria-labelledby="infraEight" data-parent="#accordion">
             <div class="card-body">
-                <p>At the heart of Ginan is a Kalman filter processing engine. The Kalman filter is an algorithm that takes observations received from GNSS satellites, and other auxiliary metadata, and produces estimates of unknown variables or states, such as the user’s position. The Ginan Kalman filter uses GNSS observations in their raw un-differenced form and can estimate all GNSS observation model states using either un-combined or the ionosphere free combination of the GNSS observations. <a href="https://geoscienceaustralia.github.io/ginan/resources/GinanTechnology20220318v01.pdf" target="_blank">More</a></p>
+                <p>At the heart of Ginan is a Kalman filter processing engine. The Kalman filter is an algorithm that takes observations received from GNSS satellites, and other auxiliary metadata, and produces estimates of unknown variables or states, such as the user’s position. The Ginan Kalman filter uses GNSS observations in their raw un-differenced form and can estimate all GNSS observation model states using either un-combined or the ionosphere free combination of the GNSS observations. <a href="https://geoscienceaustralia.github.io/ginan/page.html?c=on&p=science.index" target="_blank">More</a></p>
             </div>
         </div>
     </div><!-- card-->
@@ -148,7 +148,8 @@
         </div>
         <div id="collapseNine" class="collapse" aria-labelledby="infraNine" data-parent="#accordion">
             <div class="card-body">
-                <p>There are two ways to get Ginan running:</p>
+                <p>There are three ways to get Ginan running:</p>
+                <p>You can download the Ginan binaries from the GitHub release website, either with or without the graphical user interface (GUI). These binaries work on Linux, MacOS and Windows. This can be found here: <a href="https://https://github.com/GeoscienceAustralia/ginan/releases" target="_blank">Ginan Releases</a></p>
                 <p>You can download the Ginan source code from the GitHub site, and the other required software packages, onto a Linux machine (including Windows Subsystem for Linux) and compile them to create the Ginan executable application. The instructions are in the <a href="https://github.com/GeoscienceAustralia/ginan#readme" target="_blank">Ginan README</a>.</p>
                 <p>You can use Docker Desktop. Docker Desktop is a software application you can download onto a Linux, Mac or Windows computer. It creates a container that provides all the resources that the Ginan Docker image needs to run. Using Docker makes the process of getting started with Ginan simpler. You must download and install <a href="https://www.docker.com/products/docker-desktop/" target="_blank">Docker Desktop</a>, and then get the <a href="https://github.com/GeoscienceAustralia/ginan#using-ginan-with-docker" target="_blank">Ginan Docker image</a>.</p> 
             </div>
@@ -165,7 +166,7 @@
         <div id="collapseTen" class="collapse" aria-labelledby="infraTen" data-parent="#accordion">
             <div class="card-body">
                 <p>Ginan is a sophisticated software application with hundreds of parameters that control what it does. All these parameters are contained in configuration files using the yaml syntax (yaml - which might stand for "yet another markup language").</p>
-                <p>Ginan is released with <a href="https://github.com/GeoscienceAustralia/ginan/tree/main/exampleConfigs" target="_blank">example files</a> to help users achieve particular outcomes. To understand more about Ginan's yaml files and parameters read <a href="https://geoscienceaustralia.github.io/ginan/resources/GinanyamlGuide20230701v01.pdf" target="_blank">the Ginan yaml guide</a>.</p>
+                <p>Ginan is released with <a href="https://github.com/GeoscienceAustralia/ginan/tree/main/exampleConfigs" target="_blank">example files</a> to help users achieve particular outcomes. To understand more about Ginan's yaml files and parameters read <a href="https://geoscienceaustralia.github.io/ginan/page.html?c=on&p=ginanConfiguration.md" target="_blank">the Ginan yaml guide</a>.</p>
             </div>
         </div>
     </div><!-- card-->

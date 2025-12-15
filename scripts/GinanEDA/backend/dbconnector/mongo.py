@@ -126,7 +126,7 @@ class MongoDB:
                 "$push": {"$cond": [{"$eq": [{"$ifNull": [f"${key}", None]}, None]}, float("nan"), f"${key}"]}
             }
         logger.info(agg_pipeline)
-        cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline)
+        cursor = self.mongo_client[self.mongo_db][collection].aggregate(agg_pipeline, allowDiskUse=True)
         # check if cursor is empty
         if not cursor.alive:
             raise ValueError("No data found")
@@ -205,7 +205,8 @@ class MongoDB:
                     "_id":      groupObj,
                     "Epoch":    {"$first":          "$Epoch"        },
                     "y":        {"$addToSet":       "$" + yvalue    },
-                    "fields":   {"$mergeObjects":   "$id"           }
+                    "fields":   {"$mergeObjects":   "$id"           },
+                    "other":    {"$mergeObjects":   "$val"          }
                 }
             })
         pipeline.append({"$sort":       sortObj})

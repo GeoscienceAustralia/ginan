@@ -1,29 +1,23 @@
 #pragma once
 
-#include "eigenIncluder.hpp"
-
-#include <string>
 #include <map>
+#include <string>
+#include "common/eigenIncluder.hpp"
 
-using std::string;
 using std::map;
+using std::string;
 
-
-struct CenterMassCorrections 
+struct CenterMassCorrections
 {
-	map<string, Vector6d> data;
-	bool initialized = false;
+    map<string, Vector6d> data;
+    bool                  initialized = false;
 
-	void read(
-		const string& filename);
-	
-	Vector3d estimate(
-		Array6d& dood);
+    void read(const string& filename);
 
-	//Need to add the fundamental args to the cmc estimate function. QnD
-	map<string, Array6d> doodsonNumbers;
+    Vector3d estimate(Array6d& dood);
 
+    // Need to add the fundamental args to the cmc estimate function. QnD
+    map<string, Array6d> doodsonNumbers;
 };
 
 extern CenterMassCorrections cmc;
-

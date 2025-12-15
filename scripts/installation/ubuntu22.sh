@@ -26,7 +26,7 @@ if [[ "$ubuntu_version" != "22.04" ]]; then
 fi
 
 # MongoDB library version numbers
-mongo_cxx_driver_version="r3.6.7"
+mongo_cxx_driver_version="r3.11.0"
 
 echo "Updating package repositories..."
 $sudo_cmd apt update -y

@@ -1,8 +1,3 @@
-
 #pragma once
-
-void	doDebugs();
-
-void	plumber();
-
-void	walkthrough();
+void doDebugs();
+void plumber();

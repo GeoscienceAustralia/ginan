@@ -1,0 +1,51 @@
+inputs:
+
+    inputs_root:                products/
+
+    erp_files:                  [ "podTest/2019195_07D/COD0MGXFIN*.ERP" ]
+    
+    satellite_data:
+        satellite_data_root:    podTest/2019195_07D/
+        sp3_files:              [ "COD0MGXFIN*.SP3" ]
+
+
+outputs:
+
+    outputs_root:               products/podTest/2019195_07D/SP3i/
+
+    metadata:
+        config_description:     COD0MGXFIN
+        time_system:            G                           # (string) Time system - e.g. "G", "UTC"
+
+    sp3:
+        output:                 true
+        filename:               <CONFIG>_<YYYY><DDD><HH><mm>_01D_05M_ORB.SP3
+        orbit_sources:          [ PRECISE ]
+        clock_sources:          [ PRECISE ]
+        output_inertial:        true
+        output_interval:        300
+
+
+receiver_options:                                                 # Options to configure individual stations or global configs
+
+    global:
+        models:
+            eop:
+                enable:         true
+
+
+processing_options:
+
+    epoch_control:
+        start_epoch:            2019-07-14 00:00:00
+        end_epoch:              2019-07-20 23:55:00
+        epoch_interval:         300  # seconds
+        require_obs:            false
+
+    gnss_general:
+        sys_options:
+            gps: { process:  true }
+            gal: { process:  true }
+            glo: { process:  true }
+            bds: { process:  true }
+            # qzs: { process:  true }

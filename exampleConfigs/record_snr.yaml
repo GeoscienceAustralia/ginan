@@ -2,11 +2,11 @@ inputs:
   gnss_observations:
     gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
     rtcm_inputs:
-    - ALIC00AUS0
-    - DARW00AUS0
-    - MOBS00AUS0
-    - TKBG00JPN0
-    - TLSE00FRA0
+      - ALIC00AUS0
+      - DARW00AUS0
+      - MOBS00AUS0
+      - TKBG00JPN0
+      - TLSE00FRA0
 
 outputs:
   metadata:
@@ -50,5 +50,3 @@ mongo:
   primary_database: "<CONFIG>"
   primary_suffix: ""
   delete_history: primary
-
-

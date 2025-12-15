@@ -132,8 +132,11 @@ def handle_load_request(form_data):
                 states_series       += [f"{database}\{series}" for series in client.mongo_content["Series"]]
                 measurements_series += [f"{database}\{series}" for series in client.mongo_content["Series"]]
             else:
-                states_series       += [f"{database}\{series}" for series in client.mongo_content["StateSeries"]]
-                measurements_series += [f"{database}\{series}" for series in client.mongo_content["MeasurementsSeries"]]
+                try:
+                    states_series       += [f"{database}\{series}" for series in client.mongo_content["StateSeries"]]
+                    measurements_series += [f"{database}\{series}" for series in client.mongo_content["MeasurementsSeries"]]
+                except Exception as e:
+                    current_app.logger.warning(f"Error getting series {database}: {e}")
             if client.mongo_content["Has_measurements"]:
                 mesurements += client.mongo_content["Measurements"]
             geometry += client.mongo_content["Geometry"]

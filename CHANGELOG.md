@@ -3,6 +3,101 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [4.0] 2025-12-16
+
+## Added
+
+A Qt-based Graphical User Interface (GUI) for Ginan
+
+Ginan and GUI binaries for Linux, MacOS and Windows
+
+Major improvement in handling state errors in pre-fit and post-fit outlier screening
+
+New TRACE file plotting script (plot_trace_res.py)
+
+RNX2 --> RNX3 phase signal mapping in config
+
+Check on difference between BRDC and Kalman clocks before alignment
+
+Additional info to TRACE files for monitoring (snr, azimuth, signal data availability)
+
+Postfit omega test and address its numerical instability
+
+Incorrect error count increments (For phase rejects, receiver error counts and satellite error counts)
+
+Option to reset filter at specific times (periodic_reset)
+
+## Changed
+
+VCPKG as the primary package manager for Ginan
+
+Started refactor of code to use OpenBLAS / LAPACK instead of Eigen - including RTS and core Kalman filter <br>
+(Improved efficiency with up to 30% faster on network runs)
+
+TRACE epoch from week / sec to generic datetime
+
+Use normal epoch instead of transmission time for satellite clock initialisation
+
+Improved SPP via Code bias correction
+
+Improved higher order ionospheric corrections in IF combination mode
+
+Improvements and restructure of Least squares estimation code
+
+EDA Updates:
+
+- Add ability to view differences for States and Measurements
+- Check data exists before plotting
+- Fix plotting of satellite / site availability
+- Add cycle detection info to database
+
+LEO drag and SRP coefficient estimation (Properly estimate and resolve conflict with EMP estimation)
+
+Update variance before detecting cycle slips
+
+Trop SNX file written for all stations now
+
+Pass LLI flags through to savedSlip
+
+Move from better_enum to magic_enum
+
+Rename Ginan LLI flags to "retrack"
+
+
+## Fixed
+
+Mutex compilation problem for OSX arm64
+
+noTime with Sp3Write when filtered states not available
+
+Day-bound no date issue and finite vs mincon inconsistency
+
+Elevation calculation in preprocessor (PEA can run in preprocessing-only mode)
+
+NaN biases in SSR bias map
+
+Limit tropospheric model to reasonable heights
+
+Correctly write out Antenna delta in RNX file (H/E/N)
+
+IERS mean pole function to use TT time
+
+Ensure commit hash is generated for every compilation (help with ID version)
+
+Errors in writing POS and GPX files when RTS is on
+
+Issues with Chunking (rewrite)
+
+RNX file reading (Correct field width)
+
+Cmake file so loading software can compile
+
+## Deprecated
+
+## Removed
+
+## Security
+
 # [3.1] 2024-09-02
 
 ### Added

@@ -27,6 +27,9 @@ add_executable(pea
 		3rdparty/iers2010/hardisp/tdfrph.cpp
 		3rdparty/iers2010/dehanttideinel/dehanttide_all.cpp
 
+		3rdparty/nrlmsise/nrlmsise-00.cpp
+		3rdparty/nrlmsise/nrlmsise-00_data.cpp
+
 		pea/main.cpp
 		pea/inputs.cpp
 		pea/outputs.cpp
@@ -50,6 +53,7 @@ add_executable(pea
 		common/algebra.cpp
 		common/algebra_old.cpp
 		common/algebraTrace.cpp
+		common/kalmanBlas.cpp
 		common/attitude.cpp
 		common/compare.cpp
 		common/antenna.cpp
@@ -67,22 +71,18 @@ add_executable(pea
 		common/ephKalman.cpp
 		common/ephPrecise.cpp
 		common/ephSSR.cpp
+		common/ephSBAS.cpp
 		common/erp.cpp
 		common/fileLog.cpp
 		common/fileLog.hpp
 		common/gpx.cpp
 		common/pos.cpp
 		common/gTime.cpp
-		common/interactiveTerminal.cpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
-		common/mongo.cpp
-		common/mongoRead.cpp
-		common/mongoWrite.cpp
 
 		common/ntripTrace.cpp
 		common/orbits.cpp
-		common/receiver.cpp
 		common/receiver.cpp
 		common/rinex.cpp
 		common/rtsSmoothing.cpp
@@ -99,7 +99,6 @@ add_executable(pea
 		common/orbex.cpp
 		common/orbexWrite.cpp
 		common/tcpSocket.cpp
-		common/tcpSocket.cpp
 		common/trace.cpp
 		common/testUtils.cpp
 		common/rinexClkWrite.cpp
@@ -107,7 +106,6 @@ add_executable(pea
 		common/rinexObsWrite.cpp
 		common/tides.cpp
 		common/ubxDecoder.cpp
-		common/walkthrough.cpp
 		common/localAtmosRegion.cpp
 
 		common/streamNtrip.cpp
@@ -140,7 +138,6 @@ add_executable(pea
 
 		slr/slrCom.cpp
 		slr/slrObs.cpp
-		slr/slrSat.cpp
 		slr/slrRec.cpp
 
 		other_ssr/otherSSR.hpp
@@ -160,53 +157,28 @@ add_executable(pea
 		orbprop/staticField.cpp
 		orbprop/centerMassCorrections.cpp
 		orbprop/oceanPoleTide.cpp
+		orbprop/spaceWeather.cpp
 
 		rtklib/lambda.cpp
 		rtklib/rtkcmn.cpp
 
 		sbas/sisnet.cpp
 		sbas/sbas.cpp
+		sbas/decodeL1.cpp
+		sbas/decodeL5.cpp
 )
 
-target_include_directories(pea PUBLIC
-		3rdparty
-		3rdparty/egm96
-		3rdparty/iers2010
-		3rdparty/sofa/src
-		3rdparty/jpl
-		3rdparty/mqtt_cpp/
-		3rdparty/slr
+add_dependencies(pea updateGit)
 
+target_include_directories(pea PUBLIC
 		configurator
 		../Architecture/
-
-		ambres
-		slr
-		common
-		iono
-		trop
-		inertial
-		orbprop
-		pea
-		peaUploader
-		rtklib
-		other_ssr
-		sbas
-
+		${CMAKE_CURRENT_SOURCE_DIR}
 		${EIGEN3_INCLUDE_DIRS}
-		${LAPACK_INCLUDE_DIRS}
-		${OPENBLAS_INCLUDE_DIRS}
 		${YAML_INCLUDE_DIRS}
 		${Boost_INCLUDE_DIRS}
-		${LIBMONGOCXX_INCLUDE_DIR}
-		${LIBBSONCXX_INCLUDE_DIR}
-		${OPENSSL_INCLUDE_DIR}
-		"/usr/local/include/mongocxx/v_noabi"
-		"/usr/local/include/bsoncxx/v_noabi"
-		"/usr/local/include/libmongoc-1.0"
-		"/usr/local/include/libbson-1.0"
-		"/usr/local/lib"
-		)
+		${BLAS_INCLUDE_DIRS}
+	)
 
 target_compile_options(pea PRIVATE -fpie)
 
@@ -218,106 +190,134 @@ target_compile_definitions(pea PRIVATE
 							EIGEN_USE_BLAS=1
 						)
 
+if(ENABLE_MONGODB)
+	target_compile_definitions(pea PRIVATE ENABLE_MONGODB=1)
+	target_sources(pea PRIVATE
+		common/mongo.cpp
+		common/mongoRead.cpp
+		common/mongoWrite.cpp
+	)
+endif()
+
 
 #==================================================
 # Ocean tide loading
+if (NetCDF_FOUND)
+	add_library(otl
+			STATIC
+			loading/loading.cpp
+			loading/tide.cpp
+			loading/utils.cpp
+			loading/load_functions.cpp
+			loading/loadgrid.cpp
+			)
 
-add_library(otl
-		STATIC
-		loading/loading.cpp
-		loading/tide.cpp
-		loading/utils.cpp
-		loading/load_functions.cpp
-		loading/loadgrid.cpp
-		)
-
-add_executable(make_otl_blq
-		loading/make_otl_blq.cpp
-		)
-
-
-add_executable(interpolate_loading
-		loading/interpolate_loading.cpp
-		)
-
-target_include_directories(otl PUBLIC
-		common
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
-
-target_include_directories(make_otl_blq PUBLIC
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
-
-target_include_directories(interpolate_loading PUBLIC
-		loading
-		${YAML_INCLUDE_DIRS}
-		${Boost_INCLUDE_DIRS}
-		${NETCDF_INCLUDES}
-		${NETCDF_INCLUDES_CXX}
-		)
+	add_executable(make_otl_blq
+			loading/make_otl_blq.cpp
+			)
 
 
-target_link_libraries(make_otl_blq PUBLIC
-		otl
-		${NETCDF_LIBRARIES_CXX}
-		${NETCDF_LIBRARIES}
-		Boost::timer
-		Boost::program_options
-		Boost::log
-		Boost::log_setup
-		${YAML_CPP_LIBRARIES}
-		${YAML_CPP_LIB}
-		)
+	add_executable(interpolate_loading
+			loading/interpolate_loading.cpp
+			)
 
-target_link_libraries(interpolate_loading PUBLIC
-		otl
-		${NETCDF_LIBRARIES_CXX}
-		${NETCDF_LIBRARIES}
-		Boost::timer
-		Boost::program_options
-		Boost::log
-		Boost::log_setup
-		${YAML_CPP_LIBRARIES}
-		${YAML_CPP_LIB}
-		)
+	target_include_directories(otl PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}
+			${YAML_INCLUDE_DIRS}
+			${Boost_INCLUDE_DIRS}
+			${NETCDF_INCLUDES}
+			${NETCDF_INCLUDES_CXX}
+			)
+
+	target_include_directories(make_otl_blq PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}
+			${YAML_INCLUDE_DIRS}
+			${Boost_INCLUDE_DIRS}
+			${NETCDF_INCLUDES}
+			${NETCDF_INCLUDES_CXX}
+			)
+
+	target_include_directories(interpolate_loading PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}
+			${YAML_INCLUDE_DIRS}
+			${Boost_INCLUDE_DIRS}
+			${NETCDF_INCLUDES}
+			${NETCDF_INCLUDES_CXX}
+			)
 
 
-if(OpenMP_CXX_FOUND)
-	target_link_libraries(make_otl_blq			PUBLIC OpenMP::OpenMP_CXX)
-	target_link_libraries(interpolate_loading	PUBLIC OpenMP::OpenMP_CXX)
+	target_link_libraries(make_otl_blq PUBLIC
+			otl
+			${NETCDF_LIBRARIES_CXX}
+			${NETCDF_LIBRARIES}
+			Boost::timer
+			Boost::program_options
+			Boost::log
+			Boost::log_setup
+			${YAML_CPP_LIBRARIES}
+			${YAML_CPP_LIB}
+			)
+
+	target_link_libraries(interpolate_loading PUBLIC
+			otl
+			${NETCDF_LIBRARIES_CXX}
+			${NETCDF_LIBRARIES}
+			Boost::timer
+			Boost::program_options
+			Boost::log
+			Boost::log_setup
+			${YAML_CPP_LIBRARIES}
+			${YAML_CPP_LIB}
+			)
+
+
+	if(OpenMP_CXX_FOUND)
+		target_link_libraries(make_otl_blq			PUBLIC OpenMP::OpenMP_CXX)
+		target_link_libraries(interpolate_loading	PUBLIC OpenMP::OpenMP_CXX)
+	endif()
 endif()
-
 if(ENABLE_PARALLELISATION)
 	target_compile_definitions(pea PRIVATE ENABLE_PARALLELISATION=1)
 endif()
 
 
+
 target_link_libraries(pea PUBLIC
-						m
-						pthread
-						# openblasp
 						sofa_lib
 						${Boost_LIBRARIES}
 						${BLAS_LIBRARIES}
 						${LAPACK_LIBRARIES}
 						${YAML_CPP_LIBRARIES}
 						${YAML_CPP_LIB}
-						mongo::mongocxx_shared
-						${BLAS_LIBRARY_DIRS}
-						${OPENSSL_LIBRARY_DIRS}
-						${OPENSSL_LIBRARIES}
-						dl
-						ncurses
-					)
+						OpenSSL::SSL
+						OpenSSL::Crypto
+				)
+
+# Platform-specific libraries
+if(UNIX)
+	target_link_libraries(pea PUBLIC m pthread dl)
+elseif(WIN32)
+	target_link_libraries(pea PUBLIC ws2_32 wsock32)
+endif()
+
+if(ENABLE_MONGODB)
+	# Prefer static linking, fall back to shared if static not available
+	if(TARGET mongo::mongocxx_static)
+		target_link_libraries(pea PUBLIC mongo::mongocxx_static)
+		message(STATUS "Linking MongoDB statically")
+	elseif(TARGET mongo::mongocxx_shared)
+		target_link_libraries(pea PUBLIC mongo::mongocxx_shared)
+		message(STATUS "Linking MongoDB dynamically")
+	else()
+		message(WARNING "MongoDB targets not found")
+	endif()
+endif()
+
+# Add gfortran if it exists (needed for some BLAS/LAPACK implementations)
+find_library(GFORTRAN_LIB gfortran)
+if(GFORTRAN_LIB)
+	target_link_libraries(pea PUBLIC ${GFORTRAN_LIB})
+endif()
 
 set_property(TARGET pea PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 
@@ -333,5 +333,3 @@ add_dependencies(peas
 					docs
 					)
 endif()
-
-

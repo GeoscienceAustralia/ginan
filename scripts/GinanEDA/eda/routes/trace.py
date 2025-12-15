@@ -139,12 +139,16 @@ def handle_post_request():
         table = {}
         current_app.logger.warning("starting plots")
         for datax in datas:
+            # print("Printing datax")
+            # print(datax)
             tracesX = []
             for label, traceData in datax.items():
 
                 traceX = []
                 traceY = []
                 for element in traceData:
+                    # print("Printing element")
+                    # print(element)
                     element["y"] = element["y"][0]
                     if xaxis[0] == "_":
                         x = element["_id"][xaxis[1:]]
@@ -163,8 +167,9 @@ def handle_post_request():
 
                     ybak = y
                     if type(y) == int or type(y) == float:
-                        lpf = lpf + (y - lpf) * float(form["fCoeff"])
-                        hpf = y - lpf
+                        if form["filter"] == "HPF" or form["filter"] == "LPF":
+                            lpf = lpf + (y - lpf) * float(form["fCoeff"])
+                            hpf = y - lpf
                         if form["filter"] == "HPF":
                             y = hpf
                         if form["filter"] == "LPF":
@@ -180,13 +185,14 @@ def handle_post_request():
                     traceX.append(x)
                     traceY.append(y)
                 x_hover_template = "%{x}<br>"
+                metadata = [a + ": " + str(element["other"][a]) for a in element["other"]]
                 tracesX.append(
                     go.Scatter(
                         x=traceX,
                         y=traceY,
                         mode=mode,
                         name=f"{label}",
-                        hovertemplate=x_hover_template + "%{y:.4e%}<br>" + str(element["y"]) + "<br>" + f"{label}",
+                        hovertemplate=x_hover_template + "%{y:.4e%}<br>" + str(element["y"]) + "<br>" + f"{label}" + "<br>" + f"{metadata}",
                         legendgroup="group1",
                     )
                 )

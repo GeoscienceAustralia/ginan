@@ -211,7 +211,7 @@ if __name__ == "__main__":
         # Create and save figure for each obs. code
         
         # If ALL option is chosen for obs_codes AND sat_nums, plot all:
-        if (codes == 'ALL') & (sat_nums == 'ALL'):
+        if (codes == "ALL") and (sat_nums == "ALL"):
             # Get all satellites from Rinex file:
             sat_list = [x for x in obs.sv.values if 'G' in x]
             sat_nums = ','.join(sat_list)
@@ -231,7 +231,7 @@ if __name__ == "__main__":
                     )
         
         # If ALL codes but not all satellites (SV):
-        elif (codes == 'ALL') & (sat_nums != 'ALL'):
+        elif (codes == "ALL") and (sat_nums != "ALL"):
             # Run through all observables (data variables) in Rinex file
             for code in list(obs.data_vars.keys()):
                 plot_code_vs_time(
@@ -248,7 +248,7 @@ if __name__ == "__main__":
                     )
         
         # If ALL satellites (SV) but not all codes:
-        elif (codes != 'ALL') & (sat_nums == 'ALL'):
+        elif (codes != "ALL") and (sat_nums == "ALL"):
             # Get all satellites from Rinex file:
             sat_list = [x for x in obs.sv.values if 'G' in x]
             sat_nums = ','.join(sat_list)

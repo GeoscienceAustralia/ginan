@@ -1,3 +1,5 @@
+from pathlib import Path
+import os
 import pandas as pd
 from datetime import datetime
 import plotly.graph_objects as go
@@ -6,6 +8,16 @@ import numpy as np
 import argparse
 
 def parse_pos_format(file_path):
+    """
+    Parse a .POS file into a pandas DataFrame.
+
+    Arguments:
+      file_path (str): Path to a .POS file with recordings following the expected format.
+
+    Returns:
+      pandas.DataFrame: Table with columns such as 'Time', 'Latitude', 'Longitude',
+      'Elevation', 'dN', 'dE', 'dU', 'sN', 'sE', 'sU', 'sElevation', 'Rne', 'Rnu', 'Reu', 'soln'.
+    """
     data = []
     try:
         with open(file_path, 'r') as file:
@@ -36,11 +48,23 @@ def parse_pos_format(file_path):
                         }
                         data.append(record)
     except Exception as e:
-        print(f"Error parsing file {file_path}: {e}")                
+        print(f"Error parsing file {file_path}: {e}")
     return pd.DataFrame(data)
 
 # Function to parse the datetime with optional timezone
 def parse_datetime(datetime_str):
+    """
+    Parse a datetime string with or without timezone into a naive datetime.
+
+    Arguments:
+      datetime_str (str): Datetime string, e.g., 'YYYY-MM-DDTHH:MM:SS' or 'YYYY-MM-DDTHH:MM:SS±HHMM'.
+
+    Returns:
+      datetime: Timezone-naive datetime object. If timezone was present, it is stripped.
+
+    Raises:
+        ValueError: If datetime string doesn't match expected formats.
+    """
     # Attempt to parse datetime with and without timezone
     for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
         try:
@@ -52,9 +76,18 @@ def parse_datetime(datetime_str):
         except ValueError as e:
             print(f"ValueError: {e}")
             continue
-    raise ValueError(f"datetime {datetime_str} does not match expected formats.")    
+    raise ValueError(f"datetime {datetime_str} does not match expected formats.")
 
 def remove_weighted_mean(data):
+    """
+    Remove weighted mean from each component series in-place and return the DataFrame.
+
+    Arguments:
+      data (pandas.DataFrame): Data with components ('dN','dE','dU','Elevation') and their sigmas ('sN','sE','sU','sElevation').
+
+    Returns:
+      pandas.DataFrame: The same DataFrame with each component demeaned by its weighted mean.
+    """
     sigma_keys = {'dN': 'sN', 'dE': 'sE', 'dU': 'sU', 'Elevation': 'sElevation'}  # Assume sElevation exists
     for component in ['dN', 'dE', 'dU', 'Elevation']:
         sigma_key = sigma_keys[component]
@@ -63,12 +96,23 @@ def remove_weighted_mean(data):
         data[component] -= weighted_mean  # Demean the series
     return data
 
-def apply_smoothing(data):
+def apply_smoothing(data, horz_smoothing=None, vert_smoothing=None):
+    """
+    Apply LOWESS smoothing to horizontal and / or vertical components.
+
+    Arguments:
+      data (pandas.DataFrame): Input data with time column 'Time' and components.
+      horz_smoothing (float or None): Fraction for LOWESS on dN/dE (0..1), or None to skip.
+      vert_smoothing (float or None): Fraction for LOWESS on dU/Elevation (0..1), or None to skip.
+
+    Returns:
+        pandas.DataFrame: DataFrame with additional 'Smoothed_*' columns when smoothing is applied.
+    """
     for component in ['dN', 'dE', 'dU', 'Elevation']:
-        if args.horz_smoothing and (component == 'dN' or component == 'dE'):
-            data[f'Smoothed_{component}'] = lowess(data[component], data['Time'], frac=args.horz_smoothing, return_sorted=False)
-        if args.vert_smoothing and (component == 'dU' or component == 'Elevation'):
-            data[f'Smoothed_{component}'] = lowess(data[component], data['Time'], frac=args.vert_smoothing, return_sorted=False)
+        if horz_smoothing and (component == 'dN' or component == 'dE'):
+            data[f'Smoothed_{component}'] = lowess(data[component], data['Time'], frac=horz_smoothing, return_sorted=False)
+        if vert_smoothing and (component == 'dU' or component == 'Elevation'):
+            data[f'Smoothed_{component}'] = lowess(data[component], data['Time'], frac=vert_smoothing, return_sorted=False)
     return data
 
 def compute_statistics(data):
@@ -95,395 +139,521 @@ def compute_statistics(data):
 
     return data, stats
 
+def create_plots(all_data, input_files, component_stats, args, show_plots=True):
+    """
+    Create interactive HTML plots for POS analysis.
 
-# Setup and parse arguments
-parser = argparse.ArgumentParser(description="Plot positional data with optional smoothing and color coding.")
-parser.add_argument('--start-datetime', type=str, 
-                    help="Start datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone")
-parser.add_argument('--end-datetime', type=str, 
-                    help="End datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone")
-parser.add_argument('--horz_smoothing', type=float, default=None,
-                    help='Fraction of the data used for horizontal (East and North) LOWESS smoothing (optional).')
-parser.add_argument('--vert_smoothing', type=float, default=None,
-                    help='Fraction of the data used for vertical (Up) LOWESS smoothing (optional).')
-parser.add_argument('--colour_sigma', action='store_true',
-                    help='Colourize the timeseries using the standard deviation (sigma) values (optional).')
-parser.add_argument('--max_sigma', type=float, default=None,
-                    help='Set a maximum sigma threshold for the sigma colour scale (optional).')
-parser.add_argument('--elevation', action='store_true',
-                    help='Plot Elevation values inplace of dU wrt the reference coord (optional).')
-parser.add_argument('--demean', action='store_true',
-                    help='Remove the mean values from all time series before plotting (optional).')
-parser.add_argument('--map', action='store_true',
-                    help='Create a geographic map view from the Longitude & Latitude estiamtes (optional).')
-parser.add_argument('--heatmap', action='store_true',
-                    help='Create a 2D heatmap view of E & N coodrinates wrt the reference position  (optional).')
-parser.add_argument('--sigma_threshold', nargs=3, type=float, 
-                    help="Thresholds for sE, sN, and sU to filter data.")
-parser.add_argument('--down_sample', type=int, 
-                    help="Interval in seconds for down-sampling data.")
-parser.add_argument('--save', action='store_true',
-                    help='Save requested plots as .html format files (optional).')
-parser.add_argument('files', nargs='+')
-args = parser.parse_args()
+    Arguments:
+        all_data (pandas.DataFrame): Measurement table with columns such as 'Time', 'dN', 'dE', 'dU' or 'Elevation', and their sigmas.
+        input_files (list): One or more .POS filepaths
+        component_stats (dict): Statistics returned by compute_statistics().
+        args (object): Arguments used to call plot_pos like colour_sigma, max_sigma, elevation, map, heatmap, save_prefix.
+        show_plots (bool): If True, display plots in browser (CLI mode), if False, only save to files (program mode).
 
-# Parse the start and end datetime if provided
-start_datetime = parse_datetime(args.start_datetime) if args.start_datetime else None
-end_datetime = parse_datetime(args.end_datetime) if args.end_datetime else None
+    Returns:
+        None: Writes HTML files when args.save_prefix is provided.
+    """
+    input_root = Path(input_files[0]).stem
 
-# Load and process data
-all_data = pd.DataFrame()
-for file_path in args.files:
-    file_data = parse_pos_format(file_path)
-    all_data = pd.concat([all_data, file_data], ignore_index=True)
-
-all_data['Time'] = pd.to_datetime(all_data['Time'], format="%Y-%m-%dT%H:%M:%S.%f")
-
-# Apply time windowing
-if start_datetime:
-    all_data = all_data[all_data['Time'] >= start_datetime]
-if end_datetime:
-    all_data = all_data[all_data['Time'] <= end_datetime]
-
-# Apply threshold filtering if sigma_threshold is provided
-if args.sigma_threshold:
-    se_threshold, sn_threshold, su_threshold = args.sigma_threshold
-    mask = (all_data['sE'] <= se_threshold) & (all_data['sN'] <= sn_threshold) & (all_data['sU'] <= su_threshold) & (all_data['sElevation'] <= su_threshold)
-    all_data = all_data[mask]    
-
-# Down-sample the data if requested
-if args.down_sample:
-    # Ensure the 'Time' column is datetime for proper indexing
-    all_data['Time'] = pd.to_datetime(all_data['Time'])
-    all_data.set_index('Time', inplace=True)
-    # Resample and take the first available data point in each bin
-    all_data = all_data.resample(f'{args.down_sample}s').first().dropna().reset_index()
-
-# Demean, smooth, and compute statistics
-if args.demean:
-    all_data = remove_weighted_mean(all_data)
-all_data = apply_smoothing(all_data)
-all_data, component_stats = compute_statistics(all_data)
-
-# Start plotting
-# Determine max sigma and color scale settings for Fig1
-title_text = f"<b>Time Series Analysis</b>: {', '.join(args.files)}<br>"
-color_scale = 'Jet' if args.colour_sigma else None  # Only set color scale if --colour_sigma is active
-max_sigma_data = np.max([all_data['sN'].max(), all_data['sE'].max(), all_data['sU'].max()])
-min_sigma_data = np.min([all_data['sN'].min(), all_data['sE'].min(), all_data['sU'].min()])
-cmax = min(args.max_sigma, max_sigma_data) if args.max_sigma is not None else max_sigma_data
-#cmin = min_sigma_data 
-cmin = 0.0 
-
-# Setting up the plot
-fig1 = go.Figure()
-components = ['dN', 'dE', 'Elevation'] if args.elevation else ['dN', 'dE', 'dU']
-
-for component in components:
-    # Correctly map the component to its sigma key
-    if component == 'Elevation':
-        sigma_key = 'sU'  # Assuming sigma for Elevation is stored in 'sU'
-    else:
-        sigma_key = f's{component[-1].upper()}'
-    
-    print('Plotting: ', sigma_key)  # To check if the correct sigma key is being used
-
-    # Add the primary and smoothed series data
-    if args.colour_sigma:
-        # When using --colour_sigma, use the sigma value for coloring
-        fig1.add_trace(go.Scatter(
-            x=all_data['Time'], y=all_data[component],
-            mode='lines+markers',
-            marker=dict(size=5, color=all_data[sigma_key], coloraxis="coloraxis"),
-            name=component,
-            hoverinfo='text+x+y',
-            text=f'{component} Sigma: ' + all_data[sigma_key].astype(str)
-        ))
-
-    else:
-        # When not using --colour_sigma, add error bars using the sigma values
-        fig1.add_trace(go.Scatter(
-            x=all_data['Time'], y=all_data[component],
-            mode='markers',
-            name=component,
-            error_y=dict(
-                type='data',  # Represent error in data coordinates
-                array=all_data[sigma_key],  # Positive error
-                arrayminus=all_data[sigma_key],  # Negative error
-                visible=True,  # Make error bars visible
-                color='gray'  # Color of error bars
-            ),
-            marker=dict(size=5, color='blue'),
-            line=dict(color='blue'),
-            hoverinfo='text+x+y',
-            text=f'{component} Sigma: ' + all_data[sigma_key].astype(str)
-        ))
-
-    if f'Smoothed_{component}' in all_data:
-        fig1.add_trace(go.Scatter(
-            x=all_data['Time'], y=all_data[f'Smoothed_{component}'],
-            mode='lines',
-            name=f'Smoothed {component}',
-            line=dict(color='rgba(0,0,255,0.5)')
-        ))
-
-    # Add statistical lines and shaded areas for standard deviation
-    fig1.add_trace(go.Scatter(
-        x=all_data['Time'], y=all_data[f'{component}_weighted_mean'],
-        mode='lines',
-        name=f'{component} Weighted Mean',
-        line=dict(color='red')
-    ))
-
-    fig1.add_trace(go.Scatter(
-        x=all_data['Time'].tolist() + all_data['Time'].tolist()[::-1],
-        y=all_data[f'{component}_std_dev_upper'].tolist() + all_data[f'{component}_std_dev_lower'].tolist()[::-1],
-        fill='toself',
-        fillcolor='rgba(68, 68, 255, 0.2)',
-        line=dict(color='rgba(255,255,255,0)'),
-        name=f'{component} CI: 2 Sigma (95%)'
-    ))
-
-    stats = component_stats[component]
-    title_text += f"<b>{component}</b>: Weighted Mean = {stats['weighted_mean']:.3f}, Std Dev = {stats['std_dev']:.3f}, RMS = {stats['rms']:.3f}<br>"
-
-fig1.update_layout(
-    title=title_text,
-    xaxis_title='Time',
-    yaxis_title='Measurement Value',
-    xaxis=dict(
-        rangeslider=dict(visible=True),
-        fixedrange=False,  
-        type='date'
-    ),
-    yaxis=dict(
-        fixedrange=False
-    ),
-    coloraxis=dict(
-        colorscale=color_scale,
-        cmin=cmin,
-        cmax=cmax,
-        colorbar=dict(
-            title='Sigma Value',
-            x=0.5,  # Center the color bar on the x-axis
-            y=-0.5,  # Position the color bar below the x-axis
-            xanchor='center',  # Anchor the color bar at its center for x positioning
-            yanchor='bottom',  # Anchor the color bar from its bottom edge for y positioning
-            len=0.5,  # Length of the color bar (75% of the width of the plot area)
-            thickness=10,  # Thickness of the color bar
-            orientation='h'  # Horizontal orientation
-        ),
-    ) if args.colour_sigma else {},
-    showlegend=True,
-    margin=dict(t=150) 
-)
-fig1.show()
-if args.save:
-    fig1.write_html("fig1.html")
-
-# Build the title with file names and statistics for Fig2
-title_text = f"<b>dN vs dE Analysis</b>: {', '.join(args.files)}<br>"
-for component in ['dN', 'dE']:
-    stats = component_stats[component]
-    title_text += f"<b>{component}</b>: Weighted Mean = {stats['weighted_mean']:.3f}, Std Dev = {stats['std_dev']:.3f}, RMS = {stats['rms']:.3f}<br>"
-
-# Conditional sigma calculations and setup
-composite_uncertainty = np.sqrt(all_data['sN']**2 + all_data['sE']**2)
-all_data['composite_uncertainty'] = composite_uncertainty
-max_sigma_data = composite_uncertainty.max()
-if args.colour_sigma:
+    # Start plotting
+    ## Fig1
+    # Determine max sigma and color scale settings for Fig1
+    title_text = f"<b>Time Series Analysis</b>: {', '.join(input_files)}<br>"
+    color_scale = 'Jet' if args.colour_sigma else None  # Only set color scale if --colour_sigma is active
+    max_sigma_data = np.max([all_data['sN'].max(), all_data['sE'].max(), all_data['sU'].max()])
+    min_sigma_data = np.min([all_data['sN'].min(), all_data['sE'].min(), all_data['sU'].min()])
     cmax = min(args.max_sigma, max_sigma_data) if args.max_sigma is not None else max_sigma_data
-    cmin = composite_uncertainty.min()
-    #cmin = 0.0
-    color_scale = 'Jet'  # Define the color scale here within the condition
-else:
-    cmin = None  # No cmax needed for static colors
-    cmax = None  # No cmax needed for static colors
-    color_scale = None  # No color scale needed for static colors
+    # cmin = min_sigma_data
+    cmin = 0.0
 
-# Plot configuration
-fig2 = go.Figure()
-fig2.add_trace(go.Scatter(
-    x=all_data['dE'], y=all_data['dN'],
-    mode='markers',
-    marker=dict(
-        size=5,
-        color=all_data['composite_uncertainty'] if args.colour_sigma else 'blue',  # Conditional coloring
-        coloraxis="coloraxis" if args.colour_sigma else None  # Use color axis only if color sigma is set
-    ),
-    name='dE vs dN',
-    text=[f"{time} Sigma dNdE: {unc:.4f}" for time, unc in zip(all_data['Time'], all_data['composite_uncertainty'])],
-    hoverinfo='text+x+y'
-))
+    # Setting up the plot
+    fig1 = go.Figure()
+    components = ['dN', 'dE', 'Elevation'] if args.elevation else ['dN', 'dE', 'dU']
+    component_colors = {
+        'dN': 'red',
+        'dE': 'green',
+        'dU': 'blue',
+        'Elevation': 'orange'
+    }
 
-# Add smoothed data if available
-if 'Smoothed_dN' in all_data.columns and 'Smoothed_dE' in all_data.columns:
+    for component in components:
+        # Correctly map the component to its sigma key
+        if component == 'Elevation':
+            sigma_key = 'sU'  # Assuming sigma for Elevation is stored in 'sU'
+        else:
+            sigma_key = f's{component[-1].upper()}'
+
+        print('Plotting: ', sigma_key)  # To check if the correct sigma key is being used
+
+        # Add the primary and smoothed series data
+        if args.colour_sigma:
+            # When using --colour_sigma, use the sigma value for coloring
+            fig1.add_trace(go.Scatter(
+                x=all_data['Time'], y=all_data[component],
+                mode='lines+markers',
+                marker=dict(size=5, color=all_data[sigma_key], coloraxis="coloraxis"),
+                name=component,
+                hoverinfo='text+x+y',
+                text=f'{component} Sigma: ' + all_data[sigma_key].astype(str)
+            ))
+
+        else:
+            # When not using --colour_sigma, add error bars using the sigma values
+            fig1.add_trace(go.Scatter(
+                x=all_data['Time'], y=all_data[component],
+                mode='markers',
+                name=component,
+                error_y=dict(
+                    type='data',  # Represent error in data coordinates
+                    array=all_data[sigma_key],  # Positive error
+                    arrayminus=all_data[sigma_key],  # Negative error
+                    visible=True,  # Make error bars visible
+                    color='gray'  # Color of error bars
+                ),
+                marker=dict(size=5, color=component_colors[component]),
+                line=dict(color=component_colors[component]),
+                hoverinfo='text+x+y',
+                text=f'{component} Sigma: ' + all_data[sigma_key].astype(str)
+            ))
+
+        if f'Smoothed_{component}' in all_data:
+            fig1.add_trace(go.Scatter(
+                x=all_data['Time'], y=all_data[f'Smoothed_{component}'],
+                mode='lines',
+                name=f'Smoothed {component}',
+                line=dict(color='rgba(0,0,255,0.5)')
+            ))
+
+        # Add statistical lines and shaded areas for standard deviation
+        fig1.add_trace(go.Scatter(
+            x=all_data['Time'], y=all_data[f'{component}_weighted_mean'],
+            mode='lines',
+            name=f'{component} Weighted Mean',
+            line=dict(color=component_colors[component])
+        ))
+
+        fig1.add_trace(go.Scatter(
+            x=all_data['Time'].tolist() + all_data['Time'].tolist()[::-1],
+            y=all_data[f'{component}_std_dev_upper'].tolist() + all_data[f'{component}_std_dev_lower'].tolist()[::-1],
+            fill='toself',
+            fillcolor='rgba(68, 68, 255, 0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            name=f'{component} CI: 2 Sigma (95%)'
+        ))
+
+        stats = component_stats[component]
+        title_text += f"<b>{component}</b>: Weighted Mean = {stats['weighted_mean']:.3f}, Std Dev = {stats['std_dev']:.3f}, RMS = {stats['rms']:.3f}<br>"
+
+    fig1.update_layout(
+        title=title_text,
+        xaxis_title='Time',
+        yaxis_title='Measurement Value',
+        xaxis=dict(
+            rangeslider=dict(visible=True),
+            fixedrange=False,
+            type='date'
+        ),
+        yaxis=dict(
+            fixedrange=False
+        ),
+        coloraxis=dict(
+            colorscale=color_scale,
+            cmin=cmin,
+            cmax=cmax,
+            colorbar=dict(
+                title='Sigma Value',
+                x=0.5,  # Center the color bar on the x-axis
+                y=-0.5,  # Position the color bar below the x-axis
+                xanchor='center',  # Anchor the color bar at its center for x positioning
+                yanchor='bottom',  # Anchor the color bar from its bottom edge for y positioning
+                len=0.5,  # Length of the color bar (75% of the width of the plot area)
+                thickness=10,  # Thickness of the color bar
+                orientation='h'  # Horizontal orientation
+            ),
+        ) if args.colour_sigma else {},
+        showlegend=True,
+        margin=dict(t=150)
+    )
+
+    if show_plots:
+        fig1.show()
+
+    if args.save_prefix is not None:
+        output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig1.html")
+        os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+        fig1.write_html(output_path)
+
+    ## Fig2
+    # Build the title with file names and statistics for Fig2
+    title_text = f"<b>dN vs dE Analysis</b>: {', '.join(input_files)}<br>"
+    for component in ['dN', 'dE']:
+        stats = component_stats[component]
+        title_text += f"<b>{component}</b>: Weighted Mean = {stats['weighted_mean']:.3f}, Std Dev = {stats['std_dev']:.3f}, RMS = {stats['rms']:.3f}<br>"
+
+    # Conditional sigma calculations and setup
+    composite_uncertainty = np.sqrt(all_data['sN'] ** 2 + all_data['sE'] ** 2)
+    all_data['composite_uncertainty'] = composite_uncertainty
+    max_sigma_data = composite_uncertainty.max()
+    if args.colour_sigma:
+        cmax = min(args.max_sigma, max_sigma_data) if args.max_sigma is not None else max_sigma_data
+        cmin = composite_uncertainty.min()
+        # cmin = 0.0
+        color_scale = 'Jet'  # Define the color scale here within the condition
+    else:
+        cmin = None  # No cmax needed for static colors
+        cmax = None  # No cmax needed for static colors
+        color_scale = None  # No color scale needed for static colors
+
+    # Plot configuration
+    fig2 = go.Figure()
     fig2.add_trace(go.Scatter(
-        x=all_data['Smoothed_dE'], y=all_data['Smoothed_dN'],
+        x=all_data['dE'], y=all_data['dN'],
         mode='markers',
         marker=dict(
             size=5,
-            color='red'
+            color=all_data['composite_uncertainty'] if args.colour_sigma else 'blue',  # Conditional coloring
+            coloraxis="coloraxis" if args.colour_sigma else None  # Use color axis only if color sigma is set
         ),
-        name='Smoothed'
+        name='dE vs dN',
+        text=[f"{time} Sigma dNdE: {unc:.4f}" for time, unc in
+              zip(all_data['Time'], all_data['composite_uncertainty'])],
+        hoverinfo='text+x+y'
     ))
 
-# Layout update with conditional color axis settings
-fig2.update_layout(
-    title=title_text,
-    xaxis_title='dE (meters)',
-    yaxis_title='dN (meters)',
-    xaxis=dict(scaleanchor="y", scaleratio=1),
-    yaxis=dict(scaleanchor="x", scaleratio=1),
-    coloraxis=dict(
-        colorscale=color_scale,
-        cmin=cmin,
-        cmax=cmax,
-        colorbar=dict(
-            title='Sigma Value',
-            x=0.5, y=-0.15,  # Adjusted for visibility
-            xanchor='center', yanchor='bottom',
-            len=0.75, thickness=20, orientation='h'
-        )
-    ) if args.colour_sigma else None,  # Apply color axis settings only if needed
-    showlegend=True
-)
-fig2.show()
-if args.save:
-    fig2.write_html("fig2.html")
-
-if args.map:
-    # Plotly plotting using mapbox open-street-map
-
-    # Adjust the zoom level dynamically based on the spread of the latitude and longitude
-    def adjust_zoom(latitudes, longitudes):
-        lat_range = np.ptp(latitudes)  # Peak to peak (range) of latitudes
-        lon_range = np.ptp(longitudes)  # Peak to peak (range) of longitudes
-        if max(lat_range, lon_range) < 0.02:
-            return 13  # City level zoom
-        elif max(lat_range, lon_range) < 0.1:
-            return 10  # Regional level zoom
-        elif max(lat_range, lon_range) < 1:
-            return 7  # Country level zoom
-        else:
-            return 5  # Continental level zoom
-
-    zoom_level = adjust_zoom(all_data['Latitude'], all_data['Longitude'])
-
-    fig3 = go.Figure(go.Scattermapbox(
-        lat=all_data['Latitude'],
-        lon=all_data['Longitude'],
-        mode='markers+lines',
-        marker=dict(size=5, color='blue')
-    ))
-
-    fig3.update_layout(
-        mapbox=dict(
-            style="open-street-map",
-            center=go.layout.mapbox.Center(
-                lat=all_data['Latitude'].mean(), 
-                lon=all_data['Longitude'].mean()
+    # Add smoothed data if available
+    if 'Smoothed_dN' in all_data.columns and 'Smoothed_dE' in all_data.columns:
+        fig2.add_trace(go.Scatter(
+            x=all_data['Smoothed_dE'], y=all_data['Smoothed_dN'],
+            mode='markers',
+            marker=dict(
+                size=5,
+                color='red'
             ),
-            zoom=zoom_level
-        ),
-        title='Geographic Plot of Latitude and Longitude',
-        showlegend=False
+            name='Smoothed'
+        ))
+
+    # Layout update with conditional color axis settings
+    fig2.update_layout(
+        title=title_text,
+        xaxis_title='dE (meters)',
+        yaxis_title='dN (meters)',
+        xaxis=dict(scaleanchor="y", scaleratio=1),
+        yaxis=dict(scaleanchor="x", scaleratio=1),
+        coloraxis=dict(
+            colorscale=color_scale,
+            cmin=cmin,
+            cmax=cmax,
+            colorbar=dict(
+                title='Sigma Value',
+                x=0.5, y=-0.15,  # Adjusted for visibility
+                xanchor='center', yanchor='bottom',
+                len=0.75, thickness=20, orientation='h'
+            )
+        ) if args.colour_sigma else None,  # Apply color axis settings only if needed
+        showlegend=True
     )
 
-    fig3.show()
-    if args.save:
-        fig2.write_html("fig3.html")
+    if show_plots:
+        fig2.show()
 
-if args.heatmap:
-    # Plotly plotting dN vs dE heatmap
-    fig4 = go.Figure()
-    fig4.add_trace(go.Histogram2dContour(
-        x = all_data['dE'],
-        y = all_data['dN'],
-        colorscale = 'Jet',
-        reversescale = False,
-        xaxis = 'x',
-        yaxis = 'y'
-    ))
-    fig4.add_trace(go.Scatter(
-        x = all_data['dE'],
-        y = all_data['dN'],
-        xaxis = 'x',
-        yaxis = 'y',
-        mode = 'markers',
-        marker = dict(
-            color = 'rgba(0,0,0,0.3)',
-            size = 3
+    if args.save_prefix is not None:
+        output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig2.html")
+        os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+        fig2.write_html(output_path)
+
+    ## Fig3
+    if getattr(args, 'map', False) or getattr(args, 'map_view', False):
+        # Plotly plotting using mapbox open-street-map
+
+        # Adjust the zoom level dynamically based on the spread of the latitude and longitude
+        def adjust_zoom(latitudes, longitudes):
+            lat_range = np.ptp(latitudes)  # Peak to peak (range) of latitudes
+            lon_range = np.ptp(longitudes)  # Peak to peak (range) of longitudes
+            if max(lat_range, lon_range) < 0.02:
+                return 13  # City level zoom
+            elif max(lat_range, lon_range) < 0.1:
+                return 10  # Regional level zoom
+            elif max(lat_range, lon_range) < 1:
+                return 7  # Country level zoom
+            else:
+                return 5  # Continental level zoom
+
+        zoom_level = adjust_zoom(all_data['Latitude'], all_data['Longitude'])
+
+        fig3 = go.Figure(go.Scattermapbox(
+            lat=all_data['Latitude'],
+            lon=all_data['Longitude'],
+            mode='markers+lines',
+            marker=dict(size=5, color='blue')
+        ))
+
+        fig3.update_layout(
+            mapbox=dict(
+                style="open-street-map",
+                center=go.layout.mapbox.Center(
+                    lat=all_data['Latitude'].mean(),
+                    lon=all_data['Longitude'].mean()
+                ),
+                zoom=zoom_level
+            ),
+            title='Geographic Plot of Latitude and Longitude',
+            showlegend=False
         )
-    ))
-    fig4.add_trace(go.Scatter(
-        x = all_data['dE_weighted_mean'],
-        y = all_data['dN_weighted_mean'],
-        xaxis = 'x',
-        yaxis = 'y',
-        mode = 'markers',
-        marker = dict(
-            color="white",
-            size = 15,
-            line_color='black',
-            symbol='x-dot',
-            line_width=2
-        ),
-        hoverinfo='text+x+y',
-        text='Weighted Mean (dE, dN)'
-    ))
-    fig4.add_trace(go.Histogram(
-        y = all_data['dN'],
-        xaxis = 'x2',
-        marker = dict(
-            color = 'rgba(0,0,0,1)'
+
+        if show_plots:
+            fig3.show()
+
+        if args.save_prefix is not None:
+            output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig3.html")
+            os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+            fig3.write_html(output_path)
+
+    ## Fig4
+    if args.heatmap:
+        # Plotly plotting dN vs dE heatmap
+        fig4 = go.Figure()
+        fig4.add_trace(go.Histogram2dContour(
+            x=all_data['dE'],
+            y=all_data['dN'],
+            colorscale='Jet',
+            reversescale=False,
+            xaxis='x',
+            yaxis='y'
+        ))
+        fig4.add_trace(go.Scatter(
+            x=all_data['dE'],
+            y=all_data['dN'],
+            xaxis='x',
+            yaxis='y',
+            mode='markers',
+            marker=dict(
+                color='rgba(0,0,0,0.3)',
+                size=3
+            )
+        ))
+        fig4.add_trace(go.Scatter(
+            x=all_data['dE_weighted_mean'],
+            y=all_data['dN_weighted_mean'],
+            xaxis='x',
+            yaxis='y',
+            mode='markers',
+            marker=dict(
+                color="white",
+                size=15,
+                line_color='black',
+                symbol='x-dot',
+                line_width=2
+            ),
+            hoverinfo='text+x+y',
+            text='Weighted Mean (dE, dN)'
+        ))
+        fig4.add_trace(go.Histogram(
+            y=all_data['dN'],
+            xaxis='x2',
+            marker=dict(
+                color='rgba(0,0,0,1)'
+            )
+        ))
+        fig4.add_trace(go.Histogram(
+            x=all_data['dE'],
+            yaxis='y2',
+            marker=dict(
+                color='rgba(0,0,0,1)'
+            )
+        ))
+
+        fig4.update_layout(
+            autosize=False,
+            xaxis=dict(
+                zeroline=False,
+                domain=[0, 0.85],
+                showgrid=False
+            ),
+            yaxis=dict(
+                zeroline=False,
+                domain=[0, 0.85],
+                showgrid=False
+            ),
+            xaxis2=dict(
+                zeroline=False,
+                domain=[0.85, 1],
+                showgrid=False
+            ),
+            yaxis2=dict(
+                zeroline=False,
+                domain=[0.85, 1],
+                showgrid=False
+            ),
+            title=title_text,
+            xaxis_title='dE (meters)',
+            yaxis_title='dN (meters)',
+            height=800,
+            width=800,
+            bargap=0,
+            hovermode='closest',
+            showlegend=False
         )
-    ))
-    fig4.add_trace(go.Histogram(
-        x = all_data['dE'],
-        yaxis = 'y2',
-        marker = dict(
-            color = 'rgba(0,0,0,1)'
-        )
-    ))
 
-    fig4.update_layout(
-    autosize = False,
-    xaxis = dict(
-        zeroline = False,
-        domain = [0,0.85],
-        showgrid = False
-    ),
-    yaxis = dict(
-        zeroline = False,
-        domain = [0,0.85],
-        showgrid = False
-    ),
-    xaxis2 = dict(
-        zeroline = False,
-        domain = [0.85,1],
-        showgrid = False
-    ),
-    yaxis2 = dict(
-        zeroline = False,
-        domain = [0.85,1],
-        showgrid = False
-    ),
-    title=title_text,
-    xaxis_title='dE (meters)',
-    yaxis_title='dN (meters)',
-    height = 800,
-    width = 800,
-    bargap = 0,
-    hovermode = 'closest',
-    showlegend = False
-    )
+        if show_plots:
+            fig4.show()
 
-    fig4.show()
-    if args.save:
-        fig4.write_html("fig4.html")
+        if args.save_prefix is not None:
+            output_path = os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig4.html")
+            os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+            fig4.write_html(output_path)
 
+def _process_and_plot(input_files, args, show_plots=False):
+    """
+    Internal helper to process POS data and generates plots. Shared function between the CLI and program UI call modes.
 
+    Arguments:
+        input_files (list): One or more input .POS file paths.
+        args (object): Arguments for plot_pos call.
+        show_plots (bool): If True, open plots in browser, or if False, only save files for UI to access.
 
+    Returns:
+        list: Paths to generated HTML files when args.save_prefix is provided, empty list otherwise.
+    """
+    # Parse the start and end datetime if provided
+    start_datetime = parse_datetime(args.start_datetime) if args.start_datetime else None
+    end_datetime = parse_datetime(args.end_datetime) if args.end_datetime else None
 
+    # Load and process data
+    all_data = pd.DataFrame()
+    for file_path in input_files:
+        file_data = parse_pos_format(file_path)
+        all_data = pd.concat([all_data, file_data], ignore_index=True)
 
+    all_data['Time'] = pd.to_datetime(all_data['Time'], format="%Y-%m-%dT%H:%M:%S.%f")
+
+    # Apply time windowing
+    if start_datetime:
+        all_data = all_data[all_data['Time'] >= start_datetime]
+    if end_datetime:
+        all_data = all_data[all_data['Time'] <= end_datetime]
+
+    # Apply threshold filtering if sigma_threshold is provided
+    if args.sigma_threshold:
+        se_threshold, sn_threshold, su_threshold = args.sigma_threshold
+        mask = (all_data['sE'] <= se_threshold) & (all_data['sN'] <= sn_threshold) & (
+                all_data['sU'] <= su_threshold) & (all_data['sElevation'] <= su_threshold)
+        all_data = all_data[mask]
+
+    # Down-sample the data if requested
+    if args.down_sample:
+        # Ensure the 'Time' column is datetime for proper indexing
+        all_data['Time'] = pd.to_datetime(all_data['Time'])
+        all_data.set_index('Time', inplace=True)
+        # Resample and take the first available data point in each bin
+        all_data = all_data.resample(f'{args.down_sample}s').first().dropna().reset_index()
+
+    # Demean, smooth, and compute statistics
+    if args.demean:
+        all_data = remove_weighted_mean(all_data)
+    all_data = apply_smoothing(all_data, args.horz_smoothing, args.vert_smoothing)
+    all_data, component_stats = compute_statistics(all_data)
+
+    # Generate plots
+    create_plots(all_data, input_files, component_stats, args, show_plots = show_plots)
+
+    # Return list of generated files
+    if args.save_prefix:
+        input_root = Path(input_files[0]).stem
+        generated_files = []
+        generated_files.append(os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig1.html"))
+        generated_files.append(os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig2.html"))
+        # Access map and / or heatmap
+        if getattr(args, 'map', False) or getattr(args, 'map_view', False):
+            generated_files.append(os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig3.html"))
+        if args.heatmap:
+            generated_files.append(os.path.join(os.path.dirname(args.save_prefix), f"{input_root}_fig4.html"))
+        return generated_files
+
+    return []
+
+def plot_pos_files(input_files, start_datetime=None, end_datetime=None,
+                   horz_smoothing=None, vert_smoothing=None, colour_sigma=False,
+                   max_sigma=None, elevation=False, demean=False, map_view=False,
+                   heatmap=False, sigma_threshold=None, down_sample=None,
+                   save_prefix=None):
+    """
+    Generate the interactive figures from one or more POS files (the programmatic call for Ginan-UI to use).
+
+    This function provides a programmatic way of generating visualisations
+
+    Arguments:
+        input_files (list): One or more input .POS file paths.
+        start_datetime (str, optional): Start time (e.g., 'YYYY-MM-DDTHH:MM:SS').
+        end_datetime (str, optional): End time (e.g., 'YYYY-MM-DDTHH:MM:SS').
+        horz_smoothing (float, optional): LOWESS fraction for horizontal components (dN / dE).
+        vert_smoothing (float, optional): LOWESS fraction for vertical component (dU or Elevation).
+        colour_sigma (bool): If True, colour markers by sigma; otherwise show error bars.
+        max_sigma (float, optional): Upper cap for sigma colour scale when colour_sigma is True.
+        elevation (bool): If True, use 'Elevation' instead of 'dU' for vertical plotting.
+        demean (bool): If True, remove weighted mean from each series before plotting.
+        map_view (bool): If True, generate a geographic map (fig3).
+        heatmap (bool): If True, generate a 2D dE–dN density view (fig4).
+        sigma_threshold (tuple, optional): (sE, sN, sU) for filtering rows.
+        down_sample (int, optional): Resampling interval in seconds.
+        save_prefix (str, optional): If provided, write HTML files next to this prefix.
+
+    Returns:
+        list: Paths to generated HTML files when save_prefix is provided; empty list otherwise.
+    """
+    class Args:
+        def __init__(self):
+            self.input_files = input_files
+            self.start_datetime = start_datetime
+            self.end_datetime = end_datetime
+            self.horz_smoothing = horz_smoothing
+            self.vert_smoothing = vert_smoothing
+            self.colour_sigma = colour_sigma
+            self.max_sigma = max_sigma
+            self.elevation = elevation
+            self.demean = demean
+            self.map = map_view
+            self.heatmap = heatmap
+            self.sigma_threshold = sigma_threshold
+            self.down_sample = down_sample
+            self.save_prefix = save_prefix
+
+    args = Args()
+
+    # "show_plots = False" flags to remain in UI (don't open web browser)
+    return _process_and_plot(input_files, args, show_plots = False)
+
+# CLI Entry
+if __name__ == "__main__":
+    # Setup and parse arguments
+    parser = argparse.ArgumentParser(description="Plot positional data with optional smoothing and color coding.")
+    parser.add_argument('--input-files', nargs='+', required=True, help='One or more input .POS files')
+    parser.add_argument('--start-datetime', type=str,
+                        help="Start datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone")
+    parser.add_argument('--end-datetime', type=str,
+                        help="End datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone")
+    parser.add_argument('--horz-smoothing', type=float, default=None,
+                        help='Fraction of the data used for horizontal (East and North) LOWESS smoothing (optional).')
+    parser.add_argument('--vert-smoothing', type=float, default=None,
+                        help='Fraction of the data used for vertical (Up) LOWESS smoothing (optional).')
+    parser.add_argument('--colour-sigma', action='store_true',
+                        help='Colourize the timeseries using the standard deviation (sigma) values (optional).')
+    parser.add_argument('--max-sigma', type=float, default=None,
+                        help='Set a maximum sigma threshold for the sigma colour scale (optional).')
+    parser.add_argument('--elevation', action='store_true',
+                        help='Plot Elevation values inplace of dU wrt the reference coord (optional).')
+    parser.add_argument('--demean', action='store_true',
+                        help='Remove the mean values from all time series before plotting (optional).')
+    parser.add_argument('--map', action='store_true',
+                        help='Create a geographic map view from the Longitude & Latitude estiamtes (optional).')
+    parser.add_argument('--heatmap', action='store_true',
+                        help='Create a 2D heatmap view of E & N coodrinates wrt the reference position  (optional).')
+    parser.add_argument('--sigma-threshold', nargs=3, type=float,
+                        help="Thresholds for sE, sN, and sU to filter data.")
+    parser.add_argument('--down-sample', type=int,
+                        help="Interval in seconds for down-sampling data.")
+    parser.add_argument('--save-prefix', nargs='?', const='plot', default=None,
+                        help='Prefix for saving HTML figures, e.g., ./output/fig')
+    args = parser.parse_args()
+
+    # "show_plots = True" flags to open the HTML file in web browser
+    _process_and_plot(args.input_files, args, show_plots = True)

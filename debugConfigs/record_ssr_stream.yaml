@@ -2,7 +2,7 @@
 
 inputs:
 
-    inputs_root: ./products/RAP/
+    inputs_root: ./products/latest/
 
     atx_files:
     - igs20.atx
@@ -10,6 +10,8 @@ inputs:
     snx_files:
     - igs_satellite_metadata.snx
     - tables/sat_yaw_bias_rate.snx
+    - tables/bds_yaw_modes.snx
+    - tables/qzss_yaw_modes.snx
 
     gnss_observations:
         gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
@@ -35,6 +37,10 @@ outputs:
 
     output_rotation:
         period:                     86400
+
+    log:
+        output:                     true
+        filename:                   <CONFIG>_<YYYY><DDD><HH><mm>_LOG.json
 
     rtcm_nav:
         output:                     true
@@ -62,12 +68,27 @@ outputs:
         clock_sources:              [ SSR ]
         output_interval:            300
 
+satellite_options:
+
+    global:
+        models:
+            pos:
+                enable:                    true
+                sources:                   [ SSR ]
+            clock:
+                enable:                    true
+                sources:                   [ SSR ]
+
 processing_options:
+
+    process_modes:
+        spp:                        false
 
     epoch_control:
         require_obs:                false
-        epoch_interval:             1
-        wait_next_epoch:            1
+        epoch_interval:             10
+        wait_next_epoch:            10
+        max_rec_latency:            1
         sleep_milliseconds:         1
 
     gnss_general:

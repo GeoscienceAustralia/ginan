@@ -1,21 +1,33 @@
-cmake_minimum_required(VERSION 2.8...3.22)
+cmake_minimum_required(VERSION 3.22)
 cmake_policy(SET CMP0063 NEW)
-list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/openblas")
 project(ginan)
+
+# Set C++ standard before any other configuration
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(CheckPIESupported)
 check_pie_supported()
 
-set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../lib")
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../lib")
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../../bin")
+# Use absolute paths for output directories to support nested build directories
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
 
 set(CMAKE_MODULE_PATH					"${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_VISIBILITY_PRESET     	hidden)
 set(CMAKE_VERBOSE_MAKEFILE				OFF)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-	message(STATUS "Using Clang complient compiler flags")
+# Platform-specific compiler flags
+if(WIN32)
+	# Windows-specific flags
+	message(STATUS "Using Windows compiler flags")
+	# Note: WIN32_WINNT and LEAN_AND_MEAN are set in toolchain file
+	# Disable some warnings on Windows
+	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+	message(STATUS "Using Clang compliant compiler flags")
 
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-shift-overflow")
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-string-concatenation")
@@ -27,7 +39,6 @@ else ()
 endif ()
 
 
-	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -std=c++2a")
 #	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -ggdb3")
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fpermissive")
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
@@ -53,8 +64,12 @@ endif ()
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_CXX_FLAGS					"${CMAKE_CXX_FLAGS} -O0 -g")
+	set(CMAKE_C_FLAGS					"${CMAKE_C_FLAGS} -O0 -g")
+endif ()
 
-	option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
+option(BUILD_DOC                "BUILD_DOCUMENTATION"       OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	option(ENABLE_PARALLELISATION   "ENABLE_PARALLELISATION"    OFF)
@@ -92,7 +107,21 @@ endif()
 
 if(ENABLE_PARALLELISATION)
 	message(STATUS "Setting parallelisation   on")
-	find_package(OpenMP REQUIRED)
+	# For cross-compilation, OpenMP tests may fail but the library works
+	if(CMAKE_CROSSCOMPILING)
+		set(OpenMP_C_FLAGS "-fopenmp -static-libgcc")
+		set(OpenMP_CXX_FLAGS "-fopenmp -static-libgcc")
+		set(OpenMP_C_LIB_NAMES "gomp")
+		set(OpenMP_CXX_LIB_NAMES "gomp")
+		set(OpenMP_gomp_LIBRARY "gomp")
+		find_package(OpenMP)
+		# For Windows cross-compile, link everything statically
+		if(WIN32)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+		endif()
+	else()
+		find_package(OpenMP REQUIRED)
+	endif()
 	set (CMAKE_CXX_FLAGS				"${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 	set (CMAKE_C_FLAGS					"${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 else()
@@ -159,20 +188,57 @@ endif()
 set(YAML_CPP_USE_STATIC_LIBS ON)
 find_package(YAML_CPP 0.6.2 REQUIRED)
 
+# OpenSSL - use MODULE mode for vcpkg compatibility (wrapper handles it)
 find_package(OpenSSL REQUIRED)
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.73.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer stacktrace_addr2line)
+find_package(Boost 1.75.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer json)
 
-find_package(Eigen3 3.3.0)
+# Try CONFIG mode first (for vcpkg), fall back to module mode (for brew/system)
+find_package(Eigen3 3.3.0 CONFIG QUIET)
+if(NOT Eigen3_FOUND)
+    find_package(Eigen3 3.3.0)
+endif()
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
-find_package(mongocxx	REQUIRED)
-find_package(bsoncxx	REQUIRED)
+# MongoDB is optional - platforms like MinGW/Windows may not support it
+# Users can force it off by setting ENABLE_MONGODB=OFF
+# On Windows, MongoDB is disabled by default
+if(WIN32)
+    option(ENABLE_MONGODB "Enable MongoDB support" OFF)
+else()
+    option(ENABLE_MONGODB "Enable MongoDB support" ON)
+endif()
 
-set (NETCDF_CXX "YES")
-find_package(NetCDF		REQUIRED)
+if(ENABLE_MONGODB)
+    # Try CONFIG mode first (for vcpkg), fall back to module mode (for brew/system)
+    find_package(mongocxx CONFIG QUIET)
+    if(mongocxx_FOUND)
+        find_package(bsoncxx CONFIG QUIET)
+        if(bsoncxx_FOUND)
+            set(ENABLE_MONGODB ON)
+            message(STATUS "MongoDB support enabled")
+        else()
+            message(STATUS "MongoDB bsoncxx not found - building without MongoDB support")
+            set(ENABLE_MONGODB OFF)
+        endif()
+    else()
+        message(STATUS "MongoDB mongocxx not found - building without MongoDB support")
+        set(ENABLE_MONGODB OFF)
+    endif()
+else()
+    message(STATUS "MongoDB support disabled by user")
+endif()
+
+# Using local magic_enum header in 3rdparty directory
+
+set(NETCDF_CXX "YES")
+find_package(NetCDF)
+if (NOT NetCDF_FOUND)
+	message(STATUS "NetCDF library not found, skip compiling loading packages.")
+endif()
+
 
 # message(STATUS "...NETCDF     >>>>>>   ${NETCDF_LIBRARIES}     ${NETCDF_INCLUDES}" )
 # message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
@@ -181,15 +247,20 @@ find_package(NetCDF		REQUIRED)
 # set(OPENBLAS_USE_STATIC_LIBS ON)
 # set(BLA_VENDOR open)
 
-find_package(BLAS)
-if(BLAS_FOUND)
-	set(LAPACK_LIBRARIES "")
-	message(STATUS "Found BLAS library:       " ${BLA_VENDOR})
+find_package(BLAS REQUIRED)
+
+# Try to find LAPACK - OpenBLAS includes LAPACK so it may be found there
+find_package(LAPACK QUIET)
+
+if(LAPACK_FOUND)
+    message(STATUS "Found BLAS library:       ${BLAS_LIBRARIES}")
+    message(STATUS "Found LAPACK library:     ${LAPACK_LIBRARIES}")
 else()
-	set (BLA_VENDOR "")
-	find_package(LAPACK REQUIRED)
-	find_package(BLAS   REQUIRED)
-	message(STATUS "Found LAPACK and BLAS")
+    # OpenBLAS includes LAPACK but FindLAPACK might not detect it
+    # Use BLAS libraries which include LAPACK functionality
+    message(STATUS "Found BLAS library:       ${BLAS_LIBRARIES}")
+    message(STATUS "LAPACK not found separately - assuming BLAS includes LAPACK (OpenBLAS)")
+    set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
 endif()
 
 if (YAML_CPP_LIB)
@@ -222,73 +293,25 @@ else()
 	message(STATUS "Mongocxx was not found")
 endif()
 
-	message(STATUS "Found C++ compiler:       " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
 
 
-IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
-	FIND_PACKAGE(Git)
-	IF(GIT_FOUND)
+message(STATUS "Found C++ compiler:       " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaLibVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaLibVersion.h @ONLY)
 
-		EXECUTE_PROCESS(
-			COMMAND ${GIT_EXECUTABLE} log --pretty=format:'%H' -n 1
-			OUTPUT_VARIABLE GINAN_COMMIT_HASH
-			ERROR_QUIET
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-			)
-		EXECUTE_PROCESS(
-			COMMAND bash -c "git diff --quiet --exit-code || echo -dirty "
-			OUTPUT_VARIABLE GINAN_COMMIT_DIFF
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-			)
-		EXECUTE_PROCESS(
-			COMMAND ${GIT_EXECUTABLE} describe --exact-match --tags
-			OUTPUT_VARIABLE GINAN_COMMIT_TAG ERROR_QUIET
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-			)
-		EXECUTE_PROCESS(
-			COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-			OUTPUT_VARIABLE GINAN_BRANCH_NAME
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-			)
-		string(FIND "${GINAN_BRANCH_NAME}" "/" SLASH_POSITION)
-		if(SLASH_POSITION GREATER -1)
-			string(SUBSTRING "${GINAN_BRANCH_NAME}" ${SLASH_POSITION} -1 GINAN_BRANCH_NAME)
-			string(SUBSTRING "${GINAN_BRANCH_NAME}" 1 -1 GINAN_BRANCH_NAME) # Remove the leading '/'
-		endif()
-		EXECUTE_PROCESS(
-			COMMAND ${GIT_EXECUTABLE} log -1 --format=%cd --date=local
-			OUTPUT_VARIABLE "GINAN_COMMIT_DATE"
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-			)
+include(GitVersion)
 
-		if (GINAN_COMMIT_TAG STREQUAL "")
-			set(GINAN_COMMIT_TAG "untagged")
-		endif()
-		string(REGEX REPLACE "'" "" GINAN_COMMIT_HASH "${GINAN_COMMIT_HASH}")
+# Ensure the file with the commit version is generated before compiling
+add_custom_target(updateGit ALL
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GitVersion.cmake
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Updating git version"
+)
 
-		SET(GINAN_COMMIT_VERSION "${GINAN_COMMIT_TAG}-${GINAN_COMMIT_HASH}${GINAN_COMMIT_DIFF}")
-		MESSAGE(STATUS "Git branch tag:           ${GINAN_COMMIT_VERSION}")
-		MESSAGE(STATUS "Git branch:               ${GINAN_BRANCH_NAME}")
-	ELSE(GIT_FOUND)
-		SET(GINAN_COMMIT_VERSION "N/A")
-		SET(GINAN_COMMIT_DIFF "N/A")
-		SET(GINAN_COMMIT_TAG "N/A")
-		SET(GINAN_BRANCH_NAME "N/A")
-		MESSAGE(STATUS "Git not found: ${GINAN_COMMIT_VERSION}")
-	ENDIF(GIT_FOUND)
-ELSE()
-	MESSAGE( STATUS "Git not found in ${CMAKE_CURRENT_SOURCE_DIR}/..")
-ENDIF()
+# Make sure it regenerates every time the project is built
 
+link_directories(/usr/lib64 ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-link_directories(/usr/lib64 ${CMAKE_BINARY_DIR}/../../lib)
-
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h @ONLY)
+# CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/cpp/pea/peaCommitVersion.h @ONLY)
 
 
 add_subdirectory(cpp)

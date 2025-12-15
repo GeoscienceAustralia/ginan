@@ -1,75 +1,103 @@
-
 // #pragma GCC optimize ("O0")
 
-#include "interactiveTerminal.hpp"
-#include "receiver.hpp"
-#include "summary.hpp"
+#include "common/summary.hpp"
+#include "common/acsConfig.hpp"
+#include "common/receiver.hpp"
 
 void outputStatistics(
-	Trace&				trace,
-	map<string, int>&	statisticsMap,
-	map<string, int>&	statisticsMapSum)
+    Trace&            trace,
+    map<string, int>& statisticsMap,
+    map<string, int>& statisticsMapSum
+)
 {
-	for (auto& [str, count] : statisticsMap)
-	{
-		statisticsMapSum[str] += count;
-	}
+    if (acsConfig.output_statistics == false)
+    {
+        return;
+    }
 
-	{	InteractiveTerminal	ss(			"Filter-Statistics/Epoch", trace);
-		Block				block(ss,	"Filter-Statistics/Epoch");				for (auto& [str, count] : statisticsMap)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
-	{	InteractiveTerminal ss(			"Filter-Statistics/Total", trace);
-		Block				block(ss,	"Filter-Statistics/Total");				for (auto& [str, count] : statisticsMapSum)		tracepdeex(0, ss, "! %-40s: %d\n", str.c_str(), count);		}
+    for (auto& [str, count] : statisticsMap)
+    {
+        statisticsMapSum[str] += count;
+    }
 
-	statisticsMap.clear();
+    {
+        Block block(trace, "Filter-Statistics/Epoch");
+        for (auto& [str, count] : statisticsMap)
+            tracepdeex(0, trace, "! %-75s: %d\n", str.c_str(), count);
+    }
+    {
+        Block block(trace, "Filter-Statistics/Total");
+        for (auto& [str, count] : statisticsMapSum)
+            tracepdeex(0, trace, "! %-75s: %d\n", str.c_str(), count);
+    }
+
+    statisticsMap.clear();
 }
 
 /** Output statistics from each station.
-* Including observation counts, slips, beginning and ending epochs*/
+ * Including observation counts, slips, beginning and ending epochs*/
 void outputSummaries(
-	Trace&		trace,		///< Trace stream to output to
-	ReceiverMap&	receiverMap)	///< Map of stations used throughout the program.
+    Trace&       trace,       ///< Trace stream to output to
+    ReceiverMap& receiverMap  ///< Map of stations used throughout the program.
+)
 {
-	trace << "\n" << "--------------- SUMMARIES ------------------- " << "\n";
+    if (acsConfig.output_summaries == false)
+    {
+        return;
+    }
 
-	for (auto& [id, rec] : receiverMap)
-	{
-		trace << "\n" << "------------------- " << rec.id << " --------------------";
-		auto a	= boost::posix_time::from_time_t((time_t)rec.firstEpoch.bigTime);
-		auto b	= boost::posix_time::from_time_t((time_t)rec.lastEpoch.	bigTime);
-		auto ab	= b-a;
+    trace << "\n"
+          << "--------------- SUMMARIES ------------------- " << "\n";
 
-		trace << "\n" << "First Epoch : " << a;
-		trace << "\n" << "Last  Epoch : " << b;
-		trace << "\n" << "Epoch Count : " << rec.epochCount;
-		if (rec.epochCount > 1)
-			trace << "\n" << "Epoch Step  : " << ab / (rec.epochCount - 1);
-		trace << "\n" << "Duration    : " << ab;
-		trace << "\n" << "Observations: " << rec.obsCount;
+    for (auto& [id, rec] : receiverMap)
+    {
+        trace << "\n"
+              << "------------------- " << rec.id << " --------------------";
+        auto a  = boost::posix_time::from_time_t((time_t)rec.firstEpoch.bigTime);
+        auto b  = boost::posix_time::from_time_t((time_t)rec.lastEpoch.bigTime);
+        auto ab = b - a;
 
-		bool first = true;
-		trace << "\n" << "By Code     : ";
-		for (auto& [code, count] : rec.codeCount)
-		{
-			if (first)
-				first = false;
-			else
-				trace << "  |  ";
+        trace << "\n"
+              << "First Epoch : " << a;
+        trace << "\n"
+              << "Last  Epoch : " << b;
+        trace << "\n"
+              << "Epoch Count : " << rec.epochCount;
+        if (rec.epochCount > 1)
+            trace << "\n"
+                  << "Epoch Step  : " << ab / (rec.epochCount - 1);
+        trace << "\n"
+              << "Duration    : " << ab;
+        trace << "\n"
+              << "Observations: " << rec.obsCount;
 
-			trace << code._to_string() << " : " << count;
-		}
+        bool first = true;
+        trace << "\n"
+              << "By Code     : ";
+        for (auto& [code, count] : rec.codeCount)
+        {
+            if (first)
+                first = false;
+            else
+                trace << "  |  ";
 
-		first = true;
-		trace << "\n" << "By Satellite: ";
-		for (auto& [sat, count] : rec.satCount)
-		{
-			if (first)
-				first = false;
-			else
-				trace << "  |  ";
+            trace << enum_to_string(code) << " : " << count;
+        }
 
-			trace << sat << " : " << count;
-		}
-		trace << "\n" << "GObs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
-		trace << "\n";
-	}
+        first = true;
+        trace << "\n"
+              << "By Satellite: ";
+        for (auto& [sat, count] : rec.satCount)
+        {
+            if (first)
+                first = false;
+            else
+                trace << "  |  ";
+
+            trace << sat << " : " << count;
+        }
+        trace << "\n"
+              << "GObs/Slips   : " << rec.obsCount / (rec.slipCount + 1);
+        trace << "\n";
+    }
 }

@@ -1,46 +1,44 @@
-
 #pragma once
 
-#include "streamSerial.hpp"
-#include "tcpSocket.hpp"
-
-
 #include <mutex>
+#include "common/streamSerial.hpp"
+#include "common/tcpSocket.hpp"
 
-
-
-struct NtripStream : TcpSocket
+struct NtripResponder : TcpSocket
 {
-	NtripStream(
-		const string& url_str)
-		:	TcpSocket(url_str)
-	{
-		std::stringstream	requestStream;
-							requestStream	<< "GET " 		<< url.path << " HTTP/1.1"				<< "\r\n";
-							requestStream	<< "Host: " 	<< url.host								<< "\r\n";
-							requestStream	<< "Ntrip-Version: Ntrip/2.0"							<< "\r\n";
-							requestStream	<< "User-Agent: NTRIP ACS/1.0"							<< "\r\n";
-		if (!url.user.empty())
-		{
-							requestStream	<< "Authorization: Basic "
-											<< Base64::encode(string(url.user + ":" + url.pass))	<< "\r\n";
-		}
-							requestStream	<< "Connection: close"									<< "\r\n";
-							requestStream	<< "\r\n";
+    NtripResponder(const string& url_str) : TcpSocket(url_str) {}
 
-		requestString = requestStream.str();
+    void requestResponseHandler(const boost::system::error_code& err) override;
 
-		connect();
-	}
-
-	void requestResponseHandler(
-		const boost::system::error_code& err)
-	override;
-
-	void serverResponse(
-		unsigned int	statusCode,
-		string			httpVersion);
-
-	~NtripStream(){};
+    virtual void serverResponse(unsigned int statusCode, string httpVersion)
+    {
+        std::cout << "Code Error: No server response defined" << std::endl;
+    };
 };
 
+struct NtripStream : NtripResponder
+{
+    NtripStream(const string& url_str) : NtripResponder(url_str)
+    {
+        std::stringstream requestStream;
+        requestStream << "GET " << url.path << " HTTP/1.1" << "\r\n";
+        requestStream << "Host: " << url.host << "\r\n";
+        requestStream << "Ntrip-Version: Ntrip/2.0" << "\r\n";
+        requestStream << "User-Agent: NTRIP ACS/1.0" << "\r\n";
+        if (!url.user.empty())
+        {
+            requestStream << "Authorization: Basic "
+                          << Base64::encode(string(url.user + ":" + url.pass)) << "\r\n";
+        }
+        requestStream << "Connection: close" << "\r\n";
+        requestStream << "\r\n";
+
+        requestString = requestStream.str();
+
+        connect();
+    }
+
+    void serverResponse(unsigned int statusCode, string httpVersion) override;
+
+    ~NtripStream() {};
+};

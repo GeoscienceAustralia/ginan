@@ -1,5 +1,18 @@
 # Coding Standards for C++
 
+## Automatic Formatting
+
+This project uses clang-format (we use version 20) for automatic code formatting. The formatting rules are defined in the `.clang-format` file in the project root.
+
+To format your code:
+```bash
+# Format a single file
+clang-format -i path/to/your/file.cpp
+
+# Format all C++ files in src/cpp except 3rdpart
+find src/cpp -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.c" -o -name "*.h" -o -name "*.cc" -o -name "*.cxx" \) -not -path "src/cpp/3rdparty/*" -exec clang-format -i {} +
+```
+
 ## Code style
 Decades of experience has shown that codebases that are built with concise, clean code have fewer issues and are easier to maintain. If submitting a pull request for a patch to the software, please ensure your code meets the following standards.
 
@@ -14,66 +27,68 @@ Overall we are aiming to
 
 ### Unconcise code - Not recommended
 
-	//check first letter of satellite type against something
+    //check first letter of satellite type against something
 
-	if (obs.Sat.id().c_str()[0]) == 'G') 
-	    doSomething(); 
-	else if (obs.Sat.id().c_str()[0]) == 'R')
-	    doSomething();
-	else if (obs.Sat.id().c_str()[0]) == 'E')
-	    doSomething();
-	else if (obs.Sat.id().c_str()[0]) == 'I')
-	    doSomething();
-    
+    if (obs.Sat.id().c_str()[0]) == 'G')
+        doSomething();
+    else if (obs.Sat.id().c_str()[0]) == 'R')
+        doSomething();
+    else if (obs.Sat.id().c_str()[0]) == 'E')
+        doSomething();
+    else if (obs.Sat.id().c_str()[0]) == 'I')
+        doSomething();
+
 
 ### Clear Code - Good
 
-	char& sysChar = obs.Sat.id().c_str()[0];
+    char& sysChar = obs.Sat.id().c_str()[0];
 
-	switch (sysChar)
-	{
-	    case 'G':   doSomething();   break;
-	    case 'R':   doSomething();   break;
-	    case 'E':   doSomething();   break;
-	    case 'I':   doSomething();   break;
-	}
+    switch (sysChar)
+    {
+        case 'G':   doSomething();   break;
+        case 'R':   doSomething();   break;
+        case 'E':   doSomething();   break;
+        case 'I':   doSomething();   break;
+    }
 
 
 ## Spacing, Indentation, and layout
 
-* Use tabs, with tab spacing set to 4.	
-* Use space or tabs before and after any ` + - * / = < > == != % ` etc..
-* Use space, tab or new line after any `, ;`
+* Use spaces (not tabs), with indentation width set to 4 spaces.
+* Use space before and after any ` + - * / = < > == != % ` etc..
+* Use space or new line after any `, ;`
 * Use a new line after if statements.
-* Use tabs to keep things tidy - If the same function is called multiple times with different parameters, the parameters should line up.
+* Use spaces to keep things tidy - If the same function is called multiple times with different parameters, the parameters should line up.
+* Line length should not exceed 100 characters.
+* Use Allman brace style (braces on new lines).
 
 ### Scattered Parameters - Bad
 
-	trySetFromYaml(mongo_metadata,output_files,{"mongo_metadata" });
-	trySetFromYaml(mongo_output_measurements,output_files,{"mongo_output_measurements" });
-	trySetFromYaml(mongo_states,output_files,{"mongo_states" });
+    trySetFromYaml(mongo_metadata,output_files,{"mongo_metadata" });
+    trySetFromYaml(mongo_output_measurements,output_files,{"mongo_output_measurements" });
+    trySetFromYaml(mongo_states,output_files,{"mongo_states" });
 
 ### Aligned Parameters - Good
 
-	trySetFromYaml(mongo_metadata,             output_files, {"mongo_metadata"              });
-	trySetFromYaml(mongo_output_measurements,  output_files, {"mongo_output_measurements"	});
-	trySetFromYaml(mongo_states,               output_files, {"mongo_states"		        });
+    trySetFromYaml(mongo_metadata,             output_files, {"mongo_metadata"              });
+    trySetFromYaml(mongo_output_measurements,  output_files, {"mongo_output_measurements"   });
+    trySetFromYaml(mongo_states,               output_files, {"mongo_states"                });
 
 ## Statements
 
-One statement per line 
+One statement per line
 
 - `*`unless you have a very good reason
 
 ### Multiple Statements per Line - Bad
 
-	z[k]=ROUND(zb[k]); y=zb[k]-z[k]; step[k]=SGN(y);
+    z[k]=ROUND(zb[k]); y=zb[k]-z[k]; step[k]=SGN(y);
 
 ### Single Statement per Line - Good
 
-	z[k]    = ROUND(zb[k]);
-	y       = zb[k]-z[k]; 
-	step[k] = SGN(y);
+    z[k]    = ROUND(zb[k]);
+    y       = zb[k]-z[k];
+    step[k] = SGN(y);
 
 ### Example of a good reason:
 
@@ -81,53 +96,61 @@ One statement per line
 
 #### Normal
 
-	switch (sysChar)
-	{
-	    case ' ':
-	    case 'G': 
-	        *sys = E_Sys::GPS; 
-	        *tsys = TSYS_GPS; 
-	        break;
-	    case 'R': 
-	        *sys = E_Sys::GLO;  
-	        *tsys = TSYS_UTC; 
-	        break;
-	    case 'E': 
-	        *sys = E_Sys::GAL;  
-	        *tsys = TSYS_GAL; 
-	        break;
-	    //...continues
-	}
+    switch (sysChar)
+    {
+        case ' ':
+        case 'G':
+            *sys = E_Sys::GPS;
+            *tsys = TSYS_GPS;
+            break;
+        case 'R':
+            *sys = E_Sys::GLO;
+            *tsys = TSYS_UTC;
+            break;
+        case 'E':
+            *sys = E_Sys::GAL;
+            *tsys = TSYS_GAL;
+            break;
+        //...continues
+    }
 
 #### Ok
 
-	if      (sys == SYS_GLO)    fact = EFACT_GLO;
-	else if (sys == SYS_CMP)    fact = EFACT_CMP;
-	else if (sys == SYS_GAL)    fact = EFACT_GAL;
-	else if (sys == SYS_SBS)    fact = EFACT_SBS;
-	else                        fact = EFACT_GPS;
+    if      (sys == SYS_GLO)    fact = EFACT_GLO;
+    else if (sys == SYS_CMP)    fact = EFACT_CMP;
+    else if (sys == SYS_GAL)    fact = EFACT_GAL;
+    else if (sys == SYS_SBS)    fact = EFACT_SBS;
+    else                        fact = EFACT_GPS;
 
 #### Ok
 
-	switch (sysChar)
-	{
-	    case ' ':
-	    case 'G':   *sys = E_Sys::GPS;      *tsys = TSYS_GPS;    break;
-	    case 'R':   *sys = E_Sys::GLO;      *tsys = TSYS_UTC;    break;
-	    case 'E':   *sys = E_Sys::GAL;      *tsys = TSYS_GAL;    break;
-	    case 'S':   *sys = E_Sys::SBS;      *tsys = TSYS_GPS;    break;
-	    case 'J':   *sys = E_Sys::QZS;      *tsys = TSYS_QZS;    break;
-	//...continues
-	}
+    switch (sysChar)
+    {
+        case ' ':
+        case 'G':   *sys = E_Sys::GPS;      *tsys = TSYS_GPS;    break;
+        case 'R':   *sys = E_Sys::GLO;      *tsys = TSYS_UTC;    break;
+        case 'E':   *sys = E_Sys::GAL;      *tsys = TSYS_GAL;    break;
+        case 'S':   *sys = E_Sys::SBS;      *tsys = TSYS_GPS;    break;
+        case 'J':   *sys = E_Sys::QZS;      *tsys = TSYS_QZS;    break;
+    //...continues
+    }
+
+## Include Organization
+
+* Includes should be sorted automatically by clang-format.
+* Include order priority:
+  1. System headers (e.g., `<iostream>`, `<string>`)
+  2. Project headers (e.g., `"common/common.hpp"`)
+  3. Other headers
 
 ## Braces
 
 New line for braces.
 
-	if (pass)
-	{
-	    doSomething();
-	}
+    if (pass)
+    {
+        doSomething();
+    }
 
 ## Comments
 
@@ -155,17 +178,17 @@ if  ( ( testA  >  10)
 
 ### Bad
 
-	if (doSomeParsing(someObject))
-	{
-	    //code contingent on parsing success? failure?
-	}
+    if (doSomeParsing(someObject))
+    {
+        //code contingent on parsing success? failure?
+    }
 
 ### Good
-	bool fail = doSomeParsing(someObject);
-	if (fail)
-	{
-	    //This code is clearly a response to a failure
-	}
+    bool fail = doSomeParsing(someObject);
+    if (fail)
+    {
+        //This code is clearly a response to a failure
+    }
 
 ## Variable declaration
 
@@ -192,20 +215,21 @@ for (int i = 0; i < 10; i++)
 if (found)
 {
     //...
-}    
+}
 ```
 
 ## Function parameters
 
-* One per line.
+* When parameters don't fit on one line, place each parameter on its own line.
 * Add doxygen compatible documentation after parameters in the cpp file.
 * Prefer references rather than pointers unless unavoidable.
 
 ```
 void function(
-        bool        runTests,           ///< Run unit test while processing
-        MyStruct&   myStruct,           ///< Structure to modify
-        OtherStr*   otherStr = nullptr) ///< Optional structure object to populate (cant use reference because its optional)
+    bool        runTests,           ///< Run unit test while processing
+    MyStruct&   myStruct,           ///< Structure to modify
+    OtherStr*   otherStr = nullptr  ///< Optional structure object to populate (cant use reference because its optional)
+)
 {
     //...
 }
@@ -237,7 +261,7 @@ struct MyStruct
     double                     offset_arr[10]  = {};
     OtherStruct*               refStruct_ptr   = nullptr;
 
-    map<string, double>        offsetMap; 
+    map<string, double>        offsetMap;
     list<map<string, double>>  variationMapList;
     map<int, SubStruct>        subStructMap;
 };
@@ -254,7 +278,7 @@ if (acsConfig.some_parameter)
 
 ## Undesirable Code
 
-* Do not use 'magic numbers', which require knowledge of other code fragments for comprehension. If a comment is required for explaining what a value means, the code should be rewritten with enums or defined constants. 
+* Do not use 'magic numbers', which require knowledge of other code fragments for comprehension. If a comment is required for explaining what a value means, the code should be rewritten with enums or defined constants.
 * Do not append `.0` to integer valued doubles unless they are required.
 * Never use `free()`, `malloc()`, or `new` unless it cannot be avoided.
 * Threads create synchronisation issues; they should not be used unless manual synchronisation is never required.
@@ -277,11 +301,12 @@ struct MyStruct
 /** Function to demonstrate documentation
 */
 void function(
-        bool        runTests,           ///< Run unit test while processing
-        MyStruct&   myStruct,           ///< Structure to modify
-        OtherStr*   otherStr = nullptr) ///< Optional string to populate
+    bool        runTests,           ///< Run unit test while processing
+    MyStruct&   myStruct,           ///< Structure to modify
+    OtherStr*   otherStr = nullptr  ///< Optional string to populate
+)
 {
-   	//...
+    //...
 }
 ```
 
@@ -292,52 +317,52 @@ void function(
 
 ### Bad
 
-	double double_arr[10] = {};
+    double double_arr[10] = {};
 
-	//..(Populate array)
+    //..(Populate array)
 
-	for (int i = 0; i < 10; i++)    //Magic number 10 - bad.
-	{
+    for (int i = 0; i < 10; i++)    //Magic number 10 - bad.
+    {
 
-	}
+    }
 
 
-	map<string, double> doubleMap;
+    map<string, double> doubleMap;
 
-	//..(Populate Map)
+    //..(Populate Map)
 
-	for (auto iter = doubleMap.begin(); iter != doubleMap.end(); iter++)   //long, undescriptive - bad
-	{
-	   	if (iter->first == someVar)     //'first' is undescriptive - bad
-	   	{
-	   		//..
-	   	}
-	}
+    for (auto iter = doubleMap.begin(); iter != doubleMap.end(); iter++)   //long, undescriptive - bad
+    {
+        if (iter->first == someVar)     //'first' is undescriptive - bad
+        {
+            //..
+        }
+    }
 
 ### Good - Iterating Maps
 
-	map<string, double> offsetMap;
+    map<string, double> offsetMap;
 
-	//..(Populate Map)
+    //..(Populate Map)
 
-	for (auto& [siteName, offset] : doubleMap)	//give readable names to map keys and values
-	{
-	    if (siteName.empty() == false)
-	    {
-	    
-	    }
-	}
+    for (auto& [siteName, offset] : doubleMap)    //give readable names to map keys and values
+    {
+        if (siteName.empty() == false)
+        {
+
+        }
+    }
 
 ### Good - Iterating Lists
 
-	list<Obs> obsList;
+    list<Obs> obsList;
 
-	//..(Populate list)
+    //..(Populate list)
 
-	for (auto& obs : obsList)         //give readable names to list elements
-	{
-	    doSomethingWithObs(obs);
-	}
+    for (auto& obs : obsList)         //give readable names to list elements
+    {
+        doSomethingWithObs(obs);
+    }
 
 ### Special Case - Deleting from maps/lists
 
@@ -346,7 +371,7 @@ Use iterators when you need to delete from STL containers:
 ```
 for (auto it = someMap.begin(); it != someMap.end();  )
 {
-    KFKey key = it->first;				//give some alias to the key/value so they're readable
+    KFKey key = it->first;                //give some alias to the key/value so they're readable
 
     if (measuredStates[key] == false)
     {
@@ -363,15 +388,15 @@ for (auto it = someMap.begin(); it != someMap.end();  )
 
 Commonly used std containers may be included with `using`
 
-	#include <string>
-	#include <map>
-	#include <list>
-	#include <unordered_map>
+    #include <string>
+    #include <map>
+    #include <list>
+    #include <unordered_map>
 
-	using std::string;
-	using std::map;
-	using std::list
-	using std::unordered_map;
+    using std::string;
+    using std::map;
+    using std::list
+    using std::unordered_map;
 
 
 ## Code sequencing
@@ -379,11 +404,7 @@ Commonly used std containers may be included with `using`
 The software is to be kept largely sequential - using threads sparingly to limit the overhead of collision avoidance.
 Where possible tasks are completed in parallel using parallelisation libraries to take advantage of all CPU cores in multi-processor systems while still retaining a linear flow through the execution.
 
-Sections of the software that create and modify global objects, such as while reading ephemeris data, will be executed on a single core only. 
+Sections of the software that create and modify global objects, such as while reading ephemeris data, will be executed on a single core only.
 This will ensure that collisions are avoided and the debugging of these functions is deterministic.
 
 For sections of the software that have clear delineation between objects, such as per-receiver calculations, these may be completed in parallel, provided they do not attempt to modify or create objects with more global scope. When globally accessible objects need to be created for individual receivers, they should be pre-initialised before the entry to parallel execution section.
-
-
-
-

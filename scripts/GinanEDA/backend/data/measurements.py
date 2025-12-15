@@ -25,6 +25,8 @@ Exceptions:
     ValueError: Raised when the input dictionary to the `Measurements` class constructor does not contain any data.
 
 """
+
+import copy
 import logging
 
 import concurrent.futures
@@ -85,6 +87,7 @@ class Measurements:
         self.info = {}
         self.subset = slice(None, None, None)
         self.gaps = []
+        self._yaxis = []
 
     @classmethod
     def from_dictionary(
@@ -205,21 +208,26 @@ class Measurements:
                 ]
             )
             raise ValueError(f"differencing Apples with oranges: {diffs}")
-
         self_keys = set(self.data.keys())
         other_keys = set(other.data.keys())
-        common_keys = self_keys & other_keys
-        missing_keys = (self_keys | other_keys) - common_keys
+        common_keys = set(self._yaxis) if self._yaxis else self_keys.intersection(other_keys)
+        missing_keys_self = self_keys - common_keys
+        missing_keys_other = other_keys - common_keys
+        print(f"Common keys: {common_keys}")
+        print(f"Missing keys: {missing_keys_self}")
+        print(f"Missing keys: {missing_keys_other}")
 
         if len(common_keys) == 0:
             raise ValueError("Warning: no common keys found between dictionaries")
 
-        results = self
+        results = copy.deepcopy(self)
         _common, in_self, in_t = np.intersect1d(self.epoch, other.epoch, return_indices=True)
         results.epoch = self.epoch[in_self]
         results.data = {key: self.data[key][in_self] - other.data[key][in_t] for key in common_keys}
+        results.data.update({key: self.data[key][in_self] for key in missing_keys_self})
+        # results.data.update({key: other.data[key][in_t] for key in missing_keys_other})
 
-        if len(missing_keys) > 0:
+        if len(missing_keys_self) + len(missing_keys_other) > 0:
             logger.warning("Warning: keys not present in both dictionaries:")
             logger.warning(f"Present in self.data only: {sorted(self_keys - other_keys)}")
             logger.warning(f"Present in other.data only: {sorted(other_keys - self_keys)}")
@@ -338,13 +346,12 @@ class Measurements:
         if tmin is None:
             first_index = 0
         else:
-            first_index = np.searchsorted(self.epoch, tmin, side='left')
+            first_index = np.searchsorted(self.epoch, tmin, side="left")
         if tmax is None:
             last_index = len(self.epoch)
         else:
-            last_index = np.searchsorted(self.epoch, tmax, side='right')
+            last_index = np.searchsorted(self.epoch, tmax, side="right")
         self.subset = slice(first_index, last_index)
-
 
     def trim(self) -> None:
         """
@@ -378,6 +385,7 @@ class MeasurementArray:
         self.arr = []
         self.tmin = None
         self.tmax = None
+        self.yaxis = []
         self.difference_check = False
 
     def __iter__(self):
@@ -432,6 +440,16 @@ class MeasurementArray:
             except Exception:
                 logger.info("skipping this one")
         return temporary_loader
+
+    @property
+    def yaxis(self) -> list:
+        return self._yaxis
+
+    @yaxis.setter
+    def yaxis(self, yaxis: list) -> None:
+        self._yaxis = yaxis
+        for data in self.arr:
+            data._yaxis = yaxis
 
     def find_minmax(self):
         """
@@ -502,7 +520,7 @@ class MeasurementArray:
                 if _data.id["sat"] == _other.id["sat"] and _data.id["site"] == _other.id["site"]:
                     common_time = np.union1d(_data.epoch, _other.epoch)
                     data = {}
-                    for key in set(_data.data) | set(_other.data):
+                    for key in set(_data.data).union(set(_other.data)):
                         data[key] = np.full_like(common_time, np.nan, dtype="float64")
                     for name, val in _data.data.items():
                         mask = ~np.isnan(val)

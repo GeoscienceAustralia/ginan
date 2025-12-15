@@ -1,51 +1,78 @@
+#include "common/receiver.hpp"
+#include <set>
+#include "common/sinex.hpp"
+#include "common/streamParser.hpp"
+#include "common/streamRinex.hpp"
+#include "common/streamRtcm.hpp"
 
-#include "receiver.hpp"
-#include "sinex.hpp"
-#include "tides.hpp"
+SinexSiteId   dummySiteid;
+SinexReceiver dummyReceiver;
+SinexAntenna  dummyAntenna;
+SinexSiteEcc  dummySiteEcc;
 
-SinexSiteId				dummySiteid;
-SinexReceiver			dummyReceiver;
-SinexAntenna			dummyAntenna;
-SinexSiteEcc			dummySiteEcc;
+SinexSatIdentity dummySinexSatIdentity;
+SinexSatEcc      dummySinexSatEcc;
 
-SinexSatIdentity		dummySinexSatIdentity;
-SinexSatEcc				dummySinexSatEcc;
+ReceiverMap receiverMap;
 
-
-
-
-ReceiverMap						receiverMap;
-
-void initialiseStation(
-	string		id,
-	Receiver&	rec)
+void extractTrackedSignals(Receiver& rec, Parser& parser, ObsList* obsList)
 {
-	if (rec.id.empty() == false)
-	{
-		//already initialised
-		return;
-	}
+    // Extract tracked signals from RINEX header or accumulate from RTCM observations
+    // This enables receiver-specific signal tracking mode detection
+    string parserType = parser.parserType();
 
-	BOOST_LOG_TRIVIAL(info)
-	<< "Initialising station " << id;
+    if (parserType == "RinexParser" && rec.trackedSignals.empty())
+    {
+        auto& rinexParser = static_cast<RinexParser&>(parser);
 
-	rec.id = id;
+        for (auto& [sys, codeTypeMap] : rinexParser.sysCodeTypes)
+        {
+            vector<E_ObsCode> signals;
+            for (auto& [idx, codeType] : codeTypeMap)
+            {
+                if (codeType.code != E_ObsCode::NONE)
+                {
+                    signals.push_back(codeType.code);
+                }
+            }
+            rec.trackedSignals[sys] = signals;
+        }
+    }
+    else if (parserType == "RtcmParser" && obsList != nullptr)
+    {
+        // For RTCM streams, accumulate tracked signals from observations
+        // This builds up the signal list dynamically as we receive data
 
-	auto loadBlq = [&](vector<string> files, E_LoadingType type)
-	{
-		bool found = false;
-		for (auto& blqfile : acsConfig.ocean_tide_loading_blq_files)
-		{
-			found |= readBlq(blqfile, rec, E_LoadingType::OCEAN);
-		}
+        // Extract signals from the provided observation list
+        for (auto& obs : only<GObs>(*obsList))
+        {
+            E_Sys          sys = obs.Sat.sys;
+            set<E_ObsCode> signalSet;
 
-		if (found == false)
-		{
-			BOOST_LOG_TRIVIAL(warning)
-			<< "Warning: No " << type._to_string() << " BLQ for " << id;
-		}
-	};
+            // If we already have signals for this system, start with those
+            if (rec.trackedSignals.count(sys))
+            {
+                signalSet.insert(rec.trackedSignals[sys].begin(), rec.trackedSignals[sys].end());
+            }
 
-	loadBlq(acsConfig.ocean_tide_loading_blq_files, E_LoadingType::OCEAN);
-	loadBlq(acsConfig.atmos_tide_loading_blq_files, E_LoadingType::ATMOSPHERIC);
+            // Add signals from this observation
+            for (auto& [ftype, sigsList] : obs.sigsLists)
+            {
+                for (auto& sig : sigsList)
+                {
+                    if (sig.code != E_ObsCode::NONE)
+                    {
+                        signalSet.insert(sig.code);
+                    }
+                }
+            }
+
+            // Update the tracked signals with the expanded set
+            rec.trackedSignals[sys] = vector<E_ObsCode>(signalSet.begin(), signalSet.end());
+        }
+    }
+    else
+    {
+        // Signal extraction not supported for other parser types (UBX, Custom, etc.)
+    }
 }
