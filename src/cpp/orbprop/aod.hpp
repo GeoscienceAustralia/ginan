@@ -1,31 +1,24 @@
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
-
 #include <map>
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
 
 using std::map;
 
 struct AodData
 {
-	MatrixXd Cnm;
-	MatrixXd Snm;
+    MatrixXd Cnm;
+    MatrixXd Snm;
 };
 
 struct Aod
 {
-	void read(
-		const string&	filename,
-		int				maxDeg);
-	
-	void interpolate(
-		GTime		time,
-		MatrixXd&	Cnm, 
-		MatrixXd&	Snm);
-	
-	std::map<GTime, AodData> data;
+    void read(const string& filename, int maxDeg);
+
+    void interpolate(GTime time, MatrixXd& Cnm, MatrixXd& Snm);
+
+    std::map<GTime, AodData> data;
 };
 
 extern Aod aod;
-

@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 
 """
-Script to upload outputs and log files in the job folder to an AWS S3 bucket.
+Script to upload outputs and log files in the job directory to an AWS S3 bucket.
 It will run infinitely and attempt upload periodically once it is started.
 """
 
+import logging
 import os
+import re
 import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Tuple
+
 import boto3
 import click
-import logging
+
 import gnssanalysis as ga
-from typing import Tuple, Any
-from pathlib import Path
-from datetime import datetime
+from analyse_orbit_clock import str_to_list
 
 
-def file_ready_to_upload(
-    local_path: Path,
-    time_threshold: int,
-) -> Tuple[bool, int]:
+def file_ready_to_upload(local_path: Path, time_threshold: int) -> Tuple[bool, int]:
     """
     Check if a local file is ready to upload to S3 bucket, i.e. has not been modified for the specified time period.
 
@@ -47,10 +48,7 @@ def file_ready_to_upload(
 
 
 def file_up_to_date_s3(
-    s3_client: Any,
-    s3_bucket: str,
-    dest_path: Path,
-    timestamp: int,
+    s3_client: Any, s3_bucket: str, dest_path: Path, timestamp: int, no_logging: bool = False
 ) -> bool:
     """
     Check if a file exists on S3 bucket and up-to-date by comparing last modified time against the specified timestamp.
@@ -59,33 +57,35 @@ def file_up_to_date_s3(
     :param str s3_bucket: S3 bucket for uploading the file
     :param Path dest_path: Path of the destination file to save on the S3 bucket
     :param int timestamp: Timestamp to compare with
+    :param bool no_logging: Do not log
     :return bool: True if the file is up-to-date and False otherwise
     """
-    object = s3_client.list_objects_v2(
-        Bucket=s3_bucket, Prefix=str(dest_path), MaxKeys=1
-    ).get("Contents", [])
+    object = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=str(dest_path), MaxKeys=1).get("Contents", [])
 
     if object:
         modified_time_remote = object[0]["LastModified"].timestamp()
         if modified_time_remote > timestamp:
-            logging.info(
-                f"Remote file is up-to-date, last modified: {datetime.fromtimestamp(modified_time_remote)}, ommitting upload"
+            (
+                logging.info(
+                    f"Remote file is up-to-date, last modified: {datetime.fromtimestamp(modified_time_remote)}, ommitting upload"
+                )
+                if not no_logging
+                else None
             )
             return True
         else:
-            logging.warning(
-                f"Remote file is outdated, last modified: {datetime.fromtimestamp(modified_time_remote)}, will be overwritten"
+            (
+                logging.warning(
+                    f"Remote file is outdated, last modified: {datetime.fromtimestamp(modified_time_remote)}, will be overwritten"
+                )
+                if not no_logging
+                else None
             )
 
     return False
 
 
-def upload_file_to_s3(
-    s3_client: Any,
-    s3_bucket: str,
-    local_path: Path,
-    dest_path: Path,
-) -> bool:
+def upload_file_to_s3(s3_client: Any, s3_bucket: str, local_path: Path, dest_path: Path) -> bool:
     """
     Upload a local file to target S3 bucket.
 
@@ -100,36 +100,21 @@ def upload_file_to_s3(
         logging.info("Successfully uploaded")
         return True
     except boto3.exceptions.S3UploadFailedError as error:
-        logging.exception(f"Unable to upload: {error}")
+        logging.error(f"Unable to upload: {error}")
         return False
 
 
-def cull_local_files(
-    s3_client: Any,
-    s3_bucket: str,
-    dest_path: Path,
-    local_path: Path,
-    cull_file_types: list[str],
-    excluded_file: Path,
-) -> None:
-    """
+def cull_local_file(local_path: Path, cull_file_types: list[str], excluded_files: str) -> None:
+    r"""
     Delete old local files to save space.
 
-    :param Any s3_client: Object for target S3 client
-    :param str s3_bucket: S3 bucket for uploading the file
-    :param Path dest_path: Path of the destination file to save on the S3 bucket
     :param Path local_path: Path of the local file to upload
     :param list[str] cull_file_types: File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'
-    :param Path excluded_file: File to exclude from culling
+    :param str excluded_files: Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\\.txt|b\\.out', '[a-z]\\.txt'
     :return None
     """
-    if local_path == excluded_file:
+    if re.fullmatch(excluded_files, local_path.name):
         return
-
-    # Confirm that the file exists on s3 before deleting  # todo Eugene: move out?
-    object = s3_client.list_objects_v2(
-        Bucket=s3_bucket, Prefix=str(dest_path), MaxKeys=1
-    ).get("Contents", [])
 
     if object and local_path.suffix in cull_file_types:
         logging.info("Deleting the local file")
@@ -142,9 +127,10 @@ def upload_recordings(
     s3_root_dir: Path,
     time_threshold: int,
     cull_file_types: list[str],
+    exclude_culls: str,
     aws_profile: str = "default",
 ) -> None:
-    """
+    r"""
     Upload SSR recordings and orbit and clock analysis outputs.
 
     :param Path job_dir: Directory where recordings and analysis outputs are saved
@@ -152,14 +138,18 @@ def upload_recordings(
     :param Path s3_root_dir: Root directory on S3 bucket for saving results
     :param int time_threshold: Number of seconds the files haven't been modified for before uploading to S3
     :param list[str] cull_file_types: File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'
+    :param str exclude_culls: Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\\.txt|b\\.out', '[a-z]\\.txt'
     :param str aws_profile: Profile of credentials for target S3 bucket in AWS credentials file '~/.aws/credentials',
-            default to 'default'
+            defaults to 'default'
     :return None
     """
     logging.info("Uploading recording results ...")
 
     # S3 client
     s3_client = boto3.Session(profile_name=aws_profile).client("s3")
+
+    if not s3_root_dir:
+        s3_root_dir = job_dir.name
 
     # Upload recordings to S3 bucket and cull old files if needed
     num = 0
@@ -171,85 +161,65 @@ def upload_recordings(
             s3_dir = path.replace(str(job_dir), str(s3_root_dir))
             dest_path = Path(s3_dir) / file
 
-            logging.info(f"{local_path} --> s3://{s3_bucket}/{dest_path}")
+            logging.info(f"'{local_path}' --> 's3://{s3_bucket}/{dest_path}'")
 
             # Check last modified time of the local file
-            ready, modified_time_local = file_ready_to_upload(
-                local_path, time_threshold
-            )
-            if (
-                not ready
-            ):  # only upload files that haven't been modified within the time threshold
+            ready, modified_time_local = file_ready_to_upload(local_path, time_threshold)
+            if not ready:  # only upload files that haven't been modified within the time threshold
                 continue
 
             # Upload the file to s3 bucket if not exists or outdated on s3
-            if not file_up_to_date_s3(
-                s3_client, s3_bucket, dest_path, modified_time_local
-            ):
-                uploaded = upload_file_to_s3(
-                    s3_client, s3_bucket, local_path, dest_path
-                )
+            if not file_up_to_date_s3(s3_client, s3_bucket, dest_path, modified_time_local):
+                uploaded = upload_file_to_s3(s3_client, s3_bucket, local_path, dest_path)
                 if uploaded:
                     num = num + 1
 
             # Cull old recordings
-            excluded_file = job_dir / "pid.json"  # do not delete pid.json
-            cull_local_files(
-                s3_client,
-                s3_bucket,
-                dest_path,
-                local_path,
-                cull_file_types,
-                excluded_file,
-            )
+            if file_up_to_date_s3(
+                s3_client, s3_bucket, dest_path, modified_time_local, no_logging=True
+            ):  # confirm that the file exists on s3 before deleting
+                cull_local_file(local_path, cull_file_types, exclude_culls)
 
     logging.info(f"{num} file(s) uploaded\n")
 
 
 @click.command()
-@click.option(
-    "--job-dir",
-    required=True,
-    help="Directory under which files to upload",
-    type=Path,
-)
+@click.option("--job-dir", required=True, help="Directory under which files to upload", type=Path)
 @click.option(
     "--aws-profile",
     required=True,
-    help="Profile of credentials for target S3 bucket in AWS credentials file '~/.aws/credentials', 'default' will be used when no profile is specified",
+    help="Profile of credentials for target S3 bucket in AWS credentials file '~/.aws/credentials', 'default' will be used when no profile is specified. Default: 'default'",
     default="default",
     type=str,
 )
+@click.option("--s3-bucket", required=True, help="S3 bucket for uploading results", type=str)
 @click.option(
-    "--s3-bucket",
-    required=True,
-    help="S3 bucket for uploading results",
-    type=str,
-)
-@click.option(
-    "--s3-root-dir",
-    required=True,
-    help="Root directory on S3 bucket for saving results",
-    type=Path,
+    "--s3-root-dir", help="Root directory on S3 bucket for saving results. Default: None", default=None, type=Path
 )
 @click.option(
     "--time-threshold",
     required=True,
-    help="Number of seconds the files haven't been modified for before uploading to S3",
+    help="Number of seconds the files haven't been modified for before uploading to S3. Default: 86400",
     default=86400,
     type=int,
 )
 @click.option(
     "--interval",
     required=True,
-    help="Interval to check and upload recordings in seconds",
+    help="Interval to check and upload recordings in seconds. Default: 86400",
     default=86400,
     type=int,
 )
 @click.option(
     "--cull-file-types",
-    help="File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'",
+    help="File types to cull for saving local space, e.g. '.rtcm, .rnx, .json'. Default: None",
     default=None,
+    type=str,
+)
+@click.option(
+    "--exclude-culls",
+    help=r"Files to exclude from culls based on regex, e.g. 'a.*txt', 'a\.txt|b\.out', '[a-z]\.txt'. Default: 'pid\.json'",
+    default=r"pid\.json",
     type=str,
 )
 @click.option("--verbose", is_flag=True)
@@ -261,25 +231,16 @@ def upload_recordings_main(
     time_threshold,
     interval,
     cull_file_types,
+    exclude_culls,
     verbose,
 ):
     ga.gn_utils.configure_logging(verbose)
 
-    if cull_file_types:
-        cull_file_types = cull_file_types.replace(" ", "").split(",")
-    else:
-        cull_file_types = []
+    cull_file_types = str_to_list(cull_file_types)
 
     # Run the scheduled tasks indefinitely
     while True:
-        upload_recordings(
-            job_dir,
-            s3_bucket,
-            s3_root_dir,
-            time_threshold,
-            cull_file_types,
-            aws_profile,
-        )
+        upload_recordings(job_dir, s3_bucket, s3_root_dir, time_threshold, cull_file_types, exclude_culls, aws_profile)
 
         now = time.time()
         seconds = interval - now % interval

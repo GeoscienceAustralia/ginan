@@ -10,6 +10,8 @@
           {% endif %}
           {# </a> #}
       </li>
+      <hr>
+
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('eda.connect')}}">Connect</a>
       </li>
@@ -19,8 +21,9 @@
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('eda.states')}}"> States </a>
       </li>
+      <hr>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('eda.clocks')}}"> Clock </a>
+        <a class="nav-link" href="{{ url_for('eda.clocks')}}"> Clock analysis</a>
       </li>
       <li class="" nav-item">
         <a class="nav-link" href="{{ url_for('eda.position')}}"> Position analysis </a>
@@ -28,12 +31,19 @@
       <li class="" nav-item">
         <a class="nav-link" href="{{ url_for('eda.orbits')}}"> Orbits analysis </a>
       </li>
+      <hr>
+
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.measurements_diff')}}">Measurements Diff</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('eda.states_diff')}}"> States Diff</a>
+      </li>
+      <hr>
+
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('eda.config')}}">Config</a>
       </li>
-      <!--li class="nav-item">
-        <a class="nav-link" href="{{ url_for('eda.trace')}}">Trace</a>
-      </li-->
     </ul>
   </div>
 </nav>

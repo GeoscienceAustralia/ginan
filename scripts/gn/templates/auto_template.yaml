@@ -50,7 +50,7 @@ outputs:
         output_config:         true
 
     sinex: {filename: <CONFIG>.SNX, output: true}
-    
+
     # log:
     #     output:                false
     #     directory:             ./logs/
@@ -88,14 +88,14 @@ receiver_options:
             troposphere:         # Tropospheric modelling accounts for delays due to refraction of light in water vapour
                 enable: true
                 models: [ gpt2 ] # List of models to use for troposphere [standard,sbas,vmf3,gpt2,cssr]
-            tides:    
+            tides:
                 atl:    true     # Enable atmospheric tide loading
                 enable: true     # Enable modelling of tidal disaplacements
                 opole:  true     # Enable ocean pole tides
                 otl:    true     # Enable ocean tide loading
                 solid:  true     # Enable solid Earth tides
                 spole:  true     # Enable solid Earth pole tides
-        
+
 
     # ALIC:
     #     receiver_type:    "LEICA GR25"                 # (string)
@@ -168,12 +168,13 @@ processing_options:
             mw_process_noise:    0    # Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips
             slip_threshold:   0.05 # Value used to determine when a slip has occurred
         preprocess_all_data:  true
-    
+
     spp:
         # always_reinitialise: false # Reset SPP state to zero to avoid potential for lock-in of bad states
         max_lsq_iterations:  12    # Maximum number of iterations of least squares allowed for convergence
         outlier_screening:
-            raim:            true # Enable Receiver Autonomous Integrity Monitoring
+            raim:
+                enable:      true # Enable Receiver Autonomous Integrity Monitoring
             max_gdop:        30   # Maximum dilution of precision before error is flagged
 
     ppp_filter:
@@ -199,7 +200,7 @@ processing_options:
             use_gf_combo:                  false                  # Combine 'uncombined' measurements to simulate a geometry-free solution
             use_if_combo:                  false                  # Combine 'uncombined' measurements to simulate an ionosphere-free solution
 
-        chunking:    
+        chunking:
             by_receiver:           false # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
             by_satellite:          false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
             size:                  0
@@ -207,7 +208,6 @@ processing_options:
         rts:                       # Rauch-Tung-Striebel (RTS) backwards smoothing
             enable:                true
             lag:                   -1
-            inverter:              LDLT  # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
             filename:              <CONFIG>_<RECEIVER>.rts
 
     model_error_handling:

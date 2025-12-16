@@ -1,0 +1,7 @@
+
+#pragma once
+
+#define GINAN_COMPILER			"@CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@"
+#define GINAN_MONGOCXX			"@mongocxx_VERSION@"
+#define GINAN_BOOST				"@Boost_VERSION@"
+#define GINAN_EIGEN				"@Eigen3_VERSION@"

@@ -106,7 +106,7 @@ inputs:
         - "TID100AUS0"
         - "MSSA00JPN0"
         - "ONS100SWE0"
-#
+
 outputs:
 
     outputs_root:                   outputs/<CONFIG>
@@ -125,6 +125,15 @@ outputs:
         output_residual_chain:      true
         output_predicted_states:    true
         output_config:              true
+
+    streams:
+        labels:
+            - GAA1
+        GAA1:
+            url: https://ginan-isg-testing:p4_bL8-ctt7tn4ddZ@ntrip.test-data.gnss.ga.gov.au/SSRA00ISG8
+            messages:
+                rtcm_1060: {udi: 10}
+                rtcm_1059: {udi: 10}
 
 satellite_options:
 
@@ -148,12 +157,8 @@ satellite_options:
                 enable:                    true
             code_bias:
                 enable:                    true
-                default_bias:              0
-                undefined_sigma:           0
             phase_bias:
                 enable:                    false
-                default_bias:              0
-                undefined_sigma:           0
 
         orbit_propagation:
             albedo:                   cannonball
@@ -216,12 +221,8 @@ receiver_options:                                                 # Options to c
                 enable:             true                            # (bool) Enable modelling of phase center variations
             code_bias:
                 enable:             true                            # (bool) Enable modelling of code biases
-                default_bias:       0                               # (float) Bias to use when no code bias is found
-                undefined_sigma:    0                               # (float) Uncertainty sigma to apply to default code biases
             phase_bias:
                 enable:             false                           # (bool) Enable modelling of phase biases
-                default_bias:       0                               # (float) Bias to use when no phase bias is found
-                undefined_sigma:    0                               # (float) Uncertainty sigma to apply to default phase biases
             pos:
                 enable:             true                            # (bool) Enable modelling of position
             ionospheric_components:                                 # Ionospheric models produce frequency-dependent effects

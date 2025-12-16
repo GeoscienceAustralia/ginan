@@ -14,7 +14,7 @@ Well fortunately for the vast majority of applications we only need to know wher
 
 ## The International Celestial Reference Frame (ICRF)
 
-![The International Celestial Reference Frame (ICRF)](images/ICRF-75pc.png)
+![The International Celestial Reference Frame (ICRF)](images/ICRF-75pc-20250121.png)
 
 *The International Celestial Reference Frame (ICRF). J2000.0 is a standard Julian equinox and epoch - January 1, 2000 at 12:00 TT.*
 

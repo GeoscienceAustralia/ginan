@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "eigenIncluder.hpp"
-#include "gTime.hpp"
+#include "common/eigenIncluder.hpp"
+#include "common/gTime.hpp"
 
 namespace iers2010
 {

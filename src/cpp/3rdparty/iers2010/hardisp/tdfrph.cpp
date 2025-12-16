@@ -1,5 +1,5 @@
 // #include "hardisp.hpp"
-#include "iers2010.hpp"
+#include "3rdparty/iers2010/iers2010.hpp"
 
 /// @details This subroutine returns the frequency and phase of a tidal
 ///          constituent when its Doodson number is given as input.

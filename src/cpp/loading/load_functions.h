@@ -4,15 +4,11 @@
  * @date 5/3/21
  *
  */
-
 #pragma once
 
-#include "tide.h"
-#include "input_otl.h"
-#include "loading.h"
-
-void load_1_point(tide *tide_info, otl_input *input, loading load,  int idx);
-void write_BLQ(otl_input *input);
-void write_BLQ(otl_input *input, int code);
-
-
+#include "loading/input_otl.h"
+#include "loading/loading.h"
+#include "loading/tide.h"
+void load_1_point(tide* tide_info, otl_input* input, loading load, int idx);
+void write_BLQ(otl_input* input);
+void write_BLQ(otl_input* input, int code);

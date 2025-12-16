@@ -4,13 +4,6 @@
 
 > This page provides an overview of the documentation and artefacts available to support your use of Ginan.
 
-#### Videos: 
-The Ginan team have made a series of short videos to describe Ginan and help with its installation. They are:
-
-* [Ginan Video Tutorial - Introduction](https://www.youtube.com/watch?v=oP_vk5sci1k&list=PL0jP_ahe-BFnChGLpQmXYpHNFiRze4DZR&index=2)
-* [Ginan Video Tutorial - Installation](https://www.youtube.com/watch?v=FAi2fg-7tbs&list=PL0jP_ahe-BFnChGLpQmXYpHNFiRze4DZR&index=2)
-* [Ginan Video Tutorial - Docker Install](https://www.youtube.com/watch?v=uW1DcIbZk1g&list=PL0jP_ahe-BFnChGLpQmXYpHNFiRze4DZR&index=3)
-
 #### Installation: 
 The written notes on how to download and install supporting packages and the Ginan software are detailed [here](page.html?c=on&p=install.index)
 

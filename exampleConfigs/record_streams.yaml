@@ -1,78 +1,124 @@
 # Record and decode streams
 
 inputs:
+  inputs_root: ./products/
 
-    inputs_root: ./products/
-
-    atx_files:
+  atx_files:
     - igs20.atx
 
-    snx_files:
-    # - tables/igs_satellite_metadata.snx
-    - tables/igs_satellite_metadata_2203_plus.snx
+  planetary_ephemeris_files:
+    - tables/DE436.1950.2050
 
-    gnss_observations:
-        gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
-        rtcm_inputs:
-        - ALIC00AUS0
+  snx_files:
+    - igs_satellite_metadata.snx
+    - tables/sat_yaw_bias_rate.snx
+    - tables/bds_yaw_modes.snx
+    - tables/qzss_yaw_modes.snx
+    # - "*_CRD.SNX"
 
-    satellite_data:
-        satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
-        rtcm_inputs:
-            ssr_antenna_offset: APC
-            rtcm_inputs:
-            - BCEP00BKG0
-            - SSRA00CNE0
+  gnss_observations:
+    gnss_observations_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+    rtcm_inputs:
+      - ALIC00AUS0
+
+  satellite_data:
+    satellite_data_root: "https://<USER>:<PASS>@ntrip.data.gnss.ga.gov.au/"
+    rtcm_inputs:
+      ssr_antenna_offset: APC
+      rtcm_inputs:
+        - BCEP00BKG0
+        - SSRA00CNE0
 
 outputs:
+  metadata:
+    config_description: record_streams
+    user: your_NTRIP_username
+    pass: your_NTRIP_password
+    reference_system: IGS20
 
-    metadata:
-        config_description:         record_streams
+  outputs_root: ./outputs/<CONFIG>/
 
-    outputs_root:                   ./outputs/<CONFIG>/
+  log:
+    output: true
+    filename: <CONFIG>_<YYYY><DDD><HH><mm>_LOG.json
 
-    rtcm_nav:
-        output:                     true
+  rtcm_obs:
+    output: true
+    filename: <STREAM>_<YYYY><DDD><HH><mm>_OBS.rtcm
 
-    rtcm_obs:
-        output:                     true
+  rtcm_nav:
+    output: true
+    filename: <STREAM>_<YYYY><DDD><HH><mm>_NAV.rtcm
 
-    decoded_rtcm:
-        output:                     true
+  decoded_rtcm:
+    output: true
+    filename: <STREAM>_<YYYY><DDD><HH><mm>_DEC.json
 
-    rinex_nav:
-        output:                     true
+  rinex_obs:
+    output: true
+    filename: <RECEIVER>_<YYYY><DDD><HH><mm>_OBS.rnx
 
-    rinex_obs:
-        output:                     true
+  rinex_nav:
+    output: true
+    filename: <CONFIG>_<YYYY><DDD><HH><mm>_NAV.rnx
 
-    sp3:
-        output:                     true
-        filename:                   <CONFIG>-<YYYY><DDD><HH>-<SYS>.sp3
-        orbit_sources:              [ SSR ]
-        output_interval:            300
+  clocks:
+    output: true
+    filename: <CONFIG>_<YYYY><DDD><HH><mm>_CLK.clk
+    receiver_sources: [NONE]
+    satellite_sources: [SSR]
+    output_interval: 30
+
+  sp3:
+    output: true
+    filename: <CONFIG>_<YYYY><DDD><HH><mm>_ORB.sp3
+    orbit_sources: [SSR]
+    clock_sources: [SSR]
+    output_interval: 300
+
+satellite_options: # Required if write out SP3 files with SSRA streams
+  global:
+    models:
+      pos:
+        enable: true
+        sources: [SSR]
+      clock:
+        enable: true
+        sources: [SSR]
+
+receiver_options: # Receiver and antenna information to write to Rinex file headers (can use valid Sinex files instead)
+  ALIC:
+    receiver_type: "SEPT POLARX5"
+    antenna_type: "TWIVC6050       NONE"
+    apriori_position: [-4052052.7352, 4212835.9833, -2545104.5853]
+    models:
+      eccentricity:
+        enable: true
+        offset: [0.0000, 0.0000, 0.0250]
 
 processing_options:
+  process_modes:
+    spp: false
 
-    epoch_control:
-        # max_epochs:                 60
-        epoch_interval:             1
-        wait_next_epoch:            1
-        max_rec_latency:            0
-        require_obs:                false
-        sleep_milliseconds:         1
+  epoch_control:
+    require_obs: false
+    epoch_interval: 10
+    wait_next_epoch: 10
+    max_rec_latency: 1
 
-    gnss_general:
-        common_sat_pco:             true
-        delete_old_ephemerides:     true
-        sys_options:
-            gps:
-                process:            true
-            gal:
-                process:            true
-            glo:
-                process:            false
-            bds:
-                process:            false
-            qzs:
-                process:            false
+  gnss_general:
+    common_sat_pco: true
+    delete_old_ephemerides: true
+    gpst_utc_leap_seconds: 18
+    sys_options:
+      gps:
+        process: true
+      gal:
+        process: true
+      glo:
+        process: true
+      bds:
+        process: true
+        code_priorities: [L1P, L5P, L2I, L6I, L7I, L7D]
+      qzs:
+        process: true

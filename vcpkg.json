@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "ginan",
+  "version-string": "dev",
+  "description": "GNSS Analysis Software",
+  "dependencies": [
+    "boost-log",
+    "boost-date-time",
+    "boost-system",
+    "boost-thread",
+    "boost-program-options",
+    "boost-serialization",
+    "boost-timer",
+    "boost-bimap",
+    "boost-format",
+    "boost-iostreams",
+    "boost-assign",
+    "boost-math",
+    "boost-odeint",
+    "boost-json",
+    "eigen3",
+    {
+      "name": "openblas",
+      "features": ["threads"]
+    },
+    {
+      "name": "lapack",
+      "platform": "!windows"
+    },
+    {
+      "name": "clapack",
+      "platform": "windows"
+    },
+    "yaml-cpp",
+    "openssl",
+    "zstd",
+    {
+      "name": "mongo-cxx-driver",
+      "$comment": "Optional: MongoDB support - can be disabled with ENABLE_MONGODB=OFF",
+      "platform": "!windows"
+    }
+  ],
+  "builtin-baseline": "4c5ae6b55f3e3e39d291679f89822f496cf190ee"
+}

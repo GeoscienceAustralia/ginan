@@ -1,22 +1,29 @@
 
-> **2 Sept 2024** - the Ginan team is pleased to release v3.1.0 of the toolkit.
+> **16 Dec 2025** - the Ginan team is pleased to release v4.0.0 of the toolkit.
 >
-> The improvements delivered by this version include:
+> **Main Highlights**:
 >
-> * Boxwing model for the albedo
-> * Sisnet (SouthPan) message support
-> * SLR processing capability
-> * PBO Position (.pos) format file output support
-> * Apple silicon (M-chip) support
-> * VMF3 file download python script (get_vmf3.py)
-> * POS file visualisation python script (plot_pos.py)
-> * EDA improvements
-> * Improved documentation
-> * Use case examples updated
-> * Frequency dependent GLONASS receiver code bias estimation enabled
-> * Improved missing/bad data handling
-> * Bias rates from .BIA/BSX files parsed and used
-> * Measurment and State error handling sigma_limit thresholds separated
-> * Config file reorganisation (rec_reference_system: moved to receiver_options:)
-> * Clock code handling modified
-> * Many bug fixes.
+> * Introduce Ginan binaries for Linux, MacOS and Windows
+>   * The binaries can be found on the GitHub website:
+>     * [Ginan Binaries](https://github.com/GeoscienceAustralia/ginan/releases/tag/v4.0.0)
+> * Introduce a Qt-based Graphical User Interface (GUI) for Ginan:
+>   * Simply open RNX file and choose from drop-downs
+>   * Download the GUI from GitHub release page
+>   * Works across Linux, MacOS and Windows
+>   * Built using PySide 6
+>   * A user manual for the GUI can be found here:
+>     * [Ginan GUI User Manual](https://github.com/GeoscienceAustralia/ginan/tree/main/scripts/GinanUI/docs/USER_GUIDE.md)
+>
+> ![GinanGUI Screenshot](images/GinanGUI-screenshot.png)
+> *A screenshot of the Ginan GUI in action.* 
+>
+> **Major Changes**:
+>
+> * Major refactor: use OpenBLAS / LAPACK instead of Eigen
+>   * Refactored RTS code
+>   * Refactored core Kalman filter code
+>   * Improved efficiency (up to 30% faster on network runs)
+> * Major improvement in handling state errors in pre-fit and post-fit outlier screening
+> * Move to vcpkg as the primary package manager for Ginan
+> * Add RNX2 --> RNX3 phase signal mapping in config
+>

@@ -1,0 +1,7 @@
+set(OpenMP_CXX_FLAGS "-Xclang -fopenmp")
+set(OpenMP_CXX_INCLUDE_DIR "/usr/local/opt/libomp/include")
+set(OpenMP_CXX_LIB_NAMES "libomp")
+set(OpenMP_C_FLAGS "-Xclang -fopenmp")
+set(OpenMP_C_INCLUDE_DIR "/usr/local/opt/libomp/include")
+set(OpenMP_C_LIB_NAMES "libomp")
+set(OpenMP_libomp_LIBRARY "/usr/local/opt/libomp/lib/libomp.dylib")

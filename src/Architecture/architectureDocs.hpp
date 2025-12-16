@@ -16,3 +16,8 @@ if (doDocs) ref();
 
 
 extern bool doDocs;
+
+// Stub for Mongo_Database__() when MongoDB is not enabled
+#ifndef ENABLE_MONGODB
+inline void Mongo_Database__() {}
+#endif
