@@ -1,7 +1,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "common/sbfDecoder.hpp"
-#include <bsoncxx/json.hpp>
+
 #include "architectureDocs.hpp"
 #include "common/constants.hpp"
 #include "common/enums.h"
