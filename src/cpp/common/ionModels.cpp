@@ -12,6 +12,7 @@
 #include "common/observations.hpp"
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
+#include "iono/ionoSBAS.hpp"
 #include "orbprop/coordinates.hpp"
 
 constexpr double VAR_IONO  = 60.0 * 60.0;  // init variance iono-delay
@@ -478,6 +479,31 @@ bool ionoModel(
             var  = 0;
 
             return true;
+        }
+        case E_IonoMode::SBAS:
+        {
+            dion = 0;
+            var  = SQR(ERR_ION);
+            if (acsConfig.sbsInOpts.freq == 5)
+            {
+                double sig = 0.018 + 40 / (261 + SQR(azel.el * R2D));
+                var        = sig * sig;
+                return true;
+            }
+
+            if (acsConfig.sbsInOpts.freq == 1)
+            {
+                dion = ionmodelSBAS(time, pos, azel, var);
+                if (var < 0)
+                {
+                    dion = 0.0;
+                    var  = 1600;
+                    return false;
+                }
+                return true;
+            }
+
+            return false;
         }
         default:
         {

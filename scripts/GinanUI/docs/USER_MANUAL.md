@@ -1,8 +1,8 @@
 # Ginan-UI
 ## User Manual
 ### This guide is written to aid those using the Ginan-UI extension software.
-### Version: Release 1.0
-### Last Updated: 12th December 2025
+### Version: Release v4.1.0
+### Last Updated: 22nd January 2026
 
 ## 1. Introduction
 
@@ -109,33 +109,33 @@ When you open Ginan-UI for the first time, you will be taken to the main dashboa
 ![Dashboard of Ginan-UI](./images/ginan_ui_dashboard.jpg)
 
 
-To use Ginan-UI, you will require an account with NASA's CDDIS EarthData archives. Once you have created an account here, you can log in by clicking the “CDDIS Credentials” button in the top-right of Ginan-UI:
+To use Ginan-UI, you will require an account with NASA's CDDIS EarthData archives. Once you have created an account here, you can log in by clicking the "CDDIS Credentials" button in the top-right of Ginan-UI:
 
 <p align="center"><i>CDDIS Credentials button in the top-right</i></p>
 
 !["CDDIS Credentials" button highlighted](./images/cddis_credentials_button.jpg)
 
-Then, enter your CDDIS credentials and click “Save”.
+Then, enter your CDDIS credentials and click "Save".
 
 <p align="center"><i>Type in your CDDIS login credentials here</i></p>
 
 ![CDDIS Credentials screen displaying username and password fields](./images/cddis_credentials_screen.jpg)
 
-Next, click the “Observations” button in the top-left and select the RINEX observation data file you want to process. Afterward, click the adjacent “Output” button and choose an output location for where Ginan will store its results after processing.
+Next, click the "Observations" button in the top-left and select the RINEX observation data file you want to process. Afterward, click the adjacent "Output" button and choose an output location for where Ginan will store its results after processing.
 
 <p align="center"><i>Select your RINEX observation file and your output location</i></p>
 
 !["Observations" and "Output" buttons highlighted](./images/observations_output_buttons.jpg)
 
-Once your RINEX observation file is set, most of the UI fields should autofill based on extracted data from the RINEX file, however the user still needs to set the “Mode” parameter. This defines how much noise should be expected in the data (i.e. “Static” = stationary GNSS receiver, “Kinematic” = a moving car, “Dynamic” = a moving plane). Set this field now.
+Once your RINEX observation file is set, most of the UI fields should autofill based on extracted data from the RINEX file, however the user still needs to set the "Mode" parameter. This defines how much noise should be expected in the data (i.e. "Static" = stationary GNSS receiver, "Kinematic" = a moving car, "Dynamic" = a moving plane). Set this field now.
 
-More experienced users may recognise this parameter as the `estimation_parameters.receivers.global.pos.process_noise` config value. By default, “Static” = 0, “Kinematic” = 30, and “Dynamic” = 100.
+More experienced users may recognise this parameter as the `estimation_parameters.receivers.global.pos.process_noise` config value. By default, "Static" = 0, "Kinematic" = 30, and "Dynamic" = 100.
 
 <p align="center"><i>Select a "Mode" to set the `process_noise`</i></p>
 
 !["Mode" dropdown showing the options: "Static", "Kinematic", and "Dynamic"](./images/mode_dropdown.jpg)
 
-Once everything is configured and all fields have been autofilled by Ginan-UI, simply click “Process” to start Ginanʼs PEA processing. Ginan-UI will begin downloading the required products from the CDDIS servers for Ginan to process, and then will execute Ginan automatically. Ginanʼs processing progress will be displayed in the accompanying "Console" tab next to the default "Workflow" tab.
+Once everything is configured and all fields have been autofilled by Ginan-UI, simply click "Process" to start Ginanʼs PEA processing. Ginan-UI will begin downloading the required products from the CDDIS servers for Ginan to process, and then will execute Ginan automatically. Ginanʼs processing progress will be displayed in the accompanying "Console" tab next to the default "Workflow" tab.
 
 <p align="center"><i>Click "Process" when ready!</i></p>
 
@@ -149,7 +149,7 @@ Once everything is configured and all fields have been autofilled by Ginan-UI, s
 
 ![PEA processing within the "Console" tab](./images/pea_processing.jpg)
 
-When Ginan finishes processing, you can view the generated position plot within Ginan-UI, or alternatively open the generated HTML output to review the results by clicking “Open in Browser”.
+When Ginan finishes processing, you can view the generated position plot within Ginan-UI, or alternatively open the generated HTML output to review the results by clicking "Open in Browser".
 
 <p align="center"><i>Once PEA finishes processing, Ginan-UI will plot the results</i></p>
 
@@ -163,23 +163,29 @@ And that is it! Check out Section 6 for more in-depth tooling.
 
 ## 4. User Interface Reference
 
+The Ginan-UI interface is divided into two main panels: the left panel for input configuration, and the right panel for monitoring, output, and visualisation. All panels are resizable by dragging the divider between them, allowing you to customise your workspace layout.
+
 ### 4.1 Input Configuration (Left Panel)
 
-The left-hand panel contains all the configuration options required to set up Ginan to commence processing.
+The left-hand panel contains all the configuration options required to set up Ginan to commence processing. These options are organised into three tabs: **General**, **Constellations**, and **Output**.
 
-#### "Observations" Button
+#### 4.1.1 General Tab
+
+The General tab contains the primary configuration options for setting up your GNSS processing run.
+
+##### "Observations" Button
 
 - Opens a file picker to select your RINEX v2/v3/v4 observation file (optionally can be compressed).
 
 - Ginan-UI will automatically extract metadata from your provided RINEX file, including the time window, available constellations, and receiver and antenna type information. This metadata is then used to autopopulate the several fields below.
 
-#### "Output" Button
+##### "Output" Button
 
 - Opens a file picker to select where PEA will save its processing results (`.pos`, `.log`, HTML plots).
 
 - Remains disabled until a valid "Observations" file has been selected.
 
-#### Mode
+##### Mode
 
 - **Critical parameter** that must be set by the user.
 
@@ -190,29 +196,29 @@ The left-hand panel contains all the configuration options required to set up Gi
 
 - Corresponds to the `estimation_parameters.receivers.global.pos.process_noise` YAML field
 
-#### Constellations
+##### Constellations
 
 - Drop-down showing GNSS systems detected from your RINEX file. Displays which constellations are available: GPS, GAL (Galileo), GLO (GLONASS), BDS (BeiDou), QZS (QZSS)
 
-#### Time Window
+##### Time Window
 
 - Displays the detected start and end epochs.
 
 - Useful is you only want to process a subset of your observation period
 
-#### Data Interval
+##### Data Interval
 
 - Set the interval to downsample your observation data (i.e. process every 120 seconds, instead of 30 seconds).
 
-#### Receiver Type / Antenna Type
+##### Receiver Type / Antenna Type
 
 - Used internally for antenna phase centre corrections
 
-#### Antenna Offset
+##### Antenna Offset
 
 - View / edit ENU (East-North-Up) offset values. This allows manual adjustment if your antenna has a known offset position from its reference point.
 
-#### PPP Provider / Project / Series
+##### PPP Provider / Project / Series
 
 - Three drop-downs that filter available products based on the provided time window
 
@@ -226,13 +232,65 @@ The left-hand panel contains all the configuration options required to set up Gi
 
 - These fields are populated after a valid observation file has been loaded.
 
-#### "Show Config" Button
+##### "Reset Config" Button
+
+- Resets both the UI and the configuration file back to their default states.
+
+- The `ppp_generated.yaml` configuration file will be regenerated from the default template.
+
+- All UI fields will be cleared and returned to their initial placeholder values.
+
+- This is useful if you have made configuration changes you want to undo, or if you want to start fresh with a new RINEX file without lingering settings from a previous session.
+
+- A confirmation dialog will appear before the reset proceeds.
+
+##### "Show Config" Button
 
 - A button that opens the generated `ppp_generated.yaml` file in your system's default text editor.
 
 - Allows advanced users to manually edit PEA configuration parameters
 
 - See Section 6.1 for more details on manual config editing.
+
+#### 4.1.2 Constellations Tab
+
+The Constellations tab allows you to manage the observation code priorities for each enabled GNSS constellation on the "General" tab. Code priorities determine which signal types PEA will prefer when processing your data.
+
+##### How It Works
+
+When you select a PPP provider, series, and project in the "General" tab, Ginan-UI will automatically retrieve the supported code priorities from the corresponding `.BIA` (bias) product file. These are cross-referenced against the observation codes present in the provided RINEX observation file and the constellations available in the `.SP3` (orbit) product file.
+
+##### Constellation Panels
+
+Each constellation (GPS, GAL, GLO, BDS, QZS) has its own panel displaying the available observation codes. Only constellations that are enabled in the "General" tab's "Constellations" field will be shown and configurable.
+
+- Codes are listed in priority order from top to bottom.
+
+- You can reorder codes by dragging and dropping to change their priority.
+
+##### Automatic Validation
+
+Ginan-UI performs automatic validation to ensure compatibility between the provided RINEX observation data and the selected PPP products:
+
+- **RINEX vs SP3 verification:** The constellations in the RINEX file are verified against those available in the PPP provider's `.SP3` orbit file. If a constellation in your RINEX file is not supported by the PPP products, it will be displayed but coloured red and be strikethrough.
+
+- **Code priority detection:** The supported code priorities are automatically detected from the PPP provider's `.BIA` file, ensuring that only valid codes are configured.
+
+#### 4.1.3 Output Tab
+
+The Output tab allows you to specify which output files PEA should generate during processing.
+
+##### Output File Options
+
+- **POS** (Position file): Contains the computed position solutions. This is the primary output for most users and is enabled by default.
+
+- **GPX** (GPS Exchange Format): Generates a GPX file compatible with mapping software and GPS devices. Enabled by default.
+
+- **TRACE** (Trace file): Produces detailed debugging output from PEA processing. Disabled by default.
+
+##### Visualisation Dependency
+
+The plot visualisation feature in the right panel depends on the output files being generated. If you disable the POS output, the corresponding position plots will not be available in the Visualisation section after processing completes.
 
 ### 4.2 Monitoring & Output (Right Panel)
 
@@ -260,9 +318,11 @@ The right-hand panel contains all the monitoring tools for Ginan-UI's functional
 
 #### "Visualisation" Section
 
-- The visualisation panel displays an interactive HTML plot that is generated using the `plot_pos.py` script after PEA completes its processing. It allows the user to view, pan, zoom, hover over tooltips and toggle legends.
+- The visualisation panel displays an interactive HTML plot that is generated using the `plot_pos.py` script after PEA completes its processing. It allows the user to view, pan, zoom, hover over tooltips, and toggle legends.
 
 - Below the visualisation panel, the user can choose to open the plot in their system's default web-browser, or switch between the other generated plots.
+
+- **Note:** Plot visualisation is only available when the corresponding output file type is enabled in the Output tab. For example, position plots require the POS output to be enabled.
 
 ### 4.3 Process Control
 
@@ -337,6 +397,12 @@ Ginan-UI will automatically determine which dynamic products you need based on:
 2. The PPP provider / series / project selected in the UI
 
 3. The constellations present in your data (GPS, GLONASS, Galileo, BeiDou, QZSS)
+
+#### REPRO3 Fallback for Older Data
+
+For older RINEX files (typically more than three years old), the standard PPP products may not be available in the main CDDIS directory. In these cases, Ginan-UI will automatically search the REPRO3 (third IGS reprocessing campaign) directory for reproduction products. These reprocessed products provide high-quality orbits, clocks, and biases for historical data that may otherwise be unavailable.
+
+When REPRO3 products are used, you will see a notification in the Workflow log indicating that the fallback occurred.
 
 #### Download Process
 
@@ -443,7 +509,13 @@ All other parameters like processing strategies, filter settings, quality contro
 
 #### Resetting to Default
 
-If you experience any configuration errors and want to start fresh:
+If you experience any configuration errors and want to start fresh, you have two options:
+
+**Option 1: Use the Reset Config Button**
+
+Click the "Reset Config" button in the General tab. This will regenerate the configuration file from the default template and reset all UI fields to their initial state. A confirmation dialog will appear before the reset proceeds.
+
+**Option 2: Manual Reset**
 
 1. Delete `scripts/GinanUI/app/resources/ppp_generated.yaml`
 
@@ -466,9 +538,11 @@ If you experience any configuration errors and want to start fresh:
 | Program crash when clicking "Process"                                   | "`Core dump whilst thread ''`" occurs when the user uses the "Stop" button before the first download has started and subsequently clicked the process button again before the thread has a chance to exit. | The thread cannot exit whilst raising a request for status. Wait a few seconds for the "stopped thread" message in the Console before clicking Process again.                                                                                                   |
 | Connection reset errors                                                 | CDDIS server timeouts and / or network problems.                                                                                                                                                           | Wait 30 seconds and then try again. If the issue persists, check your network connection. Note: CDDIS servers experienced reliability issues during the 2025 US government shutdown.                                                                            |
 | CDDIS authentication failed                                             | Invalid or expired Earthdata credentials, or credentials not properly saved to `.netrc` / `_netrc` file.                                                                                                   | Re-enter your credentials via the "CDDIS Credentials" button. Verify your account is active at [Earthdata Login](https://urs.earthdata.nasa.gov). Check that `.netrc` or `_netrc` exists in your home directory with correct permissions (0600 on Linux/macOS). |
-| PEA configuration error / YAML syntax error                             | Manual edits to the YAML config contain syntax errors (incorrect indentation, mismatched quotes, malformed lists).                                                                                         | Verify your YAML formatting in the config editor. If errors persist, delete `ppp_generated.yaml` to reset to default template (see Section 6.1).                                                                                                                |
-| Plots not appearing in Visualisation panel                              | PEA processing failed before generating `.pos` files, or `plot_pos.py` script encountered errors.                                                                                                          | Check the Console for PEA errors. Verify that `.pos` files exist in your output directory. If files exist but plots don't render, check for Qt WebEngine issues in the Console.                                                                                 |
+| PEA configuration error / YAML syntax error                             | Manual edits to the YAML config contain syntax errors (incorrect indentation, mismatched quotes, malformed lists).                                                                                         | Verify your YAML formatting in the config editor. If errors persist, use the "Reset Config" button or delete `ppp_generated.yaml` to reset to default template (see Section 6.1).                                                                               |
+| Plots not appearing in Visualisation panel                              | PEA processing failed before generating `.pos` files, the `plot_pos.py` script encountered errors, or the POS output is disabled in the Output tab.                                                        | Check the Console for PEA errors. Verify that `.pos` files exist in your output directory. Ensure POS output is enabled in the Output tab. If files exist but plots don't render, check for Qt WebEngine issues in the Console.                                 |
 | Disk space errors during processing                                     | Insufficient disk space for downloading products or writing PEA outputs.                                                                                                                                   | Free up disk space. Products can consume several GB depending on time window and number of constellations. Check available space in both the products directory and your selected output directory.                                                             |
+| Constellation mismatch warning                                          | The constellations in the provided RINEX file do not match those available in the selected PPP provider's SP3 file.                                                                                        | Select a different PPP provider that supports the constellations in your RINEX file, or disable the unsupported constellations in the "General" config tab's "Constellations" field.                                                                            |
+| No valid PPP providers found for older data                             | The RINEX file is from a time period where standard PPP products are no longer available in the main CDDIS directory.                                                                                      | Ginan-UI will automatically attempt to use REPRO3 products for older data. If no providers are found, the data may be too old for available PPP products.                                                                                                       |
 
 ### 7.2 Log Message Interpretation
 
@@ -544,9 +618,21 @@ Here are some answers to the frequently asked questions:
 
 **A:** : The `.yaml` config file used by PEA is in `ginan/scripts/GinanUI/app/resources/ppp_generated.yaml` which can be edited with the "Show Config" button. The template file in `ginan/scripts/GinanUI/app/resources/Yaml/default_config.yaml` is copied and used when no `ppp_generated.yaml` can be found.
 
-**Q:** *"Why is pea giving me a configuration error?"*
+**Q:** *"Why is PEA giving me a configuration error?"*
 
-**A:** This could be due to a product file being deleted erroneously, which would resolve on the next click of the "Process" button, or due to manual changes to the `.yaml` config file. The app **does not overwrite** the `ppp_generated.yaml` file when the `.rnx` file is changed or when the app is restarted. If you wish to reset to the default config, delete the file in `ginan/scripts/GinanUI/app/resources/ppp_generated.yaml` and then run the app again.
+**A:** This could be due to a product file being deleted erroneously, which would resolve on the next click of the "Process" button, or due to manual changes to the `.yaml` config file. The app **does not overwrite** the `ppp_generated.yaml` file when the `.rnx` file is changed or when the app is restarted. If you wish to reset to the default config, click the "Reset Config" button in the General tab, or delete the file in `ginan/scripts/GinanUI/app/resources/ppp_generated.yaml` and then run the app again.
+
+**Q:** *"How do I reset the configuration to default?"*
+
+**A:** Click the "Reset Config" button in the General tab. This will regenerate the configuration file from the default template and clear all UI fields back to their initial state. Alternatively, you can manually delete the `ppp_generated.yaml` file.
+
+**Q:** *"Why is the plot visualisation disabled or not showing?"*
+
+**A:** Plot visualisation depends on the corresponding output file being enabled in the "Output" tab. If you have disabled the POS output, the position plots will not be available. Enable the required output type and re-run processing.
+
+**Q:** *"Can I process older RINEX files?"*
+
+**A:** Yes. Ginan-UI supports RINEX v2, v3, and v4 files. For older data (typically more than three years old), Ginan-UI will automatically search the REPRO3 directory for reprocessed products if standard products are not available.
 
 **Q:** *"Where can I learn more about Ginan itself?"*
 

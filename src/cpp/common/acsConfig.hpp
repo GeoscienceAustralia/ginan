@@ -53,7 +53,7 @@ struct SsrInputOptions
     bool   one_freq_phase_bias    = false;
 };
 
-struct SbsInputOptions
+struct SbasInputOptions
 {
     string host;          ///< hostname is passed as acsConfig.sisnet_inputs
     string port;          ///< port of SISNet steam
@@ -61,17 +61,13 @@ struct SbsInputOptions
     string pass;          ///< Password for SISnet stream access
     int    prn;           ///< prn of SBAS satellite
     int    freq;          ///< freq (L1 or L5) of SBAS channel
-    int    mt0   = 0;     ///< message that is replaced by MT0 (use 65 for SouthPAN L5)
+    int    mt0   = -1;    ///< message that is replaced by MT0 (use 65 for SouthPAN L5)
     int ems_year = 2059;  ///< reference year for EMS files (2059 should work between 2009 and 2158)
     bool use_do259 = false;  ///< Use original standard DO-259, intead of DO-259A, for DFMC, Keep as
                              ///< 'false' unless using DFMC
     bool pvs_on_dfmc  = false;  ///< Interpret DFMC messages as PVS messages
     bool prec_aproach = true;  ///< Limit SBAS solutions to precision approach (which limits maximum
                                ///< SBAS correction age)
-    bool dfmc_uire = false;    ///< Ionosphere residual from IF combination (use with DFMC only)
-    int  smth_win =
-        -1;  ///< Smoothing window to be used by SBAS (100, 1 second samples are normally used)
-    double smth_out = 10;  ///< Maximum outage to reset smoothing
 };
 
 /** Input source filenames and directories
@@ -128,6 +124,7 @@ struct InputOptions
 
     map<string, vector<string>> rnx_inputs;
     map<string, vector<string>> ubx_inputs;
+    map<string, vector<string>> sbf_inputs;
     map<string, vector<string>> custom_inputs;
     map<string, vector<string>> obs_rtcm_inputs;
     map<string, vector<string>> pseudo_sp3_inputs;
@@ -165,10 +162,8 @@ struct InputOptions
     string stream_user;
     string stream_pass;
 
-    double sbs_time_delay = 0;
-
-    SsrInputOptions ssrInOpts;
-    SbsInputOptions sbsInOpts;
+    SsrInputOptions  ssrInOpts;
+    SbasInputOptions sbsInOpts;
 };
 
 struct IonexOptions
@@ -208,6 +203,10 @@ struct OutputOptions
     bool   record_raw_ubx    = false;
     string raw_ubx_directory = "<OUTPUTS_ROOT>";
     string raw_ubx_filename  = "<UBX_DIRECTORY>/<RECEIVER>-<LOGTIME>-OBS.rtcm";
+
+    bool   record_raw_sbf    = false;
+    string raw_sbf_directory = "<OUTPUTS_ROOT>";
+    string raw_sbf_filename  = "<SBF_DIRECTORY>/<RECEIVER>-<LOGTIME>-OBS.sbf";
 
     bool   record_raw_custom    = false;
     string raw_custom_directory = "<OUTPUTS_ROOT>";
@@ -530,6 +529,7 @@ struct GlobalOptions
     bool process_rts                 = false;
     bool process_ppp                 = false;
     bool process_orbits              = false;
+    bool process_sbas                = false;
 
     map<E_Sys, bool> process_sys;
     map<E_Sys, bool> solve_amb_for;
@@ -749,7 +749,10 @@ struct PppOptions : FilterOptions
 struct SppOptions : FilterOptions
 {
     bool   always_reinitialise = false;
+    int    smooth_window       = -1;
+    bool   use_smooth_only     = false;
     int    max_lsq_iterations  = 12;
+    double smooth_outage       = 10;
     double elevation_mask_deg  = 0;
     double max_gdop            = 30;
     double sigma_scaling       = 1;
@@ -776,6 +779,33 @@ struct IonModelOptions : FilterOptions
     double         basis_sigma_limit = 1000;
 
     KalmanModel ion;
+};
+
+struct SbasOptions
+{
+    E_SbasMode mode = E_SbasMode::L1;
+
+    double sbas_time_delay  = 0;
+    bool   use_sbas_rec_var = false;
+
+    map<E_Sys, E_NavMsgType> sbas_nav_types = {
+        {E_Sys::GPS, E_NavMsgType::LNAV},
+        {E_Sys::GLO, E_NavMsgType::FDMA},
+        {E_Sys::GAL, E_NavMsgType::FNAV},
+        {E_Sys::BDS, E_NavMsgType::D1},
+        {E_Sys::QZS, E_NavMsgType::LNAV}
+    };
+
+    map<E_Sys, vector<E_ObsCode>> sbas_code_priorities_map = {
+        {E_Sys::GPS, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L5X}},
+        {E_Sys::GAL, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L1X, E_ObsCode::L5X}},
+        {E_Sys::BDS,
+         {E_ObsCode::L1C,
+          E_ObsCode::L5Q,
+          E_ObsCode::L5X}},  // Eugene: May need to update this for BDS once ICD is released
+        {E_Sys::QZS, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L5X}},
+        {E_Sys::SBS, {E_ObsCode::L1C, E_ObsCode::L5Q}}
+    };
 };
 
 struct AmbROptions
@@ -1211,7 +1241,7 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
     string            domes_number;
     string            site_description;
     string            sat_id;
-    double            elevation_mask_deg        = 10;
+    double            elevation_mask_deg        = 5;
     E_Sys             receiver_reference_system = E_Sys::NONE;
 
     struct
@@ -1470,6 +1500,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
     SsrOptions               ssrOpts;
     PppOptions               pppOpts;
     SppOptions               sppOpts;
+    SbasOptions              sbsOpts;
     SlrOptions               slrOpts;
     ExcludeOptions           exclude;
 

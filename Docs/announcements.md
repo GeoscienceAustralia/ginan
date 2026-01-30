@@ -1,4 +1,19 @@
 
+> **30 Jan 2026** - the Ginan team is pleased to release Ginan update v4.1.0
+>
+> **Highlights**:
+>
+> * Introduction of SouthPAN SBAS capabilities into Ginan:
+>   * Choice of running L1 SBAS, DFMC (dual-frequency multi-constellation) and PVS (Precise Point Positioning Via SouthPAN)
+>   * Includes SBF (Septentrio) input
+>   * Included sanity check configurations for SBAS, DFMC and PVS
+> * Additions to the Graphical User Interface (GUI) for Ginan - GinanUI:
+>   * "Constellations" config tab for managing code priorities for the selected PPP provider/series/project
+>   * Support for downloading products from the REPRO3 directory for older RINEX files
+>   * Detection of supported code priorities for PPP products using the corresponding .BIA file
+>   * Verification of PPP product constellations using the corresponding .SP3 file
+>
+
 > **16 Dec 2025** - the Ginan team is pleased to release v4.0.0 of the toolkit.
 >
 > **Main Highlights**:

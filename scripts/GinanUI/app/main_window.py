@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QUrl, Signal, QThread, Slot, Qt, QRegularExpression
+from PySide6.QtCore import QUrl, Signal, QThread, Slot, Qt, QRegularExpression, QCoreApplication
 from scripts.GinanUI.app.utils.logger import Logger
-from PySide6.QtWidgets import QMainWindow, QDialog, QVBoxLayout, QPushButton, QComboBox
+from PySide6.QtWidgets import QMainWindow, QDialog, QVBoxLayout, QPushButton, QComboBox, QMessageBox
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QTextCursor, QTextDocument
 
@@ -17,7 +17,6 @@ from scripts.GinanUI.app.utils.cddis_email import get_username_from_netrc, write
 from scripts.GinanUI.app.utils.workers import PeaExecutionWorker, DownloadWorker
 from scripts.GinanUI.app.models.archive_manager import archive_products_if_selection_changed, archive_products, archive_old_outputs
 from scripts.GinanUI.app.models.execution import INPUT_PRODUCTS_PATH
-from scripts.GinanUI.app.utils.logger import Logger
 
 # Optional toggle for development visualization testing
 test_visualisation = False
@@ -46,19 +45,32 @@ class MainWindow(QMainWindow):
 
         # Add rounded corners to UI elements
         self.setStyleSheet("""
-                QPushButton {
-                    border-radius: 4px;
-                }
-                QPushButton:disabled {
-                    border-radius: 4px;
-                }
-                QTextEdit {
-                    border-radius: 4px;
-                }
-                QComboBox {
-                    border-radius: 4px;
-                }
-            """)
+            QPushButton {
+                border-radius: 4px;
+            }
+            QPushButton:disabled {
+                border-radius: 4px;
+            }
+            QTextEdit {
+                border-radius: 4px;
+            }
+            QComboBox {
+                border-radius: 4px;
+            }
+            QMessageBox QPushButton {
+                border-radius: 4px;
+                background-color: #2c5d7c;
+                color: white;
+                padding: 6px 16px;
+                min-width: 60px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #214861;
+            }
+            QMessageBox QPushButton:pressed {
+                background-color: #1a3649;
+            }
+        """)
 
         # Fix macOS tab widget styling
         self._fix_macos_tab_styling()
@@ -83,12 +95,13 @@ class MainWindow(QMainWindow):
         self.atx_required_for_rnx_extraction = False # File required to extract info from RINEX
         self.metadata_downloaded = False
         self.offline_mode = False  # Track if running without internet
+        self._pending_threads = []  # Track threads pending cleanup
 
         # Visualisation widgets
 
-        self.visCtrl.bind_open_button(self.ui.openInBrowserBtn)
+        self.visCtrl.bind_open_button(self.ui.openInBrowserButton)
 
-        self.visCtrl.bind_selector(self.ui.visSelector)
+        self.visCtrl.bind_selector(self.ui.visualisationSelectorCombo)
 
         archive_products(INPUT_PRODUCTS_PATH, "startup_archival", True)
 
@@ -97,20 +110,19 @@ class MainWindow(QMainWindow):
 
         # Only start metadata download if we have internet connection
         if not self.offline_mode:
-            self.metadata_thread = QThread()
             self.metadata_worker = DownloadWorker()
-            self.metadata_worker.moveToThread(self.metadata_thread)
+            self.metadata_thread, _ = self._setup_worker_thread(
+                self.metadata_worker,
+                self._on_metadata_download_finished,
+                self._on_download_progress,
+                thread_attr='metadata_thread',
+                worker_attr='metadata_worker'
+            )
 
-            # Signals
-            self.metadata_thread.started.connect(self.metadata_worker.run)
-            self.metadata_worker.progress.connect(self._on_download_progress)
-            self.metadata_worker.finished.connect(self._on_metadata_download_finished)
+            self.metadata_thread.setObjectName("MetadataDownloadWorker")
+
+            # Connect additional signal specific to metadata download
             self.metadata_worker.atx_downloaded.connect(self._on_atx_downloaded)
-
-            # Cleanup
-            self.metadata_worker.finished.connect(self.metadata_thread.quit)
-            self.metadata_worker.finished.connect(self.metadata_worker.deleteLater)
-            self.metadata_thread.finished.connect(self.metadata_thread.deleteLater)
             self.metadata_thread.start()
         else:
             Logger.terminal("⚠️ Skipping metadata download - running in offline mode")
@@ -131,16 +143,44 @@ class MainWindow(QMainWindow):
             raise ValueError("[MainWindow] Invalid channel for log_message")
 
     def _set_processing_state(self, processing: bool):
-        """Enable/disable UI elements during processing"""
+        """Enable / disable UI elements during processing"""
         self.is_processing = processing
+        enabled = not processing
 
-        # Disable/enable the process button
-        self.ui.processButton.setEnabled(not processing)
+        # Control buttons
+        self.ui.processButton.setEnabled(enabled)
+        self.ui.stopAllButton.setEnabled(processing)
+        self.ui.cddisCredentialsButton.setEnabled(enabled)
+        self.ui.observationsButton.setEnabled(enabled)
+        self.ui.outputButton.setEnabled(enabled)
+        self.ui.showConfigButton.setEnabled(enabled)
+        self.ui.resetConfigButton.setEnabled(enabled)
 
-        # Optionally disable other critical UI elements during processing
-        self.ui.observationsButton.setEnabled(not processing)
-        self.ui.outputButton.setEnabled(not processing)
-        self.ui.showConfigButton.setEnabled(not processing)
+        # PPP provider / series / project combos
+        self.ui.pppProviderCombo.setEnabled(enabled)
+        self.ui.pppProjectCombo.setEnabled(enabled)
+        self.ui.pppSeriesCombo.setEnabled(enabled)
+
+        # "General" config tab
+        self.ui.modeCombo.setEnabled(enabled)
+        self.ui.constellationsCombo.setEnabled(enabled)
+        self.ui.receiverTypeCombo.setEnabled(enabled)
+        self.ui.antennaTypeCombo.setEnabled(enabled)
+        self.ui.antennaOffsetButton.setEnabled(enabled)
+        self.ui.timeWindowButton.setEnabled(enabled)
+        self.ui.dataIntervalButton.setEnabled(enabled)
+
+        # "Constellations" config tab
+        self.ui.gpsListWidget.setEnabled(enabled)
+        self.ui.galListWidget.setEnabled(enabled)
+        self.ui.gloListWidget.setEnabled(enabled)
+        self.ui.bdsListWidget.setEnabled(enabled)
+        self.ui.qzsListWidget.setEnabled(enabled)
+
+        # "Output" config tab
+        self.ui.posCheckbox.setEnabled(enabled)
+        self.ui.gpxCheckbox.setEnabled(enabled)
+        self.ui.traceCheckbox.setEnabled(enabled)
 
         # Update button text to show processing state
         if processing:
@@ -151,29 +191,117 @@ class MainWindow(QMainWindow):
             self.ui.processButton.setText("Process")
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
+    def _setup_worker_thread(self, worker, finished_callback, progress_callback=None, thread_attr=None, worker_attr=None):
+        """
+        Helper method to set up a worker in a QThread with standard cleanup.
+
+        Args:
+            worker: The worker object to run in the thread
+            finished_callback: Callback to connect to worker.finished signal
+            progress_callback: Optional callback to connect to worker.progress signal
+            thread_attr: Optional attribute name to clear when thread finishes
+            worker_attr: Optional attribute name to clear when thread finishes
+
+        Returns:
+            tuple: (thread, worker) for storing references
+        """
+        thread = QThread()
+        worker.moveToThread(thread)
+
+        # Connect started signal
+        thread.started.connect(worker.run)
+
+        # Connect finished signal
+        worker.finished.connect(finished_callback)
+
+        # Connect progress signal if provided
+        if progress_callback and hasattr(worker, 'progress'):
+            worker.progress.connect(progress_callback)
+
+        # Connect cleanup signals
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+
+        # Clear our references when thread finishes to avoid accessing deleted objects
+        if thread_attr and worker_attr:
+            def clear_references():
+                if hasattr(self, thread_attr) and getattr(self, thread_attr) is thread:
+                    setattr(self, thread_attr, None)
+                if hasattr(self, worker_attr) and getattr(self, worker_attr) is worker:
+                    setattr(self, worker_attr, None)
+
+            thread.finished.connect(clear_references)
+
+        return thread, worker
+
+    def _cleanup_thread(self, thread_attr: str, worker_attr: str):
+        """
+        Request cancellation of a running thread and move it to _pending_threads
+
+        Args:
+            thread_attr: Name of the thread attribute (e.g., 'download_thread')
+            worker_attr: Name of the worker attribute (e.g., 'download_worker')
+        """
+        worker = getattr(self, worker_attr, None)
+        thread = getattr(self, thread_attr, None)
+
+        # Try to stop the worker
+        try:
+            if worker is not None and hasattr(worker, 'stop'):
+                worker.stop()
+        except RuntimeError:
+            pass  # Object already deleted
+
+        # Check if thread is still running (with safety check for deleted objects)
+        thread_running = False
+        try:
+            if thread is not None:
+                thread_running = thread.isRunning()
+        except RuntimeError:
+            pass  # C++ object already deleted
+
+        if thread_running:
+            # Disconnect old signals to prevent callbacks to stale state
+            try:
+                worker.finished.disconnect()
+                if hasattr(worker, 'cancelled'):
+                    worker.cancelled.disconnect()
+                if hasattr(worker, 'progress'):
+                    worker.progress.disconnect()
+            except (TypeError, RuntimeError):
+                pass  # Already disconnected or object deleted
+
+            # Keep reference alive until thread actually finishes
+            old_thread = thread
+
+            def cleanup_old_thread():
+                if old_thread in self._pending_threads:
+                    self._pending_threads.remove(old_thread)
+
+            try:
+                old_thread.finished.connect(cleanup_old_thread)
+                self._pending_threads.append(old_thread)
+            except RuntimeError:
+                pass  # Object already deleted
+
+        # Clear current references so new thread can be created
+        setattr(self, worker_attr, None)
+        setattr(self, thread_attr, None)
+
     def on_files_ready(self, rnx_path: str, out_path: str):
         self.rnx_file = rnx_path
         self.output_dir = out_path
 
     def _on_process_clicked(self):
         if not self.rnx_file or not self.output_dir:
-            Logger.terminal("⚠️ Please select RINEX and output directory first.")
+            Logger.terminal("⚠️ Please select RINEX and output directory first")
             return
 
         # Check if in offline mode
         if self.offline_mode:
             Logger.terminal("⚠️ Cannot process: Ginan-UI is running in offline mode (no internet connection)")
-            from scripts.GinanUI.app.utils.toast import show_toast
-            show_toast(self, "⚠️ Processing requires internet connection", 4000)
-
-            from PySide6.QtWidgets import QMessageBox
-            msg = QMessageBox(self)
-            msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setWindowTitle("Offline Mode")
-            msg.setText("Processing requires an internet connection to download PPP products from CDDIS.")
-            msg.setInformativeText("Please check your internet connection and restart Ginan-UI.")
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self._show_processing_offline_warning()
             return
 
         # Prevent multiple simultaneous processing
@@ -185,9 +313,9 @@ class MainWindow(QMainWindow):
         self._set_processing_state(True)
 
         # Get PPP params from UI
-        ac = self.ui.PPP_provider.currentText()
-        project = self.ui.PPP_project.currentText()
-        series = self.ui.PPP_series.currentText()
+        ac = self.ui.pppProviderCombo.currentText()
+        project = self.ui.pppProjectCombo.currentText()
+        series = self.ui.pppSeriesCombo.currentText()
 
         # Archive old products if needed
         current_selection = {"ppp_provider": ac, "ppp_project": project, "ppp_series": series}
@@ -198,9 +326,10 @@ class MainWindow(QMainWindow):
         if archive_dir:
             Logger.terminal(f"📦 Archived old PPP products → {archive_dir}")
 
-        output_archive = archive_old_outputs(Path(self.output_dir), archive_dir)
+        visual_dir = Path(self.output_dir) / "visual"
+        output_archive = archive_old_outputs(Path(self.output_dir), visual_dir)
         if output_archive:
-            Logger.terminal(f" Archived old outputs → {output_archive}")
+            Logger.terminal(f"📦 Archived old outputs → {output_archive}")
 
         # List products to be downloaded
         x = self.inputCtrl.products_df
@@ -209,20 +338,20 @@ class MainWindow(QMainWindow):
         # Reset progress
         self.download_progress.clear()
 
+        # Clean up any existing download thread before starting a new one
+        self._cleanup_thread('download_thread', 'download_worker')
+
         # Start download in background
-        self.download_thread = QThread()
         self.download_worker = DownloadWorker(products=products, start_epoch=self.inputCtrl.start_time, end_epoch=self.inputCtrl.end_time)
-        self.download_worker.moveToThread(self.download_thread)
+        self.download_thread, _ = self._setup_worker_thread(
+            self.download_worker,
+            self._on_download_finished,
+            self._on_download_progress,
+            thread_attr='download_thread',
+            worker_attr='download_worker'
+        )
 
-        # Signals
-        self.download_thread.started.connect(self.download_worker.run)
-        self.download_worker.progress.connect(self._on_download_progress)
-        self.download_worker.finished.connect(self._on_download_finished)
-
-        # Cleanup
-        self.download_worker.finished.connect(self.download_thread.quit)
-        self.download_worker.finished.connect(self.download_worker.deleteLater)
-        self.download_thread.finished.connect(self.download_thread.deleteLater)
+        self.download_thread.setObjectName("ProductDownloadWorker")
 
         Logger.terminal("📡 Starting PPP product downloads...")
         self.download_thread.start()
@@ -258,7 +387,7 @@ class MainWindow(QMainWindow):
 
     def _on_atx_downloaded(self, filename: str):
         self.atx_required_for_rnx_extraction = True
-        Logger.terminal(f"✅ ATX file {filename} installed - ready for RINEX parsing.")
+        Logger.terminal(f"✅ ATX file {filename} installed - ready for RINEX parsing")
 
     def _on_metadata_download_finished(self, message):
         Logger.terminal(message)
@@ -276,21 +405,26 @@ class MainWindow(QMainWindow):
     def _start_pea_execution(self):
         Logger.terminal("⚙️ Starting PEA execution in background...")
 
-        self.thread = QThread()
-        self.worker = PeaExecutionWorker(self.execution)
-        self.worker.moveToThread(self.thread)
+        # Clean up any existing PEA thread before starting a new one
+        self._cleanup_thread('pea_thread', 'pea_worker')
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self._on_pea_finished)
+        # Reset stop flag for new execution
+        self.execution.reset_stop_flag()
 
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
+        self.pea_worker = PeaExecutionWorker(self.execution)
+        self.pea_thread, _ = self._setup_worker_thread(
+            self.pea_worker,
+            self._on_pea_finished,
+            thread_attr='pea_thread',
+            worker_attr='pea_worker'
+        )
 
-        self.thread.start()
+        self.pea_thread.setObjectName("PeaExecutionWorker")
+
+        self.pea_thread.start()
 
     def _on_pea_finished(self):
-        Logger.terminal("✅ PEA processing completed.")
+        Logger.terminal("✅ PEA processing completed")
         show_toast(self, "✅ PEA Processing complete!", 3000)
         self._run_visualisation()
         self._set_processing_state(False)
@@ -300,26 +434,43 @@ class MainWindow(QMainWindow):
         self._set_processing_state(False)
 
     def _run_visualisation(self):
-        try:
-            Logger.terminal("📊 Generating plots from PEA output...")
-            html_files = self.execution.build_pos_plots()
-            if html_files:
-                self.visCtrl.set_html_files(html_files)
-            else:
-                Logger.terminal("⚠️ No plots found.")
-        except Exception as err:
-            Logger.terminal(f"⚠️ Plot generation failed: {err}")
+        all_html_files = []
 
-        if test_visualisation:
+        # Check checkbox states to determine which visualisations to generate
+        pos_enabled = self.ui.posCheckbox.isChecked() if hasattr(self.ui, "posCheckbox") else True
+        trace_enabled = self.ui.traceCheckbox.isChecked() if hasattr(self.ui, "traceCheckbox") else False
+
+        # Generate POS plots
+        if pos_enabled:
             try:
-                Logger.terminal("[Dev] Testing static visualisation...")
-                test_output_dir = Path(__file__).resolve().parents[1] / "tests" / "resources" / "outputData"
-                test_visual_dir = test_output_dir / "visual"
-                test_visual_dir.mkdir(parents=True, exist_ok=True)
-                self.visCtrl.build_from_execution()
-                Logger.terminal("[Dev] Static plot generation complete.")
+                Logger.terminal("📊 Generating position plots from PEA output...")
+                pos_html_files = self.execution.build_pos_plots()
+                if pos_html_files:
+                    all_html_files.extend(pos_html_files)
+                else:
+                    Logger.terminal("⚠️ No position plots found")
             except Exception as err:
-                Logger.terminal(f"[Dev] Test plot generation failed: {err}")
+                Logger.terminal(f"⚠️ Position plot generation failed: {err}")
+
+        # Generate TRACE residual plots
+        if trace_enabled:
+            try:
+                Logger.terminal("📊 Generating trace residual plots from PEA output...")
+                trace_html_files = self.execution.build_trace_plots()
+                if trace_html_files:
+                    all_html_files.extend(trace_html_files)
+                else:
+                    Logger.terminal("⚠️ No trace plots found")
+            except Exception as err:
+                Logger.terminal(f"⚠️ Trace plot generation failed: {err}")
+
+        # Update the visualisation panel with all generated plots (or empty list)
+        self.visCtrl.set_html_files(all_html_files)
+
+        if not all_html_files:
+            Logger.terminal("📊 No visualisations generated - selector disabled")
+            # Clear the web view display
+            self.ui.webEngineView.setHtml("")
 
     def _validate_cddis_credentials_once(self):
         """
@@ -328,7 +479,7 @@ class MainWindow(QMainWindow):
         """
         ok, where = gui_validate_netrc()
         if not ok and hasattr(self.ui, "cddisCredentialsButton"):
-            Logger.terminal("⚠️ No Earthdata credentials. Opening CDDIS Credentials dialog…")
+            Logger.terminal("⚠️ No Earthdata credentials. Opening CDDIS Credentials dialog...")
             self.ui.cddisCredentialsButton.click()
             ok, where = gui_validate_netrc()
         if not ok:
@@ -346,11 +497,11 @@ class MainWindow(QMainWindow):
             ok_conn, why = test_cddis_connection()
             if not ok_conn:
                 Logger.terminal(
-                    f"❌ CDDIS connectivity check failed: {why}. Please verify Earthdata credentials via the CDDIS Credentials dialog."
+                    f"❌ CDDIS connectivity check failed: {why}. Please verify Earthdata credentials via the CDDIS Credentials dialog"
                 )
                 self._show_offline_warning("Connection test failed", why)
                 return
-            Logger.terminal(f"✅ CDDIS connectivity check passed in {why.split(' ')[-2]} seconds.")
+            Logger.terminal(f"✅ CDDIS connectivity check passed in {why.split(' ')[-2]} seconds")
 
             # Connection successful - set email
             write_email(email_candidate)
@@ -363,13 +514,25 @@ class MainWindow(QMainWindow):
             self._show_offline_warning("No internet connection", error_msg)
             return
 
+    def _show_processing_offline_warning(self):
+        """
+        Show a warning when attempting to process while in offline mode.
+        """
+        show_toast(self, "⚠️ Processing requires internet connection", 4000)
+
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Offline Mode")
+        msg.setText("Processing requires an internet connection to download PPP products from CDDIS")
+        msg.setInformativeText("Please check your internet connection and restart Ginan-UI")
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+
     def _show_offline_warning(self, title: str, details: str):
         """
         Show a warning dialog when Ginan-UI starts without internet.
         The app can continue to run, but very limited (some features are unavailable)
         """
-        from PySide6.QtWidgets import QMessageBox
-
         # Mark as offline mode
         self.offline_mode = True
 
@@ -385,7 +548,7 @@ class MainWindow(QMainWindow):
             "- Scanning for available analysis centers<br>"
             "- Retrieving GNSS data products<br><br>"
             "<b>The application will continue to run in offline mode.</b><br>"
-            "You can still view configurations and access local files."
+            "You can still view configurations and access local files"
         )
         msg.setDetailedText(f"Error details:\n{title}: {details}")
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
@@ -395,13 +558,12 @@ class MainWindow(QMainWindow):
         msg.exec()
 
         # Also show a toast notification
-        from scripts.GinanUI.app.utils.toast import show_toast
         show_toast(self, "⚠️ Running in offline mode - limited functionality", 8000)
 
     # Added: unified stop entry, wired to an optional UI button
     @Slot()
     def on_stopAllClicked(self):
-        Logger.terminal("🛑 Stop requested — stopping all running tasks...")
+        Logger.terminal("🛑 Stop requested - stopping all running tasks...")
 
         # Stop the metadata worker in InputController, if present
         try:
@@ -412,15 +574,13 @@ class MainWindow(QMainWindow):
 
         # Stop PPP downloads, if running
         try:
-            if hasattr(self, "download_worker") and self.download_worker is not None and hasattr(self.download_worker, "stop"):
-                self.download_worker.stop()
+            self._cleanup_thread('download_thread', 'download_worker')
         except Exception:
             pass
 
         # Stop PEA execution, if running
         try:
-            if hasattr(self, "worker") and self.worker is not None and hasattr(self.worker, "stop"):
-                self.worker.stop()
+            self._cleanup_thread('pea_thread', 'pea_worker')
         except Exception:
             pass
 
@@ -433,9 +593,27 @@ class MainWindow(QMainWindow):
 
         # Restore UI state immediately
         try:
-            self._set_processing_state(False)
+            if self.is_processing:
+                self._set_processing_state(False)
         except Exception:
             pass
+
+    def closeEvent(self, event):
+        """
+        Handle window close event - makes sure that all threads are terminated cleanly
+        """
+        # Stop all running threads
+        self.on_stopAllClicked()
+
+        # Also stop InputController threads
+        if hasattr(self, 'inputCtrl'):
+            self.inputCtrl.stop_all()
+
+        # Give threads a moment to clean up
+        QCoreApplication.processEvents()
+
+        # Accept the close event
+        event.accept()
 
     def _fix_macos_tab_styling(self):
         """
@@ -453,7 +631,8 @@ class MainWindow(QMainWindow):
             # Force Fusion style on the tab widget to disable native macOS rendering
             fusion_style = QStyleFactory.create("Fusion")
             if fusion_style:
-                self.ui.tabWidget.setStyle(fusion_style)
+                self.ui.logTabWidget.setStyle(fusion_style)
+                self.ui.configTabWidget.setStyle(fusion_style)
 
         # Apply comprehensive stylesheet to ensure consistent appearance
         tab_bar_stylesheet = """
@@ -494,4 +673,5 @@ class MainWindow(QMainWindow):
         """
 
         # Apply the stylesheet to the tab widget
-        self.ui.tabWidget.setStyleSheet(tab_bar_stylesheet)
+        self.ui.logTabWidget.setStyleSheet(tab_bar_stylesheet)
+        self.ui.configTabWidget.setStyleSheet(tab_bar_stylesheet)

@@ -9,8 +9,6 @@ namespace bp = boost::asio::placeholders;
 using std::lock_guard;
 using std::mutex;
 
-#define MAX_SBAS_MESS_AGE 600
-
 #define CLEAN_UP_AND_RETURN_ON_FAILURE \
                                        \
     if (inputStream.fail())            \

@@ -110,7 +110,7 @@ void writePOSHeader(Trace& output, string name, GTime time)
 void writePOSEntry(Trace& output, Receiver& rec, KFState& kfState)
 {
     VectorEcef apriori = rec.aprioriPos;
-    VectorEcef xyz     = apriori;
+    VectorEcef xyz;
     Matrix3d   vcv;
 
     for (auto& [kfKey, index] : kfState.kfIndexMap)
@@ -131,6 +131,11 @@ void writePOSEntry(Trace& output, Receiver& rec, KFState& kfState)
 
             vcv(kfKey.num, kfKey2.num) = kfState.P(index, index2);
         }
+    }
+
+    if (xyz.isZero())
+    {
+        return;
     }
 
     VectorPos  pos     = ecef2pos(xyz);

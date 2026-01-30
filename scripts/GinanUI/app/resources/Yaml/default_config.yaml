@@ -54,7 +54,15 @@ outputs:
     pos:
         output: true
         filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.POS
-
+    trace:
+      level: 2
+      output_receivers: false
+      output_network: true
+      receiver_filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
+      network_filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
+      output_residuals: true
+      output_residual_chain: true
+      output_config: true
 
 
 

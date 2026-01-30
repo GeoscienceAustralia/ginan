@@ -6,14 +6,8 @@
 #include "common/navigation.hpp"
 #include "sbas/sbas.hpp"
 
-bool dfmc2Pos(Trace& trace, GTime time, SatPos& satPos, Navigation& nav)
-{
-    return false;
-}
-
 bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation& nav)
 {
-    loadSBASdata(trace, teph, nav);
     SBASMaps& sbsMaps     = satPos.satNav_ptr->currentSBAS;
     SatSys&   Sat         = satPos.Sat;
     Vector3d& rSat        = satPos.rSatApc;
@@ -30,51 +24,50 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
     ephPosValid = false;
     ephClkValid = false;
 
-    double maxdt = 30;
-    switch (acsConfig.sbsInOpts.freq)
-    {
-        case 1:
-            maxdt = acsConfig.sbsInOpts.prec_aproach ? 12 : 16;
-            break;
-        case 5:
-            maxdt = acsConfig.sbsInOpts.prec_aproach ? 12 : 16;
-            break;
-        default:
-            return false;
-    }
+    double maxdt = acsConfig.sbsInOpts.prec_aproach ? 12 : 18;
 
-    bool     pass = false;
-    SBASIntg sbsInt;
-    for (auto& [iodm, intData] : sbsMaps.Integrity)
-    {
-        if (fabs((time - intData.trec).to_double()) > maxdt)
-            continue;
-        pass   = true;
-        sbsInt = intData;
-    }
-    if (!pass)
+    int      selIODP = -1;
+    int      selIODF = -1;
+    SBASFast sbsFast;
+    for (auto& [iodp, fastUMap] : sbsMaps.fastUpdt)
+        for (auto& [updtTime, iodf] : fastUMap)
+        {
+            if (fabs((time - updtTime).to_double()) > maxdt)
+                continue;
+            if (sbsMaps.fastCorr.find(iodf) == sbsMaps.fastCorr.end())
+                continue;
+            if ((time - sbsMaps.fastCorr[iodf].tIntg).to_double() > maxdt)
+                continue;
+
+            if (acsConfig.sbsInOpts.freq == 1 &&
+                (time - sbsMaps.fastCorr[iodf].tFast).to_double() > sbsMaps.fastCorr[iodf].IValid)
+                continue;
+
+            sbsFast = sbsMaps.fastCorr[iodf];
+            selIODP = iodp;
+            selIODF = iodf;
+            break;
+        }
+    if (selIODP < 0)
     {
         tracepdeex(4, trace, "\nSBASEPH No Integrity data for %s", Sat.id().c_str());
         return false;
     }
 
-    pass        = false;
     int selIode = -1;
-    for (auto& [updtTime, iode] : sbsMaps.corrUpdt)
+    for (auto& [updtTime, iode] : sbsMaps.slowUpdt[selIODP])
     {
         auto& slowCorr = sbsMaps.slowCorr[iode];
 
+        if (slowCorr.iodp != selIODP)
+            continue;
+
         if (slowCorr.Ivalid < 0)
-        {
             continue;
-        }
-
         if (fabs((time - slowCorr.trec).to_double()) > slowCorr.Ivalid)
-        {
             continue;
-        }
 
-        pass = true;
+        bool pass = true;
         pass &= satPosBroadcast(trace, time, teph, satPos, nav, iode);
         pass &= satClkBroadcast(trace, time, teph, satPos, nav, iode);
         if (pass)
@@ -83,13 +76,29 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
             break;
         }
     }
-    if (!pass)
+    if (selIode < 0)
     {
         tracepdeex(4, trace, "\nSBASEPH No Correction data for %s", Sat.id().c_str());
         return false;
     }
+
+    // SBAS variance should be treated separately
+    posVar = 0.0;
+    if (acsConfig.sbsInOpts.pvs_on_dfmc)
+    {
+        clkVar = 2.5E-6;
+    }
+    else
+    {
+        clkVar                    = 1E4;
+        usedSBASIODMap[Sat].tUsed = time;
+        usedSBASIODMap[Sat].iodp  = selIODP;
+        usedSBASIODMap[Sat].iodf  = selIODF;
+        usedSBASIODMap[Sat].iode  = selIode;
+    }
+
     tracepdeex(
-        5,
+        2,
         trace,
         "\nBRDCEPH %s    %s    %13.3f %13.3f %13.3f %13.3f %4d",
         time.to_string().c_str(),
@@ -101,40 +110,55 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
         selIode
     );
 
-    switch (acsConfig.sbsInOpts.freq)
-    {
-        case 5:
-            clkVar = estimateDFMCVar(trace, time, satPos, sbsInt) / SQR(CLIGHT);
-            break;
-        default:
-            return false;
-    }
-    posVar = 0.0;
-    if (clkVar < 0)
-    {
-        tracepdeex(4, trace, "\nSBASEPH Unknown Vairance for %s", Sat.id().c_str());
-        return false;
-    }
-    auto&  sbs = sbsMaps.slowCorr[selIode];
-    double dt  = (time - sbs.toe).to_double();
+    auto&  sbsSlow = sbsMaps.slowCorr[selIode];
+    double dt      = (time - sbsSlow.toe).to_double();
     for (int i = 0; i < 3; i++)
     {
-        rSat[i] += sbs.dPos[i] + dt * sbs.ddPos[i];
-        satVel[i] += sbs.ddPos[i];
+        rSat[i] += sbsSlow.dPos[i] + dt * sbsSlow.ddPos[i];
+        satVel[i] += sbsSlow.ddPos[i];
     }
-    satClk += (sbs.dPos[3] + dt * sbs.ddPos[3]) / CLIGHT;
-    satClkVel += (sbs.ddPos[3]) / CLIGHT;
+    satClk += (sbsSlow.dPos[3] + dt * sbsSlow.ddPos[3]) / CLIGHT;
+    satClkVel += (sbsSlow.ddPos[3]) / CLIGHT;
 
-    if (Sat.sys == E_Sys::GPS && acsConfig.sbsInOpts.use_do259)
+    tracepdeex(
+        2,
+        trace,
+        "\n %s SC %.3f from %s",
+        Sat.id().c_str(),
+        sbsSlow.dPos[3],
+        sbsSlow.toe.to_string()
+    );
+
+    if (acsConfig.sbsInOpts.freq == 1)
     {
-        Eph* eph_ptr = seleph<Eph>(trace, time, Sat, E_NavMsgType::LNAV, selIode, nav);
-        if (eph_ptr == nullptr)
-            return false;
-        satClk -= eph_ptr->tgd[0];
+        dt = (time - sbsFast.tFast).to_double();
+        satClk += (sbsFast.dClk + dt * sbsFast.ddClk) / CLIGHT;
+        satClkVel += (sbsFast.ddClk) / CLIGHT;
+
+        tracepdeex(
+            2,
+            trace,
+            "\n %s FC %.3f from %s",
+            Sat.id().c_str(),
+            sbsFast.dClk + dt * sbsFast.ddClk,
+            sbsFast.tFast.to_string()
+        );
+    }
+
+    if (Sat.sys == E_Sys::GPS)
+    {
+        if (acsConfig.sbsInOpts.freq == 1 || acsConfig.sbsInOpts.use_do259)
+        {
+            Eph* eph_ptr = seleph<Eph>(trace, time, Sat, E_NavMsgType::LNAV, selIode, nav);
+            if (eph_ptr == nullptr)
+                return false;
+            satClk -= eph_ptr->tgd[0];
+            tracepdeex(2, trace, "\n %s tgd %.3f", Sat.id().c_str(), -eph_ptr->tgd[0] * CLIGHT);
+        }
     }
 
     tracepdeex(
-        5,
+        2,
         trace,
         "\nSBASEPH %s    %s    %13.3f %13.3f %13.3f %13.3f %4d",
         time.to_string().c_str(),
