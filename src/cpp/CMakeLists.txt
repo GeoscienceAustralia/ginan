@@ -106,18 +106,21 @@ add_executable(pea
 		common/rinexObsWrite.cpp
 		common/tides.cpp
 		common/ubxDecoder.cpp
+		common/sbfDecoder.cpp
 		common/localAtmosRegion.cpp
 
 		common/streamNtrip.cpp
 		common/streamCustom.cpp
 		common/streamSerial.cpp
 		common/streamUbx.cpp
+		common/streamSbf.cpp
 		common/streamParser.cpp
 
 		iono/geomagField.cpp
 		iono/ionex.cpp
 		iono/ionoMeas.cpp
 		iono/ionoModel.cpp
+		iono/ionoSBAS.cpp
 		iono/ionoSpherical.cpp
 		iono/ionoSphericalCaps.cpp
 		iono/ionoBSplines.cpp

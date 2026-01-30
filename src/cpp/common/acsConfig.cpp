@@ -322,6 +322,7 @@ void replaceTags(string& str)  ///< String to replace macros within
         repeat |= replaceString(str, "<RTCM_OBS_DIRECTORY>", acsConfig.rtcm_obs_directory);
         repeat |= replaceString(str, "<CUSTOM_DIRECTORY>", acsConfig.raw_custom_directory);
         repeat |= replaceString(str, "<UBX_DIRECTORY>", acsConfig.raw_ubx_directory);
+        repeat |= replaceString(str, "<SBF_DIRECTORY>", acsConfig.raw_sbf_directory);
         repeat |= replaceString(str, "<SLR_OBS_DIRECTORY>", acsConfig.slr_obs_directory);
         repeat |= replaceString(str, "<TROP_SINEX_DIRECTORY>", acsConfig.trop_sinex_directory);
         repeat |= replaceString(str, "<EMS_DIRECTORY>", acsConfig.ems_directory);
@@ -858,7 +859,7 @@ void ACSConfig::outputDefaultConfiguration(int level)
 
     html << htmlHeaderTemplate << "\n";
 
-    auto it = acsConfig.yamlDefaults.begin();
+    auto it = yamlDefaults.begin();
 
     Indentor indentor;
     Indentor htmlIndentor;
@@ -1438,6 +1439,7 @@ void ACSConfig::info(Trace& s)  ///< Trace file to output to
     ss << "\tMinimum Constraints: " << process_minimum_constraints << "\n";
     ss << "\tIonospheric:         " << process_ionosphere << "\n";
     ss << "\tRTS Smoothing:       " << process_rts << "\n";
+    ss << "\tSBAS:                " << process_sbas << "\n";
     ss << "\n";
 
     ss << "Systems:\n";
@@ -1838,6 +1840,15 @@ void setInited(BASE& base, COMP& comp, bool init = true)
     base.initialisedMap[offset] = true;
 }
 
+/** Set an option manually
+ */
+template <typename BASE, typename COMP, typename VALUE>
+void setOption(BASE& base, COMP& comp, VALUE value)
+{
+    comp = value;
+    setInited(base, comp);
+}
+
 /** Set the variables associated with kalman filter states from yaml
  */
 void tryGetKalmanFromYaml(
@@ -2066,7 +2077,7 @@ void tryGetStreamFromYaml(
         if (msgType == RtcmMessageType::IGS_SSR)
             for (auto subType : magic_enum::enum_values<IgsSSRSubtype>())
             {
-                string str = (boost::format("@ rtcm_%4d_%03d") % static_cast<int>(msgType) %
+                string str = (boost::format("@ rtcm_%04d_%03d") % rtcmTypeToMessageNumber(msgType) %
                               static_cast<int>(subType))
                                  .str();
 
@@ -2088,7 +2099,7 @@ void tryGetStreamFromYaml(
         else if (msgType == RtcmMessageType::COMPACT_SSR)
             for (auto subType : magic_enum::enum_values<CompactSSRSubtype>())
             {
-                string str = (boost::format("@ rtcm_%4d_%02d") % static_cast<int>(msgType) %
+                string str = (boost::format("@ rtcm_%04d_%02d") % rtcmTypeToMessageNumber(msgType) %
                               static_cast<int>(subType))
                                  .str();
 
@@ -2109,7 +2120,7 @@ void tryGetStreamFromYaml(
 
         else
         {
-            string str = "@ rtcm_" + std::to_string(static_cast<int>(msgType));
+            string str = (boost::format("@ rtcm_%04d") % rtcmTypeToMessageNumber(msgType)).str();
 
             auto msgOptions =
                 stringsToYamlObject(outStreamsYaml, {"0@ messages", str}, "Message type to output");
@@ -3386,7 +3397,7 @@ void getOptionsFromYaml(
             "Coherent ionosphere models can improve estimation of biases and allow use with single "
             "frequency receivers"
         );
-        auto troposhpere = stringsToYamlObject(
+        auto troposphere = stringsToYamlObject(
             modelsNode,
             {"@ troposphere"},
             "Tropospheric modelling accounts for delays due to refraction of light in water vapour"
@@ -4328,6 +4339,7 @@ bool configure(
         ("erp_files", boost::program_options::value<vector<string>>()->multitoken(), "ERP files")
         ("rnx_inputs,r", boost::program_options::value<vector<string>>()->multitoken(), "RINEX receiver inputs")
         ("ubx_inputs", boost::program_options::value<vector<string>>()->multitoken(), "UBX receiver inputs")
+        ("sbf_inputs", boost::program_options::value<vector<string>>()->multitoken(), "SBF receiver inputs")
         ("rtcm_inputs", boost::program_options::value<vector<string>>()->multitoken(), "RTCM receiver inputs")
         ("egm_files", boost::program_options::value<vector<string>>()->multitoken(), "Earth gravity model coefficients file")
         ("crd_files", boost::program_options::value<vector<string>>()->multitoken(), "SLR CRD file")
@@ -4509,7 +4521,7 @@ void ACSConfig::sanityChecks()
         BOOST_LOG_TRIVIAL(warning) << "ionospheric_components:outage_reset_limit < "
                                       "epoch_interval, but it probably shouldnt be";
 
-    if (acsConfig.simulate_real_time == false)
+    if (simulate_real_time == false)
     {
         for (E_Sys sys : magic_enum::enum_values<E_Sys>())
         {
@@ -4517,13 +4529,13 @@ void ACSConfig::sanityChecks()
         }
     }
 
-    if (acsConfig.pppOpts.ionoOpts.use_if_combo)
+    if (pppOpts.ionoOpts.use_if_combo)
     {
         for (auto& [id, recOpts] : recOptsMap)
         {
             if (recOpts.ionospheric_component2)
             {
-                recOpts.ionospheric_component2 = false;
+                setOption(recOpts, recOpts.ionospheric_component2, false);
                 BOOST_LOG_TRIVIAL(warning)
                     << "Higher-order ionospheric corrections are not supported when "
                        "use_if_combo is enabled, "
@@ -4531,11 +4543,166 @@ void ACSConfig::sanityChecks()
             }
             if (recOpts.ionospheric_component3)
             {
-                recOpts.ionospheric_component3 = false;
+                setOption(recOpts, recOpts.ionospheric_component3, false);
                 BOOST_LOG_TRIVIAL(warning)
                     << "Higher-order ionospheric corrections are not supported when "
                        "use_if_combo is enabled, "
                        "setting ionospheric_components:use_3rd_order to false";
+            }
+        }
+    }
+
+    if (process_sbas)
+    {
+        process_preprocessor = true;
+        process_spp          = true;
+
+        used_nav_types = sbsOpts.sbas_nav_types;
+
+        for (auto& [id, satOpts] : satOptsMap)
+        {
+            vector<E_Source> sources = {E_Source::SBAS};
+            setOption((CommonOptions&)satOpts, satOpts.posModel.enable, true);
+            setOption((CommonOptions&)satOpts, satOpts.posModel.sources, sources);
+            setOption((CommonOptions&)satOpts, satOpts.clockModel.enable, true);
+            setOption((CommonOptions&)satOpts, satOpts.clockModel.sources, sources);
+        }
+
+        switch (sbsOpts.mode)
+        {
+            case E_SbasMode::L1:
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "L1 SBAS processing mode is selected, make sure that:\n"
+                       "   - You have inputs containing SBAS messages (sisnet, ems, sbf, etc.)\n"
+                       "   - Parameter `sbas_inputs: prec_approach` is set appropriately";
+
+                sbsInOpts.freq = 1;
+
+                for (auto& [sys, process] : process_sys)
+                {
+                    if (sys != E_Sys::GPS && sys != E_Sys::GLO && sys != E_Sys::SBS)
+                    {
+                        process = false;
+                    }
+                    else
+                    {
+                        code_priorities[sys] = {E_ObsCode::L1C};
+                    }
+                }
+
+                sppOpts.trop_models = {E_TropModel::SBAS};
+                sppOpts.iono_mode   = E_IonoMode::SBAS;
+
+                if (sppOpts.smooth_window != 100)
+                {
+                    sppOpts.smooth_window = 100;
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "It is recommended that a 100 second smoothing window be used for L1 "
+                           "SBAS. Changing configuration";
+                }
+                if (sppOpts.use_smooth_only == false)
+                {
+                    sppOpts.use_smooth_only = true;
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "It is NOT recommended that measurements be used for SBAS before "
+                           "smoothing. Changing configuration";
+                }
+
+                if (sbsOpts.use_sbas_rec_var == false)
+                {
+                    sbsOpts.use_sbas_rec_var = true;
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "It is recommended that measurement variance specific for SBAS are "
+                           "used. Changing configuration";
+                }
+
+                break;
+            }
+
+            case E_SbasMode::DFMC:
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "DFMC processing mode is selected, make sure that:\n"
+                       "   - You have inputs containing SBAS messages (sisnet, ems, sbf, etc.)\n"
+                       "   - If using a service follwing DO-259 (instead of DO-259A), set "
+                       "`sbas_inputs: use_do259: true`\n"
+                       "   - If using measurements from GLO or BDS, set the `code_priorities` and "
+                       "`used_nav_type` properly\n";
+
+                sbsInOpts.freq        = 5;
+                sbsInOpts.pvs_on_dfmc = false;
+
+                for (auto& [sys, process] : process_sys)
+                {
+                    if (sys == E_Sys::GLO || sys == E_Sys::LEO)
+                    {
+                        process = false;
+                    }
+                    else if (sys != E_Sys::BDS)
+                    {
+                        code_priorities[sys] = sbsOpts.sbas_code_priorities_map[sys];
+                    }
+                }
+
+                sppOpts.trop_models = {E_TropModel::SBAS};
+                sppOpts.iono_mode   = E_IonoMode::SBAS;
+
+                if (sppOpts.smooth_window <
+                    0)  // Ken to update once the smooth window requirement is clear
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "It is recommended that a 100 second smoothing window be used for DFMC. "
+                           "Please check your configuration";
+
+                break;
+            }
+
+            case E_SbasMode::PVS:
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "PVS-via-DFMC processing mode is selected, make sure that:\n"
+                       "   - You have inputs containing SBAS messages (sisnet, ems, sbf, etc.)\n"
+                       "   - The SBAS messages come from SouthPAN's DFMC services\n";
+
+                process_ppp = true;
+
+                sbsInOpts.freq        = 5;
+                sbsInOpts.pvs_on_dfmc = true;
+
+                for (auto& [sys, process] : process_sys)
+                {
+                    if (sys == E_Sys::GPS || sys == E_Sys::GAL)
+                    {
+                        process              = true;
+                        code_priorities[sys] = sbsOpts.sbas_code_priorities_map[sys];
+                    }
+                    else
+                    {
+                        process = false;
+                    }
+                }
+
+                for (auto& [id, recOpts] : recOptsMap)
+                {
+                    vector<E_TropModel> tropModels = {E_TropModel::GPT2};
+                    setOption(recOpts, recOpts.receiver_reference_system, E_Sys::GPS);
+                    setOption(recOpts, recOpts.tropModel.enable, true);
+                    setOption(recOpts, recOpts.tropModel.models, tropModels);
+                    setOption(recOpts, recOpts.tideModels.otl, false);
+                    setOption(recOpts, recOpts.tideModels.atl, false);
+                    setOption(recOpts, recOpts.tideModels.spole, false);
+                    setOption(recOpts, recOpts.tideModels.opole, false);
+                }
+
+                sppOpts.always_reinitialise = true;
+                pppOpts.use_primary_signals = true;
+                // pppOpts.receiver_chunking = true;  // Currently chunking may not work properly
+                errorAccumulation.enable      = true;
+                ambErrors.phase_reject_limit  = 2;
+                ambErrors.resetOnSlip.LLI     = true;
+                ambErrors.resetOnSlip.retrack = true;
+
+                break;
             }
         }
     }
@@ -4961,7 +5128,7 @@ bool ACSConfig::parse(
                     "in all trace files"
                 );
 
-                traceLevel = acsConfig.trace_level;
+                traceLevel = trace_level;
 
                 tryGetFromYaml(
                     output_residual_chain,
@@ -5759,9 +5926,25 @@ bool ACSConfig::parse(
                     tryGetFromYaml(raw_ubx_directory, raw_ubx, {"directory"})
                 );
                 conditionalPrefix(
-                    "<UBX_DIRECTORY>",
+                    "<RAW_UBX_DIRECTORY>",
                     raw_ubx_filename,
-                    tryGetFromYaml(raw_ubx_filename, raw_ubx, {"filename"})
+                    tryGetFromYaml(raw_ubx_filename, raw_ubx, {"@ filename"})
+                );
+            }
+
+            {
+                auto raw_sbf = stringsToYamlObject(outputs, {"6@ raw_sbf"});
+
+                tryGetFromYaml(record_raw_sbf, raw_sbf, {"0 output"});
+                conditionalPrefix(
+                    "<OUTPUTS_ROOT>",
+                    raw_sbf_directory,
+                    tryGetFromYaml(raw_sbf_directory, raw_sbf, {"directory"})
+                );
+                conditionalPrefix(
+                    "<RAW_SBF_DIRECTORY>",
+                    raw_sbf_filename,
+                    tryGetFromYaml(raw_sbf_filename, raw_sbf, {"@ filename"})
                 );
             }
 
@@ -6221,6 +6404,14 @@ bool ACSConfig::parse(
                     "List of ubxfiles   inputs to use"
                 );
                 tryGetMappedList(
+                    sbf_inputs,
+                    commandOpts,
+                    gnss_data,
+                    {"1# sbf_inputs"},
+                    "<GNSS_OBS_ROOT>",
+                    "List of sbffiles   inputs to use"
+                );
+                tryGetMappedList(
                     custom_inputs,
                     commandOpts,
                     gnss_data,
@@ -6561,16 +6752,11 @@ bool ACSConfig::parse(
                         "Carrier frequency of SBAS channel"
                     );
                     tryGetFromYaml(
-                        sbs_time_delay,
-                        sbas_inputs,
-                        {"@ sbas_time_delay"},
-                        "Time delay for SBAS corrections when simulating real-time in post-process"
-                    );
-                    tryGetFromYaml(
                         sbsInOpts.mt0,
                         sbas_inputs,
                         {"@ sbas_message_0"},
-                        "Message type replaced by MT0 (use 65 for SouthPAN L5)"
+                        "Message type replaced by MT0 (use 65 for SouthPAN L5, -1 will drop all "
+                        "sbas data upon receipt of type 0)"
                     );
                     tryGetFromYaml(
                         sbsInOpts.use_do259,
@@ -6592,30 +6778,10 @@ bool ACSConfig::parse(
                         "correction age)"
                     );
                     tryGetFromYaml(
-                        sbsInOpts.dfmc_uire,
-                        sbas_inputs,
-                        {"@ iono_residual_dfmc"},
-                        "Ionosphere residual from IF combination (use with DFMC only)"
-                    );
-                    tryGetFromYaml(
                         sbsInOpts.ems_year,
                         sbas_inputs,
                         {"@ ems_reference_year"},
                         "Reference year for EMS files (should be within 50 year of real value)"
-                    );
-                    tryGetFromYaml(
-                        sbsInOpts.smth_win,
-                        sbas_inputs,
-                        {"@ smoothing_window"},
-                        "Smoothing window to be used by SBAS (100, 1 second samples are normally "
-                        "used)"
-                    );
-                    tryGetFromYaml(
-                        sbsInOpts.smth_out,
-                        sbas_inputs,
-                        {"@ max_smooth_outage"},
-                        "Maximum outage to reset smoothing (10 seconds or 3 x obs_rate is "
-                        "recommended)"
                     );
                 }
             }
@@ -6667,6 +6833,12 @@ bool ACSConfig::parse(
                     process_modes,
                     {"@ slr"},
                     "Process SLR observations"
+                );
+                tryGetFromYaml(
+                    process_sbas,
+                    process_modes,
+                    {"! sbas"},
+                    "Perform PPP network or end user mode"
                 );
             }
 
@@ -7996,6 +8168,24 @@ bool ACSConfig::parse(
                     {"@ always_reinitialise"},
                     "Reset SPP state to zero to avoid potential for lock-in of bad states"
                 );
+                tryGetFromYaml(
+                    sppOpts.smooth_window,
+                    spp,
+                    {"@ smoothing_window"},
+                    "Smooth pseudorange with this time window (default: -1, do not apply smoothing)"
+                );
+                tryGetFromYaml(
+                    sppOpts.use_smooth_only,
+                    spp,
+                    {"@ use_smooth_only"},
+                    "Only use measurements that have been smoothed up to the smoothing window"
+                );
+                tryGetFromYaml(
+                    sppOpts.smooth_outage,
+                    spp,
+                    {"@ smoothing_outage"},
+                    "Outage time to reset carrier smoothing"
+                );
                 tryGetEnumOpt(sppOpts.iono_mode, spp, {"@ iono_mode"});
                 tryGetEnumVec(
                     sppOpts.trop_models,
@@ -8034,6 +8224,32 @@ bool ACSConfig::parse(
                 );
 
                 getFilterOptions(spp, sppOpts);
+            }
+
+            // 			sbas
+            {
+                auto sbas = stringsToYamlObject(
+                    processing_options,
+                    {"4! sbas"},
+                    "Configurations for SBAS processing and its sub processes"
+                );
+
+                tryGetEnumOpt(sbsOpts.mode, sbas, {"@ mode"}, "SBAS service/processing mode, ");
+
+                tryGetFromYaml(
+                    sbsOpts.sbas_time_delay,
+                    sbas,
+                    {"@ sbas_time_delay"},
+                    "Time delay for SBAS corrections when simulating real-time in post-process"
+                );
+
+                tryGetFromYaml(
+                    sbsOpts.use_sbas_rec_var,
+                    sbas,
+                    {"@ use_sbas_rec_var"},
+                    "Override the receiver standard measurement variance models and replace it "
+                    "with SBAS standard (AAD-A)"
+                );
             }
 
             // 			preprocessor
@@ -8561,6 +8777,8 @@ bool ACSConfig::parse(
         globber(rnx_inputs);
         replaceTags(ubx_inputs);
         globber(ubx_inputs);
+        replaceTags(sbf_inputs);
+        globber(sbf_inputs);
         replaceTags(custom_inputs);
         globber(custom_inputs);
         replaceTags(obs_rtcm_inputs);
@@ -8602,6 +8820,8 @@ bool ACSConfig::parse(
         replaceTags(ionstec_filename);
         replaceTags(raw_ubx_directory);
         replaceTags(raw_ubx_filename);
+        replaceTags(raw_sbf_directory);
+        replaceTags(raw_sbf_filename);
         replaceTags(rtcm_nav_directory);
         replaceTags(rtcm_nav_filename);
         replaceTags(rtcm_obs_directory);
@@ -8668,7 +8888,7 @@ bool ACSConfig::parse(
         recurseYaml(filename, yaml);
     }
 
-    for (auto& [stack, defaults] : acsConfig.yamlDefaults)
+    for (auto& [stack, defaults] : yamlDefaults)
     {
         if (defaults.comment.empty())
         {

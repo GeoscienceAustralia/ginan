@@ -12,6 +12,7 @@ from ruamel.yaml.comments import CommentedSeq, CommentedMap
 from pathlib import Path
 from scripts.GinanUI.app.utils.yaml import load_yaml, write_yaml, normalise_yaml_value
 from scripts.plot_pos import plot_pos_files
+from scripts.plot_trace_res import plot_trace_res_files
 from scripts.GinanUI.app.utils.common_dirs import GENERATED_YAML, TEMPLATE_PATH, INPUT_PRODUCTS_PATH
 
 # Import the new logger
@@ -153,8 +154,7 @@ class Execution:
         if config_path.exists():
             Logger.console(f"Using existing config file: {config_path}")
         else:
-            Logger.console(
-                f"Existing config not found, copying default template: {template_file} → {config_path}")
+            Logger.console(f"Existing config not found, copying default template: {template_file} → {config_path}")
             try:
                 config_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(template_file, config_path)
@@ -174,6 +174,33 @@ class Execution:
             self.config = load_yaml(self.config_path)
         except Exception as e:
             raise RuntimeError(f"❌ Failed to reload config from {self.config_path}: {e}")
+
+    def reset_config(self):
+        """
+        Delete the generated yaml config file and regenerate it from the template.
+        This restores the config to its default state.
+
+        :raises RuntimeError: If the reset operation fails
+        """
+        template_file = Path(TEMPLATE_PATH)
+
+        try:
+            # Delete the existing generated yaml config if it exists
+            if self.config_path.exists():
+                self.config_path.unlink()
+                Logger.console(f"🗑️ Deleted existing config: {self.config_path}")
+
+            # Copy fresh template to generated config location
+            self.config_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(template_file, self.config_path)
+            Logger.console(f"📄 Regenerated config from template: {template_file} → {self.config_path}")
+
+            # Reload the fresh config into memory
+            self.config = load_yaml(self.config_path)
+            self.changes = False
+
+        except Exception as e:
+            raise RuntimeError(f"❌ Failed to reset config: {e}")
 
     def edit_config(self, key_path: str, value, add_field=False):
         """
@@ -250,6 +277,11 @@ class Execution:
         out_val = normalise_yaml_value(inputs.output_path)
         self.edit_config("outputs.outputs_root", out_val, False)
 
+        # Output toggles from UI
+        self.edit_config("outputs.gpx.output", bool(inputs.gpx_output), True)
+        self.edit_config("outputs.pos.output", bool(inputs.pos_output), True)
+        self.edit_config("outputs.trace.output_network", bool(inputs.trace_output_network), True)
+
         # 2. Replace 'TEST' receiver block with real marker name
         if "TEST" in self.config.get("receiver_options", {}):
             self.config["receiver_options"][inputs.marker_name] = self.config["receiver_options"].pop("TEST")
@@ -277,6 +309,25 @@ class Execution:
             for const in selected:
                 if const in all_constellations:
                     self.edit_config(f"processing_options.gnss_general.sys_options.{const}.process", True, False)
+
+        # 5. Handle observation code priorities for each constellation
+        obs_code_map = {
+            'gps': getattr(inputs, 'gps_codes', []),
+            'gal': getattr(inputs, 'gal_codes', []),
+            'glo': getattr(inputs, 'glo_codes', []),
+            'bds': getattr(inputs, 'bds_codes', []),
+            'qzs': getattr(inputs, 'qzs_codes', [])
+        }
+
+        for const, codes in obs_code_map.items():
+            if const in all_constellations:
+                if codes and len(codes) > 0:
+                    # Convert codes list to a yaml compatible format
+                    code_seq = CommentedSeq(codes)
+                    code_seq.fa.set_flow_style()
+                    self.edit_config(f"processing_options.gnss_general.sys_options.{const}.code_priorities", code_seq, False)
+                else:
+                    self.edit_config(f"processing_options.gnss_general.sys_options.{const}.code_priorities", [],False)
 
     def write_cached_changes(self):
         write_yaml(self.config_path, self.config)
@@ -452,5 +503,72 @@ class Execution:
             Logger.terminal(f"✅ Generated {len(htmls)} plot(s) → saved in {out_dir}")
         else:
             Logger.terminal("⚠️ No plots were generated.")
+
+        return htmls
+
+    def build_trace_plots(self, out_dir=None):
+        """
+        Search for .TRACE files directly under outputs_root
+        and generate HTML plots using plot_trace_res in outputs_root/visual.
+        Return a list of generated html paths (str).
+
+        Uses configuration:
+            --mark-amb-resets --mark-large-errors --show-stats-table
+            --ambiguity-counts --ambiguity-totals --amb-totals-orient h
+        """
+        try:
+            outputs_root = self.config["outputs"]["outputs_root"]
+            root = Path(outputs_root).expanduser().resolve()
+        except Exception:
+            # Fallback to default
+            root = Path(__file__).resolve().parents[2] / "tests" / "resources" / "outputData"
+            root = root.resolve()
+
+        # Set output dir for HTML plots
+        if out_dir is None:
+            out_dir = root / "visual"
+        else:
+            out_dir = Path(out_dir).expanduser().resolve()
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        # Look for Network*.TRACE files in the outputs_root
+        trace_files = list(root.glob("Network*.TRACE")) + list(root.glob("network*.TRACE")) + list(root.glob("Network*.trace")) + list(root.glob("network*.trace"))
+
+        # Also check for any other .TRACE files if no Network files found
+        if not trace_files:
+            trace_files = list(root.glob("*.TRACE")) + list(root.glob("*.trace"))
+
+        if trace_files:
+            Logger.terminal(f"📂 Found {len(trace_files)} .TRACE files in {root}:")
+            for f in trace_files:
+                Logger.terminal(f"   • {f.name}")
+        else:
+            Logger.terminal(f"⚠️ No .TRACE files found in {root}")
+            return []
+
+        htmls = []
+        try:
+            # Convert trace files to string paths for the plotting function
+            trace_file_paths = [str(f) for f in trace_files]
+
+            html_files = plot_trace_res_files(
+                files=trace_file_paths,
+                out_dir=str(out_dir),
+                mark_amb_resets=True,
+                mark_large_errors=True,
+                show_stats_table=True,
+                ambiguity_counts=True,
+                ambiguity_totals=True,
+                amb_totals_orient="h",
+            )
+            htmls.extend(html_files)
+        except Exception as e:
+            Logger.terminal(f"[plot_trace_res] ❌ Failed to generate trace plots: {e}")
+
+        # Final summary
+        if htmls:
+            Logger.terminal(f"✅ Generated {len(htmls)} trace plot(s) → saved in {out_dir}")
+        else:
+            Logger.terminal("⚠️ No trace plots were generated.")
 
         return htmls

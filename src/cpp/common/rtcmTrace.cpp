@@ -98,7 +98,7 @@ void RtcmTrace::traceSsrEph(RtcmMessageType messCode, SatSys Sat, SSREph& ssrEph
     boost::json::object doc;
     doc["type"]                     = "ssrEph";
     doc["Mountpoint"]               = rtcmMountpoint;
-    doc["MessageNumber"]            = static_cast<int>(messCode);
+    doc["MessageNumber"]            = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]              = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"]     = nearTime.to_string();
     doc["EpochTimeGPST"]            = ssrEph.ssrMeta.receivedTime.to_string();
@@ -144,7 +144,7 @@ void RtcmTrace::traceSsrClk(RtcmMessageType messCode, SatSys Sat, SSRClk& ssrClk
     boost::json::object doc;
     doc["type"]                     = "ssrClk";
     doc["Mountpoint"]               = rtcmMountpoint;
-    doc["MessageNumber"]            = static_cast<int>(messCode);
+    doc["MessageNumber"]            = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]              = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"]     = nearTime.to_string();
     doc["EpochTimeGPST"]            = ssrClk.ssrMeta.receivedTime.to_string();
@@ -185,7 +185,7 @@ void RtcmTrace::traceSsrUra(RtcmMessageType messCode, SatSys Sat, SSRUra& ssrUra
     boost::json::object doc;
     doc["type"]                     = "ssrURA";
     doc["Mountpoint"]               = rtcmMountpoint;
-    doc["MessageNumber"]            = static_cast<int>(messCode);
+    doc["MessageNumber"]            = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]              = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"]     = nearTime.to_string();
     doc["EpochTimeGPST"]            = ssrUra.ssrMeta.receivedTime.to_string();
@@ -222,7 +222,7 @@ void RtcmTrace::traceSsrHRClk(RtcmMessageType messCode, SatSys Sat, SSRHRClk& Ss
     boost::json::object doc;
     doc["type"]                     = "ssrHRClk";
     doc["Mountpoint"]               = rtcmMountpoint;
-    doc["MessageNumber"]            = static_cast<int>(messCode);
+    doc["MessageNumber"]            = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]              = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"]     = nearTime.to_string();
     doc["EpochTimeGPST"]            = SsrHRClk.ssrMeta.receivedTime.to_string();
@@ -264,7 +264,7 @@ void RtcmTrace::traceSsrCodeBias(
     boost::json::object doc;
     doc["type"]                     = "ssrCodeBias";
     doc["Mountpoint"]               = rtcmMountpoint;
-    doc["MessageNumber"]            = static_cast<int>(messCode);
+    doc["MessageNumber"]            = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]              = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"]     = nearTime.to_string();
     doc["EpochTimeGPST"]            = ssrBias.ssrMeta.receivedTime.to_string();
@@ -307,7 +307,7 @@ void RtcmTrace::traceSsrPhasBias(
     boost::json::object doc;
     doc["type"]                      = "ssrPhasBias";
     doc["Mountpoint"]                = rtcmMountpoint;
-    doc["MessageNumber"]             = static_cast<int>(messCode);
+    doc["MessageNumber"]             = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]               = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"]      = nearTime.to_string();
     doc["EpochTimeGPST"]             = ssrBias.ssrMeta.receivedTime.to_string();
@@ -382,7 +382,7 @@ void RtcmTrace::traceBrdcEph(  // todo aaron, template this for gps/glo?
     // Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
     doc["type"]                 = "brdcEph";
     doc["Mountpoint"]           = rtcmMountpoint;
-    doc["MessageNumber"]        = static_cast<int>(messCode);
+    doc["MessageNumber"]        = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]          = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"] = nearTime.to_string();
     doc["Type"]                 = enum_to_string(eph.type);
@@ -418,7 +418,7 @@ void RtcmTrace::traceBrdcEph(RtcmMessageType messCode, Geph& geph)
     // Note the Satellite id is not set in rinex correctly as we a mixing GNSS systems.
     doc["type"]                 = "brdcEph";
     doc["Mountpoint"]           = rtcmMountpoint;
-    doc["MessageNumber"]        = static_cast<int>(messCode);
+    doc["MessageNumber"]        = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]          = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"] = nearTime.to_string();
     doc["Sat"]                  = geph.Sat.id();
@@ -663,7 +663,7 @@ void RtcmTrace::traceMSM(RtcmMessageType messCode, GTime time, SatSys Sat, Sig& 
     boost::json::object doc;
     doc["type"]                 = "MSM";
     doc["Mountpoint"]           = rtcmMountpoint;
-    doc["MessageNumber"]        = static_cast<int>(messCode);
+    doc["MessageNumber"]        = rtcmTypeToMessageNumber(messCode);
     doc["MessageType"]          = enum_to_string(messCode);
     doc["ReceivedSentTimeGPST"] = nearTime.to_string();
     doc["EpochTimeGPST"]        = time.to_string();

@@ -27,6 +27,7 @@
 #include "common/streamCustom.hpp"
 #include "common/streamParser.hpp"
 #include "common/streamRtcm.hpp"
+#include "common/streamSbf.hpp"
 #include "common/streamUbx.hpp"
 #include "common/summary.hpp"
 #include "iono/ionoModel.hpp"
@@ -661,6 +662,26 @@ void createTracefiles(ReceiverMap& receiverMap, Network& pppNet, Network& ionNet
                     logptime,
                     acsConfig.raw_ubx_filename,
                     ubxParser.raw_ubx_filename
+                );
+            }
+        }
+        catch (std::bad_cast& e)
+        { /* Ignore expected bad casts for different types */
+        }
+
+    for (auto& [id, streamParser_ptr] : streamParserMultimap)
+        try
+        {
+            auto& sbfParser = dynamic_cast<SbfParser&>(streamParser_ptr->parser);
+
+            if (acsConfig.record_raw_sbf)
+            {
+                createNewTraceFile(
+                    id,
+                    streamParser_ptr->stream.sourceString,
+                    logptime,
+                    acsConfig.raw_sbf_filename,
+                    sbfParser.raw_sbf_filename
                 );
             }
         }

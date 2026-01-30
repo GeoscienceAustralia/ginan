@@ -1,32 +1,34 @@
 # Ginan Scripts
 
-This directory contains a number of useful scripts that facilitate:  
+This directory contains a number of useful scripts that facilitate:
 
   - running Ginan via:
-    - a graphical user interface (under `scripts/GinanUI`) 
+    - a graphical user interface (under `scripts/GinanUI`)
     - shell scripts for installing Ginan natively (under `scripts/installation`)
     - scripts that handle downloading necessary input files (`auto_download_PPP.py`)
   - plotting Ginan output files, including
     - POS files (`plot_pos.py`)
+    - SBAS SPP files (`plot_spp.py`)
     - ZTD files (`plotting/ztd_plot.py`)
+    - Network trace files (`plot_trace_res.py`)
   - exploring and debugging Ginan and it's Kalman filter via:
     - The Ginan Exploratory Data Analysis (EDA) tool (`scripts/GinanEDA`)
 
-Each sub-directory listed above contains it's own README, which provides further details on running the various functionalities. 
+Each sub-directory listed above contains it's own README, which provides further details on running the various functionalities.
 The rest of this README will cover the files located on the `scripts` directory, namely:
 1. `auto_download_PPP.py`
 2. `plot_pos.py`
-3. `plot_trace_res.py `
-4. `s3_filehandler.py`
+3. `plot_spp.py`
+4. `plot_trace_res.py`
 
-## _**Recommended:**_  
+## _**Recommended:**_
 Before continuing, it is highly recommended that you create a python virtual environment if you have not already done so as suggested on the root README file:
 ```bash
 # Create virtual environment
 python3 -m venv ginan-env
 source ginan-env/bin/activate
 ```
-The above line will the virtual environment in your current working directory. Once the above is complete, you will have the virtual environment in your current working directory. 
+The above line will the virtual environment in your current working directory. Once the above is complete, you will have the virtual environment in your current working directory.
 
 You can then install all python dependencies via a `pip` command:
 ```bash
@@ -38,13 +40,13 @@ The `auto_download_PPP.py` script makes it easier to download the necessary high
 
 Based on a few details provided by the user via arguments in the command-line interface (CLI), the script fetches the appropriate files for a given date or date range. These files includes products such as:
 
-  - precise orbits (`.SP3`) 
+  - precise orbits (`.SP3`)
   - broadcast orbits (`BRDC.RNX`)
-  - precise clocks (`.CLK`) 
+  - precise clocks (`.CLK`)
   - Earth rotation parameters (`.ERP` or IERS IAU2000 file)
-  - CORS station positions and metadata (`.SNX`), 
+  - CORS station positions and metadata (`.SNX`)
   - satellite metadata (`.SNX`)
-  - code biases (`.BIA`) 
+  - code biases (`.BIA`)
 
 The product files are mostly obtained from the NASA archive known as the Crustal Dynamics Data Information System (CDDIS). This is one of NASA's Distributed Active Archive Centers (DAACs).
 
@@ -52,16 +54,16 @@ To use and download from this archive, you will need to create an Earthdata Logi
 
 It also includes the various model files needed:
 
-  - planetary ephemerides (JPL Development Ephemeris `DE436.1950.2050`),
-  - atmospheric loading,
-  - geopotential (Earth Gravitational Model `EGM2008`), 
-  - geomagnetic reference field (International Geomagnetic Reference Field `IGRF14`)  
-  - ocean loading, 
-  - ocean pole tide coefficients,
-  - ocean tide potential (Finite Element Solution 2014b `FES2014b`),
+  - planetary ephemerides (JPL Development Ephemeris `DE436.1950.2050`)
+  - atmospheric loading
+  - geopotential (Earth Gravitational Model `EGM2008`)
+  - geomagnetic reference field (International Geomagnetic Reference Field `IGRF14`)
+  - ocean loading
+  - ocean pole tide coefficients
+  - ocean tide potential (Finite Element Solution 2014b `FES2014b`)
   - troposphere (Global Pressure and Temperature model `GPT2.5`)
 
-These are needed for running PPP. 
+These are needed for running PPP.
 
 ### 1.1 Earthdata Login Credentials - CDDIS Downloads
 To download product files from the Crustal Dynamics Data Information System (CDDIS) web archive you will need an Earthdata Login account credentials saved to your machine.
@@ -119,7 +121,7 @@ This will display the help page with detailed information on all possible arugme
 ### 1.3 Example Run of "auto_download_PPP"
 With your virtual environment active, you can now download the product files needed for a PPP run in Ginan.
 
-We will use the `igs-station` preset to download RINEX files for two IGS stations for two days in 2024 together with all the product and model files needed to run this in Ginan. 
+We will use the `igs-station` preset to download RINEX files for two IGS stations for two days in 2024 together with all the product and model files needed to run this in Ginan.
 
 ```bash
 # Example run of auto_download_PPP:
@@ -141,9 +143,9 @@ python auto_download_PPP.py --help
 
 ## 2. plot_pos
 
-The `plot_pos.py` script is used to visualise the contents of a Ginan `.POS` format file. 
+The `plot_pos.py` script is used to visualise the contents of a Ginan `.POS` format file.
 
-Output plots are plotly `.html` files that can be displayed in a web browser
+Output plots are plotly `.html` files that can be displayed in a web browser.
 
 ```bash
 Usage:
@@ -153,7 +155,7 @@ Plots positional data and uncertainties with optional smoothing and color coding
 
 ### Optional arguments:
 
- -  `-h`, `--help`            show this help message and exit
+ -  `-h`, `--help`: Show this help message and exit
  -  `--input-files` INPUT_FILES ...: One or more input .POS files for plotting (**required**)
  -  `--start-datetime` START_DATETIME: Start datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone
  -  `--end-datetime` END_DATETIME: End datetime in the format YYYY-MM-DDTHH:MM:SS, optional timezone
@@ -171,34 +173,69 @@ Plots positional data and uncertainties with optional smoothing and color coding
 
 ### Examples
 
-- Plot a Ginan output .POS file: 
+- Plot a Ginan output .POS file:
 
 ```bash
 python plot_pos.py --input-files ALIC00AUS_R_20191990000_01D_30S_MO.rnx.POS
 ```
 
-- Plot a Ginan output .POS file, using colours to represent uncertainties and a heatmep of horizontal positions:
+- Plot a Ginan output .POS file, using colours to represent uncertainties and a heatmap of horizontal positions:
 
 ```bash
 python plot_pos.py --input-files ALIC00AUS_R_20191990000_01D_30S_MO.rnx.POS --colour-sigma --heatmap --elevation
 ```
 
-## 3. plot_trace_res
+## 3. plot_spp
 
-The `plot_trace_res.py` script is used to visualise the contents of a Ginan Network `.TRACE` format file. 
+The `plot_spp.py` script is used to visualise the contents of a Ginan SBAS `.SPP` format files.
+
+Output plots are plotly `.html` files that can be displayed in a web browser.
+
+```bash
+Usage:
+plot_spp.py [-h] -i INPUT [INPUT ...] [-o OUTPUT] [--title TITLE] [--map] [--pl]
+```
+Plot Ginan SBAS .SPP output as Plotly HTML (concatenated inputs).
+
+### Optional arguments:
+
+ -  `-h`, `--help`: Show this help message and exit
+ -  `-i`, `--input` INPUT ...: One or more input .SPP / *_SPP.POS files (**required**)
+ -  `-o`, `--output` OUTPUT: Output .html file path (default: <first_input>.html)
+ -  `--title` TITLE: Main plot title (default: derived from input filenames)
+ -  `--map`: Also write a separate linked-hover lat/lon + Href HTML.
+ -  `--pl`: Also write a protection-level vs error log/log plot (dH vs HPL, dU vs VPL).
+
+### Examples
+
+- Plot a Ginan SBAS .SPP file:
+
+```bash
+python plot_spp.py -i ALIC-202602303.SPP
+```
+
+- Concatenate and plot Ginan SBAS .SPP files, and a 2D lon/lat scatter (Eref vs Nref) map of horizontal positions:
+
+```bash
+python3 plot_spp.py -i ALIC-202602303.SPP ALIC-202602304.SPP ALIC-202602305.SPP --map
+```
+
+## 4. plot_trace_res
+
+The `plot_trace_res.py` script is used to visualise the contents of a Ginan Network `.TRACE` format file.
 
 Extracts and plots GNSS code and phase residuals by receiver and/or satellite with optional markers for large-errors, state errors.
 
 Output plots are plotly `.html` files that can be displayed in a web browser
 
 ```bash
-Usage: 
-plot_trace_res.py [-h] --files FILES [FILES ...] [--residual {prefit,postfit}] [--receivers RECEIVERS [--sat SAT] [--label-regex LABEL_REGEX] [--max-abs MAX_ABS] [--start START] [--end END] [--decimate DECIMATE] [--split-per-sat | --split-per-recv] [--out-dir OUT_DIR] [--basename BASENAME] [--webgl] [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--out-prefix OUT_PREFIX] [--mark-large-errors] [--hover-unified] [--plot-normalised-res] [--show-stats-table] [--stats-matrix] [--stats-matrix-weighted] [--annotate-stats-matrix] [--mark-amb-resets] [--ambiguity-counts] [--ambiguity-totals] [--amb-totals-orient {h,v}] [--amb-totals-topn AMB_TOTALS_TOPN] [--use-forward-residuals]
+Usage:
+plot_trace_res.py [-h] --files FILES [FILES ...] [--residual {prefit,postfit}] [--receivers RECEIVERS] [--sat SAT] [--label-regex LABEL_REGEX] [--max-abs MAX_ABS] [--start START] [--end END] [--decimate DECIMATE] [--split-per-sat | --split-per-recv] [--out-dir OUT_DIR] [--basename BASENAME] [--webgl] [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--out-prefix OUT_PREFIX] [--mark-large-errors] [--hover-unified] [--plot-normalised-res] [--show-stats-table] [--stats-matrix] [--stats-matrix-weighted] [--annotate-stats-matrix] [--mark-amb-resets] [--ambiguity-counts] [--ambiguity-totals] [--amb-totals-orient {h,v}] [--amb-totals-topn AMB_TOTALS_TOPN] [--use-forward-residuals]
 ```
 
 Optional arguments:
 
--   `-h`, `--help`            show this help message and exit
+-   `-h`, `--help`: Show this help message and exit
 -   `--files` FILES [FILES ...]: One or more TRACE files (space or , sep ), e.g. 'A.trace B.trace,C.trace' (wildcards allowed eg. *.TRACE)
 -   `--residual` {prefit,postfit}: Plot prefit or postfit residuals (default: postfit)
 -   `--receivers` RECEIVERS: One or more receiver names (space or , separated), e.g. 'ABMF,CHUR ALGO'
@@ -207,7 +244,7 @@ Optional arguments:
 -   `--max-abs` MAX_ABS: Max residual to plot
 -   `--start` START: Start datetime or time-only
 -   `--end` END:  End datetime (exclusive)
--   `--decimate` DECIMATE: 
+-   `--decimate` DECIMATE:
 -   `--split-per-sat` :
 -   `--split-per-recv` :
 -   `--out-dir` OUT_DIR: Output directory for HTML files; defaults to CWD.
@@ -228,5 +265,3 @@ Optional arguments:
 -   `--amb-totals-orient`: {h,v} Orientation for totals bar charts: 'h' (horizontal, default) or 'v' (vertical).
 -   `--amb-totals-topn AMB_TOTALS_TOPN`: Show only the top N receivers/satellites by total resets (to avoid clutter).
 -   `--use-forward-residuals`: Use residuals from forward (non-smoothed) files instead of smoothed files (default: use smoothed for more accurate residuals).
-
-## 4. s3_filehandler

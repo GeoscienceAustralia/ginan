@@ -88,7 +88,7 @@ class VisualisationController(QObject):
           >>> controller.current_index
           0
         """
-        self.html_files = list(paths)
+        self.html_files = list(dict.fromkeys(paths))
         # Refresh selector if bound
         if self._selector:
             self._refresh_selector()
@@ -283,13 +283,10 @@ class VisualisationController(QObject):
 
             new_html_paths = exec_obj.build_pos_plots()  # default output to tests/resources/outputData/visual
 
-            existing_html_paths = self._find_existing_html_files()
+            # Only use newly generated plots, not old ones from previous runs
+            new_html_paths.sort(key=lambda x: os.path.basename(x))
 
-            all_html_paths = list(set(new_html_paths + existing_html_paths))
-
-            all_html_paths.sort(key=lambda x: os.path.basename(x))
-
-            self.set_html_files(all_html_paths)
+            self.set_html_files(new_html_paths)
 
         except Exception as e:
             from PySide6.QtWidgets import QMessageBox

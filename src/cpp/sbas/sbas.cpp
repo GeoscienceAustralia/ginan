@@ -14,16 +14,11 @@ using std::lock_guard;
 GTime  lastEMSLoaded;
 GTime  lastEMSWritten;
 string lastEMSFile;
+GTime  lastMessType0;
+bool   sbasAlertNoSoL = false;
 
-struct SBASSmoothControl
-{
-    GTime  lastUpdate;
-    int    numMea = 0;
-    double ambEst = 0;
-    double ambVar = -1;
-};
-
-map<SatSys, map<string, SBASSmoothControl>> smoothedMeasMap;
+map<int, map<SatSys, SBASCova>> sbasUdreCov;
+map<SatSys, usedSBASIODs>       usedSBASIODMap;
 
 mutex                   sbasMessagesMutex;
 map<GTime, SBASMessage> sbasMessages;
@@ -194,14 +189,42 @@ void loadSBASdata(Trace& trace, GTime time, Navigation& nav)
     for (auto& [sat, satDat] : nav.satNavMap)
     {
         auto& sbs = satDat.currentSBAS;
-        for (auto it = sbs.corrUpdt.begin(); it != sbs.corrUpdt.end();)
+        for (auto it = sbs.slowUpdt.begin(); it != sbs.slowUpdt.end();)
         {
-            auto teph = it->first;
-            if ((time - teph).to_double() > MAX_SBAS_CORR_AGE)
-                it = sbs.corrUpdt.erase(it);
+            auto slowUpdt = it->second;
+            for (auto it2 = slowUpdt.begin(); it2 != slowUpdt.end();)
+            {
+                auto teph = it2->first;
+                if ((time - teph).to_double() > MAX_SBAS_CORR_AGE)
+                    it2 = slowUpdt.erase(it2);
+                else
+                    it2++;
+            }
+
+            if (slowUpdt.empty())
+                it = sbs.slowUpdt.erase(it);
             else
                 it++;
         }
+
+        for (auto it = sbs.fastUpdt.begin(); it != sbs.fastUpdt.end();)
+        {
+            auto fastUpdt = it->second;
+            for (auto it2 = fastUpdt.begin(); it2 != fastUpdt.end();)
+            {
+                auto teph = it2->first;
+                if ((time - teph).to_double() > MAX_SBAS_CORR_AGE)
+                    it2 = fastUpdt.erase(it2);
+                else
+                    it2++;
+            }
+
+            if (fastUpdt.empty())
+                it = sbs.fastUpdt.erase(it);
+            else
+                it++;
+        }
+
         for (auto it = sbs.slowCorr.begin(); it != sbs.slowCorr.end();)
         {
             auto teph = it->second.trec;
@@ -239,72 +262,33 @@ void loadSBASdata(Trace& trace, GTime time, Navigation& nav)
 
 void estimateSBASProtLvl(Vector3d& staPos, Matrix3d& ecefP, double& horPL, double& verPL)
 {
-    horPL = -1;
-    verPL = -1;
+    horPL = 8000;
+    verPL = 100;
 
-    switch (acsConfig.sbsInOpts.freq)
-    {
-        case 5:
-            estimateDFMCPL(staPos, ecefP, horPL, verPL);
-            return;
-        default:
-            return;
-    }
-}
+    if (sbasAlertNoSoL)
+        return;
 
-double sbasSmoothedPsudo(
-    Trace&  trace,
-    GTime   time,
-    SatSys  Sat,
-    string  staId,
-    double  measP,
-    double  measL,
-    double  variP,
-    double  variL,
-    double& varSmooth,
-    bool    update
-)
-{
-    varSmooth = -1;
-    if (variP < 0 || variL < 0)
-        return measP;
+    VectorPos pos = ecef2pos(staPos);
+    Matrix3d  E;
+    pos2enu(pos, E.data());
+    Matrix3d EP   = E * ecefP;
+    Matrix3d enuP = EP * E.transpose();
 
-    auto&  smCtrl = smoothedMeasMap[Sat][staId];
-    double fact   = 1.0 / smCtrl.numMea;
-    if (update)
-    {
-        bool slip = false;
-        if ((time - smCtrl.lastUpdate).to_double() > acsConfig.sbsInOpts.smth_out)
-            slip = true;
-        if (smCtrl.ambVar < 0)
-            slip = true;
-
-        double ambMea = measP - measL;
-        if (fabs(ambMea - smCtrl.ambEst) > 4 * sqrt(smCtrl.ambVar + variP + variL))
-            slip = true;  // Try replacing this with a outputs from preprocessor
-
-        smCtrl.lastUpdate = time;
-        if (slip)
-        {
-            smCtrl.numMea = 0;
-            smCtrl.ambEst = 0;
-            smCtrl.ambVar = 0;
-        }
-
-        smCtrl.numMea++;
-        if (smCtrl.numMea > acsConfig.sbsInOpts.smth_win)
-            smCtrl.numMea = acsConfig.sbsInOpts.smth_win;
-        fact = 1.0 / smCtrl.numMea;
-
-        smCtrl.ambEst += fact * (ambMea - smCtrl.ambEst);
-        smCtrl.ambVar = SQR(fact) * (variP + variL) + SQR(1 - fact) * smCtrl.ambVar;
-    }
-    varSmooth = (1 - 2 * fact) * variL + smCtrl.ambVar;
-    return smCtrl.ambEst + measL;
+    double scaleH = acsConfig.sbsInOpts.prec_aproach ? 6.00 : 6.18;
+    double scaleV = 5.33;
+    double aveEN  = (enuP(0, 0) + enuP(1, 1)) / 2;
+    double difEN  = (enuP(0, 0) - enuP(1, 1)) / 2;
+    double covEN  = enuP(0, 1);
+    horPL         = scaleH * sqrt(aveEN + sqrt(difEN * difEN + covEN * covEN));
+    verPL         = scaleV * sqrt(enuP(2, 2));
 }
 
 void writeSPP(string filename, Receiver& rec)
 {
+    auto& sppPos = rec.sol.sppPos;
+    if (sppPos.norm() < 1000)
+        return;
+
     std::ofstream output(filename, std::fstream::out | std::fstream::app);
     if (!output.is_open())
     {
@@ -314,28 +298,65 @@ void writeSPP(string filename, Receiver& rec)
 
     output.seekp(0, output.end);  // seek to end of file
 
-    if (output.tellp() == 0)
-        tracepdeex(
-            2,
-            output,
-            "\n*YYYY-MM-DDTHH:MM:SS.SSS YYYY.YYYYYYYYY        X             Y              Z       "
-            "HDOP   VDOP   GDOP   - - -       NLat            Elong        Height         dN       "
-            "   dE          dU          dH         HPL        VPL     - - - -"
-        );
-
     auto&     apriori = rec.aprioriPos;
-    auto&     sppPos  = rec.sol.sppPos;
     auto&     sppTime = rec.sol.sppTime;
-    VectorPos pos     = ecef2pos(apriori);
-    VectorEnu dpos    = ecef2enu(pos, sppPos - apriori);
+    VectorPos pos     = ecef2pos(sppPos);
 
     string tstr  = sppTime.to_ISOstring(3);
     double tyear = sppTime.to_decYear();
+
+    if (apriori.norm() > 1000)
+    {
+        if (output.tellp() == 0)
+            tracepdeex(
+                0,
+                output,
+                "\n*YYYY-MM-DDTHH:MM:SS.SSS YYYY.YYYYYYYYY        X             Y              Z   "
+                "        HDOP       VDOP       GDOP      - - -       N ref.          E ref.       "
+                "H ref.         dN          dE          dU          dH         HPL        VPL     "
+                "- - -"
+            );
+
+        VectorEnu dpos = ecef2enu(pos, sppPos - apriori);
+        tracepdeex(
+            0,
+            output,
+            "\n %s %14.9f %14.5f %14.5f %14.5f %11.4f %11.4f %11.4f - - - %15.10f %15.10f %11.5f "
+            "%11.5f %11.5f %11.5f %11.5f %11.5f %11.5f - - -",
+            tstr,
+            tyear,
+            sppPos[0],
+            sppPos[1],
+            sppPos[2],
+            rec.sol.dops.hdop,
+            rec.sol.dops.vdop,
+            rec.sol.dops.gdop,
+            pos[0] * R2D,
+            pos[1] * R2D,
+            pos[2],
+            dpos[0],
+            dpos[1],
+            dpos[2],
+            sqrt(dpos[0] * dpos[0] + dpos[1] * dpos[1]),
+            rec.sol.horzPL,
+            rec.sol.vertPL
+        );
+        return;
+    }
+    if (output.tellp() == 0)
+        tracepdeex(
+            0,
+            output,
+            "\n*YYYY-MM-DDTHH:MM:SS.SSS YYYY.YYYYYYYYY        X             Y              Z       "
+            "    HDOP       VDOP       GDOP      - - -       N recv          E recv       H recv   "
+            "- - - -     HPL        VPL      - - -"
+        );
+
     tracepdeex(
-        2,
+        0,
         output,
-        "\n %s %14.9f %11.5f %11.5f %11.5f %11.4f %11.4f %11.4f - - - %15.10f %15.10f %11.5f "
-        "%11.5f %11.5f %11.5f %11.5f %11.5f %11.5f - - -",
+        "\n %s %14.9f %14.5f %14.5f %14.5f %11.4f %11.4f %11.4f - - - %15.10f %15.10f %11.5f "
+        "- - - - %11.5f %11.5f - - -",
         tstr,
         tyear,
         sppPos[0],
@@ -347,11 +368,105 @@ void writeSPP(string filename, Receiver& rec)
         pos[0] * R2D,
         pos[1] * R2D,
         pos[2],
-        dpos[0],
-        dpos[1],
-        dpos[2],
-        sqrt(dpos[0] * dpos[0] + dpos[1] * dpos[1]),
         rec.sol.horzPL,
         rec.sol.vertPL
     );
+}
+
+double rangeErrFromCov(
+    Trace&    trace,
+    GTime     time,
+    int       iodp,
+    SatSys    sat,
+    Vector3d& rRec,
+    Vector3d& rSat,
+    double    eCov
+)
+{
+    if (sbasUdreCov.find(iodp) == sbasUdreCov.end())
+        return -1;
+
+    if (sbasUdreCov[iodp].find(sat) == sbasUdreCov[iodp].end())
+        return -1;
+
+    if (sbasUdreCov[iodp][sat].REScale < 0)
+        return -1;
+
+    if ((time - sbasUdreCov[iodp][sat].toe).to_double() > sbasUdreCov[iodp][sat].Ivalid)
+        return -1;
+
+    if (rSat.norm() <= RE_WGS84 * 0.9)
+        return -1;
+    Vector3d ePos = rSat - rRec;
+    ePos.normalize();
+
+    VectorXd ePosClk = VectorXd::Zero(4);
+    for (int i = 0; i < 3; i++)
+        ePosClk[i] = ePos[i];
+    ePosClk[3]  = 1;
+    VectorXd Ce = sbasUdreCov[iodp][sat].covr * ePosClk;
+    double   x  = ePosClk.dot(Ce);
+
+    return sqrt(x) + eCov * sbasUdreCov[iodp][sat].REScale;
+}
+
+double checkSBASVar(
+    Trace&    trace,
+    GTime     time,
+    SatSys    sat,
+    Vector3d& rRec,
+    Vector3d& rSat,
+    SBASMaps& sbsMaps
+)
+{
+    if (usedSBASIODMap.find(sat) == usedSBASIODMap.end())
+        return -1;
+
+    if (fabs((time - usedSBASIODMap[sat].tUsed).to_double()) >= 0.5)
+        return -1;
+
+    int iodp = usedSBASIODMap[sat].iodp;
+    int iodf = usedSBASIODMap[sat].iodf;
+    int iode = usedSBASIODMap[sat].iode;
+
+    if (sbsMaps.fastUpdt.find(iodp) == sbsMaps.fastUpdt.end())
+        return -2;
+
+    if (sbsMaps.fastCorr.find(iodf) == sbsMaps.fastCorr.end())
+        return -2;
+
+    auto& sbsFast = sbsMaps.fastCorr[iodf];
+    if (sbsFast.iodp != iodp)
+        return -2;
+
+    switch (acsConfig.sbsInOpts.freq)
+    {
+        case 1:
+            if (sbsMaps.slowCorr.find(iode) == sbsMaps.slowCorr.end())
+                return -2;
+            return estimateSBASVar(trace, time, sat, rRec, rSat, sbsFast, sbsMaps.slowCorr[iode]);
+        case 5:
+            return estimateDFMCVar(trace, time, sat, rRec, rSat, sbsFast);
+    }
+
+    return -2;
+}
+
+void checkForType0(GTime time, int type)
+{
+    if (type < 0)
+    {
+        lastMessType0  = time;
+        sbasAlertNoSoL = true;
+        for (auto& [sat, satDat] : nav.satNavMap)
+        {
+            auto& sbs = satDat.currentSBAS;
+            sbs.fastUpdt.clear();
+            sbs.slowUpdt.clear();
+            sbs.fastCorr.clear();
+            sbs.slowCorr.clear();
+        }
+    }
+    else if ((time - lastMessType0).to_double() > 10)
+        sbasAlertNoSoL = false;
 }

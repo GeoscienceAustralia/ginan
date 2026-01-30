@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import shutil
+import os
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -14,30 +15,64 @@ def archive_old_outputs(output_dir: Path, visual_dir: Path = None):
     """
     Moves existing output files to an archive directory to keep the workspace clean.
 
-    THIS FUNCTION LOOKS FOR ALL TXT, LOG, JSON, POS files.
+    THIS FUNCTION LOOKS FOR ALL TXT, LOG, JSON, POS, GPX, TRACE files.
     DON'T USE THE INPUT PRODUCTS DIRECTORY.
 
     :param output_dir: Path to the user-selected output directory.
     :param visual_dir: Optional path to associated visualisation directory.
     """
+    # Move visual folder contents if it exists (visual_dir is typically output_dir / "visual")
+    if visual_dir is None:
+        visual_dir = output_dir / "visual"
+
+    # First, collect all files that would be archived (only .POS, .GPX, .TRACE)
+    files_to_archive = []
+    for ext in [".pos", ".POS", ".gpx", ".GPX", ".trace", ".TRACE"]:
+        files_to_archive.extend(list(output_dir.glob(f"*{ext}")))
+
+    # Check visual directory for files
+    visual_files_to_archive = []
+    if visual_dir.exists() and visual_dir.is_dir():
+        visual_files_to_archive = [f for f in visual_dir.glob("*") if f.is_file()]
+
+    # Only proceed if there's something to archive
+    if not files_to_archive and not visual_files_to_archive:
+        Logger.console("📂 No previous outputs found to archive.")
+        return
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     archive_dir = output_dir / "archive" / timestamp
-    archive_dir.mkdir(parents=True, exist_ok=True)
 
-    # Move .pos, .log, .txt, etc. from output_dir
+    # Make the visual directory
+    os.makedirs(archive_dir, exist_ok=True)
+
+    # Move .pos, .gpx, .trace from output_dir
     moved_files = 0
-    for ext in [".pos", ".POS", ".log", ".txt", ".json"]:
-        for file in output_dir.glob(f"*{ext}"):
-            shutil.move(str(file), archive_dir / file.name)
+    for file in files_to_archive:
+        try:
+            shutil.move(str(file), str(archive_dir / file.name))
             moved_files += 1
+        except Exception as e:
+            Logger.console(f"Failed to archive {file.name}: {e}")
 
-    # Move HTML visual files (optional)
-    if visual_dir and visual_dir.exists():
+    # Move visual folder contents
+    if visual_files_to_archive:
         visual_archive = archive_dir / "visual"
-        visual_archive.mkdir(parents=True, exist_ok=True)
-        for html_file in visual_dir.glob("*.html"):
-            shutil.move(str(html_file), visual_archive / html_file.name)
-            moved_files += 1
+
+        # Make the visual archive directory
+        os.makedirs(visual_archive, exist_ok=True)
+
+        for visual_file in visual_files_to_archive:
+            try:
+                shutil.move(str(visual_file), str(visual_archive / visual_file.name))
+                moved_files += 1
+            except Exception as e:
+                Logger.console(f"Failed to archive {visual_file.name}: {e}")
+        # Remove the now-empty visual archive directory
+        try:
+            visual_dir.rmdir()
+        except OSError:
+            pass  # Directory not empty or other issue
 
     if moved_files > 0:
         Logger.console(f"📦 Archived {moved_files} old output file(s) to: {archive_dir}")
@@ -48,7 +83,7 @@ def archive_products(products_dir: Path = INPUT_PRODUCTS_PATH, reason: str = "ma
                      include_patterns: Optional[list[str]] = None) -> Optional[Path]:
     """
     Archive GNSS product files from products_dir into a timestamped subfolder
-    under products_dir/archived/.
+    under products_dir/archive/.
 
     :param products_dir: Directory containing GNSS product files
     :param reason: String describing why the archive is happening (e.g., "rinex_change", "ppp_selection_change")
@@ -60,22 +95,19 @@ def archive_products(products_dir: Path = INPUT_PRODUCTS_PATH, reason: str = "ma
         Logger.console(f"Products dir {products_dir} does not exist.")
         return None
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    archive_dir = products_dir / "archived" / f"{reason}_{timestamp}"
-    archive_dir.mkdir(parents=True, exist_ok=True)
-
     product_patterns = [
         "*.SP3",                    # precise orbit
         "*.CLK",                    # clock files
         "*.BIA",                    # biases
         "*.ION",                    # ionosphere products (if used)
         "*.TRO",                    # troposphere products (if used)
+        "BRDC*.rnx",                # broadcast ephemeris
+        "BRDC*.rnx.*",              # compressed broadcast ephemeris
     ]
 
     if startup_archival:
         startup_patterns = [
             "finals.data.iau2000.txt",
-            "BRDC*.rnx",
             "igs_satellite_metadata*.snx",
             "igs20*.atx",
             "tables/ALOAD*",
@@ -107,20 +139,40 @@ def archive_products(products_dir: Path = INPUT_PRODUCTS_PATH, reason: str = "ma
     if include_patterns:
         product_patterns.extend(include_patterns)
 
-    archived_files = []
+    # First, collect all files that match the patterns
+    files_to_archive = []
     for pattern in product_patterns:
-        for file in products_dir.glob(pattern):
-            try:
-                target = archive_dir / file.name
-                shutil.move(str(file), str(target))
-                archived_files.append(file.name)
-            except Exception as e:
-                Logger.console(f"Failed to archive {file.name}: {e}")
+        files_to_archive.extend(list(products_dir.glob(pattern)))
+
+    # Only proceed if there's something to archive
+    if not files_to_archive:
+        Logger.console("No matching product files found to archive.")
+        return None
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    archive_dir = products_dir / "archive" / f"{reason}_{timestamp}"
+
+    # Create the archive directory
+    os.makedirs(archive_dir, exist_ok=True)
+
+    archived_files = []
+    for file in files_to_archive:
+        try:
+            target = archive_dir / file.name
+            shutil.move(str(file), str(target))
+            archived_files.append(file.name)
+        except Exception as e:
+            Logger.console(f"Failed to archive {file.name}: {e}")
 
     if archived_files:
         Logger.console(f"Archived {', '.join(archived_files)} → {archive_dir}")
         return archive_dir
     else:
+        # Clean up empty archive directory if all moves failed
+        try:
+            archive_dir.rmdir()
+        except OSError:
+            pass
         Logger.console("No matching product files found to archive.")
         return None
 
@@ -132,12 +184,12 @@ def archive_products_if_rinex_changed(current_rinex: Path,
     If the RINEX file has changed since last load, archive the cached products.
     """
     if last_rinex and current_rinex.resolve() == last_rinex.resolve():
-        Logger.console("RINEX file unchanged — skipping product cleanup.")
+        Logger.console("RINEX file unchanged, skipping product cleanup.")
         return None
 
-    Logger.console("RINEX file changed — archiving old products.")
+    Logger.console("RINEX file changed, archiving old products.")
     # Shouldn't remove BRDC if date isn't changed but would require extracting current and last rnx
-    return archive_products(products_dir, reason="rinex_change", include_patterns=["BRDC*.rnx*"])
+    return archive_products(products_dir, reason="rinex_change")
 
 
 def archive_products_if_selection_changed(current_selection: Dict[str, Any],
@@ -148,7 +200,7 @@ def archive_products_if_selection_changed(current_selection: Dict[str, Any],
     Excludes BRDC and finals.data.iau2000.txt since they are reusable.
     """
     if last_selection and current_selection == last_selection:
-        Logger.console("[Archiver] PPP product selection unchanged — skipping product cleanup.")
+        Logger.console("[Archiver] PPP product selection unchanged, skipping product cleanup.")
         return None
 
     if last_selection:
