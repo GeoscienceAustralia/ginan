@@ -15,6 +15,7 @@
 #include "common/streamNtrip.hpp"
 #include "common/streamRinex.hpp"
 #include "common/streamRtcm.hpp"
+#include "common/streamSbf.hpp"
 #include "common/streamSerial.hpp"
 #include "common/streamSlr.hpp"
 #include "common/streamSp3.hpp"
@@ -231,6 +232,11 @@ void addReceiverData(
         {
             parser_ptr                                       = make_unique<UbxParser>();
             static_cast<UbxParser*>(parser_ptr.get())->recId = id;
+        }
+        else if (inputFormat == "SBF")
+        {
+            parser_ptr                                       = make_unique<SbfParser>();
+            static_cast<SbfParser*>(parser_ptr.get())->recId = id;
         }
         else if (inputFormat == "CUSTOM")
         {
@@ -739,6 +745,10 @@ void reloadInputFiles()
     for (auto& [id, ubxinputs] : acsConfig.ubx_inputs)
     {
         addReceiverData(id, ubxinputs, "UBX", "OBS");
+    }
+    for (auto& [id, sbfinputs] : acsConfig.sbf_inputs)
+    {
+        addReceiverData(id, sbfinputs, "SBF", "OBS");
     }
     for (auto& [id, custominputs] : acsConfig.custom_inputs)
     {

@@ -3,6 +3,47 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [4.1] 2026-01-30
+
+## Added
+
+Ginan SouthPAN SBAS capabilities:
+- Separate SBAS processing modes
+- Choice of running L1 SBAS, DFMC (dual-frequency multi-constellation) and PVS (Precise Point Positioning Via SouthPAN)
+- SBF (Septentrio) input
+- Included sanity check configurations for SBAS, DFMC and PVS
+
+Additional features and fixes to the GinanUI:
+- "Constellations" config tab for managing code priorities for the selected PPP provider/series/project
+- "Output" config tab for specifying PEA output files
+- "Reset Config" button to reset the UI and configuration to a blank state
+- Support for downloading products from the REPRO3 directory for older RINEX files
+- Verification of PPP product constellations against RINEX constellations using the corresponding .SP3 file
+- Detection of supported code priorities for PPP products using the corresponding .BIA file
+- Button to open the Ginan-UI user manual from the interface
+
+## Changed
+
+GinanUI changes:
+- UI panels are now resizable
+- Disabled plot visualisation when the corresponding output file is not enabled
+
+## Fixed
+
+Ginan fixes:
+- Fixed SSR uploading issues - RTCM message codes were incorrectly assigned
+- Fixed Code bias state errors - Force state errors to zero if corresponding states are fully constrained (zero variances).
+
+GinanUI fixes:
+- Fixed detecting available dynamic products when version identifier is not "0". Will now search for the lowest valid version identifier
+- Fixed input locking while processing is running to prevent post-hoc configuration changes
+
+## Deprecated
+
+## Removed
+
+## Security
+
 # [4.0] 2025-12-16
 
 ## Added

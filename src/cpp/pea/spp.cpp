@@ -27,6 +27,77 @@ using std::ostringstream;
 
 Architecture SPP__() {}
 
+struct smoothControl
+{
+    GTime  lastUpdate;
+    int    numMea    = 0;
+    double ambEst    = 0;
+    double ambVar    = -1;
+    double estSmooth = 0;
+    double varSmooth = -1;
+};
+map<SatSys, map<string, smoothControl>> smoothedMeasMap;
+
+/** Carrier-smoothing of code pseudoranges
+ * Ref: https://gssc.esa.int/navipedia/index.php/Carrier-smoothing_of_code_pseudoranges (eq (2))
+ */
+bool smoothedPsudo(
+    Trace&  trace,
+    GObs&   obs,  ///< Observation to calculate pseudorange for
+    double& meaP,
+    double  meaL,
+    double& varP,
+    double  varL,
+    bool    update,
+    bool    LLI
+)
+{
+    if (varP < 0 || varL < 0)
+        return false;
+
+    auto& smCtrl = smoothedMeasMap[obs.Sat][obs.mount];
+    if (update)
+    {
+        bool slip = LLI;
+        if ((obs.time - smCtrl.lastUpdate).to_double() > acsConfig.sppOpts.smooth_outage)
+            slip = true;
+        if (smCtrl.ambVar < 0)
+            slip = true;
+        if (smCtrl.numMea <= 0)
+            slip = true;
+
+        double ambMea = meaP - meaL;
+        if (fabs(ambMea - smCtrl.ambEst) > 4 * sqrt(smCtrl.ambVar + varP + varL))
+            slip = true;  // Try replacing this with a outputs from preprocessor
+
+        smCtrl.lastUpdate = obs.time;
+        if (slip)
+        {
+            smCtrl.numMea = 0;
+            smCtrl.ambEst = 0;
+            smCtrl.ambVar = 0;
+        }
+
+        smCtrl.numMea++;
+        if (smCtrl.numMea > acsConfig.sppOpts.smooth_window)
+            smCtrl.numMea = acsConfig.sppOpts.smooth_window;
+        double fact = 1.0 / smCtrl.numMea;
+
+        smCtrl.ambEst += fact * (ambMea - smCtrl.ambEst);
+        smCtrl.ambVar = SQR(fact) * (varP + varL) + SQR(1 - fact) * smCtrl.ambVar;
+
+        smCtrl.estSmooth = smCtrl.ambEst + meaL;
+        smCtrl.varSmooth = (1 - 2 * fact) * varL + smCtrl.ambVar;
+    }
+
+    if (acsConfig.sppOpts.use_smooth_only && (smCtrl.numMea < acsConfig.sppOpts.smooth_window))
+        return false;
+
+    varP = smCtrl.varSmooth;
+    meaP = smCtrl.estSmooth;
+    return true;
+}
+
 /** Calculate pseudorange and code bias correction
  */
 bool prange(
@@ -143,7 +214,12 @@ bool prange(
     bias    = bias_A;
     biasVar = varBias_A;
 
-    if (ionoMode == E_IonoMode::IONO_FREE_LINEAR_COMBO)
+    bool dualFreq = (ionoMode == E_IonoMode::IONO_FREE_LINEAR_COMBO) ||
+                    (ionoMode == E_IonoMode::SBAS && acsConfig.sbsInOpts.freq == 5);
+    double c1 = 1;
+    double c2 = 0;
+
+    if (dualFreq)
     {
         double P_B       = 0;
         double var_B     = 0;
@@ -153,6 +229,9 @@ bool prange(
 
         if (P_B == 0 || ft_B == NONE)
         {
+            if (ionoMode == E_IonoMode::SBAS)
+                return false;
+
             BOOST_LOG_TRIVIAL(warning)
                 << "Code measurement not available on secondary frequency for " << obs.Sat.id()
                 << " at " << obs.mount << ", falling back to single-frequency";
@@ -162,52 +241,43 @@ bool prange(
         else
         {
             // Iono-free combination
-            double c1 = SQR(lam[ft_B]) / (SQR(lam[ft_B]) - SQR(lam[ft_A]));
-            double c2 = 1 - c1;
+            c1 = SQR(lam[ft_B]) / (SQR(lam[ft_B]) - SQR(lam[ft_A]));
+            c2 = 1 - c1;
 
-            range = c1 * P_A + c2 * P_B;
-            bias  = c1 * bias_A + c2 * bias_B;
-
+            range   = c1 * P_A + c2 * P_B;
+            bias    = c1 * bias_A + c2 * bias_B;
             measVar = SQR(c1) * var_A + SQR(c2) * var_B;
-            biasVar = abs(SQR(c1) * varBias_A - SQR(c2) * varBias_B);  // Eugene: bias_A and
-            // bias_B are expected to be fully correlated?
+            biasVar = SQR(c1) * varBias_A + SQR(c2) * varBias_B;
         }
     }
 
-    if (acsConfig.sbsInOpts.smth_win > 0)
+    if (acsConfig.sppOpts.smooth_window > 0)
     {
-        double LC   = obs.sigs[ft_A].L * lam[ft_A];
-        double varL = obs.sigs[ft_A].phasVar;
-        if (LC == 0)
+        double meaL = obs.sigs[ft_A].L * lam[ft_A];
+        if (meaL == 0 && acsConfig.sppOpts.use_smooth_only)
             return false;
+        double varL = obs.sigs[ft_A].phasVar;
+        bool   lli  = obs.sigs[ft_A].LLI;
 
-        if (ionoMode == E_IonoMode::IONO_FREE_LINEAR_COMBO)
+        if (dualFreq)
         {
-            double L2 = obs.sigs[ft_B].L * lam[ft_B];
-            if (L2 == 0)
-                return false;
-
-            double c1 = SQR(lam[ft_B]) / (SQR(lam[ft_B]) - SQR(lam[ft_A]));
-            double c2 = 1 - c1;
-            LC        = c1 * LC + c2 * L2;
-            varL      = c1 * c1 * varL + c2 * c2 * obs.sigs[ft_B].phasVar;
+            double meaL_B = obs.sigs[ft_B].L * lam[ft_B];
+            if (meaL_B == 0)
+            {
+                if (ionoMode == E_IonoMode::SBAS)
+                    return false;
+            }
+            else
+            {
+                double varL_B = obs.sigs[ft_B].phasVar;
+                meaL          = c1 * meaL + c2 * meaL_B;
+                varL          = SQR(c1) * varL + SQR(c2) * varL_B;
+                lli           = obs.sigs[ft_A].LLI || obs.sigs[ft_B].LLI;
+            }
         }
 
-        range = sbasSmoothedPsudo(
-            trace,
-            obs.time,
-            obs.Sat,
-            obs.mount,
-            range,
-            LC,
-            measVar,
-            varL,
-            measVar,
-            smooth
-        );
-        biasVar = 0;
-
-        if (measVar < 0)
+        if (!smoothedPsudo(trace, obs, range, meaL, measVar, varL, smooth, lli) &&
+            acsConfig.sppOpts.use_smooth_only)
             return false;
     }
 
@@ -599,6 +669,12 @@ E_Solution estpos(
 
             tracepdeex(2, trace, ", el=%.2f", elevation);
 
+            if (acsConfig.sbsOpts.use_sbas_rec_var)
+            {
+                varMeas = SQR(0.36) + SQR(0.13 + 0.53 * exp(-elevation * R2D / 10));
+                varBias = 0;
+            }
+
             // Sat clock
             if (obs.ephClkValid == false)
             {
@@ -611,6 +687,22 @@ E_Solution estpos(
 
             double dtSat     = -obs.satClk * CLIGHT;
             double varSatClk = obs.satClkVar * SQR(CLIGHT);
+            auto&  satOpts   = acsConfig.getSatOpts(obs.Sat);
+            if (satOpts.posModel.sources[0] == E_Source::SBAS)
+            {
+                double sbasVar =
+                    checkSBASVar(trace, obs.time, obs.Sat, rRec, rSat, obs.satNav_ptr->currentSBAS);
+
+                if (sbasVar <= 0)
+                {
+                    tracepdeex(2, trace, " ... Sat clk fail (sbas)");
+                    continue;
+                }
+                bias      = 0;
+                varBias   = 0;
+                varSatPos = 0;
+                varSatClk = sbasVar;
+            }
 
             tracepdeex(2, trace, ", satClk=%.3f", dtSat);
 
@@ -642,10 +734,6 @@ E_Solution estpos(
                 dIono *= ionC;
                 varIono *= SQR(ionC);
             }
-
-            if (acsConfig.sbsInOpts.dfmc_uire)
-                varIono = SQR(0.018 + 40 / (261 + SQR(satStat.el * R2D)));
-
             tracepdeex(2, trace, ", dIono=%.5f", dIono);
 
             // Tropospheric correction

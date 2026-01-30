@@ -428,6 +428,13 @@ enum class E_IonoMapFn : int
     KLOBUCHAR  ///< Klobuchar mapping function
 };
 
+enum class E_SbasMode : int
+{
+    L1,    ///< L1-SBAS
+    DFMC,  ///< Dual Frequency Multi-Constellation (DFMC) SBAS
+    PVS    ///< Precise Point Positioning Via SouthPAN (PVS)
+};
+
 enum class E_IonoFrame : int
 {
     EARTH_FIXED,  ///< Earth-fixed reference frame
@@ -1398,7 +1405,7 @@ enum class E_SlrRangeType : short int  // from crd_v2.01.pdf p7
     ONE_WAY = 1,                       // one-way ranging
     TWO_WAY = 2,                       // two-way ranging
     RX_ONLY = 3,                       // receive times only
-    MIXED   = 3
+    MIXED   = 4
 };  // mixed (for real-time data recording, and combination of one- and two-way ranging, e.g., T2L2)
 
 enum class E_UBXClass : short int

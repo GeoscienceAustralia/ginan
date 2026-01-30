@@ -15,17 +15,16 @@ struct sbsDFREsysDegr
 };
 
 GTime                      mt37Time;
-double                     IValidGNSS = -1;
-double                     IValidGEO  = -1;
+double                     IValidGNSS = 30;
+double                     IValidGEO  = 30;
 double                     mt37CER    = 31.5;
 double                     mt37Ccov   = 12.7;
 int                        degrdType  = 0;
 map<E_Sys, sbsDFREsysDegr> sysDegr;
 map<int, double>           DFREtable;
 
-map<int, map<int, SatSys>>
-    SBASSatMasks;  // Satellite mask updated by MT31, SBASSatMasks[IODP][index] = SatSys;
-int lastIODM = -1;
+map<int, map<int, SatSys>> l5SBASSatMasks;
+int                        lastIODM = -1;
 
 SatSys l5SatIndex(int sati)
 {
@@ -70,8 +69,8 @@ void decodeL5SBASMask(Trace& trace, unsigned char* data)
 
     tracepdeex(DFMC_DEBUG_TRACE_LEVEL, trace, "L5 mask IODM: %1d", iodm);
 
-    if (SBASSatMasks.find(iodm) != SBASSatMasks.end())
-        SBASSatMasks[iodm].clear();
+    if (l5SBASSatMasks.find(iodm) != l5SBASSatMasks.end())
+        l5SBASSatMasks[iodm].clear();
 
     int i = 0;
     for (int ind = 1; ind <= 214; ind++)
@@ -80,7 +79,7 @@ void decodeL5SBASMask(Trace& trace, unsigned char* data)
             SatSys sat = l5SatIndex(ind);
             if (!sat)
                 continue;
-            SBASSatMasks[iodm][i++] = sat;
+            l5SBASSatMasks[iodm][i++] = sat;
 
             tracepdeex(DFMC_DEBUG_TRACE_LEVEL, trace, ", %s", sat.id().c_str());
         }
@@ -89,7 +88,8 @@ void decodeL5SBASMask(Trace& trace, unsigned char* data)
 
 void decodeL5DFMCCorr(Trace& trace, GTime frameTime, Navigation& nav, unsigned char* data)
 {
-    int iod = 0;
+    if (lastIODM < 0)
+        return;
 
     int i  = 10;
     int ns = acsConfig.sbsInOpts.use_do259 ? 8 : 9;
@@ -106,6 +106,7 @@ void decodeL5DFMCCorr(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
 
     int iode     = getbituInc(data, i, 10);
     sbs.iode     = iode;
+    sbs.iodp     = lastIODM;
     sbs.dPos[0]  = getbitsInc(data, i, 11) * 0.0625;
     sbs.dPos[1]  = getbitsInc(data, i, 11) * 0.0625;
     sbs.dPos[2]  = getbitsInc(data, i, 11) * 0.0625;
@@ -130,9 +131,9 @@ void decodeL5DFMCCorr(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
     sbs.toe     = teph;
     sbs.trec    = frameTime;
 
-    auto& sbsMap               = nav.satNavMap[sat].currentSBAS;
-    sbsMap.slowCorr[iode]      = sbs;
-    sbsMap.corrUpdt[frameTime] = iode;
+    auto& sbsMap                         = nav.satNavMap[sat].currentSBAS;
+    sbsMap.slowCorr[iode]                = sbs;
+    sbsMap.slowUpdt[lastIODM][frameTime] = iode;
 
     tracepdeex(
         DFMC_DEBUG_TRACE_LEVEL,
@@ -151,68 +152,54 @@ void decodeL5DFMCCorr(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
         sbsMap.slowCorr[iode].ddPos[3]
     );
 
-    if (IValidGNSS > 0)
-    {
-        sbsMap.corrUpdt.erase(
-            sbsMap.corrUpdt.upper_bound(frameTime - IValidGNSS),
-            sbsMap.corrUpdt.end()
-        );
-        for (auto it = sbsMap.slowCorr.begin(); it != sbsMap.slowCorr.end();)
-        {
-            auto trec = it->second.trec;
-            if ((frameTime - teph).to_double() > IValidGNSS)
-                it = sbsMap.slowCorr.erase(it);
-            else
-                it++;
-        }
-    }
-
     //--------------------------------------------
-    if (lastIODM >= 0)
-    {
-        sbsMap.Integrity[lastIODM].trec = frameTime;
+    double   expnt = getbituInc(data, i, 3) - 5.0;
+    double   scale = pow(2, expnt);
+    MatrixXd E     = MatrixXd::Zero(4, 4);
+    E(0, 0)        = getbituInc(data, i, 9);
+    E(1, 1)        = getbituInc(data, i, 9);
+    E(2, 2)        = getbituInc(data, i, 9);
+    E(3, 3)        = getbituInc(data, i, 9);
+    E(0, 1)        = getbitsInc(data, i, 10);
+    E(0, 2)        = getbitsInc(data, i, 10);
+    E(0, 3)        = getbitsInc(data, i, 10);
+    E(1, 2)        = getbitsInc(data, i, 10);
+    E(1, 3)        = getbitsInc(data, i, 10);
+    E(2, 3)        = getbitsInc(data, i, 10);
+    MatrixXd R     = scale * E;
+    MatrixXd C     = R.transpose() * R;
+    int      REint = getbituInc(data, i, 4);
+    double   dRcorr;
+    if (acsConfig.sbsInOpts.use_do259)
+        dRcorr = (getbituInc(data, i, 4) + 1) / 15;
+    else
+        dRcorr = (getbituInc(data, i, 3) + 1) / 8;
 
-        double exponent                    = getbituInc(data, i, 3) - 5.0;
-        double scale                       = pow(2, exponent);
-        sbsMap.Integrity[lastIODM].REScale = scale;
+    sbsMap.fastCorr[4].tIntg             = frameTime;
+    sbsMap.fastCorr[4].REint             = REint;
+    sbsMap.fastCorr[4].REBoost           = false;
+    sbsMap.fastCorr[4].dRcorr            = dRcorr;
+    sbsMap.fastUpdt[lastIODM][frameTime] = 4;
 
-        MatrixXd E                      = MatrixXd::Zero(4, 4);
-        E(0, 0)                         = getbituInc(data, i, 9);
-        E(1, 1)                         = getbituInc(data, i, 9);
-        E(2, 2)                         = getbituInc(data, i, 9);
-        E(3, 3)                         = getbituInc(data, i, 9);
-        E(0, 1)                         = getbitsInc(data, i, 10);
-        E(0, 2)                         = getbitsInc(data, i, 10);
-        E(0, 3)                         = getbitsInc(data, i, 10);
-        E(1, 2)                         = getbitsInc(data, i, 10);
-        E(1, 3)                         = getbitsInc(data, i, 10);
-        E(2, 3)                         = getbitsInc(data, i, 10);
-        MatrixXd R                      = scale * E;
-        MatrixXd C                      = R.transpose() * R;
-        sbsMap.Integrity[lastIODM].covr = C;
+    auto& sbsCov   = sbasUdreCov[lastIODM][sat];
+    sbsCov.toe     = frameTime;
+    sbsCov.Ivalid  = IValidGNSS;
+    sbsCov.REScale = scale;
+    sbsCov.covr    = C;
 
-        sbsMap.Integrity[lastIODM].REint   = getbituInc(data, i, 4);
-        sbsMap.Integrity[lastIODM].REBoost = false;
-
-        if (acsConfig.sbsInOpts.use_do259)
-            sbsMap.Integrity[lastIODM].dRcorr = (getbituInc(data, i, 4) + 1) / 15;
-        else
-            sbsMap.Integrity[lastIODM].dRcorr = (getbituInc(data, i, 3) + 1) / 8;
-
-        tracepdeex(
-            DFMC_DEBUG_TRACE_LEVEL,
-            trace,
-            ", %2d, %.3f",
-            sbsMap.Integrity[lastIODM].REint,
-            sbsMap.Integrity[lastIODM].dRcorr
-        );
-    }
+    tracepdeex(
+        DFMC_DEBUG_TRACE_LEVEL,
+        trace,
+        ", %2d, %.3f",
+        sbsMap.fastCorr[4].REint,
+        sbsMap.fastCorr[4].dRcorr
+    );
 }
 
 void decodeL5DFMCInt1(Trace& trace, GTime frameTime, Navigation& nav, unsigned char* data)
 {
     int iodm = getbitu(data, 224, 2);
-    if (SBASSatMasks.find(iodm) == SBASSatMasks.end())
+    if (l5SBASSatMasks.find(iodm) == l5SBASSatMasks.end())
     {
         tracepdeex(DFMC_DEBUG_TRACE_LEVEL, trace, " corrections for unknown IODM: %1d", iodm);
         return;
@@ -220,50 +207,53 @@ void decodeL5DFMCInt1(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
 
     tracepdeex(DFMC_DEBUG_TRACE_LEVEL, trace, " L5 DFRECI IODM: %1d", iodm);
 
-    int              i = 10;
-    int              j = 0;
-    map<int, SatSys> changedDFRE;
+    int                   i = 10;
+    int                   j = 0;
+    map<int, SatSys>      changedDFRE;
+    map<SatSys, SBASFast> buffer;
     for (int slot = 0; slot < 92; slot++)
     {
-        if (SBASSatMasks[iodm].find(slot) == SBASSatMasks[iodm].end())
+        if (l5SBASSatMasks[iodm].find(slot) == l5SBASSatMasks[iodm].end())
             continue;
-        SatSys sat = SBASSatMasks[iodm][slot];
-        auto&  sbs = nav.satNavMap[sat].currentSBAS;
+        SatSys sat          = l5SBASSatMasks[iodm][slot];
+        auto&  sbs          = nav.satNavMap[sat].currentSBAS;
+        buffer[sat]         = sbs.fastCorr[4];
+        buffer[sat].REBoost = false;
 
         int DFRECI = getbituInc(data, i, 2);
         switch (DFRECI)
         {
-            case 0:
-                sbs.Integrity[iodm].REBoost = false;
-                break;
             case 2:
-                sbs.Integrity[iodm].REBoost = true;
+                buffer[sat].REBoost = true;
                 break;
             case 1:
                 if (j < 7)
                     changedDFRE[j++] = sat;
             case 3:
-                sbs.Integrity[iodm].REint = 15;
+                buffer[sat].REint = 15;
                 break;
         }
-        sbs.Integrity[iodm].trec = frameTime;
+        buffer[sat].tIntg = frameTime;
     }
 
     for (int slot = 0; slot < j; slot++)
     {
-        SatSys sat = changedDFRE[slot];
-        auto&  sbs = nav.satNavMap[sat].currentSBAS;
+        SatSys sat        = changedDFRE[slot];
+        buffer[sat].REint = getbituInc(data, i, 4);
+    }
 
-        sbs.Integrity[iodm].REint   = getbituInc(data, i, 4);
-        sbs.Integrity[iodm].REBoost = false;
-        sbs.Integrity[iodm].trec    = frameTime;
+    for (auto [sat, fastData] : buffer)
+    {
+        auto& sbs                     = nav.satNavMap[sat].currentSBAS;
+        sbs.fastCorr[4]               = buffer[sat];
+        sbs.fastUpdt[iodm][frameTime] = 4;
     }
 }
 
 void decodeL5DFMCInt2(Trace& trace, GTime frameTime, Navigation& nav, unsigned char* data)
 {
     int iodm = getbitu(data, 224, 2);
-    if (SBASSatMasks.find(iodm) == SBASSatMasks.end())
+    if (l5SBASSatMasks.find(iodm) == l5SBASSatMasks.end())
     {
         tracepdeex(DFMC_DEBUG_TRACE_LEVEL, trace, " corrections for unknown IODM: %1d\n", iodm);
         return;
@@ -274,20 +264,21 @@ void decodeL5DFMCInt2(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
     int i = 10;
     for (int slot = 0; slot < 53; slot++)
     {
-        if (SBASSatMasks[iodm].find(slot) == SBASSatMasks[iodm].end())
+        if (l5SBASSatMasks[iodm].find(slot) == l5SBASSatMasks[iodm].end())
             continue;
-        SatSys sat                  = SBASSatMasks[iodm][slot];
-        auto&  sbs                  = nav.satNavMap[sat].currentSBAS;
-        sbs.Integrity[iodm].REint   = getbituInc(data, i, 4);
-        sbs.Integrity[iodm].REBoost = false;
-        sbs.Integrity[iodm].trec    = frameTime;
+        SatSys sat                    = l5SBASSatMasks[iodm][slot];
+        auto&  sbs                    = nav.satNavMap[sat].currentSBAS;
+        sbs.fastCorr[4].REint         = getbituInc(data, i, 4);
+        sbs.fastCorr[4].REBoost       = false;
+        sbs.fastCorr[4].tIntg         = frameTime;
+        sbs.fastUpdt[iodm][frameTime] = 4;
     }
 }
 
 void decodeL5DFMCInt3(Trace& trace, GTime frameTime, Navigation& nav, unsigned char* data)
 {
     int iodm = getbitu(data, 224, 2);
-    if (SBASSatMasks.find(iodm) == SBASSatMasks.end())
+    if (l5SBASSatMasks.find(iodm) == l5SBASSatMasks.end())
     {
         tracepdeex(DFMC_DEBUG_TRACE_LEVEL, trace, " corrections for unknown IODM: %1d\n", iodm);
         return;
@@ -298,13 +289,14 @@ void decodeL5DFMCInt3(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
     int i = 10;
     for (int slot = 53; slot < 92; slot++)
     {
-        if (SBASSatMasks[iodm].find(slot) == SBASSatMasks[iodm].end())
+        if (l5SBASSatMasks[iodm].find(slot) == l5SBASSatMasks[iodm].end())
             continue;
-        SatSys sat                  = SBASSatMasks[iodm][slot];
-        auto&  sbs                  = nav.satNavMap[sat].currentSBAS;
-        sbs.Integrity[iodm].REint   = getbituInc(data, i, 4);
-        sbs.Integrity[iodm].REBoost = false;
-        sbs.Integrity[iodm].trec    = frameTime;
+        SatSys sat                    = l5SBASSatMasks[iodm][slot];
+        auto&  sbs                    = nav.satNavMap[sat].currentSBAS;
+        sbs.fastCorr[4].REint         = getbituInc(data, i, 4);
+        sbs.fastCorr[4].REBoost       = false;
+        sbs.fastCorr[4].tIntg         = frameTime;
+        sbs.fastUpdt[iodm][frameTime] = 4;
     }
 }
 
@@ -316,6 +308,12 @@ void decodeL5DFREDegr(Trace& trace, GTime frameTime, unsigned char* data)
     mt37CER    = getbituInc(data, i, 6) * 0.5;
     mt37Ccov   = getbituInc(data, i, 7) * 0.1;
     mt37Time   = frameTime;
+
+    if (!acsConfig.sbsInOpts.prec_aproach)
+    {
+        IValidGNSS *= 1.5;
+        IValidGEO *= 1.5;
+    }
 
     sysDegr[E_Sys::GPS].Icorr = getbituInc(data, i, 5) * 6.0 + 30.0;
     sysDegr[E_Sys::GPS].Ccorr = getbituInc(data, i, 8) * 0.01;
@@ -375,6 +373,8 @@ void decodeDFMCMessage(Trace& trace, GTime time, SBASMessage& mess, Navigation& 
     if (type == 0)
         type = acsConfig.sbsInOpts.mt0;
 
+    checkForType0(time, type);
+
     if (type == 65)  // Handling of SouthPAN L5 message type 0
         type = 33 + getbitu(mess.data, 222, 2);
 
@@ -421,86 +421,66 @@ void decodeDFMCMessage(Trace& trace, GTime time, SBASMessage& mess, Navigation& 
     return;
 }
 
-double estimateDFMCVar(Trace& trace, GTime time, SatPos& satPos, SBASIntg& sbsIntg)
+double estimateDFMCVar(
+    Trace&    trace,
+    GTime     time,
+    SatSys    sat,
+    Vector3d& rRec,
+    Vector3d& rSat,
+    SBASFast& sbsIntg
+)
 {
     int DFREI = sbsIntg.REint;
     if (sbsIntg.REBoost)
         DFREI++;
 
-    if (DFREI < 0 || DFREI > 14)
+    if (DFREI < 0)
+        return -2;
+    if (DFREI == 14)
         return -1;
+    if (DFREI == 15)
+        return -2;
 
     double dt    = (time - mt37Time).to_double();
     double maxDt = acsConfig.sbsInOpts.prec_aproach ? 240 : 360;
     if (dt > maxDt)
-        return -1;
+        return -2;
+
+    double dDFRE = rangeErrFromCov(trace, time, sbsIntg.iodp, sat, rRec, rSat, mt37Ccov);
+    if (dDFRE < 0)
+        return -2;
 
     double sigDFRE = DFREtable[DFREI];
 
-    SatStat& satStat = *satPos.satStat_ptr;
-    double   x       = 1e8;
-    if (satStat.e.norm() > 0)
-    {
-        VectorXd e = VectorXd::Zero(4);
-        for (int i = 0; i < 3; i++)
-            e[i] = satStat.e[i];
-        e[3]        = 1;
-        VectorXd Ce = sbsIntg.covr * e;
-        x           = e.dot(Ce);
-    }
-    double dDFRE = sqrt(x) + mt37Ccov * sbsIntg.REScale;
-
-    double rCorr = (dt > IValidGNSS) ? sbsIntg.dRcorr : 1;
-    auto   sys   = satPos.Sat.sys;
-    double eCorr = sysDegr[sys].Ccorr * floor(dt / sysDegr[sys].Icorr) +
-                   sysDegr[sys].Rcorr * rCorr * dt / 1000;
+    double dRCorr = (dt > IValidGNSS) ? sbsIntg.dRcorr : 1;
+    auto   sys    = sat.sys;
+    double CCorr  = sysDegr[sys].Ccorr;
+    double ICorr  = sysDegr[sys].Icorr;
+    double RCorr  = sysDegr[sys].Rcorr;
+    double eCorr  = CCorr * floor(dt / ICorr) + dRCorr * RCorr * dt / 1000;
 
     double eer = (dt > IValidGNSS) ? mt37CER : 0;
 
-    double var = -1;
-
+    double var;
     if (degrdType == 1)
-        var = SQR((SQR(sigDFRE) + eCorr + eer) * dDFRE);
+        var = SQR(dDFRE * (SQR(sigDFRE) + eCorr + eer));
     else
-        var = SQR(sigDFRE * dDFRE) + SQR(eCorr) + SQR(eer);
+        var = SQR(dDFRE * sigDFRE) + SQR(eCorr) + SQR(eer);
 
     tracepdeex(
         5,
         trace,
-        "\nSBASVAR %s %s, DFRE= %2d %.4f, dDFRE: %.5e %.5e, eCorr: %.3f %.3f %.3f, eer: %3f, "
+        "\nSBASVAR %s %s, DFRE= %2d %.4f, dDFRE: %.5e, eCorr: %.3f, eer: %3f, "
         "total: %.3f",
         time.to_string().c_str(),
-        satPos.Sat.id().c_str(),
+        sat.id().c_str(),
         sbsIntg.REint,
         sigDFRE,
-        sqrt(x),
         dDFRE,
-        dt,
-        rCorr,
         eCorr,
         eer,
         sqrt(var)
     );
 
-    if (acsConfig.sbsInOpts.pvs_on_dfmc)
-        var = SQRT(0.005);
-
     return var;
-}
-
-void estimateDFMCPL(Vector3d& staPos, Matrix3d& ecefP, double& horPL, double& verPL)
-{
-    VectorPos pos = ecef2pos(staPos);
-    Matrix3d  E;
-    pos2enu(pos, E.data());
-    Matrix3d EP   = E * ecefP;
-    Matrix3d enuP = EP * E.transpose();
-
-    double scaleH = acsConfig.sbsInOpts.prec_aproach ? 6.00 : 6.18;
-    double scaleV = 5.33;
-    double aveEN  = (enuP(0, 0) + enuP(1, 1)) / 2;
-    double difEN  = (enuP(0, 0) - enuP(1, 1)) / 2;
-    double covEN  = enuP(0, 1);
-    horPL         = scaleH * sqrt(aveEN + sqrt(difEN * difEN + covEN * covEN));
-    verPL         = scaleV * sqrt(enuP(2, 2));
 }

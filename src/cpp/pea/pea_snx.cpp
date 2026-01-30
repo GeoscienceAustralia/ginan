@@ -30,6 +30,10 @@ void sinexPostProcessing(GTime time, map<string, Receiver>& receiverMap, KFState
     {
         sinexAddFiles(acsConfig.analysis_agency, time, ubxinput, "UBX");
     }
+    for (auto& [id, sbfinput] : acsConfig.sbf_inputs)
+    {
+        sinexAddFiles(acsConfig.analysis_agency, time, sbfinput, "SBF");
+    }
     for (auto& [id, rnxinput] : acsConfig.rnx_inputs)
     {
         sinexAddFiles(acsConfig.analysis_agency, time, rnxinput, "RINEX v3.x");

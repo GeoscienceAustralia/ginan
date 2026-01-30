@@ -13,6 +13,8 @@ struct Receiver;
 struct SatSys;
 struct SatPos;
 
+#define MAX_SBAS_MESS_AGE 600
+
 struct SBASMessage
 {
     int           prn  = -1;
@@ -24,14 +26,25 @@ struct SBASMessage
 
 struct SBASFast
 {
-    GTime  toe;
+    GTime  tFast;
+    int    iodp;
     double dClk;
-    double var;
+    double ddClk   = 0;
+    int    dIODF   = -1;
+    double dt      = 0;
+    double IValid  = -1;
+    double accDegr = 10;
+
+    GTime  tIntg;
+    int    REint;
+    bool   REBoost = false;
+    double dRcorr  = 1.0;
 };
 
 struct SBASSlow
 {
     GTime    toe;
+    int      iodp;
     int      iode;
     Vector4d dPos;
     Vector4d ddPos;
@@ -40,75 +53,22 @@ struct SBASSlow
     bool     pvsEnabled = false;
 };
 
-struct SBASRegn
+struct SBASCova
 {
-    int    priority;
-    double Lat1;
-    double Lat2;
-    double Lon1;
-    double Lon2;
-    bool   triangular = false;
-    double in_Factor;
-    double outFactor;
-};
-
-struct SBASDegrL1
-{
-    double Brrc;
-    double Cltc_lsb;
-    double Cltc_v1;
-    double Iltc_v1;
-    double Cltc_v0;
-    double Iltc_v0;
-    double Cgeo_lsb;
-    double Cgeo_v;
-    double Igeo_v;
-    double Cer;
-    double Ciono_step;
-    double Ciono_ramp;
-    double Iiono;
-    bool   RSSudre;
-    bool   RSSiono;
-    double Ccovar;
-};
-
-struct SBASDegrSys
-{
-    double Icorr;
-    double Ccorr;
-    double Rcorr;
-};
-struct SBASDegrL5
-{
-    double                  IValidGNSS = -1;
-    double                  IValidGEO;
-    double                  CER;
-    double                  Ccov;
-    map<E_Sys, SBASDegrSys> sysDegr;
-    map<int, double>        DFREtable;
-    int                     type = 0;
-};
-
-struct SBASIntg
-{
-    GTime trec;
-    int   REint;
-    bool  REBoost = false;
-
-    double   REScale;
+    GTime    toe;
+    double   Ivalid  = 240;
+    double   REScale = -1;
     MatrixXd covr;
-    double   dRcorr;
 };
+extern map<int, map<SatSys, SBASCova>> sbasUdreCov;
 
 struct SBASMaps
 {
-    map<GTime, int, std::greater<GTime>> corrUpdt;
+    map<int, map<GTime, int, std::greater<GTime>>> fastUpdt;  // fastUpdt[IODP][time] = IODF
+    map<int, map<GTime, int, std::greater<GTime>>> slowUpdt;  // slowUpdt[IODP][time] = IODE
 
-    map<int, SBASSlow> slowCorr;
-    map<int, SBASIntg> Integrity;
-
-    map<int, SBASFast> fastCorr;
-    map<int, SBASRegn> UDRERegn;
+    map<int, SBASFast> fastCorr;                              // fastCorr[IODF]  = SBASFast
+    map<int, SBASSlow> slowCorr;                              // slowCorr[IODE]  = SBASSlow
 };
 
 struct SBASIono
@@ -121,7 +81,15 @@ struct SBASIono
 
 extern mutex                   sbasMessagesMutex;
 extern map<GTime, SBASMessage> sbasMessages;
-extern Vector3d                sbasRoughStaPos;
+
+struct usedSBASIODs
+{
+    int   iodp = -1;
+    int   iodf = -1;
+    int   iode = -1;
+    GTime tUsed;
+};
+extern map<SatSys, usedSBASIODs> usedSBASIODMap;
 
 void writeEMSdata(Trace& trace, string emsfile);
 
@@ -135,23 +103,48 @@ void decodeDFMCMessage(Trace& trace, GTime time, SBASMessage& mess, Navigation& 
 
 GTime adjustDay(double tod1, GTime nearTime);
 
-double estimateDFMCVar(Trace& trace, GTime time, SatPos& satPos, SBASIntg& sbsIntg);
-
 void estimateSBASProtLvl(Vector3d& staPos, Matrix3d& ecefP, double& horPL, double& verPL);
 
-void estimateDFMCPL(Vector3d& staPos, Matrix3d& ecefP, double& horPL, double& verPL);
+void writeSPP(string filename, Receiver& rec);
 
-double sbasSmoothedPsudo(
-    Trace&  trace,
-    GTime   time,
-    SatSys  Sat,
-    string  staId,
-    double  measP,
-    double  measL,
-    double  variP,
-    double  variL,
-    double& varSmooth,
-    bool    update
+double rangeErrFromCov(
+    Trace&    trace,
+    GTime     time,
+    int       iodp,
+    SatSys    sat,
+    Vector3d& rRec,
+    Vector3d& rSat,
+    double    eCov
 );
 
-void writeSPP(string filename, Receiver& rec);
+double estimateIonoVar(GTime time, GTime givdTime, double sigGIVE);
+
+double estimateDFMCVar(
+    Trace&    trace,
+    GTime     time,
+    SatSys    sat,
+    Vector3d& rRec,
+    Vector3d& rSat,
+    SBASFast& sbsFast
+);
+
+double estimateSBASVar(
+    Trace&    trace,
+    GTime     time,
+    SatSys    sat,
+    Vector3d& rRec,
+    Vector3d& rSat,
+    SBASFast& sbsFast,
+    SBASSlow& sbasSlow
+);
+
+double checkSBASVar(
+    Trace&    trace,
+    GTime     time,
+    SatSys    sat,
+    Vector3d& Rrec,
+    Vector3d& Rsat,
+    SBASMaps& sbsMaps
+);
+
+void checkForType0(GTime time, int type);

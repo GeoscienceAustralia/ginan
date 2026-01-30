@@ -39,8 +39,9 @@ def compile_ui():
         lines = f.readlines()
         for i, line in enumerate(lines):
             if line == "import ginan_logo_rc\n":
-                lines[i] = "from scripts.GinanUI.app.resources import ginan_logo_rc"
-                break
+                lines[i] = "from scripts.GinanUI.app.resources.assets import ginan_logo_rc\n"
+            if line == "import icons_rc\n":
+                lines[i] = "from scripts.GinanUI.app.resources.assets import icons_rc\n"
     with open(output_file, 'w') as f:
         f.writelines(lines)
 

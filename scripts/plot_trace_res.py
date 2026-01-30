@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -20,14 +21,15 @@ Features
 import os, glob
 import re
 import argparse
-from   pathlib import Path
-from   typing import Iterable, Optional, List, Dict, Tuple
-from   datetime import datetime
+from pathlib import Path
+from typing import Iterable, Optional, List, Dict, Tuple
+from datetime import datetime
 
 
 def ensure_parent(p) -> None:
     """Create parent directory for a path if it doesn't exist."""
     from pathlib import Path as _P
+
     try:
         _P(p).parent.mkdir(parents=True, exist_ok=True)
     except Exception:
@@ -44,9 +46,9 @@ def build_out_path(
     variant_suffix: str,
     short: str,
     *,
-    split: str | None = None,   # "recv" | "sat" | None
-    key: str | None = None,     # station or satellite ID
-    tag: str | None = None,     # e.g., "residual", "h"/"v" for totals
+    split: str | None = None,  # "recv" | "sat" | None
+    key: str | None = None,  # station or satellite ID
+    tag: str | None = None,  # e.g., "residual", "h"/"v" for totals
     ext: str = "html",
 ) -> str:
     """
@@ -61,13 +63,18 @@ def build_out_path(
     if key:
         parts.append(_sanitize_filename_piece(key))
     return "_".join(parts) + f".{ext}"
+
+
 def slugify(text: str) -> str:
     """Return a safe slug for filenames: lowercase, alnum-plus-dashes."""
     import re
+
     t = re.sub(r"[^A-Za-z0-9]+", "-", text).strip("-").lower()
     return re.sub(r"-{2,}", "-", t) or "out"
 
+
 import logging
+
 logger = logging.getLogger("plot_trace_res")
 
 
@@ -81,12 +88,14 @@ def _setup_logging(level: str = "INFO") -> None:
     )
     logger.setLevel(lvl)
 
+
 from typing import Any, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple
 
 import pandas as pd
 import plotly.graph_objects as go
-from   plotly.subplots import make_subplots
+from plotly.subplots import make_subplots
 import plotly.io as pio
+
 pio.templates.default = None
 
 import numpy as np
@@ -145,7 +154,7 @@ AMB_RE = re.compile(
         (?P<sig>\S+)
         (?P<rest>.*)$
     """,
-    re.VERBOSE
+    re.VERBOSE,
 )
 
 
@@ -219,7 +228,7 @@ def _to_float_or_nan(x: str) -> float:
 def parse_trace_lines(lines: Iterable[str]) -> pd.DataFrame:
     records = []
     for ln in lines:
-        if not ln.startswith('%'):
+        if not ln.startswith("%"):
             continue
         m = LINE_RE.match(ln)
         if not m:
@@ -243,23 +252,34 @@ def parse_trace_lines(lines: Iterable[str]) -> pd.DataFrame:
         # Optional higher-trace columns
         pr = gd.get("prefit_ratio")
         por = gd.get("postfit_ratio")
-        rec["prefit_ratio"]  = _to_float_or_nan(pr)  if pr  is not None else float("nan")
+        rec["prefit_ratio"] = _to_float_or_nan(pr) if pr is not None else float("nan")
         rec["postfit_ratio"] = _to_float_or_nan(por) if por is not None else float("nan")
 
         records.append(rec)
 
     if not records:
-        return pd.DataFrame(columns=[
-            "iter","date","time","meas","sat","recv","sig",
-            "prefit","postfit","sigma","label","prefit_ratio","postfit_ratio","datetime"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "iter",
+                "date",
+                "time",
+                "meas",
+                "sat",
+                "recv",
+                "sig",
+                "prefit",
+                "postfit",
+                "sigma",
+                "label",
+                "prefit_ratio",
+                "postfit_ratio",
+                "datetime",
+            ]
+        )
 
     df = pd.DataFrame.from_records(records)
     # keep your strict format if your inputs are always YYYY-MM-DD
-    df["datetime"] = pd.to_datetime(
-        df["date"] + " " + df["time"],
-        format="%Y-%m-%d %H:%M:%S.%f", errors="coerce"
-    )
+    df["datetime"] = pd.to_datetime(df["date"] + " " + df["time"], format="%Y-%m-%d %H:%M:%S.%f", errors="coerce")
     return df
 
 
@@ -306,12 +326,20 @@ def parse_trace_lines_fast(lines: Iterable[str]) -> pd.DataFrame:
     prefit, postfit, sigma, labels = [], [], [], []
     pratio, poratio = [], []
 
-    a_it, a_d, a_t, a_m, a_s, a_r, a_g = iters.append, dates.append, times.append, meas.append, sats.append, recvs.append, sigs.append
+    a_it, a_d, a_t, a_m, a_s, a_r, a_g = (
+        iters.append,
+        dates.append,
+        times.append,
+        meas.append,
+        sats.append,
+        recvs.append,
+        sigs.append,
+    )
     a_pf, a_po, a_si, a_l = prefit.append, postfit.append, sigma.append, labels.append
     a_pr, a_por = pratio.append, poratio.append
 
     for ln in lines:
-        if not ln or ln[0] != '%':
+        if not ln or ln[0] != "%":
             continue
         parts = ln.split()
         # Classic must have at least 12 tokens; with ratios it's 14 tokens
@@ -319,29 +347,65 @@ def parse_trace_lines_fast(lines: Iterable[str]) -> pd.DataFrame:
             continue
 
         # Common fields
-        a_it(int(parts[1])); a_d(parts[2]); a_t(parts[3]); a_m(parts[4])
-        a_s(parts[5]); a_r(parts[6]); a_g(parts[7])
-        a_pf(float(parts[8])); a_po(float(parts[9])); a_si(float(parts[10]))
+        a_it(int(parts[1]))
+        a_d(parts[2])
+        a_t(parts[3])
+        a_m(parts[4])
+        a_s(parts[5])
+        a_r(parts[6])
+        a_g(parts[7])
+        a_pf(float(parts[8]))
+        a_po(float(parts[9]))
+        a_si(float(parts[10]))
 
         if len(parts) >= 14:
             # With ratios
-            a_pr(float(parts[11])); a_por(float(parts[12])); a_l(parts[13])
+            a_pr(float(parts[11]))
+            a_por(float(parts[12]))
+            a_l(parts[13])
         else:
             # Classic
-            a_pr(float("nan")); a_por(float("nan")); a_l(parts[11])
+            a_pr(float("nan"))
+            a_por(float("nan"))
+            a_l(parts[11])
 
     if not iters:
-        return pd.DataFrame(columns=[
-            "iter","date","time","meas","sat","recv","sig",
-            "prefit","postfit","sigma","label","prefit_ratio","postfit_ratio","datetime"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "iter",
+                "date",
+                "time",
+                "meas",
+                "sat",
+                "recv",
+                "sig",
+                "prefit",
+                "postfit",
+                "sigma",
+                "label",
+                "prefit_ratio",
+                "postfit_ratio",
+                "datetime",
+            ]
+        )
 
-    df = pd.DataFrame({
-        "iter": iters, "date": dates, "time": times, "meas": meas,
-        "sat": sats, "recv": recvs, "sig": sigs,
-        "prefit": prefit, "postfit": postfit, "sigma": sigma, "label": labels,
-        "prefit_ratio": pratio, "postfit_ratio": poratio,
-    })
+    df = pd.DataFrame(
+        {
+            "iter": iters,
+            "date": dates,
+            "time": times,
+            "meas": meas,
+            "sat": sats,
+            "recv": recvs,
+            "sig": sigs,
+            "prefit": prefit,
+            "postfit": postfit,
+            "sigma": sigma,
+            "label": labels,
+            "prefit_ratio": pratio,
+            "postfit_ratio": poratio,
+        }
+    )
     # Flexible parsing here to tolerate either “-” or “/” in date, and variable subsecond
     df["datetime"] = pd.to_datetime(df["date"] + " " + df["time"], errors="coerce")
     return df
@@ -360,33 +424,40 @@ def parse_large_errors(lines: Iterable[str]) -> pd.DataFrame:
         kind = gd["kind"]
         val = float(gd["value"])
         if kind == "STATE":
-            recs.append({
-                "datetime": dt,
-                "kind": kind,
-                "value": val,
-                "recv": gd["recv2"],
-                "param": gd["param"],
-                "comp": gd["comp"],
-            })
+            recs.append(
+                {
+                    "datetime": dt,
+                    "kind": kind,
+                    "value": val,
+                    "recv": gd["recv2"],
+                    "param": gd["param"],
+                    "comp": gd["comp"],
+                }
+            )
         else:
-            recs.append({
-                "datetime": dt,
-                "kind": kind,
-                "value": val,
-                "meas_type": gd["meas_type"],
-                "sat": gd["sat"],
-                "recv": gd["recv"],
-                "sig": gd["sig"],
-            })
+            recs.append(
+                {
+                    "datetime": dt,
+                    "kind": kind,
+                    "value": val,
+                    "meas_type": gd["meas_type"],
+                    "sat": gd["sat"],
+                    "recv": gd["recv"],
+                    "sig": gd["sig"],
+                }
+            )
     return pd.DataFrame.from_records(recs)
 
+
 # -------- Filtering & last-iteration selection --------
+
 
 def filter_df(
     df: pd.DataFrame,
     receivers: Optional[List[str]],
     sats: Optional[List[str]],
-    label_regex: Optional[str],) -> pd.DataFrame:
+    label_regex: Optional[str],
+) -> pd.DataFrame:
     out = df
     if receivers:
         recvu = [r.upper() for r in receivers]
@@ -406,9 +477,9 @@ def keep_last_iteration(df: pd.DataFrame) -> pd.DataFrame:
     keys = ["datetime", "meas", "sat", "recv", "sig", "label"]
     return (
         df.sort_values(["datetime", "iter"])
-          .drop_duplicates(subset=keys, keep="last")
-          .sort_values(["datetime", "sat", "sig"])
-          .reset_index(drop=True)
+        .drop_duplicates(subset=keys, keep="last")
+        .sort_values(["datetime", "sat", "sig"])
+        .reset_index(drop=True)
     )
 
 
@@ -487,16 +558,19 @@ def require_cols(df, name, cols):
 
 
 def log_cols(df, tag):
-    logger.info("%s: %s", tag, list(df.columns))    
+    logger.info("%s: %s", tag, list(df.columns))
+
 
 # -------- Large-error filtering to match CLI/time --------
+
 
 def filter_large_errors(
     df_large: pd.DataFrame,
     receivers: Optional[List[str]],
     sats: Optional[List[str]],
     start_dt: Optional[pd.Timestamp],
-    end_dt: Optional[pd.Timestamp],) -> pd.DataFrame:
+    end_dt: Optional[pd.Timestamp],
+) -> pd.DataFrame:
     if df_large is None or df_large.empty:
         return df_large
 
@@ -529,10 +603,10 @@ def filter_large_errors(
 
 
 def _insert_gap_breaks_multi(
-    x: np.ndarray,              # datetime64[ns]
-    y: np.ndarray,              # numeric 1D
-    cd: np.ndarray,             # customdata 2D (N,K)
-    gap_seconds: float = 3600.0
+    x: np.ndarray,  # datetime64[ns]
+    y: np.ndarray,  # numeric 1D
+    cd: np.ndarray,  # customdata 2D (N,K)
+    gap_seconds: float = 3600.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Insert NaN/NaT rows after any time gap > gap_seconds so Plotly breaks the line.
@@ -574,7 +648,9 @@ def _insert_gap_breaks_multi(
     return x2, y2, cd2
 
 
-def build_lookup_cache(df_lookup: pd.DataFrame, yfield: str) -> Dict[Tuple[str, str, str], Tuple[np.ndarray, np.ndarray]]:
+def build_lookup_cache(
+    df_lookup: pd.DataFrame, yfield: str
+) -> Dict[Tuple[str, str, str], Tuple[np.ndarray, np.ndarray]]:
     """
     Map (sat, recv, label) -> (t_ns_sorted:int64[ns], y_sorted:float64) for quick nearest lookup.
     """
@@ -608,7 +684,7 @@ def make_plot(
     hover_unified: bool = False,
     df_lookup: pd.DataFrame = None,
     lookup_cache: Dict[Tuple[str, str, str], Tuple[np.ndarray, np.ndarray]] = None,
-    *,                              # ← everything after this must be keyword-only
+    *,  # ← everything after this must be keyword-only
     show_stats: bool = False,
     df_amb: pd.DataFrame = pd.DataFrame(),
 ) -> go.Figure:
@@ -648,12 +724,14 @@ def make_plot(
     # ---------- Subplots: 3 rows when stats (main | slider | table), else 2 rows ----------
     if show_stats:
         fig = make_subplots(
-            rows=3, cols=1, shared_xaxes=False,
-            row_heights=[0.72, 0.10, 0.18],   # main | slider | table
+            rows=3,
+            cols=1,
+            shared_xaxes=False,
+            row_heights=[0.72, 0.10, 0.18],  # main | slider | table
             vertical_spacing=0.06,
             specs=[
                 [{"type": "xy"}],
-                [{"type": "xy"}],     # host the rangeslider only (no data)
+                [{"type": "xy"}],  # host the rangeslider only (no data)
                 [{"type": "table"}],
             ],
         )
@@ -669,15 +747,12 @@ def make_plot(
         fig_height = 600
 
     # ---------- Main series ----------
-    TraceCls = go.Scattergl if (use_webgl or len(df) > 20000) else go.Scatter
+    TraceCls = go.Scattergl if (use_webgl and len(df) > 20000) else go.Scatter
     sat_legend_shown: Dict[str, bool] = {}
 
     traces = []
     # Natural satellite order (e.g., G01 < G02 < ... < R01 ...)
-    sorted_groups = sorted(
-        df.groupby(["sat", "label"], sort=False),
-        key=lambda kv: _sat_sort_key(kv[0][0])
-    )
+    sorted_groups = sorted(df.groupby(["sat", "label"], sort=False), key=lambda kv: _sat_sort_key(kv[0][0]))
     for (sat, label), g in sorted_groups:
         if g.empty:
             continue
@@ -686,14 +761,16 @@ def make_plot(
         x = g["datetime"].to_numpy("datetime64[ns]")
         y = pd.to_numeric(g[residual_field], errors="coerce").to_numpy()
 
-        cd = np.column_stack([
-            g["sat"].to_numpy(object),
-            g["recv"].to_numpy(object),
-            g["sig"].to_numpy(object),
-            pd.to_numeric(g["sigma"], errors="coerce").to_numpy(),
-            g["meas"].to_numpy(object),
-            g["label"].to_numpy(object),
-        ])
+        cd = np.column_stack(
+            [
+                g["sat"].to_numpy(object),
+                g["recv"].to_numpy(object),
+                g["sig"].to_numpy(object),
+                pd.to_numeric(g["sigma"], errors="coerce").to_numpy(),
+                g["meas"].to_numpy(object),
+                g["label"].to_numpy(object),
+            ]
+        )
 
         x2, y2, cd2 = _insert_gap_breaks_multi(x, y, cd, gap_seconds=3600.0)
 
@@ -702,8 +779,12 @@ def make_plot(
 
         traces.append(
             TraceCls(
-                x=x2, y=y2, mode="lines+markers",
-                name=str(sat), legendgroup=str(sat), showlegend=show_leg,
+                x=x2,
+                y=y2,
+                mode="lines+markers",
+                name=str(sat),
+                legendgroup=str(sat),
+                showlegend=show_leg,
                 customdata=cd2,
                 hovertemplate=(
                     "Time=%{x|%Y-%m-%d %H:%M:%S.%f}<br>"
@@ -727,7 +808,8 @@ def make_plot(
     y_vals = pd.to_numeric(df[residual_field], errors="coerce").to_numpy()
     finite = np.isfinite(y_vals)
     if finite.any():
-        y_min = float(np.min(y_vals[finite])); y_max = float(np.max(y_vals[finite]))
+        y_min = float(np.min(y_vals[finite]))
+        y_max = float(np.max(y_vals[finite]))
         if y_max == y_min:
             y_min, y_max = y_min - 1.0, y_max + 1.0
     else:
@@ -735,18 +817,19 @@ def make_plot(
     y_rng = max(1e-12, (y_max - y_min))
 
     # Marker anchors & v-line span
-    y_line_pad             = 0.02 * y_rng
+    y_line_pad = 0.02 * y_rng
     # separate lanes for ambiguity markers:
-    y_top_marker_amb_preproc = y_max + 0.05 * y_rng   # PREPROC (green) higher
-    y_top_marker_amb_reject   = y_max + 0.04 * y_rng   # REJECT  (blue) a bit lower
-    y_top_marker_error        = y_max + 0.03 * y_rng   # large errors (▲/▼) below those
-    y_line_lo                 = y_min - y_line_pad
-    y_line_hi                 = max(y_max + y_line_pad, y_top_marker_amb_preproc + 0.02 * y_rng)
+    y_top_marker_amb_preproc = y_max + 0.05 * y_rng  # PREPROC (green) higher
+    y_top_marker_amb_reject = y_max + 0.04 * y_rng  # REJECT  (blue) a bit lower
+    y_top_marker_error = y_max + 0.03 * y_rng  # large errors (▲/▼) below those
+    y_line_lo = y_min - y_line_pad
+    y_line_hi = max(y_max + y_line_pad, y_top_marker_amb_preproc + 0.02 * y_rng)
 
     def _add_vline_trace(dt, *, color="gray", dash="dash", group=None, width=0.5):
         add_trace_xy(
             go.Scatter(
-                x=[dt, dt], y=[y_line_lo, y_line_hi],
+                x=[dt, dt],
+                y=[y_line_lo, y_line_hi],
                 mode="lines",
                 line=dict(color=color, width=width, dash=dash),
                 hoverinfo="skip",
@@ -757,7 +840,7 @@ def make_plot(
 
     # ---------- LARGE errors overlay ----------
     if df_large is not None and not df_large.empty:
-        ctx_sat  = (context or {}).get("sat")
+        ctx_sat = (context or {}).get("sat")
         ctx_recv = (context or {}).get("recv")
         ctx_meas = (context or {}).get("meas_type")
 
@@ -767,8 +850,10 @@ def make_plot(
         if ctx_sat:
             dfL = dfL[(dfL["kind"] == "MEAS") & (dfL["sat"] == ctx_sat)]
         elif ctx_recv:
-            dfL = dfL[((dfL["kind"] == "MEAS") & (dfL["recv"] == ctx_recv)) |
-                      ((dfL["kind"] == "STATE") & (dfL["recv"] == ctx_recv))]
+            dfL = dfL[
+                ((dfL["kind"] == "MEAS") & (dfL["recv"] == ctx_recv))
+                | ((dfL["kind"] == "STATE") & (dfL["recv"] == ctx_recv))
+            ]
 
         for _, row in dfL.iterrows():
             if row["kind"] == "STATE":
@@ -782,7 +867,8 @@ def make_plot(
                 _add_vline_trace(row["datetime"], color="orange", dash="dot", group=ctx_sat, width=0.6)
                 add_trace_xy(
                     go.Scatter(
-                        x=[row["datetime"]], y=[y_top_marker_error],
+                        x=[row["datetime"]],
+                        y=[y_top_marker_error],
                         mode="markers",
                         marker=dict(color="orange", size=10, symbol="triangle-down"),
                         hovertemplate=hovertext + "<extra></extra>",
@@ -821,7 +907,8 @@ def make_plot(
 
                 add_trace_xy(
                     go.Scatter(
-                        x=[row["datetime"]], y=[y_val],
+                        x=[row["datetime"]],
+                        y=[y_val],
                         mode="markers",
                         marker=dict(color="black", size=10, symbol="triangle-up"),
                         hovertemplate=hovertext + "<extra></extra>",
@@ -832,11 +919,11 @@ def make_plot(
 
     # ---------- Ambiguity resets (PHAS_MEAS only) ----------
     ctx_recv = (context or {}).get("recv")
-    ctx_sat  = (context or {}).get("sat")
+    ctx_sat = (context or {}).get("sat")
     ctx_meas = (context or {}).get("meas_type")
 
     amb_overlay = pd.DataFrame()
-    amb_counts  = pd.DataFrame()
+    amb_counts = pd.DataFrame()
 
     if ctx_meas == "PHAS_MEAS" and df_amb is not None and not df_amb.empty:
         # Start from the single source df (already schema-checked in main/make_plot)
@@ -850,7 +937,7 @@ def make_plot(
         if ctx_recv:
             amb_src = amb_src[amb_src["recv"].str.upper() == str(ctx_recv).upper()]
         if ctx_sat:
-            amb_src = amb_src[amb_src["sat"].str.upper()  == str(ctx_sat).upper()]
+            amb_src = amb_src[amb_src["sat"].str.upper() == str(ctx_sat).upper()]
 
         # ---- 1) Overlays: keep per-signal rows for detailed hover text ----
         # Don't aggregate here - let add_ambiguity_markers_combined create one marker
@@ -890,7 +977,7 @@ def make_plot(
                     y_span=(y_line_lo, y_line_hi),
                     line_width=0.5,
                     marker_size=11,
-                    line_color_preproc="rgba(0,128,0,1.0)",     # unused in this call
+                    line_color_preproc="rgba(0,128,0,1.0)",  # unused in this call
                     line_color_reject="rgba(65,105,225,1.0)",
                     split_by_reason=True,
                     split_context=split_ctx,
@@ -913,50 +1000,61 @@ def make_plot(
     # ---------- Stats table (with per-label counts) ----------
     if show_stats:
         work = df.copy()
-        work["_y"]     = pd.to_numeric(work[residual_field], errors="coerce")
-        work["_sigma"] = pd.to_numeric(work["sigma"],        errors="coerce")
+        work["_y"] = pd.to_numeric(work[residual_field], errors="coerce")
+        work["_sigma"] = pd.to_numeric(work["sigma"], errors="coerce")
         work_w = work[np.isfinite(work["_y"]) & np.isfinite(work["_sigma"]) & (work["_sigma"] > 0)].copy()
         work_u = work[np.isfinite(work["_y"])].copy()
 
         def _uw_stats(grp: pd.DataFrame):
-            y = grp["_y"].to_numpy(float); n = y.size
-            if n == 0: return pd.Series({"N": 0, "Mean": np.nan, "Std": np.nan, "RMS": np.nan})
-            return pd.Series({
-                "N": int(n),
-                "Mean": float(np.nanmean(y)),
-                "Std":  float(np.nanstd(y, ddof=1)) if n > 1 else np.nan,
-                "RMS":  float(np.sqrt(np.nanmean(y**2))),
-            })
+            y = grp["_y"].to_numpy(float)
+            n = y.size
+            if n == 0:
+                return pd.Series({"N": 0, "Mean": np.nan, "Std": np.nan, "RMS": np.nan})
+            return pd.Series(
+                {
+                    "N": int(n),
+                    "Mean": float(np.nanmean(y)),
+                    "Std": float(np.nanstd(y, ddof=1)) if n > 1 else np.nan,
+                    "RMS": float(np.sqrt(np.nanmean(y**2))),
+                }
+            )
 
         def _w_stats(grp: pd.DataFrame):
             y = grp["_y"].to_numpy(float)
             w = 1.0 / (grp["_sigma"].to_numpy(float) ** 2)
-            sw = float(w.sum()); n = y.size
-            if n == 0 or sw <= 0: return pd.Series({"WMean": np.nan, "WStd": np.nan, "WRMS": np.nan})
-            mu  = float((w * y).sum() / sw)
+            sw = float(w.sum())
+            n = y.size
+            if n == 0 or sw <= 0:
+                return pd.Series({"WMean": np.nan, "WStd": np.nan, "WRMS": np.nan})
+            mu = float((w * y).sum() / sw)
             var = float((w * (y - mu) ** 2).sum() / sw)
-            return pd.Series({"WMean": mu, "WStd": float(np.sqrt(var)), "WRMS": float(np.sqrt((w * (y ** 2)).sum() / sw))})
+            return pd.Series(
+                {"WMean": mu, "WStd": float(np.sqrt(var)), "WRMS": float(np.sqrt((w * (y**2)).sum() / sw))}
+            )
 
         try:
             uw = work_u.groupby("label", sort=False).apply(_uw_stats, include_groups=False).reset_index()
         except TypeError:
-            uw = work_u.groupby("label", sort=False, group_keys=False)\
-                       .apply(lambda g: _uw_stats(g.drop(columns=["label"])) )\
-                       .reset_index()
+            uw = (
+                work_u.groupby("label", sort=False, group_keys=False)
+                .apply(lambda g: _uw_stats(g.drop(columns=["label"])))
+                .reset_index()
+            )
 
         if not work_w.empty:
             try:
                 w = work_w.groupby("label", sort=False).apply(_w_stats, include_groups=False).reset_index()
             except TypeError:
-                w = work_w.groupby("label", sort=False, group_keys=False)\
-                        .apply(lambda g: _w_stats(g.drop(columns=["label"])) )\
-                        .reset_index()
+                w = (
+                    work_w.groupby("label", sort=False, group_keys=False)
+                    .apply(lambda g: _w_stats(g.drop(columns=["label"])))
+                    .reset_index()
+                )
         else:
             w = pd.DataFrame({"label": [], "WMean": [], "WStd": [], "WRMS": []})
 
-        stats  = pd.merge(uw, w, on="label", how="outer")
-        labels = stats["label"].astype(str).tolist() if not stats.empty \
-                else sorted(df["label"].astype(str).unique())
+        stats = pd.merge(uw, w, on="label", how="outer")
+        labels = stats["label"].astype(str).tolist() if not stats.empty else sorted(df["label"].astype(str).unique())
 
         # ---- Per-label counts (only for PHAS_MEAS pages) ----
         pp_map, kf_map = {}, {}
@@ -971,8 +1069,10 @@ def make_plot(
         me_map = {}
         if df_large is not None and not df_large.empty and ctx_meas == "PHAS_MEAS":
             dfl = df_large.copy()
-            if ctx_recv: dfl = dfl[dfl["recv"].astype(str) == str(ctx_recv)]
-            if ctx_sat:  dfl = dfl[dfl["sat"].astype(str)  == str(ctx_sat)]
+            if ctx_recv:
+                dfl = dfl[dfl["recv"].astype(str) == str(ctx_recv)]
+            if ctx_sat:
+                dfl = dfl[dfl["sat"].astype(str) == str(ctx_sat)]
             dfl_me = dfl[(dfl["kind"] == "MEAS") & (dfl["meas_type"] == "PHAS_MEAS")]
             if not dfl_me.empty and "sig" in dfl_me.columns:
                 vc_me = ("L-" + dfl_me["sig"].astype(str)).value_counts()
@@ -982,7 +1082,8 @@ def make_plot(
         state_total = 0
         if df_large is not None and not df_large.empty:
             dfl2 = df_large.copy()
-            if ctx_recv: dfl2 = dfl2[dfl2["recv"].astype(str) == str(ctx_recv)]
+            if ctx_recv:
+                dfl2 = dfl2[dfl2["recv"].astype(str) == str(ctx_recv)]
             state_total = int(dfl2[dfl2["kind"] == "STATE"].shape[0])
 
         # Build columns aligned to the table’s label order
@@ -992,26 +1093,39 @@ def make_plot(
         se_col = [str(state_total) for _ in labels]
 
         headers = [
-            "Signal", "N",
-            "N PP_AR", "N KF_AR", "N M_ERR", "N S_ERR",
-            "Mean", "Std", "RMS", "WMean", "WStd", "WRMS"
+            "Signal",
+            "N",
+            "N PP_AR",
+            "N KF_AR",
+            "N M_ERR",
+            "N S_ERR",
+            "Mean",
+            "Std",
+            "RMS",
+            "WMean",
+            "WStd",
+            "WRMS",
         ]
 
         def fmt(x):
-            try: return f"{x:.3f}"
-            except Exception: return ""
+            try:
+                return f"{x:.3f}"
+            except Exception:
+                return ""
 
         cells = [
             labels,
-            [str(int(n)) if pd.notna(n) else "0"
-            for n in stats.get("N", pd.Series(dtype=float)).fillna(0)],
-            pp_col, kf_col, me_col, se_col,
-            [fmt(v) for v in stats.get("Mean",  pd.Series(dtype=float))],
-            [fmt(v) for v in stats.get("Std",   pd.Series(dtype=float))],
-            [fmt(v) for v in stats.get("RMS",   pd.Series(dtype=float))],
+            [str(int(n)) if pd.notna(n) else "0" for n in stats.get("N", pd.Series(dtype=float)).fillna(0)],
+            pp_col,
+            kf_col,
+            me_col,
+            se_col,
+            [fmt(v) for v in stats.get("Mean", pd.Series(dtype=float))],
+            [fmt(v) for v in stats.get("Std", pd.Series(dtype=float))],
+            [fmt(v) for v in stats.get("RMS", pd.Series(dtype=float))],
             [fmt(v) for v in stats.get("WMean", pd.Series(dtype=float))],
-            [fmt(v) for v in stats.get("WStd",  pd.Series(dtype=float))],
-            [fmt(v) for v in stats.get("WRMS",  pd.Series(dtype=float))],
+            [fmt(v) for v in stats.get("WStd", pd.Series(dtype=float))],
+            [fmt(v) for v in stats.get("WRMS", pd.Series(dtype=float))],
         ]
 
         fig.add_trace(
@@ -1019,30 +1133,36 @@ def make_plot(
                 header=dict(values=headers, fill_color="#f2f2f2", align="left"),
                 cells=dict(values=cells, align="left"),
             ),
-            row=table_row, col=1
+            row=table_row,
+            col=1,
         )
 
     # ---------- Axes / slider / zoom ----------
     if show_stats:
         # Row 1 (main): no rangeslider; keep quick range buttons here
         fig.update_xaxes(
-            row=1, col=1,
-            rangeslider=dict(visible=False),
+            row=1,
+            col=1,
+            rangeslider=dict(visible=True),
             rangeselector=dict(
-                y=0.98, yanchor="bottom",   # nudge below title if desired
+                y=0.98,
+                yanchor="bottom",  # nudge below title if desired
                 buttons=[
-                    dict(count=1,  label="1h",  step="hour", stepmode="backward"),
-                    dict(count=6,  label="6h",  step="hour", stepmode="backward"),
+                    dict(count=1, label="1h", step="hour", stepmode="backward"),
+                    dict(count=6, label="6h", step="hour", stepmode="backward"),
                     dict(count=12, label="12h", step="hour", stepmode="backward"),
-                    dict(count=1,  label="1d",  step="day",  stepmode="backward"),
+                    dict(count=1, label="1d", step="day", stepmode="backward"),
                     dict(step="all", label="All"),
                 ],
             ),
         )
         # Row 2: the slider lane (linked to row 1)
         fig.update_xaxes(
-            row=2, col=1,
-            showgrid=False, zeroline=False, showticklabels=False,
+            row=2,
+            col=1,
+            showgrid=False,
+            zeroline=False,
+            showticklabels=False,
             rangeslider=dict(visible=True, thickness=0.20),
             matches="x1",
         )
@@ -1055,12 +1175,13 @@ def make_plot(
         fig.update_xaxes(
             rangeslider=dict(visible=True, thickness=0.10),
             rangeselector=dict(
-                y=0.98, yanchor="bottom",
+                y=0.98,
+                yanchor="bottom",
                 buttons=[
-                    dict(count=1,  label="1h",  step="hour", stepmode="backward"),
-                    dict(count=6,  label="6h",  step="hour", stepmode="backward"),
+                    dict(count=1, label="1h", step="hour", stepmode="backward"),
+                    dict(count=6, label="6h", step="hour", stepmode="backward"),
                     dict(count=12, label="12h", step="hour", stepmode="backward"),
-                    dict(count=1,  label="1d",  step="day",  stepmode="backward"),
+                    dict(count=1, label="1d", step="day", stepmode="backward"),
                     dict(step="all", label="All"),
                 ],
             ),
@@ -1069,8 +1190,11 @@ def make_plot(
     # ---------- Final layout ----------
     fig.update_layout(dragmode="zoom")  # x+y box zoom
     hover_mode = "x unified" if hover_unified else "closest"
-    axis_label = "Normalised residual (res/σ)" if residual_field.startswith("norm_") \
-                 else f"{residual_field.capitalize()} residual"
+    axis_label = (
+        "Normalised residual (res/σ)"
+        if residual_field.startswith("norm_")
+        else f"{residual_field.capitalize()} residual"
+    )
 
     fig.update_layout(
         title=title,
@@ -1091,11 +1215,14 @@ def make_plot(
 
     return fig
 
-def write_index_html(index_path: Path,
-                     base_title: str,
-                     meas_map: Dict[str, List[Tuple[str, str]]],
-                     meta: Dict[str, str],
-                     item_kind: str = "sat") -> None:
+
+def write_index_html(
+    index_path: Path,
+    base_title: str,
+    meas_map: Dict[str, List[Tuple[str, str]]],
+    meta: Dict[str, str],
+    item_kind: str = "sat",
+) -> None:
     """
     Write a lightweight index HTML with CODE and PHASE sections.
     Links are written as paths relative to the index file location.
@@ -1117,16 +1244,16 @@ def write_index_html(index_path: Path,
     meas_map = {k: sorted(v, key=sort_fn) for k, v in meas_map.items()}
 
     def html_escape(s: str) -> str:
-        return (str(s).replace("&", "&amp;")
-                      .replace("<", "&lt;")
-                      .replace(">", "&gt;")
-                      .replace('"', "&quot;")
-                      .replace("'", "&#39;"))
+        return (
+            str(s)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&#39;")
+        )
 
-    meta_rows = "".join(
-        f"<tr><th>{html_escape(k)}</th><td>{html_escape(v)}</td></tr>"
-        for k, v in meta.items() if v
-    )
+    meta_rows = "".join(f"<tr><th>{html_escape(k)}</th><td>{html_escape(v)}</td></tr>" for k, v in meta.items() if v)
 
     def _rel_href(target: str) -> str:
         """Return path to target relative to the index file directory."""
@@ -1146,15 +1273,15 @@ def write_index_html(index_path: Path,
             (
                 f'<li class="item {meas_key}" data-key="{html_escape(item)}">'
                 f'<a href="{html_escape(_rel_href(fname))}" target="_blank" rel="noopener noreferrer">'
-                f'{html_escape(item)} — {title} plot</a>'
-                f'</li>'
+                f"{html_escape(item)} — {title} plot</a>"
+                f"</li>"
             )
             for item, fname in items
         )
 
         return f'<h2 class="section {meas_key}">{title}</h2><ul class="grid {meas_key}">\n{lis}\n</ul>'
 
-    code_sec  = section("code",  "CODE")
+    code_sec = section("code", "CODE")
     phase_sec = section("phase", "PHASE")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -1249,13 +1376,13 @@ def build_recv_sat_stats(df: pd.DataFrame, yfield: str, weighted: bool) -> Dict[
     if df is None or df.empty:
         return {"mean": pd.DataFrame(), "std": pd.DataFrame(), "rms": pd.DataFrame()}
 
-    work = df[[ "recv","sat", yfield, "sigma" ]].copy()
+    work = df[["recv", "sat", yfield, "sigma"]].copy()
     y = pd.to_numeric(work[yfield], errors="coerce").to_numpy()
     sig = pd.to_numeric(work["sigma"], errors="coerce").to_numpy()
 
     # masks: keep finite (and positive w when weighted)
     if weighted:
-        w = 1.0 / (sig ** 2)
+        w = 1.0 / (sig**2)
         m = np.isfinite(y) & np.isfinite(w) & (w > 0)
     else:
         w = None
@@ -1265,12 +1392,12 @@ def build_recv_sat_stats(df: pd.DataFrame, yfield: str, weighted: bool) -> Dict[
 
     y = y[m]
     recv_vals = work.loc[m, "recv"].astype(str).to_numpy()
-    sat_vals  = work.loc[m, "sat"].astype(str).to_numpy()
-    w = (w[m] if weighted else None)
+    sat_vals = work.loc[m, "sat"].astype(str).to_numpy()
+    w = w[m] if weighted else None
 
     # Factorize to integer codes (preserves first-seen order)
     recv_codes, recv_uniques = pd.factorize(recv_vals, sort=False)
-    sat_codes,  sat_uniques  = pd.factorize(sat_vals,  sort=False)
+    sat_codes, sat_uniques = pd.factorize(sat_vals, sort=False)
     R = recv_uniques.size
     S = sat_uniques.size
 
@@ -1279,94 +1406,94 @@ def build_recv_sat_stats(df: pd.DataFrame, yfield: str, weighted: bool) -> Dict[
 
     # Unweighted tallies
     if not weighted:
-        cnt   = np.bincount(flat, minlength=R*S).astype(float)
-        sumy  = np.bincount(flat, weights=y,          minlength=R*S)
-        sumy2 = np.bincount(flat, weights=y*y,        minlength=R*S)
+        cnt = np.bincount(flat, minlength=R * S).astype(float)
+        sumy = np.bincount(flat, weights=y, minlength=R * S)
+        sumy2 = np.bincount(flat, weights=y * y, minlength=R * S)
 
-        cnt2D  = cnt.reshape(R, S)
-        sum2D  = sumy.reshape(R, S)
+        cnt2D = cnt.reshape(R, S)
+        sum2D = sumy.reshape(R, S)
         sum22D = sumy2.reshape(R, S)
 
         # Mean
         with np.errstate(invalid="ignore", divide="ignore"):
             mean = np.where(cnt2D > 0, sum2D / cnt2D, np.nan)
             # Sample variance (ddof=1) where cnt>1
-            var  = np.where(cnt2D > 1, (sum22D - (sum2D*sum2D)/cnt2D) / (cnt2D - 1.0), np.nan)
-            std  = np.sqrt(var)
-            rms  = np.where(cnt2D > 0, np.sqrt(sum22D / cnt2D), np.nan)
+            var = np.where(cnt2D > 1, (sum22D - (sum2D * sum2D) / cnt2D) / (cnt2D - 1.0), np.nan)
+            std = np.sqrt(var)
+            rms = np.where(cnt2D > 0, np.sqrt(sum22D / cnt2D), np.nan)
 
         # Margins (per-receiver = across columns, per-sat = across rows)
-        cnt_r  = cnt2D.sum(axis=1)
-        sum_r  = sum2D.sum(axis=1)
+        cnt_r = cnt2D.sum(axis=1)
+        sum_r = sum2D.sum(axis=1)
         sum2_r = sum22D.sum(axis=1)
 
-        cnt_s  = cnt2D.sum(axis=0)
-        sum_s  = sum2D.sum(axis=0)
+        cnt_s = cnt2D.sum(axis=0)
+        sum_s = sum2D.sum(axis=0)
         sum2_s = sum22D.sum(axis=0)
 
         # per-receiver margins
         mean_r = np.where(cnt_r > 0, sum_r / cnt_r, np.nan)
-        var_r  = np.where(cnt_r > 1, (sum2_r - (sum_r*sum_r)/cnt_r) / (cnt_r - 1.0), np.nan)
-        std_r  = np.sqrt(var_r)
-        rms_r  = np.where(cnt_r > 0, np.sqrt(sum2_r / cnt_r), np.nan)
+        var_r = np.where(cnt_r > 1, (sum2_r - (sum_r * sum_r) / cnt_r) / (cnt_r - 1.0), np.nan)
+        std_r = np.sqrt(var_r)
+        rms_r = np.where(cnt_r > 0, np.sqrt(sum2_r / cnt_r), np.nan)
 
         # per-sat margins
         mean_s = np.where(cnt_s > 0, sum_s / cnt_s, np.nan)
-        var_s  = np.where(cnt_s > 1, (sum2_s - (sum_s*sum_s)/cnt_s) / (cnt_s - 1.0), np.nan)
-        std_s  = np.sqrt(var_s)
-        rms_s  = np.where(cnt_s > 0, np.sqrt(sum2_s / cnt_s), np.nan)
+        var_s = np.where(cnt_s > 1, (sum2_s - (sum_s * sum_s) / cnt_s) / (cnt_s - 1.0), np.nan)
+        std_s = np.sqrt(var_s)
+        rms_s = np.where(cnt_s > 0, np.sqrt(sum2_s / cnt_s), np.nan)
 
         # grand
-        cnt_all  = cnt2D.sum()
-        sum_all  = sum2D.sum()
+        cnt_all = cnt2D.sum()
+        sum_all = sum2D.sum()
         sum2_all = sum22D.sum()
         mean_all = (sum_all / cnt_all) if cnt_all > 0 else np.nan
-        var_all  = ((sum2_all - (sum_all*sum_all)/cnt_all) / (cnt_all - 1.0)) if cnt_all > 1 else np.nan
-        std_all  = np.sqrt(var_all) if np.isfinite(var_all) else np.nan
-        rms_all  = np.sqrt(sum2_all / cnt_all) if cnt_all > 0 else np.nan
+        var_all = ((sum2_all - (sum_all * sum_all) / cnt_all) / (cnt_all - 1.0)) if cnt_all > 1 else np.nan
+        std_all = np.sqrt(var_all) if np.isfinite(var_all) else np.nan
+        rms_all = np.sqrt(sum2_all / cnt_all) if cnt_all > 0 else np.nan
 
     else:
         # Weighted tallies
-        wsum   = np.bincount(flat, weights=w,        minlength=R*S)
-        wysum  = np.bincount(flat, weights=w*y,      minlength=R*S)
-        wy2sum = np.bincount(flat, weights=w*y*y,    minlength=R*S)
+        wsum = np.bincount(flat, weights=w, minlength=R * S)
+        wysum = np.bincount(flat, weights=w * y, minlength=R * S)
+        wy2sum = np.bincount(flat, weights=w * y * y, minlength=R * S)
 
-        wsum2D  = wsum.reshape(R, S)
+        wsum2D = wsum.reshape(R, S)
         wysum2D = wysum.reshape(R, S)
-        wy22D   = wy2sum.reshape(R, S)
+        wy22D = wy2sum.reshape(R, S)
 
         with np.errstate(invalid="ignore", divide="ignore"):
             mean = np.where(wsum2D > 0, wysum2D / wsum2D, np.nan)
-            var  = np.where(wsum2D > 0, (wy22D / wsum2D) - mean*mean, np.nan)  # your previous definition
-            std  = np.sqrt(var)
-            rms  = np.where(wsum2D > 0, np.sqrt(wy22D / wsum2D), np.nan)
+            var = np.where(wsum2D > 0, (wy22D / wsum2D) - mean * mean, np.nan)  # your previous definition
+            std = np.sqrt(var)
+            rms = np.where(wsum2D > 0, np.sqrt(wy22D / wsum2D), np.nan)
 
         # Margins
-        wsum_r  = wsum2D.sum(axis=1)
+        wsum_r = wsum2D.sum(axis=1)
         wysum_r = wysum2D.sum(axis=1)
-        wy2_r   = wy22D.sum(axis=1)
+        wy2_r = wy22D.sum(axis=1)
 
-        wsum_s  = wsum2D.sum(axis=0)
+        wsum_s = wsum2D.sum(axis=0)
         wysum_s = wysum2D.sum(axis=0)
-        wy2_s   = wy22D.sum(axis=0)
+        wy2_s = wy22D.sum(axis=0)
 
         mean_r = np.where(wsum_r > 0, wysum_r / wsum_r, np.nan)
-        var_r  = np.where(wsum_r > 0, (wy2_r / wsum_r) - mean_r*mean_r, np.nan)
-        std_r  = np.sqrt(var_r)
-        rms_r  = np.where(wsum_r > 0, np.sqrt(wy2_r / wsum_r), np.nan)
+        var_r = np.where(wsum_r > 0, (wy2_r / wsum_r) - mean_r * mean_r, np.nan)
+        std_r = np.sqrt(var_r)
+        rms_r = np.where(wsum_r > 0, np.sqrt(wy2_r / wsum_r), np.nan)
 
         mean_s = np.where(wsum_s > 0, wysum_s / wsum_s, np.nan)
-        var_s  = np.where(wsum_s > 0, (wy2_s / wsum_s) - mean_s*mean_s, np.nan)
-        std_s  = np.sqrt(var_s)
-        rms_s  = np.where(wsum_s > 0, np.sqrt(wy2_s / wsum_s), np.nan)
+        var_s = np.where(wsum_s > 0, (wy2_s / wsum_s) - mean_s * mean_s, np.nan)
+        std_s = np.sqrt(var_s)
+        rms_s = np.where(wsum_s > 0, np.sqrt(wy2_s / wsum_s), np.nan)
 
-        wsum_all  = wsum2D.sum()
+        wsum_all = wsum2D.sum()
         wysum_all = wysum2D.sum()
-        wy2_all   = wy22D.sum()
-        mean_all  = (wysum_all / wsum_all) if wsum_all > 0 else np.nan
-        var_all   = ((wy2_all / wsum_all) - mean_all*mean_all) if wsum_all > 0 else np.nan
-        std_all   = np.sqrt(var_all) if np.isfinite(var_all) else np.nan
-        rms_all   = np.sqrt(wy2_all / wsum_all) if wsum_all > 0 else np.nan
+        wy2_all = wy22D.sum()
+        mean_all = (wysum_all / wsum_all) if wsum_all > 0 else np.nan
+        var_all = ((wy2_all / wsum_all) - mean_all * mean_all) if wsum_all > 0 else np.nan
+        std_all = np.sqrt(var_all) if np.isfinite(var_all) else np.nan
+        rms_all = np.sqrt(wy2_all / wsum_all) if wsum_all > 0 else np.nan
 
     # Build matrices with margins at top/left
     def _mk_df(mcore: np.ndarray, row_margin: np.ndarray, col_margin: np.ndarray, grand: float) -> pd.DataFrame:
@@ -1376,10 +1503,10 @@ def build_recv_sat_stats(df: pd.DataFrame, yfield: str, weighted: bool) -> Dict[
         sats_sorted = sorted(list(sat_uniques), key=_sat_sort_key)
         # map sat_uniques -> order indices
         sat_order = np.array([np.where(sat_uniques == s)[0][0] for s in sats_sorted], dtype=int)
-        m_sorted  = mcore[:, sat_order]
+        m_sorted = mcore[:, sat_order]
 
         # left column (per-recv margin)
-        col_left  = row_margin.reshape(-1, 1)
+        col_left = row_margin.reshape(-1, 1)
         body_with_left = np.concatenate([col_left, m_sorted], axis=1)
 
         # top row (per-sat margin)
@@ -1388,12 +1515,12 @@ def build_recv_sat_stats(df: pd.DataFrame, yfield: str, weighted: bool) -> Dict[
         full = np.concatenate([top_row, body_with_left], axis=0)
 
         rows = ["ALL_RECV"] + [str(r) for r in recv_uniques.tolist()]
-        cols = ["ALL_SAT"]  + [str(s) for s in sats_sorted]
+        cols = ["ALL_SAT"] + [str(s) for s in sats_sorted]
         return pd.DataFrame(full, index=rows, columns=cols)
 
     mean_df = _mk_df(mean, mean_r, mean_s, mean_all)
-    std_df  = _mk_df(std,  std_r,  std_s,  std_all)
-    rms_df  = _mk_df(rms,  rms_r,  rms_s,  rms_all)
+    std_df = _mk_df(std, std_r, std_s, std_all)
+    rms_df = _mk_df(rms, rms_r, rms_s, rms_all)
 
     return {"mean": mean_df, "std": std_df, "rms": rms_df}
 
@@ -1408,7 +1535,7 @@ def _counts_to_customdata(counts_sorted: Optional[pd.DataFrame], z_shape: tuple)
         if cd.shape != z_shape:
             logger.warning("Counts shape %s != Z shape %s; omitting customdata.", cd.shape, z_shape)
             return None
-        return cd[..., np.newaxis]               # -> (rows, cols, 1)
+        return cd[..., np.newaxis]  # -> (rows, cols, 1)
     except Exception as e:
         logger.warning("Failed to build numeric customdata: %s", e)
         return None
@@ -1424,16 +1551,16 @@ def write_heatmap_html(
     zmin: Optional[float] = None,
     zmax: Optional[float] = None,
     # Annotation knobs:
-    annotate: str = "none",           # "none" | "auto" | "all" | "margins"  (bool True->"all", False->"none")
+    annotate: str = "none",  # "none" | "auto" | "all" | "margins"  (bool True->"all", False->"none")
     precision: int = 3,
     max_annot_cells: int = 2500,
     # Hover counts matrix (aligned to df_mat's index/columns)
     counts: Optional[pd.DataFrame] = None,
     # sorting controls
-    row_sort: str = "alpha",          # "alpha" | "none"
-    sat_sort: str = "alpha",          # "alpha" | "natural" | "none"
+    row_sort: str = "alpha",  # "alpha" | "none"
+    sat_sort: str = "alpha",  # "alpha" | "natural" | "none"
     # html writing
-    include_plotlyjs: str = "inline", # "inline" (default) or "cdn"
+    include_plotlyjs: str = "inline",  # "inline" (default) or "cdn"
 ) -> str:
     """
     Render a heatmap with optional annotations, sorted rows/columns, and robust hover counts.
@@ -1463,7 +1590,7 @@ def write_heatmap_html(
         row_header, row_body = ["ALL_RECV"], rows[1:]
     else:
         row_header = [r for r in rows if r == "ALL_RECV"]
-        row_body   = [r for r in rows if r != "ALL_RECV"]
+        row_body = [r for r in rows if r != "ALL_RECV"]
 
     if row_sort == "alpha":
         row_body_sorted = sorted(row_body, key=lambda s: str(s).upper())
@@ -1476,7 +1603,7 @@ def write_heatmap_html(
         col_header, col_body = ["ALL_SAT"], cols[1:]
     else:
         col_header = [c for c in cols if c == "ALL_SAT"]
-        col_body   = [c for c in cols if c != "ALL_SAT"]
+        col_body = [c for c in cols if c != "ALL_SAT"]
 
     if sat_sort == "alpha":
         col_body_sorted = sorted(col_body, key=lambda s: str(s).upper())
@@ -1488,7 +1615,9 @@ def write_heatmap_html(
 
     # --- Reindex matrices to this order (keeps alignment with hover counts) ---
     mat_sorted = df_mat.reindex(index=rows_order, columns=cols_order)
-    counts_sorted = counts.reindex(index=rows_order, columns=cols_order) if (counts is not None and not counts.empty) else None
+    counts_sorted = (
+        counts.reindex(index=rows_order, columns=cols_order) if (counts is not None and not counts.empty) else None
+    )
 
     # --- Extract arrays ---
     Z = mat_sorted.values
@@ -1532,15 +1661,13 @@ def write_heatmap_html(
             "<extra></extra>"
         )
     else:
-        hovertemplate = (
-            "Receiver=%{y}<br>Satellite=%{x}"
-            f"<br>Value=%{{z:.{precision}f}}"
-            "<extra></extra>"
-        )
+        hovertemplate = "Receiver=%{y}<br>Satellite=%{x}" f"<br>Value=%{{z:.{precision}f}}" "<extra></extra>"
 
     # --- Heatmap trace ---
     hm_kwargs = dict(
-        z=Z, x=X, y=Y,
+        z=Z,
+        x=X,
+        y=Y,
         colorscale=colorscale,
         reversescale=reversescale,
         hoverongaps=False,
@@ -1548,9 +1675,12 @@ def write_heatmap_html(
     )
     if customdata is not None:
         hm_kwargs["customdata"] = customdata
-    if zmid is not None: hm_kwargs["zmid"] = zmid
-    if zmin is not None: hm_kwargs["zmin"] = zmin
-    if zmax is not None: hm_kwargs["zmax"] = zmax
+    if zmid is not None:
+        hm_kwargs["zmid"] = zmid
+    if zmin is not None:
+        hm_kwargs["zmin"] = zmin
+    if zmax is not None:
+        hm_kwargs["zmax"] = zmax
     if do_text:
         hm_kwargs["text"] = text
         hm_kwargs["texttemplate"] = "%{text}"
@@ -1703,12 +1833,7 @@ def plot_ambiguity_reason_counts(
         if g.empty:
             continue
 
-        counts = (
-            g.groupby(["datetime", "reason"], sort=True)
-            .size()
-            .reset_index(name="count")
-            .sort_values("datetime")
-        )
+        counts = g.groupby(["datetime", "reason"], sort=True).size().reset_index(name="count").sort_values("datetime")
         counts["cumcount"] = counts.groupby("reason")["count"].cumsum()
         pivot = counts.pivot(index="datetime", columns="reason", values="cumcount").ffill().fillna(0)
 
@@ -1720,20 +1845,19 @@ def plot_ambiguity_reason_counts(
         if key in event_dict and not event_dict[key].empty:
             g_events = event_dict[key]
             event_counts = (
-                g_events.groupby("datetime", sort=True)
-                .size()
-                .reset_index(name="count")
-                .sort_values("datetime")
+                g_events.groupby("datetime", sort=True).size().reset_index(name="count").sort_values("datetime")
             )
             event_counts["cumcount"] = event_counts["count"].cumsum()
 
-            fig.add_trace(go.Scatter(
-                x=event_counts["datetime"],
-                y=event_counts["cumcount"],
-                mode="lines",
-                name="Unique Resets",
-                line=dict(dash="dash", width=2.5),
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=event_counts["datetime"],
+                    y=event_counts["cumcount"],
+                    mode="lines",
+                    name="Unique Resets",
+                    line=dict(dash="dash", width=2.5),
+                )
+            )
 
         title_suffix = {
             "recv": f"Receiver {key}",
@@ -1789,16 +1913,15 @@ def plot_ambiguity_reason_totals(
     if key_name is None:
         gdf = df.groupby("reason", sort=True).size().rename("count").reset_index()
         gdf["group"] = "ALL"  # AJC - Add group column for pivot
-        pivot = gdf.pivot_table(index="group",
-                                columns="reason", values="count", fill_value=0)
+        pivot = gdf.pivot_table(index="group", columns="reason", values="count", fill_value=0)
     else:
         pivot = (
             df.groupby([key_name, "reason"], sort=True)
-              .size()
-              .rename("count")
-              .reset_index()
-              .pivot(index=key_name, columns="reason", values="count")
-              .fillna(0)
+            .size()
+            .rename("count")
+            .reset_index()
+            .pivot(index=key_name, columns="reason", values="count")
+            .fillna(0)
         )
 
     reason_totals = pivot.sum(axis=0).sort_values(ascending=False)
@@ -1822,7 +1945,7 @@ def plot_ambiguity_reason_totals(
 
     fig = go.Figure()
     groups = pivot.index.astype(str).tolist()
-    is_h = (orientation == "h")
+    is_h = orientation == "h"
     x_title = "Total resets" if is_h else (key_name or "All")
     y_title = (key_name or "All") if is_h else "Total resets"
 
@@ -1838,26 +1961,30 @@ def plot_ambiguity_reason_totals(
 
     if is_h:
         # Horizontal bars: place star markers at unique reset count position
-        fig.add_trace(go.Scatter(
-            x=unique_reset_vals,
-            y=groups,
-            mode='markers',
-            marker=dict(symbol='star', size=12, color='gold', line=dict(width=0)),
-            showlegend=True,
-            name='Unique Resets',
-            hovertemplate='Unique Resets: %{x}<extra></extra>',
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=unique_reset_vals,
+                y=groups,
+                mode="markers",
+                marker=dict(symbol="star", size=12, color="gold", line=dict(width=0)),
+                showlegend=True,
+                name="Unique Resets",
+                hovertemplate="Unique Resets: %{x}<extra></extra>",
+            )
+        )
     else:
         # Vertical bars: place star markers at unique reset count position
-        fig.add_trace(go.Scatter(
-            x=groups,
-            y=unique_reset_vals,
-            mode='markers',
-            marker=dict(symbol='star', size=12, color='gold', line=dict(width=0)),
-            showlegend=True,
-            name='Unique Resets',
-            hovertemplate='Unique Resets: %{y}<extra></extra>',
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=groups,
+                y=unique_reset_vals,
+                mode="markers",
+                marker=dict(symbol="star", size=12, color="gold", line=dict(width=0)),
+                showlegend=True,
+                name="Unique Resets",
+                hovertemplate="Unique Resets: %{y}<extra></extra>",
+            )
+        )
 
     split_title = {"recv": "by Receiver", "sat": "by Satellite", "combined": "All"}[split]
     fig.update_layout(
@@ -1887,14 +2014,14 @@ def add_ambiguity_markers_combined(
     df_amb: pd.DataFrame,
     *,
     y_anchor: Optional[float] = None,
-    y_span: Optional[Tuple[float, float]] = None,   # (y_lo, y_hi) for the v-line span
+    y_span: Optional[Tuple[float, float]] = None,  # (y_lo, y_hi) for the v-line span
     line_width: float = 0.5,
     marker_size: int = 10,
-    line_color_preproc: str = "rgba(0,128,0,0.85)",     # green
-    line_color_reject: str  = "rgba(65,105,225,0.85)",  # royal blue
+    line_color_preproc: str = "rgba(0,128,0,0.85)",  # green
+    line_color_reject: str = "rgba(65,105,225,0.85)",  # royal blue
     split_by_reason: bool = True,
     split_context: Optional[str] = None,  # "recv" or "sat" to indicate grouping
-    add_trace_fn = None,  # Function to add traces (handles subplot layout)
+    add_trace_fn=None,  # Function to add traces (handles subplot layout)
 ) -> None:
     """
     Add ambiguity-reset overlays (PREPROC/REJECT) that toggle with each satellite's legend item.
@@ -1962,13 +2089,12 @@ def add_ambiguity_markers_combined(
                             for _, row in sat_grp.iterrows():
                                 lines.append(f"Sig= {row.get('sig','')} | Reasons= {row.get('reasons','(none)')}")
                         rows_html = lines
-                        hover_recv = g_act.iloc[0].get('recv', '')
+                        hover_recv = g_act.iloc[0].get("recv", "")
                         hover = (
                             "<b>Phase Ambiguity Reset</b><br>"
                             f"Time: {ts}<br>"
                             f"Action: {action_val}<br>"
-                            f"Recv= {hover_recv}<br>"
-                            + "<br>".join(rows_html)
+                            f"Recv= {hover_recv}<br>" + "<br>".join(rows_html)
                         )
                     else:
                         # Combined/default: show both Sat and Recv for each signal
@@ -1979,8 +2105,7 @@ def add_ambiguity_markers_combined(
                         hover = (
                             "<b>Phase Ambiguity Reset</b><br>"
                             f"Time: {ts}<br>"
-                            f"Action: {action_val}<br>"
-                            + "<br>".join(rows_html)
+                            f"Action: {action_val}<br>" + "<br>".join(rows_html)
                         )
                     # Use first satellite for legendgroup (allows toggling visibility)
                     first_sat = g_act.iloc[0].get("sat", "") if not g_act.empty else ""
@@ -2004,14 +2129,16 @@ def add_ambiguity_markers_combined(
                 if split_context == "recv":
                     # Group by Action, then Sat, then show Sig | Reasons
                     lines = []
-                    for act_key, act_grp in g_ts.groupby(g_ts["action"].str.upper() if "action" in g_ts.columns else "", sort=False):
+                    for act_key, act_grp in g_ts.groupby(
+                        g_ts["action"].str.upper() if "action" in g_ts.columns else "", sort=False
+                    ):
                         if act_key:
                             lines.append(f"<b>Action: {act_key}</b>")
                         for sat_key, sat_grp in act_grp.groupby("sat", sort=False):
                             lines.append(f"<b>Sat= {sat_key}</b>")
                             for _, row in sat_grp.iterrows():
                                 lines.append(f"Sig= {row.get('sig','')} | Reasons= {row.get('reasons','(none)')}")
-                    hover_recv = g_ts.iloc[0].get('recv', '') if not g_ts.empty else ''
+                    hover_recv = g_ts.iloc[0].get("recv", "") if not g_ts.empty else ""
                     hover = f"<b>Phase Ambiguity Reset</b><br>Time: {ts}<br>Recv= {hover_recv}<br>" + "<br>".join(lines)
                 else:
                     # Combined/default
@@ -2064,13 +2191,12 @@ def add_ambiguity_markers_combined(
                         for _, row in recv_grp.iterrows():
                             lines.append(f"Sig= {row.get('sig','')} | Reasons= {row.get('reasons','(none)')}")
                     rows_html = lines
-                    hover_sat = g_act.iloc[0].get('sat', '') if not g_act.empty else ''
+                    hover_sat = g_act.iloc[0].get("sat", "") if not g_act.empty else ""
                     hover = (
                         "<b>Phase Ambiguity Reset</b><br>"
                         f"Time: {ts}<br>"
                         f"Action: {action_val}<br>"
-                        f"Sat= {hover_sat}<br>"
-                        + "<br>".join(rows_html)
+                        f"Sat= {hover_sat}<br>" + "<br>".join(rows_html)
                     )
                     # Use first satellite for legendgroup
                     first_sat = g_act.iloc[0].get("sat", "") if not g_act.empty else ""
@@ -2092,14 +2218,16 @@ def add_ambiguity_markers_combined(
 
                 # Group by Action, then Recv, then show Sig | Reasons
                 lines = []
-                for act_key, act_grp in g_ts.groupby(g_ts["action"].str.upper() if "action" in g_ts.columns else "", sort=False):
+                for act_key, act_grp in g_ts.groupby(
+                    g_ts["action"].str.upper() if "action" in g_ts.columns else "", sort=False
+                ):
                     if act_key:
                         lines.append(f"<b>Action: {act_key}</b>")
                     for recv_key, recv_grp in act_grp.groupby("recv", sort=False):
                         lines.append(f"<b>Recv= {recv_key}</b>")
                         for _, row in recv_grp.iterrows():
                             lines.append(f"Sig= {row.get('sig','')} | Reasons= {row.get('reasons','(none)')}")
-                hover_sat = g_ts.iloc[0].get('sat', '') if not g_ts.empty else ''
+                hover_sat = g_ts.iloc[0].get("sat", "") if not g_ts.empty else ""
                 hover = f"<b>Phase Ambiguity Reset</b><br>Time: {ts}<br>Sat= {hover_sat}<br>" + "<br>".join(lines)
 
                 if actions == {"PREPROC"}:
@@ -2122,7 +2250,9 @@ def add_ambiguity_markers_combined(
                     )
                 )
 
+
 # -------- CLI / Main --------
+
 
 def pair_forward_smoothed_files(in_paths: List[Path], use_forward_residuals: bool):
     """
@@ -2225,8 +2355,14 @@ def pair_forward_smoothed_files(in_paths: List[Path], use_forward_residuals: boo
 
 
 def main():
+    """CLI entry point for plot_trace_res - parses arguments and calls _process_and_plot_trace()."""
     p = argparse.ArgumentParser(description="Extract and plot GNSS residuals with optional large-error markers.")
-    p.add_argument("--files", required=True, nargs="+", help="One or more TRACE files (space and/or comma separated), e.g. 'A.trace B.trace,C.trace' (wildcards allowed eg. *.TRACE)")
+    p.add_argument(
+        "--files",
+        required=True,
+        nargs="+",
+        help="One or more TRACE files (space and/or comma separated), e.g. 'A.trace B.trace,C.trace' (wildcards allowed eg. *.TRACE)",
+    )
     p.add_argument("--residual", choices=["prefit", "postfit"], default="postfit")
     p.add_argument("--receivers", help="One or more receiver names (comma or space separated), e.g. 'ABMF,CHUR ALGO' ")
     p.add_argument("--sat", "-s", action="append", help="Filter by satellite ID")
@@ -2241,41 +2377,243 @@ def main():
     p.add_argument("--out-dir", help="Output directory for HTML files; defaults to CWD.")
     p.add_argument("--basename", help="Base filename prefix for outputs (no extension).")
     p.add_argument("--webgl", action="store_true")
-    p.add_argument("--log-level", default="INFO", choices=["DEBUG","INFO","WARNING","ERROR","CRITICAL"], help="Logging verbosity.")
+    p.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Logging verbosity.",
+    )
     p.add_argument("--out-prefix", default=None)
     p.add_argument("--mark-large-errors", action="store_true", help="Mark LARGE STATE/MEAS ERROR events on plots.")
-    p.add_argument("--hover-unified", action="store_true", help="Use unified hover tooltips across all traces (default: closest point hover).")
-    p.add_argument("--plot-normalised-res", action="store_true", help="Also generate plots of normalised residuals (residual / sigma).")
+    p.add_argument(
+        "--hover-unified",
+        action="store_true",
+        help="Use unified hover tooltips across all traces (default: closest point hover).",
+    )
+    p.add_argument(
+        "--plot-normalised-res",
+        action="store_true",
+        help="Also generate plots of normalised residuals (residual / sigma).",
+    )
     p.add_argument("--plot-normalized-res", action="store_true", help=argparse.SUPPRESS)
-    p.add_argument("--show-stats-table", action="store_true", help="Add a Mean / Std / RMS table per (sat × signal) at the bottom of each plot.")
-    p.add_argument("--stats-matrix", action="store_true", help="Generate receiver×satellite heatmaps (Mean/Std/RMS) aggregated across signals.")
-    p.add_argument("--stats-matrix-weighted", action="store_true", help="Use sigma-weighted statistics in the heatmaps (weights 1/σ²).")
-    p.add_argument("--annotate-stats-matrix", action="store_true", help="Write the numeric value (mean/std/rms) into each stats heatmap cell. Hover still shows full details.")
-    p.add_argument("--mark-amb-resets", action="store_true", help="Overlay PHASE ambiguity reset events (PREPROC=green, REJECT=blue) on PHASE per-receiver plots.")
+    p.add_argument(
+        "--show-stats-table",
+        action="store_true",
+        help="Add a Mean / Std / RMS table per (sat × signal) at the bottom of each plot.",
+    )
+    p.add_argument(
+        "--stats-matrix",
+        action="store_true",
+        help="Generate receiver×satellite heatmaps (Mean/Std/RMS) aggregated across signals.",
+    )
+    p.add_argument(
+        "--stats-matrix-weighted",
+        action="store_true",
+        help="Use sigma-weighted statistics in the heatmaps (weights 1/σ²).",
+    )
+    p.add_argument(
+        "--annotate-stats-matrix",
+        action="store_true",
+        help="Write the numeric value (mean/std/rms) into each stats heatmap cell. Hover still shows full details.",
+    )
+    p.add_argument(
+        "--mark-amb-resets",
+        action="store_true",
+        help="Overlay PHASE ambiguity reset events (PREPROC=green, REJECT=blue) on PHASE per-receiver plots.",
+    )
 
     # Ambiguity reset plots (includes both reasons and unique satellite resets)
-    p.add_argument("--ambiguity-counts", action="store_true", help="Plot cumulative counts of ambiguity reset reasons and unique satellite resets over time.")
-    p.add_argument("--ambiguity-totals", action="store_true", help="Bar chart of total ambiguity reset reasons (diagnostic view of detection methods).")
+    p.add_argument(
+        "--ambiguity-counts",
+        action="store_true",
+        help="Plot cumulative counts of ambiguity reset reasons and unique satellite resets over time.",
+    )
+    p.add_argument(
+        "--ambiguity-totals",
+        action="store_true",
+        help="Bar chart of total ambiguity reset reasons (diagnostic view of detection methods).",
+    )
 
-    p.add_argument("--amb-totals-orient", choices=["h", "v"], default="h", help="Orientation for totals bar charts: 'h' (horizontal, default) or 'v' (vertical).")
-    p.add_argument("--amb-totals-topn", type=int, default=None, help="Show only the top-N receivers/satellites by total resets (to avoid clutter).")
-    p.add_argument("--use-forward-residuals", action="store_true", help="Use residuals from forward (non-smoothed) files instead of smoothed files (default: use smoothed for more accurate residuals).")
+    p.add_argument(
+        "--amb-totals-orient",
+        choices=["h", "v"],
+        default="h",
+        help="Orientation for totals bar charts: 'h' (horizontal, default) or 'v' (vertical).",
+    )
+    p.add_argument(
+        "--amb-totals-topn",
+        type=int,
+        default=None,
+        help="Show only the top-N receivers/satellites by total resets (to avoid clutter).",
+    )
+    p.add_argument(
+        "--use-forward-residuals",
+        action="store_true",
+        help="Use residuals from forward (non-smoothed) files instead of smoothed files (default: use smoothed for more accurate residuals).",
+    )
 
     args = p.parse_args()
+
+    # Call the shared processing function (CLI mode splits on comma / space)
+    _process_and_plot_trace(args, from_cli=True)
+
+
+def plot_trace_res_files(
+    files: List[str],
+    out_dir: str,
+    mark_amb_resets: bool = True,
+    mark_large_errors: bool = True,
+    show_stats_table: bool = True,
+    ambiguity_counts: bool = True,
+    ambiguity_totals: bool = True,
+    amb_totals_orient: str = "h",
+    residual: str = "postfit",
+    receivers: Optional[str] = None,
+    sat: Optional[List[str]] = None,
+    label_regex: Optional[str] = None,
+    max_abs: Optional[float] = None,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    decimate: int = 1,
+    split_per_sat: bool = False,
+    split_per_recv: bool = False,
+    basename: Optional[str] = None,
+    webgl: bool = False,
+    log_level: str = "INFO",
+    hover_unified: bool = False,
+    plot_normalised_res: bool = False,
+    stats_matrix: bool = False,
+    stats_matrix_weighted: bool = False,
+    annotate_stats_matrix: bool = False,
+    amb_totals_topn: Optional[int] = None,
+    use_forward_residuals: bool = False,
+    include_plotlyjs: bool = True,
+) -> List[str]:
+    """
+    Generate interactive HTML plots from TRACE residual files (programmatic call for Ginan-UI).
+
+    This function provides a programmatic way of generating visualisations from TRACE files,
+    mirroring the CLI interface but suitable for calling from Python code.
+
+    Arguments:
+        files (List[str]): List of TRACE file paths (wildcards allowed, e.g., "*.TRACE").
+        out_dir (str): Output directory for HTML files.
+        mark_amb_resets (bool): Overlay PHASE ambiguity reset events on plots.
+        mark_large_errors (bool): Mark LARGE STATE / MEAS ERROR events on plots.
+        show_stats_table (bool): Add Mean / Std / RMS table per (sat * signal) at the bottom.
+        ambiguity_counts (bool): Plot cumulative ambiguity reset counts over time.
+        ambiguity_totals (bool): Bar chart of total ambiguity reset reasons.
+        amb_totals_orient (str): Orientation for totals bar charts ('h' or 'v').
+        residual (str): Which residual to plot ('prefit' or 'postfit').
+        receivers (str, optional): Comma/space separated receiver filter.
+        sat (List[str], optional): Filter by satellite ID(s).
+        label_regex (str, optional): Regex to filter labels.
+        max_abs (float, optional): Maximum absolute residual value to include.
+        start (str, optional): Start datetime or time-only filter.
+        end (str, optional): End datetime (exclusive) filter.
+        decimate (int): Decimation factor for plotting.
+        split_per_sat (bool): Create separate plots per satellite.
+        split_per_recv (bool): Create separate plots per receiver.
+        basename (str, optional): Base filename prefix for outputs.
+        webgl (bool): Use WebGL for rendering.
+        log_level (str): Logging verbosity level.
+        hover_unified (bool): Use unified hover tooltips.
+        plot_normalised_res (bool): Also generate normalised residual plots.
+        stats_matrix (bool): Generate receiver×satellite heatmaps.
+        stats_matrix_weighted (bool): Use sigma-weighted statistics in heatmaps.
+        annotate_stats_matrix (bool): Write numeric values into heatmap cells.
+        amb_totals_topn (int, optional): Show only top-N receivers/satellites by resets.
+        use_forward_residuals (bool): Use forward file residuals instead of smoothed.
+        include_plotlyjs (bool): If True (default), embed Plotly.js in HTML for offline viewing.
+
+    Returns:
+        List[str]: Paths to generated HTML files.
+
+    Example:
+        >>> html_files = plot_trace_res_files(
+        ...     files=["output/Network*.TRACE"],
+        ...     out_dir="output/visual",
+        ...     mark_amb_resets=True,
+        ...     show_stats_table=True,
+        ... )
+    """
+
+    class Args:
+        def __init__(self):
+            self.files = files
+            self.out_dir = out_dir
+            self.mark_amb_resets = mark_amb_resets
+            self.mark_large_errors = mark_large_errors
+            self.show_stats_table = show_stats_table
+            self.ambiguity_counts = ambiguity_counts
+            self.ambiguity_totals = ambiguity_totals
+            self.amb_totals_orient = amb_totals_orient
+            self.residual = residual
+            self.receivers = receivers
+            self.sat = sat
+            self.label_regex = label_regex
+            self.max_abs = max_abs
+            self.start = start
+            self.end = end
+            self.decimate = decimate
+            self.split_per_sat = split_per_sat
+            self.split_per_recv = split_per_recv
+            self.basename = basename
+            self.webgl = webgl
+            self.log_level = log_level
+            self.hover_unified = hover_unified
+            self.plot_normalised_res = plot_normalised_res
+            self.stats_matrix = stats_matrix
+            self.stats_matrix_weighted = stats_matrix_weighted
+            self.annotate_stats_matrix = annotate_stats_matrix
+            self.amb_totals_topn = amb_totals_topn
+            self.use_forward_residuals = use_forward_residuals
+            self.out_prefix = None
+            self.include_plotlyjs = include_plotlyjs
+
+    args = Args()
+    return _process_and_plot_trace(args, from_cli=False)
+
+
+def _process_and_plot_trace(args, from_cli: bool = False) -> List[str]:
+    """
+    Internal helper to process TRACE files and generate plots.
+    Shared function between CLI and programmatic calls.
+
+    Arguments:
+        args: Arguments object with all configuration options.
+        from_cli: If True, split file arguments on comma / space (CLI mode).
+                  If False, treat each file argument as a complete path (programmatic mode).
+
+    Returns:
+        List[str]: Paths to generated HTML files.
+    """
     _setup_logging(args.log_level)
-    args.plot_normalised_res = args.plot_normalised_res or args.plot_normalized_res
+
+    # Handle normalised/normalized spelling
+    if hasattr(args, "plot_normalized_res"):
+        args.plot_normalised_res = args.plot_normalised_res or args.plot_normalized_res
 
     import glob, os, re
     from pathlib import Path
     from typing import List
 
     # --- Expand wildcards and handle comma/space separated patterns ---
-    # args.files is a list because of nargs="+". Each element itself may contain commas.
+    # For programmatic calls (from_cli=False), each element in args.files is treated
+    # as a complete path that may contain spaces.
+    # For CLI calls (from_cli=True), we split on comma/space for user convenience.
     patterns: List[str] = []
     for tok in args.files:
-        # split any "A.trace,B.trace" into ["A.trace","B.trace"]
-        parts = [s for s in re.split(r"[,\s]+", str(tok)) if s]
-        patterns.extend(parts)
+        tok_str = str(tok)
+        if from_cli:
+            # CLI mode: split on comma/space for user convenience
+            # But only split on comma, not space, to better handle paths with spaces
+            # Actually, for CLI the shell typically handles quoting, so we split on comma only
+            parts = [s.strip() for s in tok_str.split(",") if s.strip()]
+            patterns.extend(parts)
+        else:
+            # Programmatic mode: treat each path as complete (may contain spaces)
+            patterns.append(tok_str)
 
     expanded_files: List[str] = []
     for pattern in patterns:
@@ -2289,7 +2627,8 @@ def main():
     args.files = expanded_files
 
     if not args.files:
-        p.error("No input files found after wildcard expansion.")
+        logger.error("No input files found after wildcard expansion.")
+        return []
 
     # --- Normalize into Path objects, validate existence, and de-duplicate (preserve order) ---
     in_paths: List[Path] = []
@@ -2297,26 +2636,27 @@ def main():
     for f in args.files:
         pth = Path(f)
         if not pth.exists():
-            raise SystemExit(f"File not found: {pth}")
+            logger.error(f"File not found: {pth}")
+            continue
         key = str(pth.resolve())
         if key not in seen:
             seen.add(key)
             in_paths.append(pth)
 
     if not in_paths:
-        raise SystemExit("No input files provided to --files.")
+        logger.error("No valid input files provided.")
+        return []
 
     # de-duplicate, preserve order
     seen = set()
     in_paths = [p for p in in_paths if not (str(p.resolve()) in seen or seen.add(str(p.resolve())))]
 
     if not in_paths:
-        raise SystemExit("No input files provided to --files.")
+        logger.error("No input files provided to --files.")
+        return []
 
     # --- Pair forward and smoothed files ---
-    residual_paths, forward_paths, file_warnings = pair_forward_smoothed_files(
-        in_paths, args.use_forward_residuals
-    )
+    residual_paths, forward_paths, file_warnings = pair_forward_smoothed_files(in_paths, args.use_forward_residuals)
 
     # Display any file pairing warnings
     for warn in file_warnings:
@@ -2363,10 +2703,7 @@ def main():
         # Merge on matching keys
         merge_keys = ["datetime", "meas", "sat", "recv", "sig"]
         df = df_forward.merge(
-            df_smoothed[merge_keys + ["postfit"]],
-            on=merge_keys,
-            how="left",
-            suffixes=("_fwd", "_smo")
+            df_smoothed[merge_keys + ["postfit"]], on=merge_keys, how="left", suffixes=("_fwd", "_smo")
         )
 
         # Use smoothed postfit where available, otherwise fall back to forward
@@ -2378,7 +2715,7 @@ def main():
             # Recalculate postfit_ratio if it exists (postfit_ratio = postfit / sigma)
             if "postfit_ratio" in df.columns and "sigma" in df.columns:
                 # Use smoothed postfit with forward sigma
-                df["postfit_ratio"] = df["postfit"] / df["sigma"].replace(0, float('nan'))
+                df["postfit_ratio"] = df["postfit"] / df["sigma"].replace(0, float("nan"))
 
             df = df.drop(columns=["postfit_fwd", "postfit_smo"])
             logger.info(f"Merged: {len(df)} measurements total ({n_smoothed} from smoothed, {n_forward} forward-only)")
@@ -2386,7 +2723,7 @@ def main():
             logger.warning("Merge did not produce postfit_smo column - using forward values only")
     else:
         df = parse_trace_lines(iter_all_lines(residual_paths))
-        #df = parse_trace_lines_fast(iter_all_lines(residual_paths))
+        # df = parse_trace_lines_fast(iter_all_lines(residual_paths))
 
     df_large = parse_large_errors(iter_all_lines(forward_paths)) if args.mark_large_errors else pd.DataFrame()
 
@@ -2407,14 +2744,11 @@ def main():
         df_large = filter_large_errors(df_large, receivers=recv_list, sats=args.sat, start_dt=start_dt, end_dt=end_dt)
 
     # Parse ambiguity resets if needed by any ambiguity feature (from forward files only)
-    need_amb = bool(
-        args.mark_amb_resets or
-        args.ambiguity_counts or args.ambiguity_totals
-    )
+    need_amb = bool(args.mark_amb_resets or args.ambiguity_counts or args.ambiguity_totals)
     df_amb = parse_ambiguity_resets(iter_all_lines(forward_paths)) if need_amb else pd.DataFrame()
 
     # --- Schema normalize & assert (Part 1) ---
-    REQUIRED_AMB_COLS = ["datetime","sat","recv","action","sig","reasons"]
+    REQUIRED_AMB_COLS = ["datetime", "sat", "recv", "action", "sig", "reasons"]
 
     if not need_amb:
         # Ensure empty-but-well-formed frame so downstream never breaks
@@ -2442,7 +2776,7 @@ def main():
 
             # Coerce dtypes (lightweight, no extra normalization logic)
             df_amb["datetime"] = pd.to_datetime(df_amb["datetime"], errors="coerce")
-            for c in ("sat","recv","action","sig","reasons"):
+            for c in ("sat", "recv", "action", "sig", "reasons"):
                 df_amb[c] = df_amb[c].astype(str)
 
     # --- Now apply the same CLI/time-window filters ---
@@ -2471,7 +2805,7 @@ def main():
     # Compute normalised residual columns
     sigma = pd.to_numeric(df["sigma"], errors="coerce")
     sigma_nz = sigma.mask(sigma == 0)  # -> NaN where zero to avoid divide-by-zero
-    df["norm_prefit"]  = pd.to_numeric(df["prefit"],  errors="coerce") / sigma_nz
+    df["norm_prefit"] = pd.to_numeric(df["prefit"], errors="coerce") / sigma_nz
     df["norm_postfit"] = pd.to_numeric(df["postfit"], errors="coerce") / sigma_nz
 
     # Keep a non-decimated copy for precise y lookups of MEAS error markers
@@ -2496,13 +2830,13 @@ def main():
             # Find longest common prefix
             prefix = stems[0]
             for stem in stems[1:]:
-                while stem[:len(prefix)] != prefix and prefix:
+                while stem[: len(prefix)] != prefix and prefix:
                     prefix = prefix[:-1]
 
             # Use common prefix if meaningful (at least 5 chars), otherwise use first file
             if len(prefix) >= 5:
                 # Remove trailing dashes/underscores
-                prefix = prefix.rstrip('-_')
+                prefix = prefix.rstrip("-_")
                 base_root = f"{prefix}_{len(stems)}_files"
             else:
                 base_root = f"{stems[0]}_{len(stems)}_files"
@@ -2529,12 +2863,15 @@ def main():
     # Graphics acceleration
     use_webgl = args.webgl
 
+    include_plotlyjs = getattr(args, "include_plotlyjs", True)
+    plotlyjs_setting = True if include_plotlyjs else "cdn"
+
     # Build which variants we will plot (raw + optional normalised)
     plot_variants = [("raw", yfield, "", "residual")]
     if args.plot_normalised_res:
         plot_variants.append(("norm", f"norm_{yfield}", "_norm", "normalised residual (res/σ)"))
 
-    any_outputs_global = False
+    all_outputs: List[str] = []
 
     for variant_tag, variant_yfield, variant_suffix, ytitle in plot_variants:
 
@@ -2548,7 +2885,7 @@ def main():
             if df_m.empty:
                 continue
 
-            is_phase = (meas_name == "PHAS_MEAS")
+            is_phase = meas_name == "PHAS_MEAS"
 
             if args.split_per_sat:
                 for sat in sorted(df_m["sat"].unique(), key=_sat_sort_key):
@@ -2556,7 +2893,8 @@ def main():
                     if df_ms.empty:
                         continue
                     fig = make_plot(
-                        df_ms, variant_yfield,
+                        df_ms,
+                        variant_yfield,
                         title=f"{sat} {short.upper()} {ytitle}",
                         use_webgl=use_webgl,
                         df_large=df_large,
@@ -2568,14 +2906,18 @@ def main():
                         df_amb=(df_amb if (args.mark_amb_resets and is_phase) else pd.DataFrame()),
                     )
                     out_html = build_out_path(
-                    base, variant_suffix, short,
-                    split="sat",
-                    key=sat,
-                    tag="residual",
-                    ext="html",
+                        base,
+                        variant_suffix,
+                        short,
+                        split="sat",
+                        key=sat,
+                        tag="residual",
+                        ext="html",
                     )
                     ensure_parent(out_html)
-                    fig.write_html(out_html, include_plotlyjs="cdn", validate=False, config={"scrollZoom": True})
+                    fig.write_html(
+                        out_html, include_plotlyjs=plotlyjs_setting, validate=False, config={"scrollZoom": True}
+                    )
                     logger.info("Wrote: %s", out_html)
                     outputs_variant.append(out_html)
                     meas_map[short].append((sat, out_html))
@@ -2587,7 +2929,7 @@ def main():
                         continue
 
                     # right before the make_plot() call
-                    is_phase = (meas_name == "PHAS_MEAS")   # make this exact comparison
+                    is_phase = meas_name == "PHAS_MEAS"  # make this exact comparison
                     df_amb_for_plot = df_amb if (args.mark_amb_resets and is_phase) else pd.DataFrame()
 
                     fig = make_plot(
@@ -2601,24 +2943,29 @@ def main():
                         df_lookup=df_lookup,
                         lookup_cache=lookup_cache,
                         show_stats=args.show_stats_table,
-                        df_amb=df_amb_for_plot,   # <- pass the guarded DF
+                        df_amb=df_amb_for_plot,  # <- pass the guarded DF
                     )
                     out_html = build_out_path(
-                    base, variant_suffix, short,
-                    split="recv",
-                    key=recv,
-                    tag="residual",
-                    ext="html",
+                        base,
+                        variant_suffix,
+                        short,
+                        split="recv",
+                        key=recv,
+                        tag="residual",
+                        ext="html",
                     )
                     ensure_parent(out_html)
-                    fig.write_html(out_html, include_plotlyjs="cdn", validate=False, config={"scrollZoom": True})
+                    fig.write_html(
+                        out_html, include_plotlyjs=plotlyjs_setting, validate=False, config={"scrollZoom": True}
+                    )
                     logger.info("Wrote: %s", out_html)
                     outputs_variant.append(out_html)
                     meas_map[short].append((recv, out_html))
 
             else:
                 fig = make_plot(
-                    df_m, variant_yfield,
+                    df_m,
+                    variant_yfield,
                     title=f"GNSS {short.upper()} {ytitle}",
                     use_webgl=use_webgl,
                     df_large=df_large,
@@ -2632,7 +2979,7 @@ def main():
 
                 out_html = build_out_path(base, variant_suffix, short, tag="residual", ext="html")
                 ensure_parent(out_html)
-                fig.write_html(out_html, include_plotlyjs="cdn", validate=False, config={"scrollZoom": True})
+                fig.write_html(out_html, include_plotlyjs=plotlyjs_setting, validate=False, config={"scrollZoom": True})
                 outputs_variant.append(out_html)
 
         # Build an index page for this variant if split mode was used
@@ -2642,7 +2989,9 @@ def main():
             # Build trace file info showing which files were used for what
             residual_file_names = ", ".join(p.name for p in residual_paths)
             if residual_paths != forward_paths:
-                trace_files_info = f"Residuals: {residual_file_names} | Amb/Errors: {', '.join(p.name for p in forward_paths)}"
+                trace_files_info = (
+                    f"Residuals: {residual_file_names} | Amb/Errors: {', '.join(p.name for p in forward_paths)}"
+                )
             else:
                 trace_files_info = residual_file_names
 
@@ -2672,7 +3021,7 @@ def main():
 
         # Print this variant’s outputs (once), then proceed
         if outputs_variant:
-            any_outputs_global = True
+            all_outputs.extend(outputs_variant)
             logger.info("Wrote %d plot files for variant '%s'.", len(outputs_variant), variant_tag)
 
         # ---- Receiver × Satellite heatmaps (weighted OR unweighted, not both) ----
@@ -2696,12 +3045,7 @@ def main():
 
                 # ---- Build counts matrix aligned to stats_mats ----
                 yv = pd.to_numeric(ms[variant_yfield], errors="coerce")
-                counts = (
-                    ms.loc[yv.notna()]
-                    .groupby(["recv", "sat"], sort=False)
-                    .size()
-                    .unstack(fill_value=0)
-                )
+                counts = ms.loc[yv.notna()].groupby(["recv", "sat"], sort=False).size().unstack(fill_value=0)
 
                 # Add ALL_SAT (per receiver) as first column
                 counts["ALL_SAT"] = counts.sum(axis=1)
@@ -2723,8 +3067,8 @@ def main():
                 wtxt = "weighted" if weighted else "unweighted"
                 titles = {
                     "mean": f"{dtype.upper()} — Receiver × Satellite — Mean ({wtxt}) — {ytitle}",
-                    "std":  f"{dtype.upper()} — Receiver × Satellite — Std Dev ({wtxt}) — {ytitle}",
-                    "rms":  f"{dtype.upper()} — Receiver × Satellite — RMS ({wtxt}) — {ytitle}",
+                    "std": f"{dtype.upper()} — Receiver × Satellite — Std Dev ({wtxt}) — {ytitle}",
+                    "rms": f"{dtype.upper()} — Receiver × Satellite — RMS ({wtxt}) — {ytitle}",
                 }
 
                 # ---------- Mean (diverging, centered at 0.0) ----------
@@ -2733,15 +3077,21 @@ def main():
                     out_html = build_out_path(base, variant_suffix, f"stats_matrix_mean_{dtype}")
                     ensure_parent(out_html)
                     write_heatmap_html(
-                        mat, titles["mean"], out_html,
-                        colorscale="RdBu", reversescale=True,
-                        zmid=0.0, zmin=None, zmax=None,
-                        counts=_align_counts(mat).astype(float), 
+                        mat,
+                        titles["mean"],
+                        out_html,
+                        colorscale="RdBu",
+                        reversescale=True,
+                        zmid=0.0,
+                        zmin=None,
+                        zmax=None,
+                        counts=_align_counts(mat).astype(float),
                         row_sort="alpha",
                         sat_sort="natural",
                         annotate=annotate_mode,
                     )
                     logger.info("Wrote: %s", out_html)
+                    all_outputs.append(out_html)
                 else:
                     logger.info("Mean matrix empty for %s; skipping.", dtype)
 
@@ -2759,15 +3109,21 @@ def main():
                     ensure_parent(out_html)
                     zmax = float(np.nanmax(mat.values)) if mat.size else None
                     write_heatmap_html(
-                        mat, titles[metric], out_html,
-                        colorscale="Blues", reversescale=False,
-                        zmid=None, zmin=0.0, zmax=zmax,
-                        counts=_align_counts(mat).astype(float), 
+                        mat,
+                        titles[metric],
+                        out_html,
+                        colorscale="Blues",
+                        reversescale=False,
+                        zmid=None,
+                        zmin=0.0,
+                        zmax=zmax,
+                        counts=_align_counts(mat).astype(float),
                         row_sort="alpha",
                         sat_sort="natural",
                         annotate=annotate_mode,
                     )
                     logger.info("Wrote: %s", out_html)
+                    all_outputs.append(out_html)
 
                     # CSV
                     out_csv = build_out_path(base, variant_suffix, short, ext="csv")
@@ -2780,32 +3136,222 @@ def main():
 
     # Ambiguity reset plots (reasons + unique resets)
     if args.ambiguity_counts:
-        if args.split_per_recv:
-            plot_ambiguity_reason_counts(df_amb, split="recv", base=base, variant_suffix=variant_suffix)
-        elif args.split_per_sat:
-            plot_ambiguity_reason_counts(df_amb, split="sat", base=base, variant_suffix=variant_suffix)
-        else:
-            plot_ambiguity_reason_counts(df_amb, split="combined", base=base, variant_suffix=variant_suffix)
+        split_mode = "recv" if args.split_per_recv else ("sat" if args.split_per_sat else "combined")
+        amb_count_outputs = plot_ambiguity_reason_counts_inline(
+            df_amb,
+            split=split_mode,
+            base=base,
+            variant_suffix=variant_suffix,
+            include_plotlyjs=plotlyjs_setting,
+        )
+        all_outputs.extend(amb_count_outputs)
 
     if args.ambiguity_totals:
-        if args.split_per_recv:
-            plot_ambiguity_reason_totals(df_amb, split="recv",
-                                  orientation=args.amb_totals_orient,
-                                  top_n=args.amb_totals_topn,
-                                  base=base, variant_suffix=variant_suffix)
-        elif args.split_per_sat:
-            plot_ambiguity_reason_totals(df_amb, split="sat",
-                                  orientation=args.amb_totals_orient,
-                                  top_n=args.amb_totals_topn,
-                                  base=base, variant_suffix=variant_suffix)
-        else:
-            plot_ambiguity_reason_totals(df_amb, split="combined",
-                                  orientation=args.amb_totals_orient,
-                                  top_n=args.amb_totals_topn,
-                                  base=base, variant_suffix=variant_suffix)
+        split_mode = "recv" if args.split_per_recv else ("sat" if args.split_per_sat else "combined")
+        amb_total_outputs = plot_ambiguity_reason_totals_inline(
+            df_amb,
+            split=split_mode,
+            orientation=args.amb_totals_orient,
+            top_n=args.amb_totals_topn,
+            base=base,
+            variant_suffix=variant_suffix,
+            include_plotlyjs=plotlyjs_setting,
+        )
+        all_outputs.extend(amb_total_outputs)
 
-    if not any_outputs_global:
+    if not all_outputs:
         logger.warning("No residuals matched your filters.")
+
+    return all_outputs
+
+
+def plot_ambiguity_reason_counts_inline(
+    df_amb: pd.DataFrame,
+    split: str = "combined",
+    *,
+    base: str,
+    variant_suffix: str,
+    include_plotlyjs=True,
+) -> List[str]:
+    """
+    Generate cumulative ambiguity-reset reason count plots with configurable plotlyjs embedding.
+    This is a wrapper around the plotting logic for programmatic use.
+    """
+    outputs = []
+    if df_amb is None or df_amb.empty:
+        logger.warning("No ambiguity-reset data to plot.")
+        return outputs
+
+    # Process and deduplicate ambiguity reasons
+    df_reasons = prepare_ambiguity_reasons(df_amb)
+    if df_reasons.empty:
+        logger.warning("No ambiguity-reset reasons found after processing.")
+        return outputs
+
+    df_reasons = df_reasons.sort_values("datetime")
+
+    # Also prepare unique satellite reset events
+    df_events = prepare_ambiguity_events(df_amb)
+    df_events = df_events.sort_values("datetime") if not df_events.empty else df_events
+
+    # Choose grouping key
+    if split == "recv":
+        groups = df_reasons.groupby("recv", dropna=False)
+        event_groups = df_events.groupby("recv", dropna=False) if not df_events.empty else []
+    elif split == "sat":
+        groups = df_reasons.groupby("sat", dropna=False)
+        event_groups = df_events.groupby("sat", dropna=False) if not df_events.empty else []
+    else:
+        groups = [("ALL", df_reasons)]
+        event_groups = [("ALL", df_events)] if not df_events.empty else []
+
+    # Convert event_groups to dict for easy lookup
+    event_dict = {k: v for k, v in event_groups}
+
+    for key, g in groups:
+        if g.empty:
+            continue
+
+        counts = g.groupby(["datetime", "reason"], sort=True).size().reset_index(name="count").sort_values("datetime")
+        counts["cumcount"] = counts.groupby("reason")["count"].cumsum()
+        pivot = counts.pivot(index="datetime", columns="reason", values="cumcount").ffill().fillna(0)
+
+        fig = go.Figure()
+        for reason in pivot.columns:
+            fig.add_trace(go.Scatter(x=pivot.index, y=pivot[reason], mode="lines", name=reason))
+
+        # Add unique resets trace if available
+        if key in event_dict and not event_dict[key].empty:
+            ev = event_dict[key]
+            ev_counts = ev.groupby("datetime").size().cumsum().reset_index(name="cumcount")
+            fig.add_trace(
+                go.Scatter(
+                    x=ev_counts["datetime"],
+                    y=ev_counts["cumcount"],
+                    mode="lines",
+                    name="Unique Resets",
+                    line=dict(dash="dash", color="black", width=2),
+                )
+            )
+
+        title_suffix = {
+            "recv": f"Receiver {key}",
+            "sat": f"Satellite {key}",
+            "combined": "All receivers/satellites",
+        }.get(split, "All")
+
+        fig.update_layout(
+            title=f"Cumulative Ambiguity Resets — {title_suffix}<br><sub>Each reason counted once per epoch-satellite across all signals. 'Unique Resets' shows total satellites affected.</sub>",
+            xaxis_title="Time",
+            yaxis_title="Cumulative Count",
+            template="plotly_white",
+            legend_title="Metric",
+            hovermode="x unified",
+        )
+
+        safe_key = _sanitize_filename_piece(str(key))
+        out_html = build_out_path(base, variant_suffix, "ambiguity_counts", split=split, key=safe_key)
+        ensure_parent(out_html)
+        fig.write_html(out_html, include_plotlyjs=include_plotlyjs, validate=False, config={"scrollZoom": True})
+        logger.info(f"Wrote: {out_html}")
+        outputs.append(out_html)
+
+    return outputs
+
+
+def plot_ambiguity_reason_totals_inline(
+    df_amb: pd.DataFrame,
+    split: str = "combined",
+    orientation: str = "h",
+    top_n: int = None,
+    *,
+    base: str,
+    variant_suffix: str,
+    include_plotlyjs=True,
+) -> List[str]:
+    """
+    Generate stacked bar chart of total ambiguity reset reasons with configurable plotlyjs embedding.
+    This is a wrapper around the plotting logic for programmatic use.
+    """
+    outputs = []
+    if df_amb is None or df_amb.empty:
+        logger.warning("No ambiguity-reset data to plot.")
+        return outputs
+
+    # Process and deduplicate ambiguity reasons
+    df_reasons = prepare_ambiguity_reasons(df_amb)
+    if df_reasons.empty:
+        logger.warning("No ambiguity-reset reasons found after processing.")
+        return outputs
+
+    # Choose grouping key
+    if split == "recv":
+        group_col = "recv"
+    elif split == "sat":
+        group_col = "sat"
+    else:
+        group_col = None
+
+    if group_col:
+        totals = df_reasons.groupby([group_col, "reason"]).size().unstack(fill_value=0)
+        totals["_total"] = totals.sum(axis=1)
+        totals = totals.sort_values("_total", ascending=False)
+        if top_n:
+            totals = totals.head(top_n)
+        totals = totals.drop(columns=["_total"])
+    else:
+        totals = df_reasons.groupby("reason").size()
+        totals = totals.sort_values(ascending=False)
+        totals = totals.to_frame(name="count").T
+        totals.index = ["All"]
+
+    fig = go.Figure()
+    reasons = [c for c in totals.columns if c != "_total"]
+    for reason in reasons:
+        if orientation == "h":
+            fig.add_trace(
+                go.Bar(
+                    y=totals.index,
+                    x=totals[reason],
+                    name=reason,
+                    orientation="h",
+                )
+            )
+        else:
+            fig.add_trace(
+                go.Bar(
+                    x=totals.index,
+                    y=totals[reason],
+                    name=reason,
+                )
+            )
+
+    title_suffix = {
+        "recv": "by Receiver",
+        "sat": "by Satellite",
+        "combined": "Total",
+    }.get(split, "")
+
+    fig.update_layout(
+        title=f"Ambiguity Reset Reasons {title_suffix}",
+        barmode="stack",
+        template="plotly_white",
+        legend_title="Reason",
+    )
+
+    if orientation == "h":
+        fig.update_layout(xaxis_title="Count", yaxis_title=group_col.capitalize() if group_col else "")
+    else:
+        fig.update_layout(yaxis_title="Count", xaxis_title=group_col.capitalize() if group_col else "")
+
+    out_html = build_out_path(base, variant_suffix, f"ambiguity_totals_{orientation}")
+    ensure_parent(out_html)
+    fig.write_html(out_html, include_plotlyjs=include_plotlyjs, validate=False, config={"scrollZoom": True})
+    logger.info(f"Wrote: {out_html}")
+    outputs.append(out_html)
+
+    return outputs
+
 
 if __name__ == "__main__":
     main()

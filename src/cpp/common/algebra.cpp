@@ -1132,6 +1132,7 @@ void KFState::preFitSigmaChecks(
         0
     );  // set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
     stateRatios = stateRatios.isFinite().select(stateRatios, 0);
+    stateRatios = (P.diagonal().array() > 0).select(stateRatios, 0);
 
     kfMeas.prefitRatios.segment(begH, numH) = measRatios;
     this->prefitRatios.segment(begX, numX)  = stateRatios;
@@ -1164,11 +1165,9 @@ void KFState::preFitSigmaChecks(
               << time << "\tLargest meas  error is : " << maxMeasRatio << "\tAT " << measChunkIndex
               << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
-        auto mask = (H.col(stateIndex).array() != 0);  // Mask out referencing measurements, i.e.
-                                                       // non-zero values in column stateIndex of H
-        measRatios.array() *=
-            mask.cast<double>();  // Set measRatios of non-referencing measurements to 0
-
+        measRatios =
+            (H.col(stateIndex).array() != 0)
+                .select(measRatios, 0);  // set measRatios of non-referencing measurements to 0
         maxMeasRatio   = measRatios.abs().maxCoeff(&measIndex);
         measChunkIndex = measIndex + begH;
 
@@ -1364,6 +1363,7 @@ void KFState::postFitSigmaChecks(
         0
     );  // set ratio to 0 if corresponding variance is 0, e.g. ONE state, clk rate states
     stateRatios = stateRatios.isFinite().select(stateRatios, 0);
+    stateRatios = (P.diagonal().array() > 0).select(stateRatios, 0);
 
     kfMeas.postfitRatios.segment(begH, numH) = measRatios;
     this->postfitRatios.segment(begX, numX)  = stateRatios;
@@ -1396,11 +1396,9 @@ void KFState::postFitSigmaChecks(
               << time << "\tLargest meas  error is : " << maxMeasRatio << "\tAT " << measChunkIndex
               << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
-        auto mask = (H.col(stateIndex).array() != 0);  // Mask out referencing measurements, i.e.
-                                                       // non-zero values in column stateIndex of H
-        measRatios.array() *=
-            mask.cast<double>();  // Set measRatios of non-referencing measurements to 0
-
+        measRatios =
+            (H.col(stateIndex).array() != 0)
+                .select(measRatios, 0);  // Set measRatios of non-referencing measurements to 0
         maxMeasRatio   = measRatios.abs().maxCoeff(&measIndex);
         measChunkIndex = measIndex + begH;
 

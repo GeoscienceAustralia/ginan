@@ -376,6 +376,8 @@ void mainOncePerEpoch(Network& pppNet, Network& ionNet, ReceiverMap& receiverMap
         frameSwapper.setCache(dt);
     }
 
+    loadSBASdata(pppTrace, time, nav);
+
     // try to get svns & block types of all used satellites
     for (auto& [Sat, satNav] : nav.satNavMap)
     {

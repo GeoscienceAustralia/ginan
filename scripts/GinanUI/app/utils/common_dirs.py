@@ -11,7 +11,17 @@ def get_base_path():
         # Running in development mode - __file__ is in app/utils/
         return Path(__file__).parent.parent
 
+def get_user_manual_path():
+    """Get the path to the user manual, handling both development and PyInstaller bundled modes."""
+    if getattr(sys, 'frozen', False):
+        # Running in PyInstaller bundle - look in _internal/docs/
+        return Path(sys._MEIPASS) / "docs" / "USER_MANUAL.md"
+    else:
+        # Running in development mode - __file__ is in app/utils/
+        return Path(__file__).parent.parent.parent / "docs" / "USER_MANUAL.md"
+
 BASE_PATH = get_base_path()
 TEMPLATE_PATH = BASE_PATH / "resources" / "Yaml" / "default_config.yaml"
 GENERATED_YAML = BASE_PATH / "resources" / "ppp_generated.yaml"
 INPUT_PRODUCTS_PATH = BASE_PATH / "resources" / "inputData" / "products"
+USER_MANUAL_PATH = get_user_manual_path()
