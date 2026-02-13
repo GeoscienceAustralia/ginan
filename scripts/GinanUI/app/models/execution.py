@@ -289,9 +289,24 @@ class Execution:
         # 3. Include UI-extracted values
         self.edit_config("processing_options.epoch_control.start_epoch", PlainScalarString(inputs.start_epoch), False)
         self.edit_config("processing_options.epoch_control.end_epoch", PlainScalarString(inputs.end_epoch), False)
-        self.edit_config("processing_options.epoch_control.epoch_interval", inputs.epoch_interval, False)
+        epoch_interval = inputs.epoch_interval
+        epoch_tolerance = min(0.5, inputs.rinex_epoch_interval / 2)
+        self.edit_config("processing_options.epoch_control.epoch_interval", int(epoch_interval) if epoch_interval == int(epoch_interval) else float(epoch_interval), False)
+        self.edit_config("processing_options.epoch_control.epoch_tolerance", int(epoch_tolerance) if epoch_tolerance == int(epoch_tolerance) else float(epoch_tolerance), True)
         self.edit_config(f"receiver_options.{inputs.marker_name}.receiver_type", inputs.receiver_type, True)
         self.edit_config(f"receiver_options.{inputs.marker_name}.antenna_type", inputs.antenna_type, True)
+
+        # Handle apriori_position: remove if all zeros, add if non-zero
+        receiver_node = self.config.get("receiver_options", {}).get(inputs.marker_name, {})
+
+        if all(v == 0.0 for v in inputs.apriori_position):
+            # Remove apriori_position if it exists and is all zeros
+            if "apriori_position" in receiver_node:
+                del receiver_node["apriori_position"]
+        else:
+            # Add / update apriori_position if non-zero
+            self.edit_config(f"receiver_options.{inputs.marker_name}.apriori_position", inputs.apriori_position, True)
+
         self.edit_config(f"receiver_options.{inputs.marker_name}.models.eccentricity.offset", inputs.antenna_offset,
                          True)
 
@@ -327,7 +342,73 @@ class Execution:
                     code_seq.fa.set_flow_style()
                     self.edit_config(f"processing_options.gnss_general.sys_options.{const}.code_priorities", code_seq, False)
                 else:
-                    self.edit_config(f"processing_options.gnss_general.sys_options.{const}.code_priorities", [],False)
+                    empty_seq = CommentedSeq([])
+                    empty_seq.fa.set_flow_style()
+                    self.edit_config(f"processing_options.gnss_general.sys_options.{const}.code_priorities", empty_seq,False)
+
+        # 6. Add SINEX file to config if available
+        sinex_filename = getattr(inputs, 'sinex_filename', None)
+        if sinex_filename:
+            self._add_sinex_to_config(sinex_filename)
+
+    def _add_sinex_to_config(self, sinex_filename: str):
+        """
+        Append the SINEX filename to the config's inputs.snx_files list.
+
+        Does NOT overwrite existing entries - only appends if not already present.
+        Removes any old IGS CRD SINEX files (IGS*_CRD.SNX pattern) before adding new one.
+
+        :param sinex_filename: Name of the SINEX file (e.g., "IGS0OPSSNX_20250310000_01D_01D_CRD.SNX")
+        """
+        import re
+
+        try:
+            # Ensure inputs section exists
+            if "inputs" not in self.config:
+                self.config["inputs"] = CommentedMap()
+
+            # Get or create snx_files list
+            existing = self.config["inputs"].get("snx_files")
+
+            if existing is None:
+                # Create new list with the SINEX file
+                new_seq = CommentedSeq([normalise_yaml_value(sinex_filename)])
+                new_seq.fa.set_block_style()
+                self.config["inputs"]["snx_files"] = new_seq
+            elif isinstance(existing, CommentedSeq):
+                # Remove any old IGS CRD SINEX files (pattern: IGS*SNX_*_CRD.SNX)
+                # Keep other entries like igs_satellite_metadata.snx or tables/*.snx
+                igs_crd_pattern = re.compile(r'^IGS.*SNX_.*_CRD\.SNX$', re.IGNORECASE)
+
+                # Filter out old IGS CRD files
+                filtered = [item for item in existing if not igs_crd_pattern.match(str(item))]
+
+                # Check if new file is already present
+                if sinex_filename not in filtered:
+                    filtered.append(normalise_yaml_value(sinex_filename))
+
+                # Update the list
+                existing.clear()
+                for item in filtered:
+                    existing.append(normalise_yaml_value(item) if not isinstance(item, PlainScalarString) else item)
+                existing.fa.set_block_style()
+            else:
+                # Convert to list if it's a single value
+                old_value = str(existing)
+                new_seq = CommentedSeq()
+
+                # Keep old value if it's not an IGS CRD file
+                igs_crd_pattern = re.compile(r'^IGS.*SNX_.*_CRD\.SNX$', re.IGNORECASE)
+                if not igs_crd_pattern.match(old_value):
+                    new_seq.append(normalise_yaml_value(old_value))
+
+                # Add new SINEX file
+                new_seq.append(normalise_yaml_value(sinex_filename))
+                new_seq.fa.set_block_style()
+                self.config["inputs"]["snx_files"] = new_seq
+
+        except Exception as e:
+            Logger.terminal(f"⚠️ Failed to write SINEX to config: {e}")
 
     def write_cached_changes(self):
         write_yaml(self.config_path, self.config)

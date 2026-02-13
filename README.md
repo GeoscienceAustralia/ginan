@@ -2,7 +2,7 @@
 
 # Ginan: GNSS Analysis Software Toolkit
 
-[![Version](https://img.shields.io/badge/version-v4.1.0-blue.svg)](https://github.com/GeoscienceAustralia/ginan/releases)
+[![Version](https://img.shields.io/badge/version-v4.1.1-blue.svg)](https://github.com/GeoscienceAustralia/ginan/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](#supported-platforms)
 [![Docker](https://img.shields.io/badge/docker-available-blue.svg)](https://hub.docker.com/r/gnssanalysis/ginan)
@@ -57,7 +57,7 @@ The fastest way to get started with Ginan is using Docker:
 
 ```bash
 # Pull and run the latest Ginan container
-docker run -it -v $(pwd):/data gnssanalysis/ginan:v4.1.0 bash
+docker run -it -v $(pwd):/data gnssanalysis/ginan:v4.1.1 bash
 
 # Verify installation
 pea --help
@@ -120,7 +120,7 @@ Choose the installation method that best fits your needs:
 
 ```bash
 # Run Ginan container with data volume mounting
-docker run -it -v ${pwd}:/data gnssanalysis/ginan:v4.1.0 bash
+docker run -it -v ${pwd}:/data gnssanalysis/ginan:v4.1.1 bash
 ```
 
 This command:
@@ -294,7 +294,7 @@ cd ../../exampleConfigs
 
 Expected output:
 ```
-PEA starting... (main ginan-v4.1.0 from ...)
+PEA starting... (main ginan-v4.1.1 from ...)
 Options:
   -h [ --help ]     Help
   -q [ --quiet ]    Less output
@@ -462,4 +462,4 @@ All incorporated code has been preserved with appropriate modifications in the `
 
 ---
 
-**Developed by [Geoscience Australia](https://www.ga.gov.au/)** | **Version 4.1.0** | **[GitHub Repository](https://github.com/GeoscienceAustralia/ginan)**
+**Developed by [Geoscience Australia](https://www.ga.gov.au/)** | **Version 4.1.1** | **[GitHub Repository](https://github.com/GeoscienceAustralia/ginan)**

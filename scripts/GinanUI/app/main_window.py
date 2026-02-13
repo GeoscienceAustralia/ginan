@@ -167,6 +167,7 @@ class MainWindow(QMainWindow):
         self.ui.receiverTypeCombo.setEnabled(enabled)
         self.ui.antennaTypeCombo.setEnabled(enabled)
         self.ui.antennaOffsetButton.setEnabled(enabled)
+        self.ui.aprioriPositionButton.setEnabled(enabled)
         self.ui.timeWindowButton.setEnabled(enabled)
         self.ui.dataIntervalButton.setEnabled(enabled)
 

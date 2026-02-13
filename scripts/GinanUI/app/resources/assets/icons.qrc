@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="icon">
+    <file>help.png</file>
+    <file>help_hover.png</file>
+    <file>help_selected.png</file>
     <file>checkbox_selected.png</file>
     <file>checkbox_selected_disabled.png</file>
     <file>checkbox_selected_hover.png</file>

@@ -145,6 +145,32 @@ extern "C"
         double*       y,
         const int*    incy
     );
+    void dsymm_(
+        const char*   side,
+        const char*   uplo,
+        const int*    m,
+        const int*    n,
+        const double* alpha,
+        const double* a,
+        const int*    lda,
+        const double* b,
+        const int*    ldb,
+        const double* beta,
+        double*       c,
+        const int*    ldc
+    );
+    void dsyrk_(
+        const char*   uplo,
+        const char*   trans,
+        const int*    n,
+        const int*    k,
+        const double* alpha,
+        const double* a,
+        const int*    lda,
+        const double* beta,
+        double*       c,
+        const int*    ldc
+    );
 }
 #endif
 // Note: When EIGEN_USE_BLAS/EIGEN_BLAS_H is defined, these are already declared by Eigen headers
@@ -468,6 +494,80 @@ inline void dcopy(int n, const double* x, int incx, double* y, int incy)
 inline void daxpy(int n, double alpha, const double* x, int incx, double* y, int incy)
 {
     daxpy_(&n, &alpha, const_cast<double*>(x), &incx, y, &incy);
+}
+
+// Symmetric matrix-matrix multiply: C = alpha*A*B + beta*C or C = alpha*B*A + beta*C
+// where A is symmetric
+inline void dsymm(
+    Layout        layout,
+    char          side,    // 'L' for A*B, 'R' for B*A
+    char          uplo,    // 'U' or 'L' - which triangle of A is stored
+    int           m,       // Rows of C
+    int           n,       // Cols of C
+    double        alpha,
+    const double* a,       // Symmetric matrix
+    int           lda,
+    const double* b,       // General matrix
+    int           ldb,
+    double        beta,
+    double*       c,
+    int           ldc
+)
+{
+    if (layout != Layout::ColMajor)
+    {
+        return;
+    }
+
+    dsymm_(
+        &side,
+        &uplo,
+        &m,
+        &n,
+        &alpha,
+        const_cast<double*>(a),
+        &lda,
+        const_cast<double*>(b),
+        &ldb,
+        &beta,
+        c,
+        &ldc
+    );
+}
+
+// Symmetric rank-k update: C = alpha*A*A^T + beta*C or C = alpha*A^T*A + beta*C
+// where C is symmetric
+inline void dsyrk(
+    Layout        layout,
+    char          uplo,    // 'U' or 'L' - which triangle of C to update
+    char          trans,   // 'N' for A*A^T, 'T' for A^T*A
+    int           n,       // Order of C
+    int           k,       // Inner dimension
+    double        alpha,
+    const double* a,
+    int           lda,
+    double        beta,
+    double*       c,
+    int           ldc
+)
+{
+    if (layout != Layout::ColMajor)
+    {
+        return;
+    }
+
+    dsyrk_(
+        &uplo,
+        &trans,
+        &n,
+        &k,
+        &alpha,
+        const_cast<double*>(a),
+        &lda,
+        &beta,
+        c,
+        &ldc
+    );
 }
 
 }  // namespace LapackWrapper

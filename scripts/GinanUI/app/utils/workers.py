@@ -2,12 +2,21 @@
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
-from scripts.GinanUI.app.models.dl_products import get_product_dataframe_with_repro3_fallback, download_products, get_brdc_urls, download_metadata, get_provider_constellations, get_bia_code_priorities_for_selection
+from scripts.GinanUI.app.models.dl_products import (
+    get_product_dataframe_with_repro3_fallback,
+    download_products,
+    get_brdc_urls,
+    download_metadata,
+    get_provider_constellations,
+    get_bia_code_priorities_for_selection,
+    download_and_validate_sinex,
+    log_sinex_validation_results
+)
 from scripts.GinanUI.app.utils.common_dirs import INPUT_PRODUCTS_PATH
 
 from scripts.GinanUI.app.utils.logger import Logger
@@ -247,3 +256,84 @@ class BiasProductWorker(QObject):
             tb = traceback.format_exc()
             Logger.console(f"⚠️ Error fetching BIA code priorities:\n{tb}")
             self.error.emit(f"Error fetching BIA: {e}")
+
+class SinexValidationWorker(QObject):
+    """
+    Downloads the IGS CRD SINEX file and validates RINEX-extracted values against it.
+
+    :param target_date: The date for which to download the SINEX file
+    :param marker_name: 4-character marker name from RINEX
+    :param receiver_type: Receiver type from RINEX
+    :param antenna_type: Antenna type from RINEX
+    :param antenna_offset: Antenna offset [E, N, U] from RINEX
+    :param apriori_position: Optional apriori position [X, Y, Z] from RINEX
+    :param download_dir: Directory to save the downloaded file
+    """
+    finished = Signal(Path, dict)  # Emits (sinex_path, validation_results)
+    error = Signal(str)                  # Emits error message string
+    progress = Signal(str, int)    # Emits (description, percent) for progress updates
+
+    def __init__(self, target_date: datetime, marker_name: str, receiver_type: str, antenna_type: str,antenna_offset: List[float],
+                 apriori_position: Optional[List[float]] = None, download_dir: Path = INPUT_PRODUCTS_PATH):
+        super().__init__()
+        self.target_date = target_date
+        self.marker_name = marker_name
+        self.receiver_type = receiver_type
+        self.antenna_type = antenna_type
+        self.antenna_offset = antenna_offset
+        self.apriori_position = apriori_position
+        self.download_dir = download_dir
+        self._stop = False
+
+    @Slot()
+    def stop(self):
+        self._stop = True
+
+    @Slot()
+    def run(self):
+        try:
+            # Check if stop was requested before starting
+            if self._stop:
+                Logger.terminal(f"📦 SINEX validation cancelled")
+                self.error.emit("SINEX validation cancelled")
+                return
+
+            def check_stop():
+                return self._stop
+
+            # Download and validate SINEX file
+            sinex_path, results = download_and_validate_sinex(
+                self.target_date,
+                self.marker_name,
+                self.receiver_type,
+                self.antenna_type,
+                self.antenna_offset,
+                self.apriori_position,
+                self.download_dir,
+                progress_callback=self.progress.emit,
+                stop_requested=check_stop
+            )
+
+            # Check again after download
+            if self._stop:
+                Logger.terminal(f"📦 SINEX validation cancelled")
+                self.error.emit("SINEX validation cancelled")
+                return
+
+            if sinex_path is None:
+                self.error.emit("Failed to download SINEX file")
+                return
+
+            # Log the validation results
+            log_sinex_validation_results(results, self.marker_name)
+
+            # Emit successful result
+            self.finished.emit(sinex_path, results)
+
+        except Exception as e:
+            if self._stop:
+                self.error.emit("SINEX validation cancelled")
+                return
+            tb = traceback.format_exc()
+            Logger.terminal(f"⚠️ Error during SINEX validation:\n{tb}")
+            self.error.emit(f"Error during SINEX validation: {e}")

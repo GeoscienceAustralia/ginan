@@ -160,7 +160,6 @@ jobs:
             os: ubuntu-latest
             binary-artifact: ginan-linux-x64
             gui-artifact: ginan-gui-linux-x64
-            ui-sed-cmd: sed -i '24s/.*/from scripts.GinanUI.app.resources import ginan_logo_rc/' app/views/main_window_ui.py
             pyinstaller-args: --windowed
             extra-steps: ""
             
@@ -168,7 +167,6 @@ jobs:
             os: macos-15
             binary-artifact: ginan-macos-arm64
             gui-artifact: ginan-gui-macos-arm64
-            ui-sed-cmd: sed -i '' '24s/.*/from scripts.GinanUI.app.resources import ginan_logo_rc/' app/views/main_window_ui.py
             pyinstaller-args: --onedir --clean --target-arch arm64 --noconfirm
             extra-steps: macos
             
@@ -176,7 +174,6 @@ jobs:
             os: macos-15-intel
             binary-artifact: ginan-macos-x64
             gui-artifact: ginan-gui-macos-x64
-            ui-sed-cmd: sed -i '' '24s/.*/from scripts.GinanUI.app.resources import ginan_logo_rc/' app/views/main_window_ui.py
             pyinstaller-args: --onedir --clean --noconfirm
             extra-steps: macos
             
@@ -184,14 +181,6 @@ jobs:
             os: windows-latest
             binary-artifact: ginan-windows-x64
             gui-artifact: ginan-gui-windows-x64
-            ui-sed-cmd: |
-              (Get-Content app/views/main_window_ui.py) | ForEach-Object {
-                if ($_.ReadCount -eq 24) {
-                  "from scripts.GinanUI.app.resources import ginan_logo_rc"
-                } else {
-                  $_
-                }
-              } | Set-Content app/views/main_window_ui.py
             pyinstaller-args: --windowed
             pyinstaller-separator: ";"
             extra-steps: ""
@@ -221,20 +210,9 @@ jobs:
         pip install -r scripts/GinanUI/requirements.txt
         pip install pyinstaller
     
-    - name: Convert UI files to Python (Unix)
-      if: runner.os != 'Windows'
+    - name: Convert UI files to Python
       working-directory: scripts/GinanUI
-      run: |
-        pyside6-uic app/views/main_window.ui -o app/views/main_window_ui.py
-        ${{ matrix.ui-sed-cmd }}
-    
-    - name: Convert UI files to Python (Windows)
-      if: runner.os == 'Windows'
-      working-directory: scripts/GinanUI
-      shell: pwsh
-      run: |
-        pyside6-uic app/views/main_window.ui -o app/views/main_window_ui.py
-        ${{ matrix.ui-sed-cmd }}
+      run: python app/utils/ui_compilation.py
     
     - name: Make binaries executable (Unix)
       if: runner.os != 'Windows'
@@ -292,14 +270,17 @@ jobs:
       run: |
         python -m PyInstaller --name GinanUI \
           ${{ matrix.pyinstaller-args }} \
-          --add-data "scripts/GinanUI/app:app" \
+          --add-data "scripts/GinanUI/app:scripts/GinanUI/app" \
+          --add-data "scripts/GinanUI/docs:scripts/GinanUI/docs" \
           --add-data "scripts/plot_pos.py:scripts" \
+          --add-data "scripts/plot_trace_res.py:scripts" \
           --add-binary "bin/*:bin" \
           --hidden-import PySide6 \
           --hidden-import PySide6.QtWebEngineWidgets \
           --hidden-import PySide6.QtWebEngineCore \
           --hidden-import plotly \
           --hidden-import scripts.plot_pos \
+          --hidden-import scripts.plot_trace_res \
           --hidden-import scripts.GinanUI.app \
           --hidden-import scripts.GinanUI.app.models \
           --hidden-import scripts.GinanUI.app.models.execution \
@@ -314,7 +295,6 @@ jobs:
           --hidden-import scripts.GinanUI.app.utils.gn_functions \
           --hidden-import scripts.GinanUI.app.utils.yaml \
           --hidden-import scripts.GinanUI.app.views.main_window_ui \
-          --collect-all scripts.GinanUI \
           scripts/GinanUI/main.py
     
     - name: Build GUI with PyInstaller (Windows)
@@ -322,14 +302,17 @@ jobs:
       run: |
         pyinstaller --name GinanUI `
           ${{ matrix.pyinstaller-args }} `
-          --add-data "scripts/GinanUI/app;app" `
+          --add-data "scripts/GinanUI/app;scripts/GinanUI/app" `
+          --add-data "scripts/GinanUI/docs;scripts/GinanUI/docs" `
           --add-data "scripts/plot_pos.py;scripts" `
+          --add-data "scripts/plot_trace_res.py;scripts" `
           --add-binary "bin/*;bin" `
           --hidden-import PySide6 `
           --hidden-import PySide6.QtWebEngineWidgets `
           --hidden-import PySide6.QtWebEngineCore `
           --hidden-import plotly `
           --hidden-import scripts.plot_pos `
+          --hidden-import scripts.plot_trace_res `
           --hidden-import scripts.GinanUI.app `
           --hidden-import scripts.GinanUI.app.models `
           --hidden-import scripts.GinanUI.app.models.execution `
@@ -344,7 +327,6 @@ jobs:
           --hidden-import scripts.GinanUI.app.utils.gn_functions `
           --hidden-import scripts.GinanUI.app.utils.yaml `
           --hidden-import scripts.GinanUI.app.views.main_window_ui `
-          --collect-all scripts.GinanUI `
           scripts/GinanUI/main.py
     
     # Post-build cleanup

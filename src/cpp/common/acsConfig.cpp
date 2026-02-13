@@ -508,6 +508,9 @@ string stringify(vector<TYPE> vec)
     return output;
 }
 
+/** Get a stack of clean valid tokens, such those without symbolic and numeric prefixes, and the
+ * prefix of the last config token
+ */
 string nonNumericStack(const string& stack, string& cutstr, bool colon = true)
 {
     string token;
@@ -517,15 +520,43 @@ string nonNumericStack(const string& stack, string& cutstr, bool colon = true)
 
     while (getline(ss, token, ':'))
     {
-        size_t found = token.find_first_not_of("0123456789!@#: ");
-        if (found != std::string::npos)
+        cutstr = "";
+
+        // A valid config token should not contain any of '!', '@' and '#', so first get the
+        // trailing substring without any of them
+        size_t lastSymbol = token.find_last_of("!@#");
+        if (lastSymbol != std::string::npos)
         {
-            cutstr = token.substr(0, found);
-            token  = token.substr(found);
+            cutstr += token.substr(0, lastSymbol + 1);
+            token = token.substr(lastSymbol + 1);
+        }
+
+        // Trim leading and trailing whitespace, otherwise the first non-prefix could be ' '
+        boost::trim(token);
+
+        // The leading number (any digits) followed by whitespace is used for sorting configs (e.g.
+        // '0 output'), but if the leading character is not a number (e.g. 'A123'), or there is no
+        // whitespace between the leading number and the rest of the string (e.g. '1ABC'), it should
+        // be the config token. Pure numbers are also accepted as valid configs.
+        size_t firstNonPrefix = token.find_first_not_of("0123456789");
+        if (firstNonPrefix != std::string::npos && token[firstNonPrefix] == ' ')
+        {
+            cutstr += token.substr(0, firstNonPrefix);
+            token = token.substr(firstNonPrefix + 1);
+        }
+
+        // Trim leading whitespace again in case there're multiple ' ' following leading number
+        boost::trim(token);
+
+        if (token.size() > 0)
+        {
             newStack += token;
             if (colon)
                 newStack += ":";
         }
+
+        // Trim leading and trailing whitespace in prefix
+        boost::trim(cutstr);
     }
 
     return newStack;
@@ -2586,7 +2617,7 @@ void tryGetKalmanFromYaml(
 /** Set common options from yaml
  */
 void tryGetKalmanFromYaml(
-    CommonKalmans&        comOpts,       ///< Receiver options variable to output to
+    CommonKalmans&        comOpts,       ///< Common options variable to output to
     NodeStack             yamlBase,      ///< Yaml node to search within
     const vector<string>& descriptorVec  ///< List of strings of keys of yaml hierarchy
 )
@@ -2669,10 +2700,10 @@ void getKalmanFromYaml(
     tryGetKalmanFromYaml(recOpts.trop_maps, recNode, "1@ trop_maps", "Troposphere ZWD mapping");
 }
 
-/** Set common options from yaml
+/** Set orbit options from yaml
  */
 void getOptionsFromYaml(
-    OrbitOptions&         orbOpts,       ///< Satellite options variable to output to
+    OrbitOptions&         orbOpts,       ///< Orbit options variable to output to
     NodeStack             yamlBase,      ///< Yaml node to search within
     const vector<string>& descriptorVec  ///< List of strings of keys of yaml hierarchy
 )
@@ -2980,7 +3011,7 @@ void getOptionsFromYaml(
 /** Set common options from yaml
  */
 void getOptionsFromYaml(
-    CommonOptions&        comOpts,       ///< Satellite options variable to output to
+    CommonOptions&        comOpts,       ///< Common options variable to output to
     NodeStack             yamlBase,      ///< Yaml node to search within
     const vector<string>& descriptorVec  ///< List of strings of keys of yaml hierarchy
 )

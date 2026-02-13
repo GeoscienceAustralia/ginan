@@ -1,15 +1,16 @@
-import gzip, os, shutil, unlzw3, requests
+import gzip, hashlib, os, shutil, unlzw3, requests
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup, SoupStrainer
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Callable, Generator, List
+from typing import Optional, Callable, Dict, Generator, List
 
 from scripts.GinanUI.app.utils.cddis_email import get_netrc_auth
 from scripts.GinanUI.app.utils.common_dirs import INPUT_PRODUCTS_PATH
 from scripts.GinanUI.app.utils.gn_functions import GPSDate
 from scripts.GinanUI.app.utils.logger import Logger
+from scripts.GinanUI.app.models.archive_manager import restore_from_archive
 
 BASE_URL = "https://cddis.nasa.gov/archive"
 GPS_ORIGIN = np.datetime64("1980-01-06 00:00:00")  # Magic date from gn_functions
@@ -46,6 +47,11 @@ METADATA = [
     "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/products/tables/sat_yaw_bias_rate.snx.gz",
     "https://datacenter.iers.org/data/latestVersion/finals.data.iau2000.txt"
 ]
+
+
+CHECKSUM_FILENAME = "SHA512SUMS"
+# File types that should be validated against SHA512SUMS
+CHECKSUM_VALIDATED_FORMATS = {"SP3", "BIA", "CLK", "SNX"}
 
 
 def date_to_gpswk(date: datetime) -> int:
@@ -600,12 +606,14 @@ def _try_repro3_fallback(start_time: datetime, end_time: datetime, target_files:
             return main_products
         return repro3_products
 
-def extract_file(filepath: Path) -> Path:
+def extract_file(filepath: Path, keep_compressed: bool = True) -> Path:
     """
     Extracts [".gz", ".gzip", ".Z"] files with gzip and unlzw3 respectively.
-    Deletes compressed file after extraction.
+    By default, the compressed file is retained alongside the extracted version
+    so that it can be archived and later validated against SHA-512 checksums.
 
     :param filepath: compressed file path
+    :param keep_compressed: if True, retain the compressed file after extraction
     :return: path to extracted file
     """
     finalpath = ".".join(str(filepath).split(".")[:-1])
@@ -616,13 +624,210 @@ def extract_file(filepath: Path) -> Path:
         decompressed_data = unlzw3.unlzw(filepath)
         with open(finalpath, "wb") as f_out:
             f_out.write(decompressed_data)
-    filepath.unlink()
+    if not keep_compressed:
+        filepath.unlink()
     return Path(finalpath)
 
 
+# region SHA-512 Checksum Validation
+
+def get_checksum_url(gps_week: int, use_repro3: bool = False) -> str:
+    """
+    Generate the URL for the SHA512SUMS file for a given GPS week.
+
+    :param gps_week: GPS week number
+    :param use_repro3: If True, generate URL for the repro3 subdirectory
+    :returns: URL to the SHA512SUMS file
+    """
+    if use_repro3:
+        return f"{BASE_URL}/gnss/products/{gps_week}/repro3/{CHECKSUM_FILENAME}"
+    return f"{BASE_URL}/gnss/products/{gps_week}/{CHECKSUM_FILENAME}"
+
+def download_checksum_file(gps_week: int, session: requests.Session, download_dir: Path = INPUT_PRODUCTS_PATH,
+                           use_repro3: bool = False, progress_callback: Optional[Callable] = None,
+                           stop_requested: Optional[Callable] = None) -> Optional[Path]:
+    """
+    Download the SHA512SUMS file for a given GPS week if it hasn't been downloaded already.
+    The file is saved as SHA512SUMS_{gps_week} (or SHA512SUMS_{gps_week}_repro3) to avoid
+    collisions between different weeks.
+
+    :param gps_week: GPS week number
+    :param session: Authenticated requests session for CDDIS access
+    :param download_dir: Directory to save the checksum file
+    :param use_repro3: If True, download from the repro3 subdirectory
+    :param progress_callback: Optional callback for progress updates (filename, percent)
+    :param stop_requested: Optional callback to check if operation should stop
+    :returns: Path to the downloaded checksum file, or None if download failed
+    """
+    suffix = "_repro3" if use_repro3 else ""
+    local_filename = f"{CHECKSUM_FILENAME}_{gps_week}{suffix}"
+    local_path = download_dir / local_filename
+
+    # Return cached file if it already exists
+    if local_path.exists():
+        return local_path
+
+    # Check if file can be restored from the archive
+    restored = restore_from_archive(local_filename, download_dir)
+    if restored is not None and restored.exists():
+        return restored
+
+    url = get_checksum_url(gps_week, use_repro3)
+    Logger.terminal(f"📥 Downloading checksum file {CHECKSUM_FILENAME} for GPS week {gps_week}{' (repro3)' if use_repro3 else ''}...")
+
+    for attempt in range(MAX_RETRIES):
+        if stop_requested and stop_requested():
+            return None
+
+        try:
+            resp = session.get(url, stream=True, timeout=30)
+            resp.raise_for_status()
+
+            total_size = int(resp.headers.get("content-length", 0))
+            downloaded = 0
+
+            os.makedirs(download_dir, exist_ok=True)
+            partial_path = local_path.with_suffix(".part")
+
+            with open(partial_path, "wb") as f:
+                for chunk in resp.iter_content(chunk_size=CHUNK_SIZE):
+                    if stop_requested and stop_requested():
+                        partial_path.unlink(missing_ok=True)
+                        return None
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if progress_callback and total_size > 0:
+                            percent = int(downloaded / total_size * 100)
+                            progress_callback(local_filename, percent)
+
+            os.rename(partial_path, local_path)
+            Logger.terminal(f"✅ Downloaded checksum file {local_filename}")
+            return local_path
+
+        except requests.RequestException as e:
+            if attempt < MAX_RETRIES - 1:
+                Logger.terminal(f"⚠️ Checksum download attempt {attempt + 1}/{MAX_RETRIES} failed: {e}")
+            else:
+                Logger.terminal(f"⚠️ Failed to download {CHECKSUM_FILENAME} for GPS week {gps_week} after {MAX_RETRIES} attempts: {e}")
+
+    return None
+
+def parse_checksum_file(checksum_path: Path) -> dict:
+    """
+    Parse a SHA512SUMS file into a dictionary mapping filenames to their expected SHA-512 hashes.
+
+    The file format is: {128-char hex hash} {filename} (with one or two spaces as separator).
+
+    :param checksum_path: Path to the SHA512SUMS file
+    :returns: Dictionary mapping filename -> expected SHA-512 hex digest
+    """
+    checksums = {}
+    try:
+        with open(checksum_path, "r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                # SHA-512 hex digest is 128 characters, followed by space(s) and the filename
+                parts = line.split(None, 1)
+                if len(parts) == 2 and len(parts[0]) == 128:
+                    hex_hash = parts[0].lower()
+                    # Validate that the hash is actually valid hexadecimal
+                    try:
+                        int(hex_hash, 16)
+                    except ValueError:
+                        Logger.terminal(f"⚠️ Invalid hex hash in SHA512SUMS for {parts[1].strip()}, skipping entry")
+                        continue
+                    checksums[parts[1].strip()] = hex_hash
+    except Exception as e:
+        Logger.terminal(f"⚠️ Failed to parse checksum file {checksum_path}: {e}")
+    if not checksums:
+        Logger.terminal(f"⚠️ No valid checksum entries found in {checksum_path.name}")
+    return checksums
+
+def compute_sha512(filepath: Path) -> str:
+    """
+    Compute the SHA-512 hash of a file.
+
+    :param filepath: Path to the file to hash
+    :returns: Hex digest string of the SHA-512 hash
+    """
+    sha512 = hashlib.sha512()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(CHUNK_SIZE), b""):
+            sha512.update(chunk)
+    return sha512.hexdigest()
+
+def validate_checksum(filepath: Path, checksums: dict) -> Optional[bool]:
+    """
+    Validate a downloaded file against its expected SHA-512 checksum.
+
+    :param filepath: Path to the compressed file to validate
+    :param checksums: Dictionary from parse_checksum_file() mapping filename -> expected hash
+    :returns: True if checksum matches, False if mismatch, None if filename not found in checksums
+    """
+    filename = filepath.name
+    expected_hash = checksums.get(filename)
+
+    if expected_hash is None:
+        Logger.terminal(f"⚠️ No checksum entry found for {filename} in SHA512SUMS (file may be corrupted or incomplete)")
+        return None
+
+    # Verify the expected hash is valid hex before comparing
+    try:
+        int(expected_hash, 16)
+    except ValueError:
+        Logger.terminal(f"⚠️ Invalid checksum hash in SHA512SUMS for {filename}, skipping validation")
+        return None
+
+    actual_hash = compute_sha512(filepath)
+
+    if actual_hash == expected_hash:
+        Logger.console(f"✅ Checksum ok: {filename}")
+        return True
+    else:
+        Logger.console(f"❌ Checksum mismatch: {filename} | Expected: {expected_hash[:16]}... Got: {actual_hash[:16]}...")
+        return False
+
+# Cache of downloaded checksum files: (gps_week, use_repro3) -> parsed checksums dict
+_checksum_cache: Dict[tuple, dict] = {}
+
+def get_checksums_for_week(gps_week: int, session: requests.Session, download_dir: Path = INPUT_PRODUCTS_PATH,
+                           use_repro3: bool = False, progress_callback: Optional[Callable] = None,
+                           stop_requested: Optional[Callable] = None) -> Optional[dict]:
+    """
+    Get the parsed checksum dictionary for a GPS week, downloading the SHA512SUMS file if needed.
+    Uses an in-memory cache so the file is only downloaded and parsed once per session.
+
+    :param gps_week: GPS week number
+    :param session: Authenticated requests session for CDDIS access
+    :param download_dir: Directory to save/find the checksum file
+    :param use_repro3: If True, use the repro3 subdirectory
+    :param progress_callback: Optional callback for progress updates (filename, percent)
+    :param stop_requested: Optional callback to check if operation should stop
+    :returns: Dictionary mapping filename -> expected SHA-512 hex digest, or None if unavailable
+    """
+    cache_key = (gps_week, use_repro3)
+
+    if cache_key in _checksum_cache:
+        return _checksum_cache[cache_key]
+
+    checksum_path = download_checksum_file(gps_week, session, download_dir, use_repro3,
+                                           progress_callback, stop_requested)
+    if checksum_path is None:
+        return None
+
+    checksums = parse_checksum_file(checksum_path)
+    _checksum_cache[cache_key] = checksums
+    return checksums
+
+# endregion
+
 def download_file(url: str, session: requests.Session, download_dir: Path = INPUT_PRODUCTS_PATH,
                   progress_callback: Optional[Callable] = None,
-                  stop_requested: Callable = None) -> Path:
+                  stop_requested: Callable = None, checksums: Optional[dict] = None,
+                  keep_compressed: bool = True) -> Path:
     """
     Checks if file already exists (additionally in compressed or .part forms).
     Uses provided session for CDDIS files (session made during startup).
@@ -635,6 +840,8 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
     :param download_dir: dir to download to
     :param progress_callback: reports, on every chunk, an int percentage of total download
     :param stop_requested: bool callback. Raises a RuntimeError if occurred during download
+    :param checksums: Optional dict of filename -> expected SHA-512 hex digest for validation
+    :param keep_compressed: if True, retain compressed file alongside extracted version for archival
     :raises RuntimeError: Stop requested during download
     :raises Exception: Max retries reached
     :return:
@@ -643,18 +850,65 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
     filepath = Path(download_dir / url.split("/")[-1])  # Download dir + filename
     # 1. When file already exists, extract if possible, then return
     if filepath.exists():
-        if filepath.suffix in COMPRESSED_FILETYPE:
-            return extract_file(filepath)
+        # Validate checksum on the existing compressed file before extracting
+        if checksums is not None:
+            result = validate_checksum(filepath, checksums)
+            if result is False:
+                Logger.terminal(f"⚠️ Existing file {filepath.name} failed checksum, re-downloading...")
+                filepath.unlink(missing_ok=True)
+                # Fall through to download below
+            else:
+                if filepath.suffix in COMPRESSED_FILETYPE:
+                    return extract_file(filepath, keep_compressed=keep_compressed)
+                else:
+                    return filepath
         else:
-            return filepath
+            if filepath.suffix in COMPRESSED_FILETYPE:
+                return extract_file(filepath, keep_compressed=keep_compressed)
+            else:
+                return filepath
 
     # 2. Check if an extracted version of this file already exists
     if filepath.suffix in COMPRESSED_FILETYPE:
         potential_decompressed = filepath.with_suffix('')  # Remove one suffix
         if potential_decompressed.exists():
-            return potential_decompressed
+            # If the compressed file is still alongside it, validate checksum against it
+            if checksums is not None and filepath.name in checksums:
+                if filepath.exists():
+                    result = validate_checksum(filepath, checksums)
+                    if result is False:
+                        Logger.terminal(f"⚠️ Compressed file {filepath.name} failed checksum, re-downloading...")
+                        filepath.unlink(missing_ok=True)
+                        potential_decompressed.unlink(missing_ok=True)
+                        # Fall through to download below
+                    else:
+                        return potential_decompressed
+                else:
+                    Logger.terminal(f"⚠️ Cannot verify checksum for {filepath.name} (compressed file missing), re-downloading to validate...")
+                    potential_decompressed.unlink(missing_ok=True)
+                    # Fall through to download below
+            else:
+                return potential_decompressed
 
-    # 3. Download the file in chunks (.part)
+    # 3. Check if the file can be restored from the archive (avoids re-downloading from CDDIS)
+    restored = restore_from_archive(filepath.name, download_dir)
+    if restored is not None and restored.exists():
+        # Restored file is compressed - validate checksum then extract
+        if checksums is not None and filepath.name in checksums:
+            result = validate_checksum(restored, checksums)
+            if result is False:
+                Logger.terminal(f"⚠️ Archived file {restored.name} failed checksum validation, re-downloading...")
+                restored.unlink(missing_ok=True)
+                # Fall through to download below
+            else:
+                return extract_file(restored, keep_compressed=keep_compressed)
+        else:
+            if restored.suffix in COMPRESSED_FILETYPE:
+                return extract_file(restored, keep_compressed=keep_compressed)
+            else:
+                return restored
+
+    # 4. Download the file in chunks (.part)
     for i in range(MAX_RETRIES):
         _partial = filepath.with_suffix(filepath.suffix + ".part")
 
@@ -705,8 +959,16 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
 
             os.rename(_partial, filepath)
 
+            # Validate checksum on the compressed file before extraction
+            if checksums is not None:
+                result = validate_checksum(filepath, checksums)
+                if result is False:
+                    Logger.terminal(f"⚠️ Deleting corrupted file {filepath.name} and retrying...")
+                    filepath.unlink(missing_ok=True)
+                    continue
+
             if filepath.suffix in COMPRESSED_FILETYPE:
-                return extract_file(filepath)
+                return extract_file(filepath, keep_compressed=keep_compressed)
             else:
                 return filepath
         except requests.RequestException as e:
@@ -771,8 +1033,11 @@ def download_products(products: pd.DataFrame, download_dir: Path = INPUT_PRODUCT
     _sesh = requests.Session()
     _sesh.auth = get_netrc_auth()
 
-    # 1. Generate filenames from the DataFrame
+    # 1. Generate filenames from the DataFrame, tracking which URLs need checksum validation
     downloads = []
+    # Maps URL -> (gps_week, is_repro3) for CDDIS product files that need checksum validation
+    url_checksum_info = {}
+
     for _, row in products.iterrows():
         gps_week = date_to_gpswk(row.date)
         # Check if this is a repro3 product (R03 project) FIRST
@@ -804,6 +1069,10 @@ def download_products(products: pd.DataFrame, download_dir: Path = INPUT_PRODUCT
 
         downloads.append(url)
 
+        # Track checksum info for validated file types
+        if row.format.upper() in CHECKSUM_VALIDATED_FORMATS:
+            url_checksum_info[url] = (gps_week, is_repro3)
+
     if dl_urls:
         downloads.extend(dl_urls)
 
@@ -816,7 +1085,17 @@ def download_products(products: pd.DataFrame, download_dir: Path = INPUT_PRODUCT
             fin_dir = download_dir
         else:
             fin_dir = download_dir / "tables" if _x[-2] == "tables" else download_dir
-        yield download_file(url, _sesh, fin_dir, progress_callback, stop_requested)
+
+        # Fetch checksums for this URL if it needs validation
+        checksums = None
+        if url in url_checksum_info:
+            gps_week, is_repro3 = url_checksum_info[url]
+            checksums = get_checksums_for_week(gps_week, _sesh, download_dir, is_repro3,
+                                               progress_callback, stop_requested)
+
+        # Don't keep compressed files for tables/metadata - only for CDDIS product files
+        is_tables = (fin_dir != download_dir)
+        yield download_file(url, _sesh, fin_dir, progress_callback, stop_requested, checksums, keep_compressed=not is_tables)
 
 def _get_repro3_filename_and_url(row: pd.Series, gps_week: int, session: requests.Session = None) -> tuple:
     """
@@ -1522,6 +1801,9 @@ def get_bia_code_priorities_for_selection(products_df: pd.DataFrame,
     Download and parse BIA file for a specific provider/series/project combination
     to extract available code priorities per constellation.
 
+    If the BIA file already exists locally (from a previous download) or can be restored
+    from the archive, it is read directly without contacting CDDIS.
+
     :param products_df: Products dataframe from get_product_dataframe_with_repro3_fallback()
     :param provider: Analysis center (e.g., 'COD', 'GRG')
     :param series: Solution type (e.g., 'FIN', 'RAP')
@@ -1553,6 +1835,18 @@ def get_bia_code_priorities_for_selection(products_df: pd.DataFrame,
         Logger.console(f"Could not generate BIA URL for {provider}/{series}/{project}")
         return None
 
+    # Check if the BIA file already exists locally (uncompressed from a previous download)
+    compressed_filename = url.split("/")[-1]
+    uncompressed_filename = compressed_filename.removesuffix(".gz").removesuffix(".Z").removesuffix(".gzip")
+    local_uncompressed = INPUT_PRODUCTS_PATH / uncompressed_filename
+    local_compressed = INPUT_PRODUCTS_PATH / compressed_filename
+
+    bia_content = _try_read_local_bia(local_uncompressed, local_compressed, compressed_filename, provider, series, project)
+    if bia_content is not None:
+        code_priorities = parse_bia_code_priorities(bia_content)
+        _log_bia_code_priorities(code_priorities, provider, series, project)
+        return code_priorities
+
     Logger.terminal(f"📥 Validating constellation signal frequencies against BIA file for {provider}/{series}/{project}...")
 
     # Download satellite bias section
@@ -1564,16 +1858,529 @@ def get_bia_code_priorities_for_selection(products_df: pd.DataFrame,
 
     # Parse code priorities
     code_priorities = parse_bia_code_priorities(bia_content)
+    _log_bia_code_priorities(code_priorities, provider, series, project)
+    return code_priorities
 
-    # Log results
+
+def _try_read_local_bia(local_uncompressed: Path, local_compressed: Path,
+                        compressed_filename: str, provider: str, series: str, project: str) -> Optional[str]:
+    """
+    Try to read BIA content from a local file or by restoring from the archive.
+    Returns the satellite bias section content, or None if not available locally.
+
+    :param local_uncompressed: Path to the expected uncompressed BIA file
+    :param local_compressed: Path to the expected compressed BIA file
+    :param compressed_filename: The compressed filename for archive restoration
+    :param provider: Analysis centre for logging
+    :param series: Solution type for logging
+    :param project: Project code for logging
+    :return: BIA satellite section content string, or None
+    """
+    # 1. Check if uncompressed BIA file exists locally
+    if local_uncompressed.exists():
+        try:
+            Logger.console(f"📂 Using local BIA file for {provider}/{series}/{project}: {local_uncompressed.name}")
+            with open(local_uncompressed, 'r', encoding='utf-8', errors='replace') as f:
+                content = f.read()
+            _, satellite_section = _check_bia_termination(content, force_return=True)
+            if satellite_section:
+                return satellite_section
+        except Exception as e:
+            Logger.console(f"Failed to read local BIA file {local_uncompressed.name}: {e}")
+
+    # 2. Check if compressed BIA file exists locally (extract and read)
+    if local_compressed.exists():
+        try:
+            Logger.console(f"📂 Using local compressed BIA file for {provider}/{series}/{project}: {local_compressed.name}")
+            content = _read_compressed_bia(local_compressed)
+            if content:
+                _, satellite_section = _check_bia_termination(content, force_return=True)
+                if satellite_section:
+                    return satellite_section
+        except Exception as e:
+            Logger.console(f"Failed to read compressed BIA file {local_compressed.name}: {e}")
+
+    # 3. Try restoring from archive
+    restored = restore_from_archive(compressed_filename, INPUT_PRODUCTS_PATH)
+    if restored is not None and restored.exists():
+        try:
+            Logger.console(f"📂 Using archived BIA file for {provider}/{series}/{project}: {restored.name}")
+            content = _read_compressed_bia(restored) if restored.suffix in COMPRESSED_FILETYPE else None
+            if content is None:
+                with open(restored, 'r', encoding='utf-8', errors='replace') as f:
+                    content = f.read()
+            if content:
+                _, satellite_section = _check_bia_termination(content, force_return=True)
+                if satellite_section:
+                    return satellite_section
+        except Exception as e:
+            Logger.console(f"Failed to read archived BIA file {restored.name}: {e}")
+
+    return None
+
+
+def _read_compressed_bia(filepath: Path) -> Optional[str]:
+    """
+    Read and decompress a .gz or .Z compressed BIA file.
+
+    :param filepath: Path to the compressed file
+    :return: Decompressed content as string, or None on failure
+    """
+    try:
+        if str(filepath).endswith((".gz", ".gzip")):
+            with gzip.open(filepath, "rb") as f:
+                return f.read().decode('utf-8', errors='replace')
+        elif str(filepath).endswith(".Z"):
+            data = unlzw3.unlzw(filepath)
+            return data.decode('utf-8', errors='replace')
+    except Exception as e:
+        Logger.console(f"Failed to decompress {filepath.name}: {e}")
+    return None
+
+
+def _log_bia_code_priorities(code_priorities: dict, provider: str, series: str, project: str):
+    """Log extracted BIA code priorities."""
     Logger.console(f"✅ Extracted code priorities for {provider}/{series}/{project}:")
     for constellation, codes in sorted(code_priorities.items()):
         if codes:
             Logger.console(f"    {constellation}: {', '.join(sorted(codes))}")
 
-    return code_priorities
-
 #endregion
+
+#region SINEX Product Validation
+
+def get_sinex_url(target_date: datetime, use_repro3: bool = False) -> str:
+    """
+    Generate the URL for the IGS CRD SINEX file for the given date.
+    Downloads the 1-day (daily) IGS CRD file
+
+    Main directory format: IGS0OPSSNX_YYYYDDD0000_01D_01D_CRD.SNX.gz
+    Repro3 format: IGS0R03SNX_YYYYDDD0000_01D_01D_CRD.SNX.gz (in /repro3/ subdirectory)
+
+    :param target_date: The date for which to download the SINEX file
+    :param use_repro3: If True, generate URL for repro3 subdirectory
+    :returns: URL to the IGS CRD SNX file
+    """
+    gps_week = date_to_gpswk(target_date)
+    year = target_date.year
+    doy = target_date.timetuple().tm_yday
+
+    if use_repro3:
+        filename = f"IGS0R03SNX_{year}{doy:03d}0000_01D_01D_CRD.SNX.gz"
+        url = f"{BASE_URL}/gnss/products/{gps_week}/repro3/{filename}"
+    else:
+        filename = f"IGS0OPSSNX_{year}{doy:03d}0000_01D_01D_CRD.SNX.gz"
+        url = f"{BASE_URL}/gnss/products/{gps_week}/{filename}"
+    return url
+
+def download_sinex_file(target_date: datetime, download_dir: Path = INPUT_PRODUCTS_PATH, progress_callback: Optional[Callable] = None,
+                        stop_requested: Optional[Callable] = None, max_retries: int = 3) -> Optional[Path]:
+    """
+    Download the IGS CRD SINEX file for the given date with retry logic.
+    Determines whether to use repro3 or main directory based on GPS week range
+    (same logic as BIA, CLK, SP3 products).
+
+    - GPS week 730-2138: Use repro3 directory
+    - Outside that range: Use main directory
+
+    :param target_date: The date for which to download the SINEX file
+    :param download_dir: Directory to save the downloaded file
+    :param progress_callback: Optional callback for progress updates (filename, percent)
+    :param stop_requested: Optional callback to check if operation should stop
+    :param max_retries: Number of retry attempts (default 3)
+    :returns: Path to the downloaded (and extracted) SINEX file, or None if failed
+    """
+    session = requests.Session()
+    session.auth = get_netrc_auth()
+
+    # Check if we're in the repro3 priority range (same logic as other products)
+    gps_week = date_to_gpswk(target_date)
+    use_repro3 = REPRO3_PRIORITY_GPS_WEEK_START <= gps_week <= REPRO3_PRIORITY_GPS_WEEK_END
+
+    url = get_sinex_url(target_date, use_repro3=use_repro3)
+
+    # Fetch checksums for the SINEX file's GPS week
+    checksums = get_checksums_for_week(gps_week, session, download_dir, use_repro3, progress_callback, stop_requested)
+
+    for attempt in range(max_retries):
+        if stop_requested and stop_requested():
+            Logger.terminal("🛑 SINEX download cancelled")
+            return None
+
+        try:
+            filepath = download_file(url, session, download_dir, progress_callback, stop_requested, checksums)
+            Logger.terminal(f"✅ SINEX file downloaded: {filepath.name}")
+            return filepath
+        except Exception as e:
+            if attempt < max_retries - 1:
+                Logger.terminal(f"⚠️ SINEX download attempt {attempt + 1}/{max_retries} failed: {e}")
+            else:
+                Logger.terminal(f"❌ Failed to download SINEX file after {max_retries} attempts: {e}")
+
+    return None
+
+def parse_sinex_section(content: str, section_name: str) -> List[str]:
+    """
+    Extract lines from a specific SINEX section.
+
+    :param content: Full SINEX file content
+    :param section_name: Name of the section (e.g., "SITE/RECEIVER", "SITE/ANTENNA")
+    :returns: List of data lines from the section (excluding header/comment lines)
+    """
+    lines = []
+    in_section = False
+    start_marker = f"+{section_name}"
+    end_marker = f"-{section_name}"
+
+    for line in content.split('\n'):
+        if line.startswith(start_marker):
+            in_section = True
+            continue
+        elif line.startswith(end_marker):
+            break
+        elif in_section and not line.startswith('*') and line.strip():
+            lines.append(line)
+
+    return lines
+
+def parse_sinex_receiver(sinex_content: str, marker_name: str) -> Optional[str]:
+    """
+    Extract the receiver type for a given marker from SINEX SITE/RECEIVER section.
+
+    SINEX format (columns are fixed-width):
+    *CODE PT SOLN T _DATA START_ __DATA_END__ ___RECEIVER_TYPE____ _S/N_ _FIRMWARE__
+     AB51  A ---- P 17:156:72000 00:000:00000 TRIMBLE NETRS        45032 1.3-2
+
+    Receiver type is 20 characters starting at column 42.
+
+    :param sinex_content: Full SINEX file content
+    :param marker_name: 4-character marker name to look up
+    :returns: Receiver type string (20 chars) or None if not found
+    """
+    lines = parse_sinex_section(sinex_content, "SITE/RECEIVER")
+
+    for line in lines:
+        if len(line) < 62:
+            continue
+        code = line[1:5].strip()
+        if code.upper() == marker_name.upper():
+            # Receiver type is columns 42-61 (20 characters)
+            receiver_type = line[42:62]
+            return receiver_type
+
+    return None
+
+def parse_sinex_antenna(sinex_content: str, marker_name: str) -> Optional[str]:
+    """
+    Extract the antenna type for a given marker from SINEX SITE/ANTENNA section.
+
+    SINEX format (columns are fixed-width):
+    *CODE PT SOLN T _DATA START_ __DATA_END__ ____ANTENNA_TYPE____ _S/N_ _DAZ
+     AB51  A ---- P 05:273:00000 00:000:00000 TRM29659.00     SCIT 02203    0
+
+    Antenna type is 20 characters starting at column 42.
+
+    :param sinex_content: Full SINEX file content
+    :param marker_name: 4-character marker name to look up
+    :returns: Antenna type string (20 chars) or None if not found
+    """
+    lines = parse_sinex_section(sinex_content, "SITE/ANTENNA")
+
+    for line in lines:
+        if len(line) < 62:
+            continue
+        code = line[1:5].strip()
+        if code.upper() == marker_name.upper():
+            # Antenna type is columns 42-61 (20 characters)
+            antenna_type = line[42:62]
+            return antenna_type
+
+    return None
+
+def parse_sinex_eccentricity(sinex_content: str, marker_name: str) -> Optional[List[float]]:
+    """
+    Extract the antenna eccentricity (offset) for a given marker from SINEX SITE/ECCENTRICITY section.
+
+    SINEX format (columns are fixed-width):
+    *CODE PT SOLN T _DATA START_ __DATA_END__ REF __DX_U__ __DX_N__ __DX_E__
+     AB51  A ---- P 05:273:00000 00:000:00000 UNE   0.0083   0.0000   0.0000
+
+    DX_U (Up) starts at column 46, DX_N (North) at 55, DX_E (East) at 64.
+
+    :param sinex_content: Full SINEX file content
+    :param marker_name: 4-character marker name to look up
+    :returns: List of [East, North, Up] offsets in metres, or None if not found
+    """
+    lines = parse_sinex_section(sinex_content, "SITE/ECCENTRICITY")
+
+    for line in lines:
+        if len(line) < 72:
+            continue
+        code = line[1:5].strip()
+        if code.upper() == marker_name.upper():
+            try:
+                # Extract UNE values - note SINEX stores as U, N, E but we return as E, N, U
+                dx_u = float(line[46:55].strip())
+                dx_n = float(line[55:64].strip())
+                dx_e = float(line[64:].strip())  # Read to end of line for last field
+                return [dx_e, dx_n, dx_u]
+            except ValueError:
+                return None
+
+    return None
+
+def parse_sinex_apriori_position(sinex_content: str, marker_name: str) -> Optional[List[float]]:
+    """
+    Extract the apriori position (X, Y, Z) for a given marker from SINEX SOLUTION/APRIORI section.
+
+    SINEX format (columns are fixed-width):
+    *INDEX _TYPE_ CODE PT SOLN _REF_EPOCH__ UNIT S ____APRIORI_VALUE____ __STD_DEV__
+         1 STAX   AB51  A    3 23:260:43200 m    2 -2.38374988824415e+06 0.00000e+00
+
+    We need to find STAX, STAY, STAZ entries for the marker.
+
+    :param sinex_content: Full SINEX file content
+    :param marker_name: 4-character marker name to look up
+    :returns: List of [X, Y, Z] coordinates in metres, or None if not found
+    """
+    lines = parse_sinex_section(sinex_content, "SOLUTION/APRIORI")
+
+    position = {'STAX': None, 'STAY': None, 'STAZ': None}
+
+    for line in lines:
+        if len(line) < 68:
+            continue
+
+        # Parse the line - fields are space-separated but with fixed positions
+        parts = line.split()
+        if len(parts) < 9:
+            continue
+
+        try:
+            # _TYPE_ is at position 1, CODE at position 2, value at position 8
+            sta_type = parts[1]
+            code = parts[2]
+
+            if code.upper() != marker_name.upper():
+                continue
+
+            if sta_type in position:
+                # Value is in scientific notation
+                value = float(parts[8])
+                position[sta_type] = value
+        except (IndexError, ValueError):
+            continue
+
+    # Check if we found all three coordinates
+    if all(v is not None for v in position.values()):
+        return [position['STAX'], position['STAY'], position['STAZ']]
+
+    return None
+
+def validate_sinex_values(sinex_content: str, marker_name: str, receiver_type: str, antenna_type: str, antenna_offset: List[float],
+                          apriori_position: Optional[List[float]] = None, tolerance: float = 0.001) -> dict:
+    """
+    Validate extracted RINEX values against SINEX file data.
+
+    :param sinex_content: Full SINEX file content
+    :param marker_name: 4-character marker name
+    :param receiver_type: Receiver type from RINEX (20 chars, space-padded)
+    :param antenna_type: Antenna type from RINEX (20 chars, space-padded)
+    :param antenna_offset: Antenna offset [E, N, U] from RINEX
+    :param apriori_position: Optional apriori position [X, Y, Z] from RINEX
+    :param tolerance: Tolerance for floating point comparisons (default 1mm)
+    :returns: Dictionary with validation results for each field
+    """
+    results = {
+        'marker_found': False,
+        'receiver_type': {'valid': None, 'sinex_value': None, 'rinex_value': receiver_type, 'message': ''},
+        'antenna_type': {'valid': None, 'sinex_value': None, 'rinex_value': antenna_type, 'message': ''},
+        'antenna_offset': {'valid': None, 'sinex_value': None, 'rinex_value': antenna_offset, 'message': ''},
+        'apriori_position': {'valid': None, 'sinex_value': None, 'rinex_value': apriori_position, 'message': ''},
+    }
+
+    # Validate receiver type
+    sinex_receiver = parse_sinex_receiver(sinex_content, marker_name)
+    if sinex_receiver is not None:
+        results['marker_found'] = True
+        results['receiver_type']['sinex_value'] = sinex_receiver
+
+        sinex_recv_norm = sinex_receiver.rstrip()
+        rinex_recv_norm = receiver_type.rstrip() if receiver_type else ''
+
+        if sinex_recv_norm == rinex_recv_norm:
+            results['receiver_type']['valid'] = True
+            results['receiver_type']['message'] = 'Receiver type matches SINEX'
+        else:
+            results['receiver_type']['valid'] = False
+            results['receiver_type']['message'] = f'Receiver type mismatch: RINEX="{rinex_recv_norm}", SINEX="{sinex_recv_norm}"'
+
+    # Validate antenna type
+    sinex_antenna = parse_sinex_antenna(sinex_content, marker_name)
+    if sinex_antenna is not None:
+        results['marker_found'] = True
+        results['antenna_type']['sinex_value'] = sinex_antenna
+
+        sinex_ant_norm = sinex_antenna.rstrip()
+        rinex_ant_norm = antenna_type.rstrip() if antenna_type else ''
+
+        if sinex_ant_norm == rinex_ant_norm:
+            results['antenna_type']['valid'] = True
+            results['antenna_type']['message'] = 'Antenna type matches SINEX'
+        else:
+            results['antenna_type']['valid'] = False
+            results['antenna_type']['message'] = f'Antenna type mismatch: RINEX="{rinex_ant_norm}", SINEX="{sinex_ant_norm}"'
+
+    # Validate antenna offset (eccentricity)
+    sinex_offset = parse_sinex_eccentricity(sinex_content, marker_name)
+    if sinex_offset is not None:
+        results['marker_found'] = True
+        results['antenna_offset']['sinex_value'] = sinex_offset
+
+        if antenna_offset is not None and len(antenna_offset) == 3:
+            # Compare E, N, U values with tolerance
+            matches = all(abs(sinex_offset[i] - antenna_offset[i]) <= tolerance for i in range(3))
+            if matches:
+                results['antenna_offset']['valid'] = True
+                results['antenna_offset']['message'] = f'Antenna offset matches SINEX [E={sinex_offset[0]:.4f}, N={sinex_offset[1]:.4f}, U={sinex_offset[2]:.4f}]'
+            else:
+                results['antenna_offset']['valid'] = False
+                results['antenna_offset']['message'] = (
+                    f'Antenna offset mismatch: RINEX=[E={antenna_offset[0]:.4f}, N={antenna_offset[1]:.4f}, U={antenna_offset[2]:.4f}], '
+                    f'SINEX=[E={sinex_offset[0]:.4f}, N={sinex_offset[1]:.4f}, U={sinex_offset[2]:.4f}]'
+                )
+        else:
+            # RINEX didn't provide offset, just log what SINEX has
+            results['antenna_offset']['valid'] = None
+            results['antenna_offset']['message'] = f'SINEX offset: [E={sinex_offset[0]:.4f}, N={sinex_offset[1]:.4f}, U={sinex_offset[2]:.4f}] (no RINEX value to compare)'
+    else:
+        # Marker not found in SITE/ECCENTRICITY section
+        if antenna_offset is not None and len(antenna_offset) == 3:
+            results['antenna_offset']['message'] = f'Marker not found in SINEX SITE/ECCENTRICITY section (RINEX: [E={antenna_offset[0]:.4f}, N={antenna_offset[1]:.4f}, U={antenna_offset[2]:.4f}])'
+
+    # Validate apriori position
+    sinex_position = parse_sinex_apriori_position(sinex_content, marker_name)
+    if sinex_position is not None:
+        results['marker_found'] = True
+        results['apriori_position']['sinex_value'] = sinex_position
+
+        if apriori_position is not None and len(apriori_position) == 3:
+            # Calculate 3D distance between RINEX and SINEX positions
+            import math
+            distance = math.sqrt(sum((sinex_position[i] - apriori_position[i]) ** 2 for i in range(3)))
+
+            # Always use SINEX, but warn if large discrepancy
+            results['apriori_position']['valid'] = True
+
+            if distance <= 1.0:
+                results['apriori_position']['message'] = (
+                    f'Using SINEX coordinates (matches RINEX within {distance:.2f}m): '
+                    f'[{sinex_position[0]}, {sinex_position[1]}, {sinex_position[2]}]'
+                )
+            elif distance <= 10.0:
+                # Small discrepancy - just informational
+                results['apriori_position']['message'] = (
+                    f'Using SINEX coordinates (RINEX differs by {distance:.2f}m): '
+                    f'[{sinex_position[0]}, {sinex_position[1]}, {sinex_position[2]}]'
+                )
+            else:
+                # Large discrepancy - warn user but still use SINEX
+                results['apriori_position']['valid'] = False  # Mark as warning
+                results['apriori_position']['message'] = (
+                    f'⚠️ Large position discrepancy ({distance:.2f}m) - verify correct station. '
+                    f'Using SINEX: [{sinex_position[0]}, {sinex_position[1]}, {sinex_position[2]}], '
+                    f'RINEX: [{apriori_position[0]}, {apriori_position[1]}, {apriori_position[2]}]'
+                )
+        else:
+            # RINEX didn't provide position, use SINEX
+            results['apriori_position']['valid'] = True
+            results['apriori_position']['message'] = f'Using SINEX coordinates: [{sinex_position[0]}, {sinex_position[1]}, {sinex_position[2]}]'
+
+    return results
+
+def download_and_validate_sinex(target_date: datetime, marker_name: str, receiver_type: str, antenna_type: str, antenna_offset: List[float],
+                                apriori_position: Optional[List[float]] = None, download_dir: Path = INPUT_PRODUCTS_PATH,
+                                progress_callback: Optional[Callable] = None, stop_requested: Optional[Callable] = None) -> tuple[Optional[Path], dict]:
+    """
+    Download SINEX file and validate RINEX-extracted values against it.
+
+    :param target_date: The date for which to download the SINEX file
+    :param marker_name: 4-character marker name
+    :param receiver_type: Receiver type from RINEX
+    :param antenna_type: Antenna type from RINEX
+    :param antenna_offset: Antenna offset [E, N, U] from RINEX
+    :param apriori_position: Optional apriori position [X, Y, Z] from RINEX
+    :param download_dir: Directory to save the downloaded file
+    :param progress_callback: Optional callback for progress updates
+    :param stop_requested: Optional callback to check if operation should stop
+    :returns: Tuple of (Path to SINEX file or None, validation results dict)
+    """
+    # Download the SINEX file
+    sinex_path = download_sinex_file(target_date, download_dir, progress_callback, stop_requested)
+
+    if sinex_path is None:
+        return None, {'error': 'Failed to download SINEX file'}
+
+    # Read and validate
+    try:
+        with open(sinex_path, 'r', encoding='utf-8', errors='replace') as f:
+            sinex_content = f.read()
+
+        results = validate_sinex_values(
+            sinex_content, marker_name,
+            receiver_type, antenna_type,
+            antenna_offset, apriori_position
+        )
+
+        return sinex_path, results
+
+    except Exception as e:
+        Logger.terminal(f"❌ Error reading SINEX file: {e}")
+        return sinex_path, {'error': f'Failed to read SINEX file: {e}'}
+
+def log_sinex_validation_results(results: dict, marker_name: str):
+    """
+    Log SINEX validation results to the terminal.
+
+    :param results: Validation results dictionary from validate_sinex_values()
+    :param marker_name: Marker name for logging context
+    """
+    if 'error' in results:
+        Logger.terminal(f"❌ SINEX validation error: {results['error']}")
+        return
+
+    if not results['marker_found']:
+        Logger.terminal(f"⚠️ Marker '{marker_name}' not found in SINEX file - validation skipped")
+        return
+
+    all_valid = True
+    has_validations = False
+    Logger.terminal(f"📋 SINEX validation results for marker '{marker_name}':")
+
+    for field in ['receiver_type', 'antenna_type', 'antenna_offset', 'apriori_position']:
+        field_result = results.get(field, {})
+        message = field_result.get('message', '')
+
+        if field_result.get('valid') is True:
+            Logger.terminal(f"   ✅ {field.replace('_', ' ').title()}: {message}")
+            has_validations = True
+        elif field_result.get('valid') is False:
+            Logger.terminal(f"   ⚠️ {field.replace('_', ' ').title()}: {message}")
+            all_valid = False
+            has_validations = True
+        elif message:
+            # valid is None but there's a message (info only, no comparison made)
+            Logger.terminal(f"   ℹ️ {field.replace('_', ' ').title()}: {message}")
+
+    if has_validations:
+        if all_valid:
+            Logger.terminal(f"✅ All SINEX validations passed for marker '{marker_name}'")
+        else:
+            Logger.terminal(f"⚠️ Some SINEX validations failed for marker '{marker_name}' - please review the above warnings")
+    else:
+        Logger.terminal(f"ℹ️ SINEX data found for marker '{marker_name}' but no comparisons were made (RINEX values may be missing)")
+
+# endregion
 
 if __name__ == "__main__":
     # Test whole file download

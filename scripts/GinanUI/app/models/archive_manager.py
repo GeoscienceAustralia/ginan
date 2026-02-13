@@ -96,14 +96,35 @@ def archive_products(products_dir: Path = INPUT_PRODUCTS_PATH, reason: str = "ma
         return None
 
     product_patterns = [
-        "*.SP3",                    # precise orbit
-        "*.CLK",                    # clock files
-        "*.BIA",                    # biases
-        "*.ION",                    # ionosphere products (if used)
-        "*.TRO",                    # troposphere products (if used)
-        "BRDC*.rnx",                # broadcast ephemeris
-        "BRDC*.rnx.*",              # compressed broadcast ephemeris
+        "*.SP3.gz",  # precise orbit
+        "*.CLK.gz",  # clock files
+        "*.BIA.gz",  # biases
+        "*.ION.gz",  # ionosphere products
+        "*.TRO.gz",  # troposphere products
+        "BRDC*.rnx.gz",  # broadcast ephemeris
+        "*.sp3.Z",  # precise orbit (old format)
+        "*.clk.Z",  # clock files (old format)
+        "*.bia.Z",  # biases (old format)
     ]
+
+    # Uncompressed counterparts to clean up after archiving the compressed versions
+    uncompressed_cleanup_patterns = [
+        "*.SP3",
+        "*.CLK",
+        "*.BIA",
+        "*.ION",
+        "*.TRO",
+        "BRDC*.rnx",
+        "*.sp3",
+        "*.clk",
+        "*.bia",
+    ]
+
+    # Only archive SNX files when RINEX changes (SNX is station-specific, not provider-specific)
+    if reason == "rinex_change" or reason == "startup_archival":
+        product_patterns.append("IGS*SNX_*_CRD.SNX.gz")
+        product_patterns.append("SHA512SUMS_*")
+        uncompressed_cleanup_patterns.append("IGS*SNX_*_CRD.SNX")
 
     if startup_archival:
         startup_patterns = [
@@ -164,6 +185,15 @@ def archive_products(products_dir: Path = INPUT_PRODUCTS_PATH, reason: str = "ma
         except Exception as e:
             Logger.console(f"Failed to archive {file.name}: {e}")
 
+    # Clean up uncompressed counterparts left behind after archiving the compressed versions
+    if archived_files:
+        for pattern in uncompressed_cleanup_patterns:
+            for uncompressed_file in products_dir.glob(pattern):
+                try:
+                    uncompressed_file.unlink()
+                except Exception as e:
+                    Logger.console(f"Failed to clean up uncompressed file {uncompressed_file.name}: {e}")
+
     if archived_files:
         Logger.console(f"Archived {', '.join(archived_files)} → {archive_dir}")
         return archive_dir
@@ -176,6 +206,67 @@ def archive_products(products_dir: Path = INPUT_PRODUCTS_PATH, reason: str = "ma
         Logger.console("No matching product files found to archive.")
         return None
 
+
+# File extensions eligible for archive restoration (dynamic PPP products only)
+RESTORABLE_EXTENSIONS = {".SP3", ".BIA", ".CLK", ".SNX", ".RNX"} # ".RNX" is for BRDC files
+RESTORABLE_CHECKSUM_PREFIX = "SHA512SUMS"
+
+def restore_from_archive(filename: str, products_dir: Path = INPUT_PRODUCTS_PATH) -> Optional[Path]:
+    """
+    Search the archive directory for a previously archived product file and restore it
+    by copying it back into the products directory. This avoids re-downloading from CDDIS
+    when the same product is needed again (e.g. after closing and reopening Ginan-UI).
+
+    Only considers BIA, CLK, SP3, BRDC, SNX, and SHA512SUMS files. Archived files are stored
+    in their compressed form (.gz), so if the requested filename is already compressed it is
+    searched for directly; if uncompressed, the .gz variant is searched for as well.
+
+    The archived copy is left intact - a duplicate is placed into products_dir.
+
+    :param filename: The filename to search for (e.g. "COD0MGXFIN_20191950000_01D_01D_OSB.BIA.gz"
+                     or "COD0MGXFIN_20191950000_01D_01D_OSB.BIA" or "SHA512SUMS_2062")
+    :param products_dir: The products directory to restore into
+    :return: Path to the restored file if found, else None
+    """
+    archive_root = products_dir / "archive"
+    if not archive_root.exists() or not archive_root.is_dir():
+        return None
+
+    # Determine if this file is eligible for restoration
+    is_checksum = filename.startswith(RESTORABLE_CHECKSUM_PREFIX)
+    if not is_checksum:
+        # Check if the uncompressed extension is one we care about
+        bare_name = filename.removesuffix(".gz").removesuffix(".Z").removesuffix(".gzip")
+        ext = Path(bare_name).suffix.upper()
+        if ext not in RESTORABLE_EXTENSIONS:
+            return None
+
+    # Build the list of candidate names to search for in the archive.
+    # Archived products are stored compressed, so search for the .gz name first,
+    # then the exact filename as given.
+    candidates = [filename]
+    is_compressed = any(filename.endswith(s) for s in (".gz", ".Z", ".gzip"))
+    if not is_compressed:
+        # The caller asked for an uncompressed name - also look for .gz in the archive
+        candidates.insert(0, filename + ".gz")
+
+    # Glob through all archive sub-folders: archive/{reason}_{timestamp}/
+    for candidate in candidates:
+        matches = list(archive_root.glob(f"*/{candidate}"))
+        if matches:
+            # Pick the most recent archive (folder names are {reason}_{YYYYMMDD_HHMMSS})
+            matches.sort(key=lambda p: p.parent.name, reverse=True)
+            source = matches[0]
+            dest = products_dir / candidate
+            try:
+                shutil.copy2(str(source), str(dest))
+                Logger.console(f"📂 Restored '{candidate}' from archive ({source.parent.name})")
+                return dest
+            except Exception as e:
+                Logger.console(f"Failed to restore '{candidate}' from archive: {e}")
+                return None
+
+    return None
 
 def archive_products_if_rinex_changed(current_rinex: Path,
                                       last_rinex: Optional[Path],

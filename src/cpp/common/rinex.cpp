@@ -77,6 +77,18 @@ void setstr(char* dst, const char* src, int n)
         *p-- = '\0';
 }
 
+/** Strip trailing carriage return (\r) from string if present
+ * This handles Windows-encoded files (\r\n line endings) where std::getline
+ * removes only the \n but leaves the \r in the string.
+ */
+inline void stripCarriageReturn(string& line)
+{
+    if (!line.empty() && line.back() == '\r')
+    {
+        line.pop_back();
+    }
+}
+
 // Decode RINEX observation file header
 void decodeObsH(
     std::istream&                   inputStream,
@@ -88,6 +100,9 @@ void decodeObsH(
     RinexStation&                   rnxRec
 )
 {
+    // Ensure line is clean (defensive, should already be stripped by caller)
+    stripCarriageReturn(line);
+
     double      del[3];
     int         prn;
     int         fcn;
@@ -172,6 +187,7 @@ void decodeObsH(
                 if (!std::getline(inputStream, line))
                     break;
 
+                stripCarriageReturn(line);
                 buff = &line[0];
                 k    = 7;
             }
@@ -258,6 +274,7 @@ void decodeObsH(
                 if (!std::getline(inputStream, line))
                     break;
 
+                stripCarriageReturn(line);
                 buff = (char*)line.c_str();
                 j    = 10;
             }
@@ -378,6 +395,7 @@ void decodeNavH(
     Navigation& nav    ///< Navigation data
 )
 {
+    stripCarriageReturn(line);
     char* buff  = &line[0];
     char* label = buff + 60;
 
@@ -551,6 +569,7 @@ void decodeNavH(
 // Decode GLONASS navigation file header
 void decodeGnavH(string& line, Navigation& nav)
 {
+    stripCarriageReturn(line);
     char* buff  = &line[0];
     char* label = buff + 60;
 
@@ -568,6 +587,7 @@ void decodeGnavH(string& line, Navigation& nav)
 // Decode SBAS/geostationary navigation file header
 void decodeHnavH(string& line, Navigation& nav)
 {
+    stripCarriageReturn(line);
     char* buff  = &line[0];
     char* label = buff + 60;
 
@@ -613,6 +633,8 @@ int readRnxH(
 
     while (std::getline(inputStream, line))
     {
+        stripCarriageReturn(line);
+
         char* buff  = &line[0];
         char* label = buff + 60;
 
@@ -800,7 +822,6 @@ int decodeObsEpoch(
     int   n    = 0;
     char* buff = &line[0];
 
-    // 	BOOST_LOG_TRIVIAL(debug)	<< __FUNCTION__ << ": ver=" << ver;
 
     if (ver <= 2.99)
     {
@@ -833,6 +854,7 @@ int decodeObsEpoch(
                 if (!std::getline(inputStream, line))
                     break;
 
+                stripCarriageReturn(line);
                 buff = &line[0];
 
                 j = 32;
@@ -960,6 +982,7 @@ int decodeObsDataRinex2(
         {
             if (!std::getline(inputStream, line))
                 break;
+            stripCarriageReturn(line);
             if (line.size() < 80)
                 line.append(80 - line.size(), ' ');  // Ensure line is at least 80 characters
 
@@ -1195,6 +1218,8 @@ int readRnxObsB(
     std::streampos pos;
     while (pos = inputStream.tellg(), std::getline(inputStream, line))
     {
+        stripCarriageReturn(line);
+
         // decode obs epoch
         if (i == 0)
         {
@@ -1303,10 +1328,10 @@ int decodeEph(double ver, SatSys Sat, GTime toc, vector<double>& data, Eph& eph)
         return 0;
     }
 
-    double deltaTime = (toc - toc.floorTime(7200)).to_double();
-    if (sys == E_Sys::GPS && deltaTime > 60 && deltaTime < (7200 - 60))
+    double deltaTime = (toc - toc.floorTime(3600)).to_double();
+    if (sys == E_Sys::GPS && deltaTime > 60 && (deltaTime - 3600) < -60)
     {
-        // Skip decoding bad ephemeris (being off for more than 1 minute from 2-hour modulo epochs)
+        // Skip decoding bad ephemeris (being off for more than 1 minute from 1-hour modulo epochs)
         return 0;
     }
 
@@ -1858,6 +1883,8 @@ int readRnxNavB(
 
     while (std::getline(inputStream, line))
     {
+        stripCarriageReturn(line);
+
         char* buff = &line[0];
 
         if (data.empty())
@@ -2205,6 +2232,8 @@ int readRnxClk(std::istream& inputStream, double ver, Navigation& nav)
     GTime time0;
     while (std::getline(inputStream, line))
     {
+        stripCarriageReturn(line);
+
         char* buff = &line[0];
 
         GTime time;

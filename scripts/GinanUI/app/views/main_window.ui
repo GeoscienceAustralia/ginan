@@ -88,7 +88,7 @@
     text-align: right;</string>
         </property>
         <property name="text">
-         <string>Ginan-UI v4.1.0</string>
+         <string>Ginan-UI v4.1.1</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -333,170 +333,14 @@ QPushButton:disabled {
             <property name="verticalSpacing">
              <number>10</number>
             </property>
-            <item row="8" column="3">
-             <widget class="QLabel" name="pppProviderValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="visible">
-               <bool>false</bool>
-              </property>
+            <item row="5" column="0">
+             <widget class="QLabel" name="receiverTypeLabel">
               <property name="text">
-               <string>PPP Provider</string>
+               <string>Receiver Type</string>
               </property>
              </widget>
             </item>
-            <item row="10" column="2">
-             <widget class="QComboBox" name="pppSeriesCombo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QComboBox {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QComboBox:hover {
-    background-color: #214861;
-}
-QComboBox:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Select one</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="12" column="2">
-             <widget class="QComboBox" name="pppProjectCombo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QComboBox {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QComboBox:hover {
-    background-color: #214861;
-}
-QComboBox:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Select one</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="4" column="3">
-             <widget class="QLabel" name="dataIntervalValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="visible">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Data interval</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="3">
-             <widget class="QLineEdit" name="antennaOffsetValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="visible">
-               <bool>false</bool>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background:transparent;border:none;</string>
-              </property>
-              <property name="text">
-               <string>Antenna Offset</string>
-              </property>
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="3">
-             <widget class="QLabel" name="constellationsValue">
-              <property name="visible">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Constellations</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="2">
-             <widget class="QComboBox" name="pppProviderCombo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QComboBox {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QComboBox:hover {
-    background-color: #214861;
-}
-QComboBox:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Select one</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="12" column="0">
+            <item row="13" column="0">
              <widget class="QLabel" name="pppProjectLabel">
               <property name="minimumSize">
                <size>
@@ -513,133 +357,6 @@ QComboBox:disabled {
               <property name="text">
                <string>PPP Project</string>
               </property>
-             </widget>
-            </item>
-            <item row="8" column="0">
-             <widget class="QLabel" name="pppProviderLabel">
-              <property name="text">
-               <string>PPP Provider</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="3">
-             <widget class="QLabel" name="antennaTypeValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="visible">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QComboBox" name="modeCombo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QComboBox {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QComboBox:hover {
-    background-color: #214861;
-}
-QComboBox:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Select one</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="10" column="0">
-             <widget class="QLabel" name="pppSeriesLabel">
-              <property name="text">
-               <string>PPP Series</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="2">
-             <widget class="QPushButton" name="dataIntervalButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QPushButton:hover {
-    background-color: #214861;
-}
-QPushButton:pressed {
-    background-color: #1a3649;
-}
-QPushButton:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
-              </property>
-              <property name="text">
-               <string>Interval (Seconds)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="2">
-             <widget class="QComboBox" name="constellationsCombo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QComboBox {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QComboBox:hover {
-    background-color: #214861;
-}
-QComboBox:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Select one or more</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item row="6" column="2">
@@ -675,42 +392,25 @@ QComboBox:disabled {
               </item>
              </widget>
             </item>
-            <item row="3" column="2">
-             <widget class="QPushButton" name="timeWindowButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    background-color: #2c5d7c;
-    color: white;
-    padding: 0px 8px;
-    font: 13pt &quot;Segoe UI&quot;;
-    text-align: left;
-}
-QPushButton:hover {
-    background-color: #214861;
-}
-QPushButton:pressed {
-    background-color: #1a3649;
-}
-QPushButton:disabled {
-    background-color: rgb(120, 120, 120);
-}</string>
+            <item row="1" column="3">
+             <widget class="QLabel" name="modeValue">
+              <property name="visible">
+               <bool>false</bool>
               </property>
               <property name="text">
-               <string>Start / End</string>
+               <string>Static</string>
               </property>
              </widget>
             </item>
-            <item row="5" column="3">
-             <widget class="QLabel" name="receiverTypeValue">
+            <item row="6" column="0">
+             <widget class="QLabel" name="antennaTypeLabel">
+              <property name="text">
+               <string>Antenna Type</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="3">
+             <widget class="QLabel" name="dataIntervalValue">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -721,37 +421,37 @@ QPushButton:disabled {
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>Receiver Type</string>
+               <string>Data interval</string>
               </property>
              </widget>
             </item>
-            <item row="10" column="3">
-             <widget class="QLabel" name="pppSeriesValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="visible">
-               <bool>false</bool>
-              </property>
+            <item row="11" column="0">
+             <widget class="QLabel" name="pppSeriesLabel">
               <property name="text">
                <string>PPP Series</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="constellationsLabel">
+            <item row="1" column="0">
+             <widget class="QLabel" name="modeLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="text">
-               <string>Constellations</string>
+               <string>Mode</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
-             <widget class="QLabel" name="antennaOffsetLabel">
+            <item row="2" column="3">
+             <widget class="QLabel" name="constellationsValue">
+              <property name="visible">
+               <bool>false</bool>
+              </property>
               <property name="text">
-               <string>Antenna Offset</string>
+               <string>Constellations</string>
               </property>
              </widget>
             </item>
@@ -784,6 +484,128 @@ QComboBox:disabled {
               <item>
                <property name="text">
                 <string>Import text</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QComboBox" name="modeCombo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QComboBox {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QComboBox:hover {
+    background-color: #214861;
+}
+QComboBox:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Select one</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="dataIntervalLabel">
+              <property name="text">
+               <string>Data Interval</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="3">
+             <widget class="QLabel" name="pppSeriesValue">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="visible">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>PPP Series</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="2">
+             <widget class="QComboBox" name="pppSeriesCombo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QComboBox {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QComboBox:hover {
+    background-color: #214861;
+}
+QComboBox:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Select one</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="13" column="2">
+             <widget class="QComboBox" name="pppProjectCombo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QComboBox {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QComboBox:hover {
+    background-color: #214861;
+}
+QComboBox:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Select one</string>
                </property>
               </item>
              </widget>
@@ -822,33 +644,50 @@ QPushButton:disabled {
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="modeLabel">
+            <item row="2" column="2">
+             <widget class="QComboBox" name="constellationsCombo">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QComboBox {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QComboBox:hover {
+    background-color: #214861;
+}
+QComboBox:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Select one or more</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="antennaOffsetLabel">
               <property name="text">
-               <string>Mode</string>
+               <string>Antenna Offset</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="3">
-             <widget class="QLabel" name="modeValue">
-              <property name="visible">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Static</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="3">
-             <widget class="QLabel" name="timeWindowValue">
+            <item row="7" column="3">
+             <widget class="QLineEdit" name="antennaOffsetValue">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -856,15 +695,21 @@ QPushButton:disabled {
               <property name="visible">
                <bool>false</bool>
               </property>
+              <property name="styleSheet">
+               <string notr="true">background:transparent;border:none;</string>
+              </property>
               <property name="text">
-               <string>Time Window</string>
+               <string>Antenna Offset</string>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
-             <widget class="QLabel" name="antennaTypeLabel">
+            <item row="2" column="0">
+             <widget class="QLabel" name="constellationsLabel">
               <property name="text">
-               <string>Antenna Type</string>
+               <string>Constellations</string>
               </property>
              </widget>
             </item>
@@ -875,21 +720,81 @@ QPushButton:disabled {
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="receiverTypeLabel">
+            <item row="4" column="2">
+             <widget class="QPushButton" name="dataIntervalButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QPushButton:hover {
+    background-color: #214861;
+}
+QPushButton:pressed {
+    background-color: #1a3649;
+}
+QPushButton:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
               <property name="text">
-               <string>Receiver Type</string>
+               <string>Interval (Seconds)</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="dataIntervalLabel">
+            <item row="9" column="0">
+             <widget class="QLabel" name="pppProviderLabel">
               <property name="text">
-               <string>Data Interval</string>
+               <string>PPP Provider</string>
               </property>
              </widget>
             </item>
-            <item row="13" column="0">
+            <item row="9" column="2">
+             <widget class="QComboBox" name="pppProviderCombo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QComboBox {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QComboBox:hover {
+    background-color: #214861;
+}
+QComboBox:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Select one</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="14" column="0">
              <widget class="QPushButton" name="resetConfigButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -923,7 +828,41 @@ QPushButton:disabled {
               </property>
              </widget>
             </item>
-            <item row="13" column="2">
+            <item row="3" column="2">
+             <widget class="QPushButton" name="timeWindowButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QPushButton:hover {
+    background-color: #214861;
+}
+QPushButton:pressed {
+    background-color: #1a3649;
+}
+QPushButton:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <property name="text">
+               <string>Start / End</string>
+              </property>
+             </widget>
+            </item>
+            <item row="14" column="2">
              <widget class="QPushButton" name="showConfigButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -954,6 +893,108 @@ QPushButton:disabled {
               </property>
               <property name="text">
                <string>Show Config</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="3">
+             <widget class="QLabel" name="pppProviderValue">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="visible">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>PPP Provider</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="3">
+             <widget class="QLabel" name="receiverTypeValue">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="visible">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Receiver Type</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="3">
+             <widget class="QLabel" name="antennaTypeValue">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="visible">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QLabel" name="timeWindowValue">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="visible">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Time Window</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="2">
+             <widget class="QPushButton" name="aprioriPositionButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: #2c5d7c;
+    color: white;
+    padding: 0px 8px;
+    font: 13pt &quot;Segoe UI&quot;;
+    text-align: left;
+}
+QPushButton:hover {
+    background-color: #214861;
+}
+QPushButton:pressed {
+    background-color: #1a3649;
+}
+QPushButton:disabled {
+    background-color: rgb(120, 120, 120);
+}</string>
+              </property>
+              <property name="text">
+               <string>0.0, 0.0, 0.0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="aprioriPositionLabel">
+              <property name="text">
+               <string>Apriori Position</string>
               </property>
              </widget>
             </item>
@@ -1688,11 +1729,26 @@ QPushButton:disabled { background-color: rgb(120,120,120); }
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    image: url(:/icon/help.png);
+}
+
+QPushButton:hover {
+    image: url(:/icon/help_hover.png);
+}
+
+QPushButton:pressed {
+    image: url(:/icon/help_selected.png);
+}
+</string>
+            </property>
             <property name="text">
              <string/>
-            </property>
-            <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::HelpFaq"/>
             </property>
             <property name="iconSize">
              <size>
