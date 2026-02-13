@@ -1,0 +1,86 @@
+# PPP via SouthPAN
+inputs:
+  inputs_root: ./products/
+  atx_files: [igs20.atx]
+  snx_files:
+    - igs_satellite_metadata.snx
+    - tables/sat_yaw_bias_rate.snx
+    - AUS23907.SNX
+  troposphere:
+    gpt2grid_files: [tables/gpt_25.grd]
+  satellite_data:
+    satellite_data_root: sbas/
+    nav_files:
+      - "*.rnx"
+    sbas_inputs:
+      ems_files:
+        - "uraL5/*.ems"
+      sbas_prn: 122
+      sbas_frequency: 5
+      sbas_message_0: 65 # prn=65 for dfmc translates into messages type (34~36)
+      use_do259: true
+      pvs_on_dfmc: true
+  gnss_observations:
+    gnss_observations_root: ../data/sbas/
+    rnx_inputs:
+      - "*.rnx"
+
+outputs:
+  metadata:
+    config_description: sbas_example_<BRANCH>
+  outputs_root: ./outputs/<CONFIG>/pvs/
+  pos:
+    output: true
+    filename: <RECEIVER>-<YYYY><DDD>.POS
+
+receiver_options:
+  global:
+    code_sigma: 0.5
+    phase_sigma: 0.005
+  HOB2:
+    antenna_type: "LEIAR25.R4      NONE"
+  NEBO:
+    antenna_type: "TRM59800.00     NONE"
+  OUS2:
+    antenna_type: "SEPCHOKE_B3E6   NONE"
+  TID1:
+    antenna_type: "AOAD/M_T        NONE"
+
+processing_options:
+  process_modes:
+    sbas: true
+  epoch_control:
+    wait_next_epoch: 3600
+  sbas:
+    mode: PVS
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [100]
+      clock:
+        estimated: [true]
+        sigma: [1000.0]
+        process_noise: [100.0]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [120]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [10]
+        outage_limit: [120]
+        sigma_limit: [1000]
+      trop:
+        estimated: [true]
+        sigma: [0.15]
+        process_noise: [0.0001]
+      code_bias:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [0]
