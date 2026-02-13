@@ -1,8 +1,8 @@
 # Ginan-UI
 ## User Manual
 ### This guide is written to aid those using the Ginan-UI extension software.
-### Version: Release v4.1.0
-### Last Updated: 22nd January 2026
+### Version: Release v4.1.1
+### Last Updated: 13th February 2026
 
 ## 1. Introduction
 
@@ -521,7 +521,7 @@ Click the "Reset Config" button in the General tab. This will regenerate the con
 
 2. On the next processing run, a clean configuration file will be generated from the template at `scripts/GinanUI/app/resources/Yaml/default_config.yaml`
 
-**For executable releases of Ginan-UI**, the config is located at `_internal/app/resources/ppp_generated.yaml`
+**For executable releases of Ginan-UI**, the config is located at `_internal/scripts/GinanUI/app/resources/ppp_generated.yaml`
 
 **Warning:** Invalid YAML syntax (like incorrect indentation, mismatched quotes, and malformed lists) will cause PEA to fail. Please verify your formatting if you encounter configuration-related errors in the logs.
 

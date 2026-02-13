@@ -13,7 +13,7 @@ struct FileState : std::ifstream
 {
     long int& filePos;
 
-    FileState(string path, long int& filePos, std::ifstream::openmode mode = std::ifstream::in)
+    FileState(string path, long int& filePos, std::ifstream::openmode mode = std::ifstream::in | std::ios::binary)
         : filePos{filePos}
     {
         if (filePos < 0)

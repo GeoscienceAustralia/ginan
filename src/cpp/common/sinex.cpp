@@ -2742,6 +2742,78 @@ void writESnxSatMass(ofstream& out)
         }
 }
 
+/** Get GLONASS frequency channel from SINEX data
+ * Returns frequency channel number for a GLONASS satellite at a given time.
+ * Searches SINEX satellite frequency channel blocks to find the correct channel.
+ */
+int getGloFreqChannel(
+    const SatSys& sat,      ///< Satellite to query
+    const GTime&  time,     ///< Time of observation
+    Navigation&   nav       ///< Navigation data to cache result
+)
+{
+    if (sat.sys != E_Sys::GLO)
+    {
+        return 0;
+    }
+
+    // Try to get SVN from nav.svnMap first (populated from SINEX SATELLITE/PRN block)
+    string svn;
+    auto it = nav.svnMap[sat].lower_bound(time);
+    if (it != nav.svnMap[sat].end())
+    {
+        svn = it->second;
+    }
+    
+    // Fallback to satDataMap if svnMap lookup failed
+    if (svn.empty())
+    {
+        svn = sat.svn();
+    }
+    
+    BOOST_LOG_TRIVIAL(debug) << "SINEX: Querying frequency channel for " << sat.id() 
+        << " at time " << time.to_string() << " (SVN=" << svn << ")";
+    
+    if (svn.empty())
+    {
+        BOOST_LOG_TRIVIAL(info) 
+            << "SINEX: No SVN available for " << sat.id() 
+            << " at time " << time.to_string();
+        return 0;
+    }
+
+    // Find frequency channel for this SVN at this time
+    for (auto& sfc : theSinex.listsatfreqchns)
+    {
+        if (sfc.svn != svn)
+            continue;
+
+        GTime startTime = sfc.start;
+        GTime stopTime = sfc.stop;
+
+        // Check if stop time is 0000:000:00000 (means ongoing/no end date)
+        bool isOngoing = (sfc.stop[0] == 0 && sfc.stop[1] == 0 && sfc.stop[2] == 0);
+
+        // Time must be after start, and either before stop or stop is ongoing
+        if (time >= startTime && (isOngoing || time <= stopTime))
+        {
+            nav.gloFreqMap[sat] = sfc.channel;
+            
+            BOOST_LOG_TRIVIAL(debug) 
+                << "SINEX: Found frequency channel " << sfc.channel 
+                << " for " << sat.id() << " (SVN=" << svn << ") at time " << time.to_string();
+            
+            return sfc.channel;
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(debug) 
+        << "SINEX: Could not find frequency channel for " << sat.id() 
+        << " (SVN=" << svn << ") at time " << time.to_string();
+    
+    return 0;
+}
+
 bool compareSatCom(SinexSatCom& left, SinexSatCom& right)
 {
     // start by comparing SVN...

@@ -15,6 +15,10 @@ using std::map;
 using std::string;
 using std::vector;
 
+// Forward declarations
+struct SatSys;
+struct Navigation;
+
 //===============================================================================
 /* history structure (optional but recommended)
 * ------------------------------------------------------------------------------
@@ -742,6 +746,7 @@ union GetSnxResult
 GetSnxResult getRecSnx(string id, GTime time, SinexRecData& snx);
 GetSnxResult getSatSnx(string prn, GTime time, SinexSatSnx& snx);
 void         getSlrRecBias(string id, string prn, GTime time, map<char, double>& recBias);
+int          getGloFreqChannel(const SatSys& sat, const GTime& time, Navigation& nav);
 
 void sinexAddStatistic(const string& what, const int value);
 void sinexAddStatistic(const string& what, const double value);

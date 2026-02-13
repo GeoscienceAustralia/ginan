@@ -1,25 +1,25 @@
 inputs:
     inputs_root:  #USER_SET
 
-    atx_files: [igs20.atx] # Required
-    igrf_files: [tables/igrf14coeffs.txt]
-    erp_files: [finals.data.iau2000.txt]
-    planetary_ephemeris_files: [tables/DE436.1950.2050]
+    atx_files: [igs20.atx] #AUTO
+    igrf_files: [tables/igrf14coeffs.txt] #AUTO
+    erp_files: [finals.data.iau2000.txt] #AUTO
+    planetary_ephemeris_files: [tables/DE436.1950.2050] #AUTO
 
     troposphere:
-        gpt2grid_files: [tables/gpt_25.grd]
+        gpt2grid_files: [tables/gpt_25.grd] #AUTO
 
     tides:
-        ocean_tide_loading_blq_files: [tables/OLOAD_GO.BLQ] # Required if ocean loading is applied
-        atmos_tide_loading_blq_files: [tables/ALOAD_GO.BLQ] # Required if atmospheric tide loading is applied
-        ocean_pole_tide_loading_files: [tables/opoleloadcoefcmcor.txt] # Required if ocean pole tide loading is applied
+        ocean_tide_loading_blq_files: [tables/OLOAD_GO.BLQ] #AUTO # Required if ocean loading is applied
+        atmos_tide_loading_blq_files: [tables/ALOAD_GO.BLQ] #AUTO # Required if atmospheric tide loading is applied
+        ocean_pole_tide_loading_files: [tables/opoleloadcoefcmcor.txt] #AUTO # Required if ocean pole tide loading is applied
 
     snx_files:
         # Use a wild card (*) to include all files matching the description in the directory
-        - igs_satellite_metadata.snx
-        - tables/sat_yaw_bias_rate.snx
-        - tables/qzss_yaw_modes.snx
-        - tables/bds_yaw_modes.snx
+        - igs_satellite_metadata.snx #AUTO
+        - tables/sat_yaw_bias_rate.snx #AUTO
+        - tables/qzss_yaw_modes.snx #AUTO
+        - tables/bds_yaw_modes.snx #AUTO
         #- "*.SNX"
 
     satellite_data:
@@ -49,15 +49,15 @@ outputs:
     outputs_root: #USER_SET
 
     gpx:
-        output: true
+        output: true #USER_SET
         filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.GPX
     pos:
-        output: true
+        output: true #USER_SET
         filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.POS
     trace:
       level: 2
       output_receivers: false
-      output_network: true
+      output_network: true #USER_SET
       receiver_filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
       network_filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
       output_residuals: true
@@ -126,6 +126,7 @@ receiver_options:
     TEST: #change to header name of RNX
         receiver_type:       # #USER_SET (string)
         antenna_type:        # #USER_SET (string)
+        apriori_position: [ 0.0000,   0.0000,   0.0000 ] # [floats] #USER_SET
         models:
             eccentricity:
                 enable: true
@@ -140,10 +141,11 @@ processing_options:
         slr: false # Process SLR observations
 
     epoch_control:
-        start_epoch:         #RNX
-        end_epoch:           #RNX
+        start_epoch:         #USER_SET
+        end_epoch:           #USER_SET
         #max_epochs:         2880 # Future user set.
-        epoch_interval:      #USER SET
+        epoch_interval:      #USER_SET
+        epoch_tolerance:     #AUTO: minimum of "0.5" and "rinex_epoch_interval / 2"
         wait_next_epoch: 3600  #USER_SET seconds (make large for post-processing)
 
     gnss_general:
@@ -152,35 +154,33 @@ processing_options:
         use_primary_signals: true
         sys_options:
             gps:
-                process: false
+                process: false #USER_SET
                 reject_eclipse: false
-                code_priorities: [L1W, L1C, L1X, L2W, L2C, L2X, L2S, L2L, L5Q, L5X]
+                code_priorities: [L1W, L1C, L1X, L2W, L2C, L2X, L2S, L2L, L5Q, L5X] #USER_SET
             gal:
-                process: false
+                process: false #USER_SET
                 reject_eclipse: false
                 # clock_codes: []
-                code_priorities: [L1C, L1X, L5Q, L5X, L6C, L6X, L7Q, L7X]
+                code_priorities: [L1C, L1X, L5Q, L5X, L6C, L6X, L7Q, L7X] #USER_SET
 
             bds:
-                process: false
+                process: false #USER_SET
                 reject_eclipse: false
                 # clock_codes: []
-                code_priorities: [L2I, L7I, L6I, L5P]
+                code_priorities: [L2I, L7I, L6I, L5P] #USER_SET
 
 
             glo:
-                process: false
+                process: false #USER_SET
                 reject_eclipse: false
                 # clock_codes: []
-                code_priorities: [L1P, L1C, L2P, L2C]
+                code_priorities: [L1P, L1C, L2P, L2C] #USER_SET
 
             qzs:
-                process: false
+                process: false #USER_SET
                 reject_eclipse: false
                 # clock_codes: []
-                code_priorities: [L1C, L1X, L2L, L2X, L5Q, L5X]
-
-
+                code_priorities: [L1C, L1X, L2L, L2X, L5Q, L5X] #USER_SET
 
     preprocessor: # Configurations for the kalman filter and its sub processes
         cycle_slips: # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
@@ -253,7 +253,6 @@ processing_options:
                 scdia: true # SCDIA test
 
 estimation_parameters:
-    
     receivers:
         global:
             pos:

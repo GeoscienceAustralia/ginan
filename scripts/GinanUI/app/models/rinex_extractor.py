@@ -123,6 +123,7 @@ class RinexExtractor:
         receiver_type = None
         antenna_type = None
         antenna_offset = None
+        apriori_position = None
 
         with open(rinex_path, "r", errors="replace") as f:
             lines = f.readlines()
@@ -177,7 +178,8 @@ class RinexExtractor:
                             end_epoch = format_time(y, m, d, hh, mm, ss)
                     elif label == "INTERVAL":
                         try:
-                            epoch_interval = int(float(line[0:10].strip()))
+                            raw_interval = float(line[0:10].strip())
+                            epoch_interval = int(raw_interval) if raw_interval == int(raw_interval) else round(raw_interval, 2)
                         except Exception:
                             pass
                     elif label == "MARKER NAME":
@@ -197,6 +199,14 @@ class RinexExtractor:
                             e = float(line[14:28].strip())
                             nnn = float(line[28:42].strip())
                             antenna_offset = [e, nnn, h]
+                        except Exception:
+                            pass
+                    elif label == "APPROX POSITION XYZ":
+                        try:
+                            x = float(line[0:14].strip())
+                            y = float(line[14:28].strip())
+                            z = float(line[28:42].strip())
+                            apriori_position = [x, y, z]
                         except Exception:
                             pass
                     elif label == "END OF HEADER":
@@ -250,7 +260,8 @@ class RinexExtractor:
                             pass
                     elif label == "INTERVAL":
                         try:
-                            epoch_interval = int(float(line[0:10]))
+                            raw_interval = float(line[0:10])
+                            epoch_interval = int(raw_interval) if raw_interval == int(raw_interval) else round(raw_interval, 2)
                         except Exception:
                             pass
                     elif label == "MARKER NAME":
@@ -268,6 +279,14 @@ class RinexExtractor:
                             e = float(line[14:28].strip())
                             nnn = float(line[28:42].strip())
                             antenna_offset = [e, nnn, h]
+                        except Exception:
+                            pass
+                    elif label == "APPROX POSITION XYZ":
+                        try:
+                            x = float(line[0:14].strip())
+                            y = float(line[14:28].strip())
+                            z = float(line[28:42].strip())
+                            apriori_position = [x, y, z]
                         except Exception:
                             pass
                     elif label == "END OF HEADER":
@@ -313,16 +332,17 @@ class RinexExtractor:
 
                 # Epoch interval from first two epochs
                 if previous_observation_dt and epoch_interval is None:
-                    t1 = datetime(*previous_observation_dt)
-                    t2 = datetime(year, mo, dd, hh, mmn, int(ssf))
-                    epoch_interval = int((t2 - t1).total_seconds())
+                    t1 = datetime(*previous_observation_dt[:5], int(previous_observation_dt[5]), int((previous_observation_dt[5] % 1) * 1000000))
+                    t2 = datetime(year, mo, dd, hh, mmn, int(ssf), int((ssf % 1) * 1000000))
+                    raw_interval = (t2 - t1).total_seconds()
+                    epoch_interval = int(raw_interval) if raw_interval == int(raw_interval) else round(raw_interval, 2)
 
                 end_epoch = format_time(year, mo, dd, hh, mmn, ssf)
                 if start_epoch is None:
                     # Header didn't contain TIME OF FIRST OBS
                     start_epoch = end_epoch
 
-                previous_observation_dt = (year, mo, dd, hh, mmn, int(ssf))
+                previous_observation_dt = (year, mo, dd, hh, mmn, ssf)
 
                 # Satellites from this line + continuation lines
                 sats = chunk_sat_ids(rest)
@@ -359,15 +379,16 @@ class RinexExtractor:
                 ssf = float(parts[5])
 
                 if previous_observation_dt and epoch_interval is None:
-                    t1 = datetime(*previous_observation_dt)
-                    t2 = datetime(y, mo, dd, hh, mmn, int(ssf))
-                    epoch_interval = int((t2 - t1).total_seconds())
+                    t1 = datetime(*previous_observation_dt[:5], int(previous_observation_dt[5]), int((previous_observation_dt[5] % 1) * 1000000))
+                    t2 = datetime(y, mo, dd, hh, mmn, int(ssf), int((ssf % 1) * 1000000))
+                    raw_interval = (t2 - t1).total_seconds()
+                    epoch_interval = int(raw_interval) if raw_interval == int(raw_interval) else round(raw_interval, 2)
 
                 end_epoch = format_time(y, mo, dd, hh, mmn, ssf)
                 if start_epoch is None:
                     start_epoch = end_epoch
 
-                previous_observation_dt = (y, mo, dd, hh, mmn, int(ssf))
+                previous_observation_dt = (y, mo, dd, hh, mmn, ssf)
 
                 sats = []
                 if len(parts) > 8:
@@ -600,6 +621,7 @@ class RinexExtractor:
             "receiver_type": receiver_type,
             "antenna_type": antenna_type,
             "antenna_offset": antenna_offset,
+            "apriori_position": apriori_position,
             "constellations": ", ".join(sorted(found_constellations)) if found_constellations else "Unknown",
             "obs_types_gps": obs_types_by_system["G"],
             "obs_types_gal": obs_types_by_system["E"],

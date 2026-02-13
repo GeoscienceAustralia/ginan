@@ -11,7 +11,9 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "VCPKG_MANIFEST_MODE": "ON",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}/.."
       }
     },
     {
@@ -25,7 +27,7 @@
       },
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed"
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/linux"
       }
     },
     {
@@ -38,7 +40,8 @@
         "rhs": "Windows"
       },
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/windows"
       }
     },
     {
@@ -59,7 +62,7 @@
         "VCPKG_TARGET_TRIPLET": "arm64-osx",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain/clang_mac_arm64.cmake",
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed"
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/macos-arm64"
       }
     },
     {
@@ -70,7 +73,7 @@
         "VCPKG_TARGET_TRIPLET": "x64-osx",
         "CMAKE_OSX_ARCHITECTURES": "x86_64",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain/clang_mac_x64.cmake",
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed"
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/macos-x64"
       }
     },
     {
@@ -92,7 +95,7 @@
         "CMAKE_FIND_ROOT_PATH_MODE_INCLUDE": "ONLY",
         "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain/mingw64.cmake",
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/mingw",
         "ENABLE_MONGODB": "OFF"
       }
     },
@@ -110,7 +113,7 @@
         "CMAKE_CXX_COMPILER": "g++",
         "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain/mingw64.cmake",
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/mingw",
         "ENABLE_MONGODB": "OFF"
       }
     },

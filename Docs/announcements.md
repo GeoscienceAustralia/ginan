@@ -1,4 +1,18 @@
 
+> **13 Feb 2026** - the Ginan team is pleased to release Ginan patch v4.1.1
+>
+> **Highlights**:
+> 
+> * Fix issue reading RINEX files in Windows binaries (CRLF-ended format)
+> * Allow station / receivers names to start with a number in config (e.g. 4RMA00AUS)
+> * Introduce reading of GLONASS satellites for RNX2 files
+> * Various updates to the GUI:
+>   * Apriori position as config option in interface
+>   * Ability to run faster rate clocks (1 Hz -> 100 Hz)
+>   * SINEX downloading and validation
+>   * Verify downloads against CDDIS checksums 
+>   * Use archived products if available
+
 > **30 Jan 2026** - the Ginan team is pleased to release Ginan update v4.1.0
 >
 > **Highlights**:

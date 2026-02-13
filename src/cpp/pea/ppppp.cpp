@@ -918,8 +918,8 @@ void updateAvgIonosphere(
 
         double ionosphereStec = diono / alpha;
 
-        // update the mu value but dont use the state thing - it will re-add it after its deleted
-        //  kfState.addKFState(key, init);
+        // Update the mu value but dont use the state thing - it will re-add it after its deleted
+        // kfState.addKFState(key, init);
         kfState.gaussMarkovMuMap[key] = ionosphereStec;
     }
 }
@@ -970,7 +970,7 @@ void updateAvgOrbits(
 
             init.mu = satPos.rSatEci0(i);
 
-            // update the mu value,
+            // Update the mu value,
             kfState.addKFState(key, init);
         }
     }
@@ -1004,13 +1004,7 @@ void updateAvgClocks(
         satPosBrdc.Sat = Sat;
         satPosKf.Sat   = Sat;
 
-        bool pass = satClkBroadcast(trace, time, time, satPosBrdc, nav);
-        if (pass == false)
-        {
-            continue;
-        }
-
-        pass = satClkKalman(trace, time, satPosKf, &kfState);
+        bool pass = satClkKalman(trace, time, satPosKf, &kfState);
         if (pass == false)
         {
             continue;
@@ -1020,6 +1014,18 @@ void updateAvgClocks(
 
         // Restore tau value from config
         InitialState init = initialStateFromConfig(satOpts.clk);
+
+        pass = satClkBroadcast(trace, time, time, satPosBrdc, nav);
+        if (pass == false)
+        {
+            init.tau = -1;  // Disable FOGM so that this satellite clock won't be tied down to old
+                            // mu value
+
+            // Update the tau value
+            kfState.addKFState(key, init);
+
+            continue;
+        }
 
         double satClkBrdc = satPosBrdc.satClk * CLIGHT;
         double satClkKf   = satPosKf.satClk * CLIGHT;
@@ -1043,7 +1049,7 @@ void updateAvgClocks(
             init.mu = satClkBrdc;
         }
 
-        // update tau & mu values
+        // Update tau & mu values
         kfState.addKFState(key, init);
     }
 }

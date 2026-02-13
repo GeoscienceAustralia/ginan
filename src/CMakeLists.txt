@@ -79,6 +79,12 @@ else ()
 	option(ENABLE_OPTIMISATION      "ENABLE_OPTIMISATION"       ON)
 endif ()
 
+# Library linking options - allow packagers to override defaults
+# Default to static linking for vcpkg/development, but allow dynamic for distributions
+option(USE_STATIC_LIBS          "Use static libraries (Boost, yaml-cpp)"    ON)
+option(USE_STATIC_BOOST         "Use static Boost libraries"               ${USE_STATIC_LIBS})
+option(USE_STATIC_YAML_CPP      "Use static yaml-cpp library"              ${USE_STATIC_LIBS})
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
 	message(STATUS "Setting ccache            on")
@@ -185,15 +191,33 @@ if (CMAKE_USE_PTHREADS_INIT)
 	set (CMAKE_CXX_FLAGS				"${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
-set(YAML_CPP_USE_STATIC_LIBS ON)
+# Configure yaml-cpp linking
+if(USE_STATIC_YAML_CPP)
+	set(YAML_CPP_USE_STATIC_LIBS ON)
+	message(STATUS "Using static yaml-cpp")
+else()
+	set(YAML_CPP_USE_STATIC_LIBS OFF)
+	message(STATUS "Using dynamic yaml-cpp")
+endif()
 find_package(YAML_CPP 0.6.2 REQUIRED)
 
 # OpenSSL - use MODULE mode for vcpkg compatibility (wrapper handles it)
 find_package(OpenSSL REQUIRED)
 
+# Configure Boost linking
+if(USE_STATIC_BOOST)
+	set(Boost_USE_STATIC_LIBS ON)
+	message(STATUS "Using static Boost libraries")
+else()
+	set(Boost_USE_STATIC_LIBS OFF)
+	# Dynamic Boost requires additional compile definitions
+	add_compile_definitions(BOOST_LOG_DYN_LINK)
+	message(STATUS "Using dynamic Boost libraries")
+endif()
+
 #set(Boost_NO_SYSTEM_PATHS ON)
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.75.0 REQUIRED COMPONENTS log log_setup date_time system thread program_options serialization timer json)
+# Note: Boost system is header-only since 1.67, no longer needed as a component
+find_package(Boost 1.75.0 REQUIRED COMPONENTS log log_setup date_time thread program_options serialization timer json)
 
 # Try CONFIG mode first (for vcpkg), fall back to module mode (for brew/system)
 find_package(Eigen3 3.3.0 CONFIG QUIET)

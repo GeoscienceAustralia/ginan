@@ -4,6 +4,7 @@ UI input flow controller for the Ginan-UI.
 """
 from __future__ import annotations
 
+import math
 import os
 import re
 import subprocess
@@ -31,6 +32,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QFormLayout,
     QDoubleSpinBox,
+    QSpinBox,
     QHBoxLayout,
     QVBoxLayout,
     QDateTimeEdit,
@@ -53,7 +55,7 @@ from scripts.GinanUI.app.models.rinex_extractor import RinexExtractor
 from scripts.GinanUI.app.utils.cddis_credentials import save_earthdata_credentials
 from scripts.GinanUI.app.models.archive_manager import (archive_products_if_rinex_changed)
 from scripts.GinanUI.app.models.archive_manager import archive_old_outputs
-from scripts.GinanUI.app.utils.workers import DownloadWorker, BiasProductWorker
+from scripts.GinanUI.app.utils.workers import DownloadWorker, BiasProductWorker, SinexValidationWorker
 from scripts.GinanUI.app.utils.toast import show_toast
 
 
@@ -121,6 +123,10 @@ class InputController(QObject):
         self.ui.antennaOffsetButton.setCursor(Qt.CursorShape.PointingHandCursor)
         self.ui.antennaOffsetValue.setText("0.0, 0.0, 0.0")
 
+        # Apriori position
+        self.ui.aprioriPositionButton.clicked.connect(self._open_apriori_position_dialog)
+        self.ui.aprioriPositionButton.setCursor(Qt.CursorShape.PointingHandCursor)
+
         # Time window and data interval
         self.ui.timeWindowButton.clicked.connect(self._open_time_window_dialog)
         self.ui.timeWindowButton.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -155,6 +161,12 @@ class InputController(QObject):
         self._bia_loading = False
         self._bia_worker = None
         self._bia_thread = None
+
+        # SINEX validation worker tracking
+        self._sinex_worker = None
+        self._sinex_thread = None
+        self._sinex_path = None
+        self._sinex_filename = None  # Stored until apply_ui_config() is called
 
         # Connect tab change signal to trigger BIA fetch when switching to Constellations tab
         self.ui.configTabWidget.currentChanged.connect(self._on_config_tab_changed)
@@ -294,6 +306,12 @@ class InputController(QObject):
 
         self.ui.antennaOffsetButton.setToolTip(
             "Antenna reference point offset in metres (East, North, Up)\n"
+            "Typically extracted from RINEX header\n"
+            "Click to modify if needed"
+        )
+
+        self.ui.aprioriPositionButton.setToolTip(
+            "Approximate receiver position in ECEF coordinates (X, Y, Z) in metres\n"
             "Typically extracted from RINEX header\n"
             "Click to modify if needed"
         )
@@ -455,10 +473,18 @@ class InputController(QObject):
             self.ui.timeWindowValue.setText(f"{result['start_epoch']} to {result['end_epoch']}")
             self.ui.timeWindowButton.setText(f"{result['start_epoch']} to {result['end_epoch']}")
             self.ui.dataIntervalButton.setText(f"{result['epoch_interval']} s")
+            self.rinex_epoch_interval = float(result['epoch_interval'])
             self.ui.receiverTypeValue.setText(result["receiver_type"])
             self.ui.antennaTypeValue.setText(result["antenna_type"])
             self.ui.antennaOffsetValue.setText(", ".join(map(str, result["antenna_offset"])))
             self.ui.antennaOffsetButton.setText(", ".join(map(str, result["antenna_offset"])))
+
+            # Populate apriori position if available
+            apriori = result.get("apriori_position")
+            if apriori and any(v != 0.0 for v in apriori):
+                self.ui.aprioriPositionButton.setText(", ".join(map(str, apriori)))
+            else:
+                self.ui.aprioriPositionButton.setText("0.0, 0.0, 0.0")
 
             self.ui.receiverTypeCombo.clear()
             self.ui.receiverTypeCombo.addItem(result["receiver_type"])
@@ -481,6 +507,16 @@ class InputController(QObject):
             Logger.terminal("⚒️ RINEX file metadata extracted and applied to UI fields")
             self.ui.outputButton.setEnabled(True)
             self.ui.showConfigButton.setEnabled(True)
+
+            # Start SINEX validation in background
+            self._start_sinex_validation(
+                target_date=start_epoch,
+                marker_name=result.get("marker_name", ""),
+                receiver_type=result.get("receiver_type", ""),
+                antenna_type=result.get("antenna_type", ""),
+                antenna_offset=result.get("antenna_offset", [0.0, 0.0, 0.0]),
+                apriori_position=result.get("apriori_position"),
+            )
 
         except Exception as e:
             Logger.terminal(f"Error extracting RNX metadata: {e}")
@@ -1394,6 +1430,178 @@ class InputController(QObject):
         if hasattr(self, '_bia_warning_label'):
             self._bia_warning_label.setVisible(show)
 
+    #region SINEX Validation
+
+    def _start_sinex_validation(self, target_date: datetime, marker_name: str, receiver_type: str, antenna_type: str,
+                                antenna_offset: list, apriori_position: list = None):
+        """
+        Start SINEX validation in a background thread.
+
+        Arguments:
+          target_date (datetime): Date for which to download the SINEX file
+          marker_name (str): 4-character marker name from RINEX
+          receiver_type (str): Receiver type from RINEX
+          antenna_type (str): Antenna type from RINEX
+          antenna_offset (list): Antenna offset [E, N, U] from RINEX
+          apriori_position (list): Optional apriori position [X, Y, Z] from RINEX
+        """
+        if not marker_name or len(marker_name) < 4:
+            Logger.terminal("⚠️ Invalid marker name - SINEX validation skipped")
+            return
+
+        # Stop any existing SINEX worker
+        self._stop_sinex_worker()
+
+        Logger.terminal(f"📋 Starting SINEX validation for marker '{marker_name[:4]}'...")
+
+        # Create worker and thread
+        self._sinex_worker = SinexValidationWorker(
+            target_date=target_date,
+            marker_name=marker_name[:4],  # Use first 4 characters
+            receiver_type=receiver_type,
+            antenna_type=antenna_type,
+            antenna_offset=antenna_offset,
+            apriori_position=apriori_position,
+        )
+        self._sinex_thread = QThread()
+        self._sinex_worker.moveToThread(self._sinex_thread)
+
+        # Connect signals
+        self._sinex_worker.finished.connect(self._on_sinex_validation_finished)
+        self._sinex_worker.error.connect(self._on_sinex_validation_error)
+        self._sinex_worker.progress.connect(self._on_sinex_validation_progress)
+
+        self._sinex_thread.started.connect(self._sinex_worker.run)
+        self._sinex_worker.finished.connect(self._sinex_thread.quit)
+        self._sinex_worker.error.connect(self._sinex_thread.quit)
+        self._sinex_thread.finished.connect(self._on_sinex_thread_finished)
+
+        self._sinex_thread.start()
+
+    def _stop_sinex_worker(self):
+        """
+        Stop any running SINEX validation worker and clean up thread resources.
+        """
+        if self._sinex_worker is not None:
+            # Disconnect signals to prevent callbacks after cleanup
+            try:
+                self._sinex_worker.finished.disconnect()
+                self._sinex_worker.error.disconnect()
+                self._sinex_worker.progress.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+            # Signal the worker to stop
+            self._sinex_worker.stop()
+
+        if self._sinex_thread is not None:
+            # Disconnect thread signals
+            try:
+                self._sinex_thread.started.disconnect()
+                self._sinex_thread.finished.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+
+            if self._sinex_thread.isRunning():
+                self._sinex_thread.quit()
+                if not self._sinex_thread.wait(2000):
+                    Logger.console("⚠️ SINEX thread did not stop gracefully, forcing termination")
+                    self._sinex_thread.terminate()
+                    self._sinex_thread.wait(1000)
+
+        # Clean up references
+        self._sinex_worker = None
+        self._sinex_thread = None
+
+    def _on_sinex_validation_progress(self, description: str, percent: int):
+        """
+        UI handler: update progress bar during SINEX download.
+
+        Arguments:
+          description (str): Progress description (filename)
+          percent (int): Progress percentage (0-100)
+        """
+        # Update the progress bar in the UI (same as product downloads)
+        if hasattr(self.ui, 'progressBar'):
+            self.ui.progressBar.setValue(percent)
+            self.ui.progressBar.setFormat(f"📥 {description}: {percent}%")
+
+    def _on_sinex_validation_finished(self, sinex_path, validation_results: dict):
+        """
+        UI handler: SINEX validation completed.
+
+        Arguments:
+          sinex_path (Path): Path to the downloaded SINEX file
+          validation_results (dict): Validation results dictionary
+        """
+        self._sinex_path = sinex_path
+
+        # Store the SINEX filename for later use in apply_ui_config()
+        # (config writing only happens when apply_ui_config is called)
+        if sinex_path is not None:
+            self._sinex_filename = sinex_path.name
+
+        # Reset progress bar
+        if hasattr(self.ui, 'progressBar'):
+            self.ui.progressBar.setValue(0)
+            self.ui.progressBar.setFormat("")
+
+        # Check validation results and show appropriate toast
+        if 'error' in validation_results:
+            show_toast(self.parent, f"⚠️ SINEX validation error: {validation_results['error']}", duration=5000)
+            return
+
+        if not validation_results.get('marker_found', False):
+            show_toast(self.parent, f"ℹ️ Marker not found in SINEX file", duration=3000)
+            return
+
+        # Apply SINEX apriori_position to UI if available (SINEX is more accurate than RINEX)
+        apriori_result = validation_results.get('apriori_position', {})
+        sinex_position = apriori_result.get('sinex_value')
+        if sinex_position is not None and len(sinex_position) == 3:
+            # Update the UI with SINEX coordinates
+            position_str = ", ".join(str(v) for v in sinex_position)
+            self.ui.aprioriPositionButton.setText(position_str)
+
+        # Check if all validations passed
+        all_valid = True
+        has_validations = False
+        for field in ['receiver_type', 'antenna_type', 'antenna_offset', 'apriori_position']:
+            field_result = validation_results.get(field, {})
+            if field_result.get('valid') is True:
+                has_validations = True
+            elif field_result.get('valid') is False:
+                all_valid = False
+                has_validations = True
+
+        if has_validations:
+            if all_valid:
+                show_toast(self.parent, "✅ SINEX validation passed", duration=3000)
+            else:
+                show_toast(self.parent, "⚠️ SINEX validation warnings - check terminal", duration=5000)
+
+    def _on_sinex_validation_error(self, error_msg: str):
+        """
+        UI handler: SINEX validation failed.
+
+        Arguments:
+          error_msg (str): Error message describing the failure
+        """
+        Logger.terminal(f"⚠️ SINEX validation error: {error_msg}")
+
+        # Don't show toast for cancelled operations
+        if "cancelled" not in error_msg.lower():
+            show_toast(self.parent, f"⚠️ SINEX validation failed: {error_msg}", duration=5000)
+
+    def _on_sinex_thread_finished(self):
+        """
+        Slot called when the SINEX thread has fully finished.
+        Safe to clean up references here.
+        """
+        self._sinex_worker = None
+        self._sinex_thread = None
+
+    # endregion
+
     def _on_analysis_thread_finished(self):
         """
         Slot called when the analysis thread has fully finished.
@@ -1714,54 +1922,26 @@ class InputController(QObject):
     # ==========================================================
     def _open_antenna_offset_dialog(self):
         """
-        UI handler: open antenna offset dialog (E, N, U) with high-precision spin boxes.
+        UI handler: open antenna offset dialog (E, N, U) with text input fields.
         """
         dlg = QDialog(self.ui.antennaOffsetButton)
         dlg.setWindowTitle("Antenna Offset")
 
         # Parse existing "E, N, U"
         try:
-            e0, n0, u0 = [float(x.strip()) for x in self.ui.antennaOffsetValue.text().split(",")]
+            e0, n0, u0 = [x.strip() for x in self.ui.antennaOffsetValue.text().split(",")]
         except Exception:
-            e0 = n0 = u0 = 0.0
+            e0 = n0 = u0 = "0.0"
 
         form = QFormLayout(dlg)
 
-        class DecimalSpinBox(QDoubleSpinBox):
-            def __init__(self, parent=None, top=10000, bottom=-10000, precision=15, step_size=0.1):
-                super().__init__(parent)
-                self.setRange(bottom, top)
+        edit_e = QLineEdit(str(e0), dlg)
+        edit_n = QLineEdit(str(n0), dlg)
+        edit_u = QLineEdit(str(u0), dlg)
 
-                self.setDecimals(precision)  # fallback precision
-                # up down arrow Step size
-                # note there is some float point inaccuracy when useing steps
-                self.setSingleStep(step_size)
-
-            def textFromValue(self, value: float) -> str:
-                """Format value dynamically with Decimal for more precision"""
-                # Convert through Decimal to avoid scientific notation
-                d = Decimal(str(value))
-                return str(d.normalize())  # trims trailing zeros
-
-            def valueFromText(self, text: str) -> float:
-                """Parse text back into a float"""
-                try:
-                    return float(Decimal(text))
-                except InvalidOperation:
-                    raise ValueError(f"Failed to convert Antenna offset to float: {text}")
-
-        sb_e = DecimalSpinBox(dlg)
-        sb_e.setValue(e0)
-
-        sb_n = DecimalSpinBox(dlg)
-        sb_n.setValue(n0)
-
-        sb_u = DecimalSpinBox(dlg)
-        sb_u.setValue(u0)
-
-        form.addRow("E:", sb_e)
-        form.addRow("N:", sb_n)
-        form.addRow("U:", sb_u)
+        form.addRow("E:", edit_e)
+        form.addRow("N:", edit_n)
+        form.addRow("U:", edit_u)
 
         btn_row = QHBoxLayout()
         ok_btn = QPushButton("OK", dlg)
@@ -1770,25 +1950,98 @@ class InputController(QObject):
         btn_row.addWidget(cancel_btn)
         form.addRow(btn_row)
 
-        ok_btn.clicked.connect(lambda: self._set_antenna_offset(sb_e, sb_n, sb_u, dlg))
+        ok_btn.clicked.connect(lambda: self._set_antenna_offset(edit_e, edit_n, edit_u, dlg))
         cancel_btn.clicked.connect(dlg.reject)
+
+        dlg.setMinimumWidth(300)
+        dlg.setFixedHeight(dlg.sizeHint().height())
 
         dlg.exec()
 
-    def _set_antenna_offset(self, sb_e, sb_n, sb_u, dlg: QDialog):
+    def _set_antenna_offset(self, edit_e, edit_n, edit_u, dlg: QDialog):
         """
         UI handler: apply antenna offset values back to UI.
 
         Arguments:
-          sb_e (QDoubleSpinBox): East (E) spin box.
-          sb_n (QDoubleSpinBox): North (N) spin box.
-          sb_u (QDoubleSpinBox): Up (U) spin box.
+          edit_e (QLineEdit): East (E) input field.
+          edit_n (QLineEdit): North (N) input field.
+          edit_u (QLineEdit): Up (U) input field.
           dlg (QDialog): Dialog to accept/close.
         """
-        e, n, u = sb_e.value(), sb_n.value(), sb_u.value()
+        try:
+            e = float(edit_e.text().strip())
+            n = float(edit_n.text().strip())
+            u = float(edit_u.text().strip())
+        except ValueError:
+            QMessageBox.warning(dlg, "Invalid input", "Please enter valid numeric values.")
+            return
+
         text = f"{e}, {n}, {u}"
         self.ui.antennaOffsetButton.setText(text)
         self.ui.antennaOffsetValue.setText(text)
+        dlg.accept()
+
+    # ==========================================================
+    # Apriori position popup
+    # ==========================================================
+    def _open_apriori_position_dialog(self):
+        """
+        UI handler: open apriori position dialog (X, Y, Z) with text input fields.
+        """
+        dlg = QDialog(self.ui.aprioriPositionButton)
+        dlg.setWindowTitle("Apriori Position (ECEF)")
+
+        # Parse existing "X, Y, Z"
+        try:
+            x0, y0, z0 = [x.strip() for x in self.ui.aprioriPositionButton.text().split(",")]
+        except Exception:
+            x0 = y0 = z0 = "0.0"
+
+        form = QFormLayout(dlg)
+
+        edit_x = QLineEdit(str(x0), dlg)
+        edit_y = QLineEdit(str(y0), dlg)
+        edit_z = QLineEdit(str(z0), dlg)
+
+        form.addRow("X:", edit_x)
+        form.addRow("Y:", edit_y)
+        form.addRow("Z:", edit_z)
+
+        btn_row = QHBoxLayout()
+        ok_btn = QPushButton("OK", dlg)
+        cancel_btn = QPushButton("Cancel", dlg)
+        btn_row.addWidget(ok_btn)
+        btn_row.addWidget(cancel_btn)
+        form.addRow(btn_row)
+
+        ok_btn.clicked.connect(lambda: self._set_apriori_position(edit_x, edit_y, edit_z, dlg))
+        cancel_btn.clicked.connect(dlg.reject)
+
+        dlg.setMinimumWidth(300)
+        dlg.setFixedHeight(dlg.sizeHint().height())
+
+        dlg.exec()
+
+    def _set_apriori_position(self, edit_x, edit_y, edit_z, dlg: QDialog):
+        """
+        UI handler: apply apriori position values back to UI.
+
+        Arguments:
+          edit_x (QLineEdit): X coordinate input field.
+          edit_y (QLineEdit): Y coordinate input field.
+          edit_z (QLineEdit): Z coordinate input field.
+          dlg (QDialog): Dialog to accept/close.
+        """
+        try:
+            x = float(edit_x.text().strip())
+            y = float(edit_y.text().strip())
+            z = float(edit_z.text().strip())
+        except ValueError:
+            QMessageBox.warning(dlg, "Invalid input", "Please enter valid numeric values.")
+            return
+
+        text = f"{x}, {y}, {z}"
+        self.ui.aprioriPositionButton.setText(text)
         dlg.accept()
 
     # ==========================================================
@@ -1798,8 +2051,8 @@ class InputController(QObject):
         """
         UI handler: open dialog to adjust observation start/end times.
         """
-        dlg = QDialog(self.ui.timeWindowValue)
-        dlg.setWindowTitle("Select start / end time")
+        dlg = QDialog(self.ui.timeWindowButton)
+        dlg.setWindowTitle("Time Window")
 
         # Parse existing "yyyy-MM-dd_HH:mm:ss to yyyy-MM-dd_HH:mm:ss"
         current_text = self.ui.timeWindowButton.text()
@@ -1814,7 +2067,8 @@ class InputController(QObject):
         except Exception:
             s_dt = e_dt = QDateTime.currentDateTime()
 
-        vbox = QVBoxLayout(dlg)
+        form = QFormLayout(dlg)
+
         start_edit = QDateTimeEdit(s_dt, dlg)
         end_edit = QDateTimeEdit(e_dt, dlg)
 
@@ -1822,19 +2076,24 @@ class InputController(QObject):
         end_edit.setCalendarPopup(True)
         start_edit.setDisplayFormat("yyyy-MM-dd_HH:mm:ss")
         end_edit.setDisplayFormat("yyyy-MM-dd_HH:mm:ss")
+        start_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        end_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-        vbox.addWidget(start_edit)
-        vbox.addWidget(end_edit)
+        form.addRow("Start:", start_edit)
+        form.addRow("End:", end_edit)
 
         btn_row = QHBoxLayout()
         ok_btn = QPushButton("OK", dlg)
         cancel_btn = QPushButton("Cancel", dlg)
         btn_row.addWidget(ok_btn)
         btn_row.addWidget(cancel_btn)
-        vbox.addLayout(btn_row)
+        form.addRow(btn_row)
 
         ok_btn.clicked.connect(lambda: self._set_time_window(start_edit, end_edit, dlg))
         cancel_btn.clicked.connect(dlg.reject)
+
+        dlg.setMinimumWidth(300)
+        dlg.setFixedHeight(dlg.sizeHint().height())
 
         dlg.exec()
 
@@ -1863,27 +2122,57 @@ class InputController(QObject):
     # ==========================================================
     def _open_data_interval_dialog(self):
         """
-        UI handler: prompt for data interval (seconds) and update UI.
+        UI handler: open dialog to adjust data interval (seconds).
         """
-        # Extract current value from button text ("30 s" → 30)
+        dlg = QDialog(self.ui.dataIntervalButton)
+        dlg.setWindowTitle("Data Interval")
+
+        # Extract current value from button text ("30 s" → 30, "0.50 s" → 0.5)
         current_text = self.ui.dataIntervalButton.text().replace(" s", "").strip()
         try:
-            current_val = int(current_text)
+            current_val = float(current_text)
         except ValueError:
-            current_val = 1  # fallback if parsing fails
+            current_val = 1.0  # fallback if parsing fails
 
-        val, ok = QInputDialog.getInt(
-            self.ui.dataIntervalButton,
-            "Data interval",
-            "Input interval (seconds):",
-            current_val,  # prefill with current value
-            1,
-            999_999,
-        )
-        if ok:
-            text = f"{val} s"
-            self.ui.dataIntervalButton.setText(text)
-            self.ui.dataIntervalValue.setText(text)
+        form = QFormLayout(dlg)
+
+        interval_spin = QDoubleSpinBox(dlg)
+        interval_spin.setRange(0.01, 999999.99)
+        interval_spin.setDecimals(2)
+        interval_spin.setValue(current_val)
+        interval_spin.setSuffix(" s")
+        interval_spin.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        form.addRow("Interval:", interval_spin)
+
+        btn_row = QHBoxLayout()
+        ok_btn = QPushButton("OK", dlg)
+        cancel_btn = QPushButton("Cancel", dlg)
+        btn_row.addWidget(ok_btn)
+        btn_row.addWidget(cancel_btn)
+        form.addRow(btn_row)
+
+        ok_btn.clicked.connect(lambda: self._set_data_interval(interval_spin, dlg))
+        cancel_btn.clicked.connect(dlg.reject)
+
+        dlg.setMinimumWidth(300)
+        dlg.setFixedHeight(dlg.sizeHint().height())
+
+        dlg.exec()
+
+    def _set_data_interval(self, interval_spin, dlg: QDialog):
+        """
+        UI handler: apply data interval value back to UI.
+
+        Arguments:
+          interval_spin (QDoubleSpinBox): Interval spin box.
+          dlg (QDialog): Dialog to accept/close.
+        """
+        val = interval_spin.value()
+        text = f"{int(val)} s" if val == int(val) else f"{val:.2f} s"
+        self.ui.dataIntervalButton.setText(text)
+        self.ui.dataIntervalValue.setText(text)
+        dlg.accept()
 
     # endregion
 
@@ -1919,6 +2208,7 @@ class InputController(QObject):
         receiver_type = self.ui.receiverTypeValue.text()
         antenna_type = self.ui.antennaTypeValue.text()
         antenna_offset_raw = self.ui.antennaOffsetButton.text()  # Get from button, not value label
+        apriori_position_raw = self.ui.aprioriPositionButton.text()  # Get from button, not value label
         ppp_provider = self.ui.pppProviderCombo.currentText() if self.ui.pppProviderCombo.currentText() != "Select one" else ""
         ppp_series = self.ui.pppSeriesCombo.currentText() if self.ui.pppSeriesCombo.currentText() != "Select one" else ""
         ppp_project = self.ui.pppProjectCombo.currentText() if self.ui.pppProjectCombo.currentText() != "Select one" else ""
@@ -1929,7 +2219,8 @@ class InputController(QObject):
         # Parsed values
         start_epoch, end_epoch = self.parse_time_window(time_window_raw)
         antenna_offset = self.parse_antenna_offset(antenna_offset_raw)
-        epoch_interval = int(epoch_interval_raw.replace("s", "").strip())
+        apriori_position = self.parse_apriori_position(apriori_position_raw)
+        epoch_interval = float(epoch_interval_raw.replace("s", "").strip())
         marker_name = self.extract_marker_name(rnx_path)
         mode = self.determine_mode_value(mode_raw)
 
@@ -1944,7 +2235,9 @@ class InputController(QObject):
             start_epoch=start_epoch,
             end_epoch=end_epoch,
             epoch_interval=epoch_interval,
+            rinex_epoch_interval=getattr(self, 'rinex_epoch_interval', epoch_interval),
             antenna_offset=antenna_offset,
+            apriori_position=apriori_position,
             mode=mode,
             constellations_raw=constellations_raw,
             receiver_type=receiver_type,
@@ -1962,6 +2255,7 @@ class InputController(QObject):
             gpx_output=gpx_output,
             pos_output=pos_output,
             trace_output_network=trace_output_network,
+            sinex_filename=self._sinex_filename,
         )
 
     def _extract_observation_codes(self) -> dict:
@@ -2272,6 +2566,9 @@ class InputController(QObject):
         self.ui.antennaOffsetButton.setText("0.0, 0.0, 0.0")
         self.ui.antennaOffsetValue.setText("0.0, 0.0, 0.0")
 
+        # Apriori position - reset to default
+        self.ui.aprioriPositionButton.setText("0.0, 0.0, 0.0")
+
         # PPP Provider - reset to placeholder
         self.ui.pppProviderCombo.clear()
         self.ui.pppProviderCombo.addItem("Select one")
@@ -2433,7 +2730,7 @@ class InputController(QObject):
         if not rnx_path:
             return "TEST"
         stem = Path(rnx_path).stem  # drops .gz/.rnx
-        m = re.match(r"([A-Za-z]{4})", stem)
+        m = re.match(r"([A-Za-z0-9]{4})", stem)
         return m.group(1).upper() if m else "TEST"
 
     @staticmethod
@@ -2482,6 +2779,27 @@ class InputController(QObject):
         except ValueError:
             raise ValueError("Invalid antenna offset format. Expected: 'e, n, u'")
 
+    @staticmethod
+    def parse_apriori_position(apriori_position_raw: str):
+        """
+        Convert 'x, y, z' string into [x, y, z] floats.
+
+        Arguments:
+          apriori_position_raw (str): e.g., '2765120.6553, -4449249.8563, -3626405.2770'.
+
+        Returns:
+          list[float]: [x, y, z] in metres (ECEF coordinates).
+
+        Example:
+          >>> parse_apriori_position("2765120.6553, -4449249.8563, -3626405.2770")
+          [2765120.6553, -4449249.8563, -3626405.2770]
+        """
+        try:
+            x, y, z = map(str.strip, apriori_position_raw.split(","))
+            return [float(x), float(y), float(z)]
+        except ValueError:
+            raise ValueError("Invalid apriori position format. Expected: 'x, y, z'")
+
     @dataclass
     class ExtractedInputs:
         """
@@ -2491,8 +2809,10 @@ class InputController(QObject):
         marker_name: str
         start_epoch: str
         end_epoch: str
-        epoch_interval: int
+        epoch_interval: float
+        rinex_epoch_interval: float
         antenna_offset: list[float]
+        apriori_position: list[float]
         mode: int
 
         # Raw strings / controls that are needed downstream
@@ -2518,6 +2838,8 @@ class InputController(QObject):
         gpx_output: bool = True
         pos_output: bool = True
         trace_output_network: bool = False
+
+        sinex_filename: str = None
 
     # endregion
 
@@ -2670,6 +2992,9 @@ def stop_all(self):
         # Request the worker to stop - it will emit cancelled signal when done
         if hasattr(self, "worker") and self.worker is not None:
             self.worker.stop()
+        # Stop SINEX validation worker if running
+        if hasattr(self, "_stop_sinex_worker"):
+            self._stop_sinex_worker()
         # Restore cursor when stopping
         if hasattr(self, "parent"):
             self.parent.setCursor(Qt.CursorShape.ArrowCursor)
