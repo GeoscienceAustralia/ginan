@@ -1,24 +1,33 @@
-# app/utils/cddis_credentials.py
+"""
+Utilities for saving and validating Earthdata credentials in .netrc/_netrc.
+
+Writes login credentials for urs.earthdata.nasa.gov and cddis.nasa.gov to the
+appropriate credential file for the current platform, and validates that those
+credentials are present and well-formed
+"""
+
 from __future__ import annotations
 import os, platform, stat, shutil
 from pathlib import Path
 import netrc
 
+# Constants
 URS = "urs.earthdata.nasa.gov"
 CDDIS = "cddis.nasa.gov"
 
-def _win_user_home() -> Path:
+def _write_text_secure(p: Path, content: str) -> None:
     """
-    Return the Windows user home path.
+    Write text to a file, applying secure permissions on non-Windows.
 
-    Returns:
-      Path: Path to the current user's home directory on Windows; falls back to Path.home() if env var is missing.
-
-    Example:
-      >>> isinstance(_win_user_home(), Path)
-      True
+    Arguments:
+      p (Path): Target file path.
+      content (str): File content to write (UTF-8).
     """
-    return Path(os.environ.get("USERPROFILE", str(Path.home())))
+    p.write_text(content, encoding="utf-8")
+    if not platform.system().lower().startswith("win"):
+        os.chmod(p, stat.S_IRUSR | stat.S_IWUSR)  # 0600
+
+#region .NETRC / _NETRC Handling
 
 def netrc_candidates() -> tuple[Path, ...]:
     """
@@ -32,20 +41,8 @@ def netrc_candidates() -> tuple[Path, ...]:
       ('...netrc',) or ('...netrc', '_netrc')
     """
     if platform.system().lower().startswith("win"):
-        return (_win_user_home() / ".netrc", _win_user_home() / "_netrc")
+        return (_win_user_home() / ".netrc", _win_user_home() / "_netrc") # Windows is not consistent
     return (Path.home() / ".netrc",)
-
-def _write_text_secure(p: Path, content: str) -> None:
-    """
-    Write text to a file, applying secure permissions on non-Windows.
-
-    Arguments:
-      p (Path): Target file path.
-      content (str): File content to write (UTF-8).
-    """
-    p.write_text(content, encoding="utf-8")
-    if not platform.system().lower().startswith("win"):
-        os.chmod(p, stat.S_IRUSR | stat.S_IWUSR)  # 0600
 
 def save_earthdata_credentials(username: str, password: str) -> tuple[Path, ...]:
     """
@@ -73,19 +70,6 @@ def save_earthdata_credentials(username: str, password: str) -> tuple[Path, ...]
         written.append(p)
     os.environ["NETRC"] = str(written[0])
     return tuple(written)
-
-def _ensure_windows_mirror() -> None:
-    """
-    Ensure .netrc exists by mirroring _netrc on Windows if necessary.
-    """
-    if not platform.system().lower().startswith("win"):
-        return
-    dot, under = _win_user_home() / ".netrc", _win_user_home() / "_netrc"
-    if under.exists() and not dot.exists():
-        try:
-            shutil.copyfile(under, dot)
-        except Exception:
-            pass
 
 def validate_netrc(required=(URS, CDDIS)) -> tuple[bool, str]:
     """
@@ -117,3 +101,35 @@ def validate_netrc(required=(URS, CDDIS)) -> tuple[bool, str]:
         return True, str(p)
     except Exception as e:
         return False, f"invalid netrc {p}: {e}"
+
+#endregion
+
+#region Windows OS Helper Functions
+
+def _ensure_windows_mirror() -> None:
+    """
+    Ensure .netrc exists by mirroring _netrc on Windows if necessary.
+    """
+    if not platform.system().lower().startswith("win"):
+        return
+    dot, under = _win_user_home() / ".netrc", _win_user_home() / "_netrc"
+    if under.exists() and not dot.exists():
+        try:
+            shutil.copyfile(under, dot)
+        except Exception:
+            pass
+
+def _win_user_home() -> Path:
+    """
+    Return the Windows user home path.
+
+    Returns:
+      Path: Path to the current user's home directory on Windows; falls back to Path.home() if env var is missing.
+
+    Example:
+      >>> isinstance(_win_user_home(), Path)
+      True
+    """
+    return Path(os.environ.get("USERPROFILE", str(Path.home())))
+
+#endregion

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <thread>
+#include <unordered_set>
 #include "architectureDocs.hpp"
 #include "common/acsConfig.hpp"
 #include "common/algebraTrace.hpp"
@@ -38,6 +39,7 @@
 
 using boost::date_time::not_a_date_time;
 using std::max;
+using std::unordered_set;
 using std::this_thread::sleep_for;
 
 Output Outputs__()
@@ -192,6 +194,15 @@ void createTracefiles(ReceiverMap& receiverMap, Network& pppNet, Network& ionNet
 {
     boost::posix_time::ptime logptime = currentLogptime();
     createDirectories(logptime);
+    unordered_set<string> activeTraceFilenames;
+
+    auto addActiveTraceFilename = [&](const string& filename)
+    {
+        if (filename.empty() == false)
+        {
+            activeTraceFilenames.insert(filename);
+        }
+    };
 
     startNewMongoDb(
         "PRIMARY",
@@ -603,13 +614,16 @@ void createTracefiles(ReceiverMap& receiverMap, Network& pppNet, Network& ionNet
 
             if (acsConfig.output_decoded_rtcm_json)
             {
-                createNewTraceFile(
+                bool changed = createNewTraceFile(
                     id,
                     rtcmParser.rtcmMountpoint,
                     logptime,
                     acsConfig.decoded_rtcm_json_filename,
                     rtcmParser.rtcmTraceFilename
                 );
+
+                if (changed)
+                    rtcmParser.openTraceFile();
             }
 
             for (auto nav : {false, true})
@@ -635,13 +649,20 @@ void createTracefiles(ReceiverMap& receiverMap, Network& pppNet, Network& ionNet
                     else
                         filename = acsConfig.rtcm_obs_filename;
 
-                    createNewTraceFile(
+                    string nextRecordFilename = rtcmParser.recordFilename;
+
+                    bool changed = createNewTraceFile(
                         id,
                         rtcmParser.rtcmMountpoint,
                         logptime,
                         filename,
-                        rtcmParser.recordFilename
+                        nextRecordFilename
                     );
+
+                    if (changed)
+                    {
+                        rtcmParser.setRecordFilename(nextRecordFilename);
+                    }
                 }
             }
         }
@@ -708,6 +729,39 @@ void createTracefiles(ReceiverMap& receiverMap, Network& pppNet, Network& ionNet
         catch (std::bad_cast& e)
         { /* Ignore expected bad casts for different types */
         }
+
+    for (auto& [Sat, satNav] : nav.satNavMap)
+    {
+        if (acsConfig.output_satellite_trace)
+        {
+            addActiveTraceFilename(satNav.traceFilename);
+        }
+    }
+
+    for (auto& [id, rec] : receiverMap)
+    {
+        if (acsConfig.output_receiver_trace)
+        {
+            addActiveTraceFilename(rec.traceFilename);
+        }
+
+        if (acsConfig.output_json_trace)
+        {
+            addActiveTraceFilename(rec.jsonTraceFilename);
+        }
+    }
+
+    if (acsConfig.output_network_trace)
+    {
+        addActiveTraceFilename(pppNet.traceFilename);
+    }
+
+    if (acsConfig.output_ionosphere_trace)
+    {
+        addActiveTraceFilename(ionNet.traceFilename);
+    }
+
+    retainTraceFiles(activeTraceFilenames);
 }
 
 void outputPredictedStates(Trace& trace, KFState& kfState)
@@ -1025,11 +1079,8 @@ void perEpochPostProcessingAndOutputs(
 
             MinconStatistics minconStatistics;
 
-            mincon(
-                pppTrace,
-                augmentedKF,
-                &minconStatistics
-            );  // todo aaron, orbits apriori need etting
+            mincon(pppTrace, augmentedKF,
+                   &minconStatistics);  // todo? orbits apriori need etting
 
             augmentedKF.outputStates(pppTrace, "/CONSTRAINED" + _RTS);
 

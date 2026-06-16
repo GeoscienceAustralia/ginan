@@ -269,14 +269,29 @@ void SbfDecoder::decodeMeasEpoch(GTime time, vector<unsigned char>& data)
             continue;  // GLONASS not supported for now
         sbfObsList.push_back((shared_ptr<GObs>)obs);
     }
-    obsListList.push_back(sbfObsList);
+    if (sbfObsList.empty() == false)
+    {
+        obsListList.push_back(sbfObsList);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << "SBF decoder produced empty ObsList at end of message block";
+    }
     sbfObsList.clear();
     return;
 }
 
 void SbfDecoder::decodeEndOfMeas(GTime time)
 {
-    obsListList.push_back(sbfObsList);
+    if (sbfObsList.empty() == false)
+    {
+        obsListList.push_back(sbfObsList);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << "SBF decoder end-of-measurement flush with empty ObsList"
+                                << ", time=" << time.to_string(6);
+    }
     sbfObsList.clear();
     lastObstime = time;
 }
@@ -991,6 +1006,6 @@ void SbfDecoder::decode(unsigned short int id, vector<unsigned char>& data)
         case 5922:
             decodeEndOfMeas(time);
             return;
-        // default: std::cout << " ...  not supported, yet";              return;
+            // default: std::cout << " ...  not supported, yet";              return;
     }
 }

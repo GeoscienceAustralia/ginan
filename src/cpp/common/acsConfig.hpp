@@ -43,6 +43,58 @@ bool isInited(const BASE& base, const COMP& comp)
     return inited;
 }
 
+/** Use pointer arithmetic to keep track of variables that have been initialised
+ */
+template <typename BASE, typename COMP>
+void setInited(BASE& base, COMP& comp, bool init = true)
+{
+    if (init == false)
+    {
+        return;
+    }
+
+    int offset = (char*)(&comp) - (char*)(&base);
+
+    base.initialisedMap[offset] = true;
+}
+
+/** Set an option manually
+ */
+template <typename BASE, typename COMP, typename VALUE>
+void setOption(BASE& base, COMP& comp, VALUE value)
+{
+    comp = value;
+    setInited(base, comp);
+}
+
+/** Copy one parameter to another, if it has been initialised.
+ *
+ * Use pointer arithmetic to determine the offset of another parameter within its parent structure,
+ * assuming it has the same layout as this parameter in its parent.
+ */
+template <typename CONTAINER, typename ELEMENT>
+bool initIfNeeded(CONTAINER& thisContainer, const CONTAINER& thatContainer, ELEMENT& thisElement)
+{
+    CONTAINER*       thisContainer_ptr = &thisContainer;
+    const CONTAINER* thatContainer_ptr = &thatContainer;
+    ELEMENT*         thisElement_ptr   = &thisElement;
+    ELEMENT* thatElement_ptr = (ELEMENT*)(((char*)thisElement_ptr) +
+                                          ((char*)thatContainer_ptr - (char*)thisContainer_ptr));
+
+    auto& thatElement = *thatElement_ptr;
+
+    if (isInited(thatContainer, thatElement))
+    {
+        thisElement = thatElement;
+
+        setInited(thisContainer, thisElement);
+
+        return true;
+    }
+
+    return false;
+}
+
 struct SsrInputOptions
 {
     double code_bias_valid_time   = 3600;  ///< Valid time period of SSR code biases
@@ -87,6 +139,7 @@ struct InputOptions
 
     vector<string> atx_files;
     vector<string> snx_files;
+    vector<string> exclude_sinex_blocks;
     vector<string> nav_files;
     vector<string> ems_files;
     vector<string> sp3_files;
@@ -484,11 +537,11 @@ struct MeasErrorHandler
 
 struct ErrorAccumulationHandler
 {
-    bool enable                           = false;
-    int  receiver_error_count_threshold   = 4;
-    int  receiver_error_epochs_threshold  = 4;
-    int  satellite_error_count_threshold  = 4;
-    int  satellite_error_epochs_threshold = 1;
+    bool enable                           = true;
+    int  receiver_error_count_threshold   = 0;
+    int  receiver_error_epochs_threshold  = 0;
+    int  satellite_error_count_threshold  = 0;
+    int  satellite_error_epochs_threshold = 0;
     int  state_error_count_threshold      = 4;
 };
 
@@ -665,10 +718,10 @@ struct PrefitOptions
 
 struct PostfitOptions
 {
-    int    max_iterations        = 2;
+    int    max_iterations        = 10;
     bool   sigma_check           = false;
     bool   omega_test            = true;
-    double state_sigma_threshold = 4;
+    double state_sigma_threshold = 6;
     double meas_sigma_threshold  = 4;
 };
 
@@ -701,7 +754,6 @@ struct FilterOptions : RtsOptions
     bool joseph_stabilisation = false;
 
     E_Inverter lsq_inverter = E_Inverter::INV;
-    E_Inverter inverter     = E_Inverter::LDLT;
 
     LeastSquareOptions lsqOpts;
     PrefitOptions      prefitOpts;
@@ -796,13 +848,11 @@ struct SbasOptions
         {E_Sys::QZS, E_NavMsgType::LNAV}
     };
 
+    /// todo: May need to update this for BDS once ICD is released
     map<E_Sys, vector<E_ObsCode>> sbas_code_priorities_map = {
         {E_Sys::GPS, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L5X}},
         {E_Sys::GAL, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L1X, E_ObsCode::L5X}},
-        {E_Sys::BDS,
-         {E_ObsCode::L1C,
-          E_ObsCode::L5Q,
-          E_ObsCode::L5X}},  // Eugene: May need to update this for BDS once ICD is released
+        {E_Sys::BDS, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L5X}},
         {E_Sys::QZS, {E_ObsCode::L1C, E_ObsCode::L5Q, E_ObsCode::L5X}},
         {E_Sys::SBS, {E_ObsCode::L1C, E_ObsCode::L5Q}}
     };
@@ -1014,9 +1064,9 @@ struct SatelliteKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
     SatelliteKalmans& operator+=(const SatelliteKalmans& rhs)
     {
-        CommonKalmans ::  operator+=(rhs);
-        InertialKalmans ::operator+=(rhs);
-        EmpKalmans ::     operator+=(rhs);
+        CommonKalmans::operator+=(rhs);
+        InertialKalmans::operator+=(rhs);
+        EmpKalmans::operator+=(rhs);
 
         return *this;
     }
@@ -1037,9 +1087,9 @@ struct ReceiverKalmans : CommonKalmans, InertialKalmans, EmpKalmans
 
     ReceiverKalmans& operator+=(const ReceiverKalmans& rhs)
     {
-        CommonKalmans ::  operator+=(rhs);
-        InertialKalmans ::operator+=(rhs);
-        EmpKalmans ::     operator+=(rhs);
+        CommonKalmans::operator+=(rhs);
+        InertialKalmans::operator+=(rhs);
+        EmpKalmans::operator+=(rhs);
 
         ambiguity += rhs.ambiguity;
         strain_rate += rhs.strain_rate;
@@ -1233,22 +1283,33 @@ struct ReceiverOptions : ReceiverKalmans, CommonOptions
 
     Rinex23Conversion rinex23Conv;
 
-    bool              kill           = false;
-    vector<E_ObsCode> zero_dcb_codes = {};
-    Vector3d          apriori_pos    = Vector3d::Zero();
-    string            antenna_type;
-    string            receiver_type;
-    string            domes_number;
-    string            site_description;
-    string            sat_id;
-    double            elevation_mask_deg        = 5;
-    E_Sys             receiver_reference_system = E_Sys::NONE;
+    bool                         kill           = false;
+    vector<E_ObsCode>            zero_dcb_codes = {};
+    Vector3d                     apriori_pos    = Vector3d::Zero();
+    string                       antenna_type;
+    string                       receiver_type;
+    vector<E_ReceiverMetaSource> meta_priority = {
+        E_ReceiverMetaSource::CONFIG,
+        E_ReceiverMetaSource::SINEX,
+        E_ReceiverMetaSource::RINEX,
+        E_ReceiverMetaSource::RTCM
+    };
+    string domes_number;
+    string site_description;
+    string sat_id;
+    double elevation_mask_deg        = 5;
+    E_Sys  receiver_reference_system = E_Sys::NONE;
 
     struct
     {
         bool     enable       = true;
         Vector3d eccentricity = Vector3d::Zero();
     } eccentricityModel;
+
+    ReceiverOptions()
+    {
+        posModel.sources = {E_Source::KALMAN, E_Source::META, E_Source::SPP, E_Source::REMOTE};
+    }
 
     struct
     {
@@ -1467,6 +1528,7 @@ struct ACSConfig : GlobalOptions, InputOptions, OutputOptions, DebugOptions
     vector<string>                               includedFilenames;
     map<string, std::filesystem::file_time_type> configModifyTimeMap;
     boost::program_options::variables_map        commandOpts;
+    bool                                         dry_run = false;
 
     static map<string, string> docs;
 

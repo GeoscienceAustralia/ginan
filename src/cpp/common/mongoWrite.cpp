@@ -538,8 +538,8 @@ void mongoMeasResiduals(
                 }
                 arrayDoc << close_array;
 
-                auto findDoc = document{} << toString(Constants::Mongo::TYPE_VAR) << name
-                                          << finalize;
+                auto findDoc   = document{} << toString(Constants::Mongo::TYPE_VAR) << name
+                                            << finalize;
                 auto updateDoc = document{} << "$addToSet" << open_document
                                             << toString(Constants::Mongo::VALUE_VAR) << eachDoc
                                             << close_document << finalize;
@@ -766,8 +766,8 @@ void mongoStates(KFState& kfState, MongoStatesOptions opts)
                 }
                 arrayDoc << close_array;
 
-                auto findDoc = document{} << toString(Constants::Mongo::TYPE_VAR) << name
-                                          << finalize;
+                auto findDoc   = document{} << toString(Constants::Mongo::TYPE_VAR) << name
+                                            << finalize;
                 auto updateDoc = document{} << "$addToSet" << open_document
                                             << toString(Constants::Mongo::VALUE_VAR) << eachDoc
                                             << close_document << finalize;
@@ -1027,7 +1027,7 @@ void prepareSsrStates(
                     E_OffsetType::APC,
                     nav,
                     &kfState
-                );  // todo aaron, ssra streams expect common_sat_pco to be true
+                );  // todo? ssra streams expect common_sat_pco to be true
                 if (obs.satClk == INVALID_CLOCK_VALUE)
                 {
                     pass = false;

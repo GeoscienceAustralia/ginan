@@ -1028,7 +1028,7 @@ void reflector()
                     Vector3d reflected = -frontalArea *
                                          (source - 2 * (source.dot(correctFace)) * correctFace) *
                                          specularity[i];
-                    Vector3d emissive = frontalArea * correctFace * (1 - specularity[i]) * 0.7;
+                    Vector3d emissive  = frontalArea * correctFace * (1 - specularity[i]) * 0.7;
 
                     Vector3d outgoing = (1 - absorbtion[i]) * (reflected + emissive);
 

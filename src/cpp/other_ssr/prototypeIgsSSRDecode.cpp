@@ -652,7 +652,7 @@ void decodeigsSSR_type8(vector<unsigned char>& data, GTime now)
         return;
 
     SSRAtmGlobal ssrAtmGlobal;
-    ssrAtmGlobal.numberLayers = ssrHead.numLayers;  // todo aaron, can these be the same thing?
+    ssrAtmGlobal.numberLayers = ssrHead.numLayers;  // todo? can these be the same thing?
     ssrAtmGlobal.vtecQuality  = ssrHead.vtecQuality;
     ssrAtmGlobal.time         = ssrHead.time;
 
@@ -667,7 +667,7 @@ void decodeigsSSR_type8(vector<unsigned char>& data, GTime now)
         int nind = 0;
         for (int ord = 0; ord < layer.maxOrder; ord++)
             for (int deg = ord; deg < layer.maxDegree && i + 16 <= data.size() * 8;
-                 deg++)  // todo aaron duplicate size checks redundant?
+                 deg++)  // todo? duplicate size checks redundant?
             {
                 layer.sphHarmonic[nind].layer = layerNum;
 

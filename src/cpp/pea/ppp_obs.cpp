@@ -338,7 +338,7 @@ inline static void pppSatClocks(COMMON_PPP_ARGS)
             -obs.satVel.dot(satStat.e) / CLIGHT,
             init
         );  // Changes in satellite position or geometric distance calculation due to adjustment of
-            // satellite clock offset
+        // satellite clock offset
 
         InitialState rateInit = initialStateFromConfig(satOpts.clk_rate, i);
 
@@ -362,8 +362,9 @@ inline static void pppSatClocks(COMMON_PPP_ARGS)
 
 inline static void pppRecAntDelta(COMMON_PPP_ARGS)
 {
-    Vector3d bodyAntVector = rec.antDelta;
-    Vector3d bodyLook      = ecef2body(rec.attStatus, satStat.e);
+    Vector3d bodyAntVector =
+        rec.metadata.antennaDelta.valid ? rec.metadata.antennaDelta.value : rec.antDelta;
+    Vector3d bodyLook = ecef2body(rec.attStatus, satStat.e);
 
     double variance = 0;
 
@@ -399,7 +400,7 @@ inline static void pppRecAntDelta(COMMON_PPP_ARGS)
         measEntry.addDsgnEntry(kfKey, -bodyLook(i), init);
     }
 
-    // todo aaron needs noise
+    // todo? needs noise
 
     double recAntDelta = -bodyAntVector.dot(bodyLook);
 
@@ -436,7 +437,7 @@ inline static void pppRecPCO(COMMON_PPP_ARGS)
         acsConfig.interpolate_rec_pco
     );
     Vector3d bodyLook =
-        ecef2body(attStatus, satStat.e, &dEdQ);  // todo aaron, move this to antDelta instead
+        ecef2body(attStatus, satStat.e, &dEdQ);  // todo? move this to antDelta instead
 
     for (int i = 0; i < 3; i++)
     {
@@ -484,7 +485,7 @@ inline static void pppRecPCO(COMMON_PPP_ARGS)
             measEntry.addDsgnEntry(kfKey, -bodyPCO.dot(dEdQ.col(i)));  // Eugene: init?
         }
 
-    // todo aaron, needs noise
+    // todo? needs noise
 
     double recPCODelta = -bodyPCO.dot(bodyLook);
 
@@ -560,7 +561,7 @@ inline static void pppSatPCO(COMMON_PPP_ARGS)
          {"modelYaw", attStatus.modelYaw}}
     );
 
-    // todo aaron, needs noise
+    // todo? needs noise
 
     double satPCODelta = bodyPCO.dot(bodyLook);
 
@@ -785,7 +786,7 @@ inline static void pppIonStec(COMMON_PPP_ARGS)
         measEntry.addDsgnEntry(kfKey, factor * alpha, init);
     }
 
-    // todo aaron, needs noise
+    // todo? needs noise
 
     measEntry.componentsMap[E_Component::IONOSPHERIC_COMPONENT] = {
         ionosphere_m,

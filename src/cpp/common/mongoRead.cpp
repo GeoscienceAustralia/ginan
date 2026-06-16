@@ -9,7 +9,7 @@
 
 using std::deque;
 
-short int        currentSSRIod = 0;  // todo aaron, sketchy global?
+short int        currentSSRIod = 0;  // todo? sketchy global?
 map<SatSys, int> lastBrdcIode;
 
 template <typename RETTYPE, typename INTYPE>

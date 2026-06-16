@@ -180,7 +180,7 @@ void obsIonoData(Trace& trace, Receiver& rec)
                     satStat.gf_amb += SmtG * (amb - satStat.gf_amb);
                     satStat.ambvar = SmtG * (varP);
                 }
-                obs.stecType = 1;  // todo aaron magic numbers
+                obs.stecType = 1;  // todo? magic numbers
                 obs.stecVal  = (satStat.gf_amb + lc.GF_Phas_m) / obs.stecToDelay;
                 obs.stecVar =
                     ((satStat.ambvar + 2 * varL) + SQR(PHASE_BIAS_STD)) / SQR(obs.stecToDelay);

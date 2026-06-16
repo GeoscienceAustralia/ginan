@@ -632,8 +632,9 @@ vector<uint8_t> encodeIGS_ATM(SSRAtm& ssrAtm, bool last)
         for (auto& [ibas, b] : vteclay.sphHarmonic)
         {
             basisMaps[ilay][b.degree][b.order][b.trigType] = b.value;
-            bitLen += 16 * (SQR(b.degree + 1) - (b.degree - b.order) * (b.degree - b.order + 1)
-                           );  // todo aaron, check should be +1,0?
+            bitLen += 16 * (SQR(b.degree + 1) -
+                            (b.degree - b.order) *
+                                (b.degree - b.order + 1));  // todo? check should be +1,0?
         }
 
     int byteLen = ceil(bitLen / 8.0);

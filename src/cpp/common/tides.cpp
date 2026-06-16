@@ -648,8 +648,8 @@ VectorEnu tideOceanLoadHardisp(
     for (auto [wave, disp] : otlDisplacement)
     {
         tamp[0][i] = otlDisplacement[wave].amplitude.u();
-        tph[0][i]  = -otlDisplacement[wave].phase.u(
-        );  // HARDISP.F: Change sign for phase, to be negative for lags
+        tph[0][i]  = -otlDisplacement[wave]
+                          .phase.u();  // HARDISP.F: Change sign for phase, to be negative for lags
         tamp[1][i] = otlDisplacement[wave].amplitude.e();
         tph[1][i]  = -otlDisplacement[wave].phase.e();
         tamp[2][i] = otlDisplacement[wave].amplitude.n();

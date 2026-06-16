@@ -169,8 +169,6 @@ processing_options:
         process: true
 
   ppp_filter:
-    inverter: ldlt # LLT LDLT INV
-
     outlier_screening:
       prefit:
         max_iterations: 10 # Maximum number of measurements to exclude using prefit checks before attempting to filter

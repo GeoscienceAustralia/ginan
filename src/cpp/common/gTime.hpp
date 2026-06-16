@@ -160,6 +160,8 @@ struct GTime
 
     double to_decYear() const;
 
+    boost::posix_time::ptime to_posixTime() const;
+
     bool operator==(const GTime& t2) const
     {
         if (this->bigTime != t2.bigTime)
@@ -269,6 +271,8 @@ struct GTime
     GTime(GWeek gpsWeek, GTow tow);
 
     GTime(BWeek bdsWeek, BTow tow);
+
+    GTime(boost::posix_time::ptime posixTime);
 
     GTime(MjDateTT mjdTT);
 

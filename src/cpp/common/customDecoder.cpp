@@ -50,7 +50,15 @@ void CustomDecoder::decodeRAWX(vector<unsigned char>& payload)
         obsList.push_back((shared_ptr<GObs>)obs);
     }
 
-    obsListList.push_back(obsList);
+    if (obsList.empty() == false)
+    {
+        obsListList.push_back(obsList);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << "Custom decoder produced empty ObsList at epoch flush"
+                                << ", week=" << week << ", rcvTow=" << rcvTow;
+    }
 
     lastTimeTag = 0;
     lastTime    = gpst2time(week, rcvTow);

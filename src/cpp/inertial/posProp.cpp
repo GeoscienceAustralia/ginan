@@ -47,7 +47,7 @@ void propLinear(
         // 		other.z() = temp;
 
         // 			Vector3d acclEcef = (accl - inertialInit.acclBias)[2] * rRec.normalized();
-        // //todo aaron, rotate to ecef
+        // //todo? rotate to ecef
     }
 
     Vector3d accCF   = accelCentralForce(r, GM_values[E_ThirdBody::EARTH]);
@@ -78,7 +78,7 @@ void propLinear(
     Vector3d vPlus = v + a * dt;
     ;
 
-    Quaterniond qPlus = Q * qBody;  // todo aaron, check ordering of this
+    Quaterniond qPlus = Q * qBody;  // todo? check ordering of this
 
     r = rPlus;
     v = vPlus;

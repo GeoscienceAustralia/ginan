@@ -41,6 +41,13 @@ struct RinexParser : Parser, ObsLister
         if (tempObsList.size() > 0)
         {
             obsListList.push_back(std::move(tempObsList));
+
+            BOOST_LOG_TRIVIAL(debug) << "Parsed " << tempObsList.size()
+                                     << " obs, obsTime=" << tempObsList.front()->time.to_string(6);
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(debug) << "No obs parsed";
         }
     }
 

@@ -23,41 +23,80 @@ struct SSRPhasBias;
 
 struct RtcmTrace
 {
-    string rtcmTraceFilename = "";
-    string rtcmMountpoint;
-    bool   qzssL6 = false;
+    string        rtcmTraceFilename = "";
+    std::ofstream rtcmTraceFile;
+    string        rtcmMountpoint;
+    bool          qzssL6 = false;
 
     RtcmTrace(string mountpoint = "", string filename = "")
         : rtcmTraceFilename{filename}, rtcmMountpoint{mountpoint}
     {
+        if (rtcmTraceFilename.empty())
+        {
+            return;
+        }
+        rtcmTraceFile.open(rtcmTraceFilename, std::ios::app);
+        if (!rtcmTraceFile)
+        {
+            std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
+        }
+        std::cout << "opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
+    }
+
+    void openTraceFile()
+    {
+        if (rtcmTraceFilename.empty())
+            return;
+
+        if (rtcmTraceFile.is_open())
+        {
+            rtcmTraceFile.flush();
+            rtcmTraceFile.close();
+        }
+
+        rtcmTraceFile.open(rtcmTraceFilename, std::ios::app);
+        if (!rtcmTraceFile)
+        {
+            std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
+        }
+    }
+
+    void setTraceFilename(const string& filename)
+    {
+        if (filename == rtcmTraceFilename && rtcmTraceFile.is_open())
+            return;
+
+        rtcmTraceFilename = filename;
+        openTraceFile();
+    }
+
+    ~RtcmTrace()
+    {
+        if (rtcmTraceFile.is_open())
+        {
+            rtcmTraceFile.flush();
+            rtcmTraceFile.close();
+        }
+    }
+
+    void flush()
+    {
+        if (rtcmTraceFile.is_open())
+            rtcmTraceFile.flush();
     }
 
     void networkLog(string message)
     {
-        std::ofstream outStream(rtcmTraceFilename, std::iostream::app);
-        if (!outStream)
-        {
-            std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
-            return;
-        }
-
-        outStream << timeGet();
-        outStream << " " << __FUNCTION__ << message << "\n";
+        rtcmTraceFile << timeGet();
+        rtcmTraceFile << " " << __FUNCTION__ << message << "\n";
     }
 
     void messageChunkLog(string message) {}
 
     void messageRtcmLog(string message)
     {
-        std::ofstream outStream(rtcmTraceFilename, std::ios::app);
-        if (!outStream)
-        {
-            std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
-            return;
-        }
-
-        outStream << timeGet();
-        outStream << " messageRtcmLog" << message << "\n";
+        rtcmTraceFile << timeGet();
+        rtcmTraceFile << " messageRtcmLog" << message << "\n";
     }
 
     void traceSsrEph(RtcmMessageType messCode, SatSys Sat, SSREph& ssrEph);

@@ -1,19 +1,41 @@
 #include "common/receiver.hpp"
 #include <set>
-#include "common/sinex.hpp"
+#include "common/acsConfig.hpp"
 #include "common/streamParser.hpp"
 #include "common/streamRinex.hpp"
 #include "common/streamRtcm.hpp"
 
-SinexSiteId   dummySiteid;
-SinexReceiver dummyReceiver;
-SinexAntenna  dummyAntenna;
-SinexSiteEcc  dummySiteEcc;
-
-SinexSatIdentity dummySinexSatIdentity;
-SinexSatEcc      dummySinexSatEcc;
-
 ReceiverMap receiverMap;
+
+void extractReceiverMetadata(Receiver& rec, Parser& parser, ObsList* obsList)
+{
+    auto& recOpts = acsConfig.getRecOpts(rec.id);
+    rec.metadata.setPriority(recOpts.meta_priority);
+
+    string parserType = parser.parserType();
+
+    if (parserType == "RinexParser")
+    {
+        auto& rinexParser = static_cast<RinexParser&>(parser);
+        rec.metadata.ingestRinex(rinexParser.rnxRec);
+    }
+    else if (parserType == "RtcmParser")
+    {
+        auto& rtcmParser = static_cast<RtcmParser&>(parser);
+
+        if (auto* info_ptr = selectRtcmStationInfoForMetadata(
+                rtcmParser.stationInfoMap,
+                rtcmParser.lastReferenceStationId
+            ))
+        {
+            rec.metadata.ingestRtcm(*info_ptr);
+        }
+    }
+
+    (void)obsList;
+
+    syncReceiverMetadata(rec);
+}
 
 void extractTrackedSignals(Receiver& rec, Parser& parser, ObsList* obsList)
 {

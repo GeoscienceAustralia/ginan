@@ -64,14 +64,14 @@ void ionOutputLocal(Trace& trace, KFState& kfState);
 
 double getSSRIono(Trace& trace, GTime time, Vector3d& rRec, AzEl& azel, double& var, SatSys& Sat);
 bool   getIGSSSRIono(
-      Trace&    trace,
-      GTime     time,
-      SSRAtm&   ssrAtm,
-      Vector3d& rRec,
-      AzEl&     azel,
-      double&   iono,
-      double&   var
-  );
+    Trace&    trace,
+    GTime     time,
+    SSRAtm&   ssrAtm,
+    Vector3d& rRec,
+    AzEl&     azel,
+    double&   iono,
+    double&   var
+);
 bool getCmpSSRIono(
     Trace&    trace,
     GTime     time,

@@ -22,7 +22,9 @@
 
 using std::unordered_map;
 
-boost::iostreams::stream<boost::iostreams::null_sink> nullStream((boost::iostreams::null_sink()));
+thread_local boost::iostreams::stream<boost::iostreams::null_sink> nullStream{
+    boost::iostreams::null_sink{}
+};
 
 /** Semi-formatted text-based outputs.
  * Trace files are the best record of the processing that occurs within the Pea.

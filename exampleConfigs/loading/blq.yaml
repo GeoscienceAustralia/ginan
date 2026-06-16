@@ -1,0 +1,13 @@
+greenfunction: inputData/loading/greens/F_A3.txt
+tide:
+  - inputData/loading/fes2014b/m2.nc
+  - inputData/loading/fes2014b/s2.nc
+  - inputData/loading/fes2014b/n2.nc
+  - inputData/loading/fes2014b/k2.nc
+  - inputData/loading/fes2014b/k1.nc
+  - inputData/loading/fes2014b/o1.nc
+  - inputData/loading/fes2014b/p1.nc
+  - inputData/loading/fes2014b/q1.nc
+  - inputData/loading/fes2014b/mf.nc
+  - inputData/loading/fes2014b/mm.nc
+  - inputData/loading/fes2014b/ssa.nc

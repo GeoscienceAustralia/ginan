@@ -282,21 +282,31 @@ jobs:
           --hidden-import scripts.plot_pos \
           --hidden-import scripts.plot_trace_res \
           --hidden-import scripts.GinanUI.app \
+          --hidden-import scripts.GinanUI.app.main_window \
           --hidden-import scripts.GinanUI.app.models \
           --hidden-import scripts.GinanUI.app.models.execution \
+          --hidden-import scripts.GinanUI.app.models.dl_products \
+          --hidden-import scripts.GinanUI.app.models.rinex_extractor \
+          --hidden-import scripts.GinanUI.app.models.archive_manager \
           --hidden-import scripts.GinanUI.app.controllers \
           --hidden-import scripts.GinanUI.app.controllers.input_controller \
+          --hidden-import scripts.GinanUI.app.controllers.general_config_controller \
+          --hidden-import scripts.GinanUI.app.controllers.constellation_config_controller \
+          --hidden-import scripts.GinanUI.app.controllers.output_config_controller \
           --hidden-import scripts.GinanUI.app.controllers.visualisation_controller \
           --hidden-import scripts.GinanUI.app.utils \
           --hidden-import scripts.GinanUI.app.utils.workers \
+          --hidden-import scripts.GinanUI.app.utils.logger \
+          --hidden-import scripts.GinanUI.app.utils.toast \
+          --hidden-import scripts.GinanUI.app.utils.ui_compilation \
           --hidden-import scripts.GinanUI.app.utils.cddis_credentials \
-          --hidden-import scripts.GinanUI.app.utils.cddis_email \
+          --hidden-import scripts.GinanUI.app.utils.cddis_connection \
           --hidden-import scripts.GinanUI.app.utils.common_dirs \
           --hidden-import scripts.GinanUI.app.utils.gn_functions \
           --hidden-import scripts.GinanUI.app.utils.yaml \
           --hidden-import scripts.GinanUI.app.views.main_window_ui \
           scripts/GinanUI/main.py
-    
+
     - name: Build GUI with PyInstaller (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -314,15 +324,25 @@ jobs:
           --hidden-import scripts.plot_pos `
           --hidden-import scripts.plot_trace_res `
           --hidden-import scripts.GinanUI.app `
+          --hidden-import scripts.GinanUI.app.main_window `
           --hidden-import scripts.GinanUI.app.models `
           --hidden-import scripts.GinanUI.app.models.execution `
+          --hidden-import scripts.GinanUI.app.models.dl_products `
+          --hidden-import scripts.GinanUI.app.models.rinex_extractor `
+          --hidden-import scripts.GinanUI.app.models.archive_manager `
           --hidden-import scripts.GinanUI.app.controllers `
           --hidden-import scripts.GinanUI.app.controllers.input_controller `
+          --hidden-import scripts.GinanUI.app.controllers.general_config_controller `
+          --hidden-import scripts.GinanUI.app.controllers.constellation_config_controller `
+          --hidden-import scripts.GinanUI.app.controllers.output_config_controller `
           --hidden-import scripts.GinanUI.app.controllers.visualisation_controller `
           --hidden-import scripts.GinanUI.app.utils `
           --hidden-import scripts.GinanUI.app.utils.workers `
+          --hidden-import scripts.GinanUI.app.utils.logger `
+          --hidden-import scripts.GinanUI.app.utils.toast `
+          --hidden-import scripts.GinanUI.app.utils.ui_compilation `
           --hidden-import scripts.GinanUI.app.utils.cddis_credentials `
-          --hidden-import scripts.GinanUI.app.utils.cddis_email `
+          --hidden-import scripts.GinanUI.app.utils.cddis_connection `
           --hidden-import scripts.GinanUI.app.utils.common_dirs `
           --hidden-import scripts.GinanUI.app.utils.gn_functions `
           --hidden-import scripts.GinanUI.app.utils.yaml `

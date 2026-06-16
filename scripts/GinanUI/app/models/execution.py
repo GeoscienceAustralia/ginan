@@ -1,38 +1,30 @@
+"""
+PEA execution model for Ginan-UI.
+
+Manages the lifecycle of a Ginan PEA processing run: locating the PEA binary
+(bundled or on PATH), building and writing the YAML config from user inputs,
+launching the PEA subprocess, streaming its output, and generating post-run
+visualisations. Also exposes the INPUT_PRODUCTS_PATH and GENERATED_YAML
+constants re-exported from common_dirs for use by other modules.
+"""
+
 import os
 import platform
 import shutil
-import subprocess
 import signal
+import subprocess
 import threading
 import time
-from importlib.resources import files
-
-from ruamel.yaml.scalarstring import PlainScalarString
-from ruamel.yaml.comments import CommentedSeq, CommentedMap
 from pathlib import Path
-from scripts.GinanUI.app.utils.yaml import load_yaml, write_yaml, normalise_yaml_value
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.scalarstring import PlainScalarString
+from scripts.GinanUI.app.utils.common_dirs import GENERATED_YAML, INPUT_PRODUCTS_PATH, TABLES_PRODUCTS_PATH, TEMPLATE_PATH
+from scripts.GinanUI.app.utils.logger import Logger
+from scripts.GinanUI.app.utils.yaml import load_yaml, normalise_yaml_value, write_yaml
+
+# Imports external of Ginan-UI entirely
 from scripts.plot_pos import plot_pos_files
 from scripts.plot_trace_res import plot_trace_res_files
-from scripts.GinanUI.app.utils.common_dirs import GENERATED_YAML, TEMPLATE_PATH, INPUT_PRODUCTS_PATH
-
-# Import the new logger
-try:
-    from scripts.GinanUI.app.utils.logger import Logger
-except ImportError:
-    # Fallback if logger not yet in the correct location
-    class Logger:
-        @staticmethod
-        def terminal(msg):
-            print(f"[TERMINAL] {msg}")
-
-        @staticmethod
-        def console(msg):
-            print(f"[CONSOLE] {msg}")
-
-        @staticmethod
-        def both(msg):
-            print(f"[BOTH] {msg}")
-
 
 def get_pea_exec():
     """
@@ -135,6 +127,64 @@ def get_pea_exec():
         f"  - {ginan_root / 'bin' / 'pea' if 'ginan_root' in locals() else 'Could not determine ginan root'}"
     )
 
+def get_interpolate_loading_exec():
+    """
+    Locate the interpolate_loading binary using the same search strategy as get_pea_exec().
+
+    :return: Path to executable or str of PATH callable
+    :raises RuntimeError: If interpolate_loading binary cannot be found
+    """
+    import sys
+
+    binary_name = "interpolate_loading"
+
+    # 1. Check if running in PyInstaller bundle
+    if getattr(sys, 'frozen', False):
+        base_path = Path(sys._MEIPASS)
+
+        if platform.system().lower() == "darwin":
+            pea_path = base_path.parent / "Resources" / "bin" / binary_name
+            if pea_path.exists():
+                return pea_path
+            pea_path = base_path / "bin" / binary_name
+            if pea_path.exists():
+                return pea_path
+        else:
+            exe_name = f"{binary_name}.exe" if platform.system().lower() == "windows" else binary_name
+            pea_path = base_path / "bin" / exe_name
+            if pea_path.exists():
+                return pea_path
+
+    # 2. Check if binary is on PATH
+    if shutil.which(binary_name):
+        Logger.console(f"✅ Found {binary_name} on PATH: {shutil.which(binary_name)}")
+        return binary_name
+
+    # 3. Try to find binary relative to this script's location
+    try:
+        current_file = Path(__file__).resolve()
+        ginan_root = current_file.parents[4]
+        loading_binary = ginan_root / "bin" / binary_name
+
+        if loading_binary.exists() and loading_binary.is_file():
+            if not os.access(loading_binary, os.X_OK):
+                try:
+                    loading_binary.chmod(loading_binary.stat().st_mode | 0o111)
+                except Exception as e:
+                    raise RuntimeError(f"⚠️ {binary_name} found at {loading_binary} but is not executable: {e}")
+
+            Logger.console(f"✅ Found {binary_name} binary at: {loading_binary}")
+            return loading_binary
+
+    except Exception as e:
+        Logger.console(f"⚠️ Error while searching for {binary_name} relative to script location: {e}")
+
+    raise RuntimeError(
+        f"{binary_name} executable not found. Please ensure:\n"
+        f"1. You have built the Ginan binaries (should be at ginan/bin/{binary_name})\n"
+        f"2. You are running GinanUI from within the ginan directory structure, or\n"
+        f"3. The '{binary_name}' executable is available on your system PATH"
+    )
 
 class Execution:
     def __init__(self, config_path: Path = GENERATED_YAML):
@@ -145,7 +195,8 @@ class Execution:
         """
         self.config_path = config_path
         self.executable = get_pea_exec()  # the PEA executable
-        self.changes = False  # Flag to track if config has been changed
+        self.changes = False # Flag to track if config has been changed
+        self.yaml_overwrite = True # Whether UI changes should be written to the YAML file
         self._procs = []
         self._stop_event = threading.Event()
 
@@ -162,6 +213,8 @@ class Execution:
                 raise RuntimeError(f"❌ Failed to copy default config: {e}")
 
         self.config = load_yaml(config_path)
+
+    #region YAML Config Manipulation
 
     def reload_config(self):
         """
@@ -237,6 +290,20 @@ class Execution:
 
         node[final_key] = value
 
+    def set_loading_params(self, marker_name: str, marker_number: str, apriori_position: list):
+        """
+        Store loading BLQ parameters without applying the full UI config
+        Used when YAML overwrite is disabled so that ensure_loading_blq()
+        can still generate BLQ files if needed
+
+        :param marker_name: 4-character station marker name (e.g. 'ALIC')
+        :param marker_number: DOMES marker number (e.g. '50137M0014') or None
+        :param apriori_position: [X, Y, Z] ECEF coordinates in metres
+        """
+        self._loading_marker_name = marker_name
+        self._loading_marker_number = marker_number
+        self._loading_apriori_position = apriori_position
+
     def apply_ui_config(self, inputs):
         """
         Applies UI settings to **cached** config. **Call write_cached_changes()** to write them.
@@ -281,6 +348,7 @@ class Execution:
         self.edit_config("outputs.gpx.output", bool(inputs.gpx_output), True)
         self.edit_config("outputs.pos.output", bool(inputs.pos_output), True)
         self.edit_config("outputs.trace.output_network", bool(inputs.trace_output_network), True)
+        self.edit_config("outputs.sinex.output", bool(inputs.snx_output), True)
 
         # 2. Replace 'TEST' receiver block with real marker name
         if "TEST" in self.config.get("receiver_options", {}):
@@ -351,6 +419,11 @@ class Execution:
         if sinex_filename:
             self._add_sinex_to_config(sinex_filename)
 
+        # 7. Store loading BLQ parameters for ensure_loading_blq() during execute_config()
+        self._loading_marker_name = inputs.marker_name
+        self._loading_marker_number = getattr(inputs, 'marker_number', None)
+        self._loading_apriori_position = inputs.apriori_position
+
     def _add_sinex_to_config(self, sinex_filename: str):
         """
         Append the SINEX filename to the config's inputs.snx_files list.
@@ -408,16 +481,353 @@ class Execution:
                 self.config["inputs"]["snx_files"] = new_seq
 
         except Exception as e:
-            Logger.terminal(f"⚠️ Failed to write SINEX to config: {e}")
+            Logger.workflow(f"⚠️ Failed to write SINEX to config: {e}")
+
+    def _station_in_blq(self, blq_path: Path, marker_name: str) -> bool:
+        """
+        Check whether a station (by 4-character marker name) already has an entry in a BLQ file.
+
+        BLQ station entries start with two leading spaces followed by the
+        4-character marker name.  The marker may be followed by a space and
+        DOMES number (e.g. "  ALIC 50137M001"), trailing whitespace only
+        (e.g. "  AGGO      "), or nothing before the newline (e.g. "  AGGO").
+        Comment lines starting with "$$" are ignored.
+
+        :param blq_path: Path to the BLQ file
+        :param marker_name: 4-character station marker name (e.g. 'ALIC')
+        :return: True if the station is found in the BLQ file
+        """
+        if not blq_path.exists():
+            return False
+
+        upper_marker = marker_name.upper()
+        # Match "  XXXX" at start of line: 2 spaces + exact 4-char code,
+        # then verify the next character (if any) is whitespace to avoid
+        # false positives like "ALIC2"
+        entry_prefix = f"  {upper_marker}"
+        prefix_len = len(entry_prefix)
+        try:
+            with blq_path.open('r', encoding='utf-8', errors='replace') as f:
+                for line in f:
+                    if line.startswith("$$"):
+                        continue
+                    if line.upper().startswith(entry_prefix):
+                        # Ensure the character after the marker (if present) is whitespace
+                        if len(line) <= prefix_len or line[prefix_len].isspace():
+                            return True
+        except Exception as e:
+            Logger.console(f"⚠️ Error reading BLQ file {blq_path}: {e}")
+
+        return False
+
+    def _station_in_configured_blq_files(self, config_key: str, marker_name: str) -> bool:
+        """
+        Check whether a station is present in any of the non-wildcard BLQ files
+        listed under the given YAML config key.
+
+        Only checks concrete filenames from the config (not wildcard patterns like
+        '*_ocean.BLQ'), resolved relative to inputs_root. This ensures we only
+        validate against files that PEA will actually read.
+
+        :param config_key: Dot-separated YAML key (e.g. 'inputs.tides.ocean_tide_loading_blq_files')
+        :param marker_name: 4-character station marker name (e.g. 'ALIC')
+        :return: True if the station is found in any configured non-wildcard BLQ file
+        """
+        try:
+            keys = config_key.split(".")
+            node = self.config
+            for k in keys:
+                node = node[k]
+        except (KeyError, TypeError):
+            return False
+
+        if not isinstance(node, (list, CommentedSeq)):
+            return False
+
+        # Resolve inputs_root for building absolute paths
+        inputs_root = self.config.get("inputs", {}).get("inputs_root", "")
+        inputs_root = Path(str(inputs_root)) if inputs_root else INPUT_PRODUCTS_PATH
+
+        for entry in node:
+            entry_str = str(entry).strip()
+            # Skip wildcard patterns - those will pick up generated files automatically
+            if "*" in entry_str or "?" in entry_str:
+                continue
+
+            # Resolve the BLQ file path relative to inputs_root
+            blq_path = Path(inputs_root) / entry_str
+            if self._station_in_blq(blq_path, marker_name):
+                return True
+
+        return False
+
+    def ensure_loading_blq(self, marker_name: str, marker_number: str,
+                           apriori_position: list, progress_callback=None, stop_requested=None):
+        """
+        Ensure ocean and atmospheric tide loading BLQ files exist for the given station.
+
+        Reads the BLQ file lists from the YAML config and checks only the
+        non-wildcard entries that PEA will actually use. If the station is not
+        found, downloads the loading grid netCDF files (if needed) and runs
+        interpolate_loading to generate station-specific BLQ files.
+
+        :param marker_name: 4-character station marker name (e.g. 'ALIC')
+        :param marker_number: DOMES marker number (e.g. '50137M0014') or None
+        :param apriori_position: [X, Y, Z] ECEF coordinates in metres
+        :param progress_callback: Optional (description, percent) callback
+        :param stop_requested: Optional bool callback for cancellation
+        :raises RuntimeError: If interpolate_loading fails
+        """
+        from scripts.GinanUI.app.models.dl_products import download_loading_grids
+
+        if not marker_name or not apriori_position or all(v == 0.0 for v in apriori_position):
+            Logger.workflow("⚠️ Missing marker name or apriori position - skipping loading BLQ generation")
+            return
+
+        # Check BLQ files that are actually referenced in the YAML config
+        ocean_present = self._station_in_configured_blq_files("inputs.tides.ocean_tide_loading_blq_files", marker_name)
+        atmos_present = self._station_in_configured_blq_files("inputs.tides.atmos_tide_loading_blq_files", marker_name)
+
+        if ocean_present and atmos_present:
+            Logger.workflow(f"✅ Station '{marker_name}' already present in configured ocean and atmospheric loading BLQ files")
+            return
+
+        # Locate the interpolate_loading binary
+        try:
+            loading_exec = get_interpolate_loading_exec()
+        except RuntimeError as e:
+            Logger.workflow(f"⚠️ {e} - skipping loading BLQ generation")
+            return
+
+        # Download loading grid files if not already present
+        Logger.workflow("📥 Ensuring loading grid files are available...")
+        if progress_callback:
+            progress_callback("Downloading loading grids", 10)
+        download_loading_grids(
+            download_dir=TABLES_PRODUCTS_PATH,
+            progress_callback=progress_callback,
+            stop_requested=stop_requested,
+        )
+
+        if stop_requested and stop_requested():
+            return
+
+        ocean_grid = TABLES_PRODUCTS_PATH / "oceantide.nc"
+        atmos_grid = TABLES_PRODUCTS_PATH / "atmtide.nc"
+
+        if not ocean_grid.exists() or not atmos_grid.exists():
+            Logger.workflow("⚠️ Loading grid files not available - skipping loading BLQ generation")
+            return
+
+        # Build the --code argument: 'ALIC 50137M0014' or just 'ALIC'
+        if marker_number:
+            station_code = f"{marker_name} {marker_number}"
+        else:
+            station_code = marker_name
+
+        # Build XYZ location arguments from apriori_position
+        x, y, z = apriori_position
+
+        # Generate ocean loading BLQ if needed
+        if not ocean_present:
+            if stop_requested and stop_requested():
+                return
+
+            ocean_output = INPUT_PRODUCTS_PATH / f"{marker_name}_ocean.BLQ"
+            Logger.workflow(f"🌊 Computing ocean tide loading for '{station_code}'...")
+            if progress_callback:
+                progress_callback("Computing ocean loading", 40)
+
+            self._run_interpolate_loading(
+                loading_exec, "o", ocean_grid, station_code, x, y, z, ocean_output
+            )
+
+            if ocean_output.exists():
+                Logger.workflow(f"✅ Ocean loading BLQ generated: {ocean_output.name}")
+                self._update_blq_config("inputs.tides.ocean_tide_loading_blq_files",
+                                        ocean_output.name)
+            else:
+                Logger.workflow("⚠️ Ocean loading BLQ file was not generated")
+
+        # Generate atmospheric loading BLQ if needed
+        if not atmos_present:
+            if stop_requested and stop_requested():
+                return
+
+            atmos_output = INPUT_PRODUCTS_PATH / f"{marker_name}_atmos.BLQ"
+            Logger.workflow(f"🌬️ Computing atmospheric tide loading for '{station_code}'...")
+            if progress_callback:
+                progress_callback("Computing atmospheric loading", 70)
+
+            self._run_interpolate_loading(
+                loading_exec, "a", atmos_grid, station_code, x, y, z, atmos_output
+            )
+
+            if atmos_output.exists():
+                Logger.workflow(f"✅ Atmospheric loading BLQ generated: {atmos_output.name}")
+                self._update_blq_config("inputs.tides.atmos_tide_loading_blq_files",
+                                        atmos_output.name)
+            else:
+                Logger.workflow("⚠️ Atmospheric loading BLQ file was not generated")
+
+        # Write BLQ config updates to disk (always allowed, even when yaml_overwrite is disabled)
+        if self.changes:
+            self.write_cached_changes()
+
+        if progress_callback:
+            progress_callback("Loading BLQ complete", 100)
+
+    def _run_interpolate_loading(self, loading_exec, loading_type: str, grid_path: Path,
+                                 station_code: str, x: float, y: float, z: float, output_path: Path):
+        """
+        Execute the interpolate_loading binary for a single loading type.
+
+        :param loading_exec: Path or name of the interpolate_loading executable
+        :param loading_type: 'o' for ocean or 'a' for atmospheric
+        :param grid_path: Path to the loading grid netCDF file
+        :param station_code: Station code string for --code (e.g. 'ALIC 50137M0014')
+        :param x: ECEF X coordinate
+        :param y: ECEF Y coordinate
+        :param z: ECEF Z coordinate
+        :param output_path: Path for the output BLQ file
+        :raises RuntimeError: If the subprocess returns a non-zero exit code
+        """
+        command = [
+            str(loading_exec),
+            "--type", loading_type,
+            "--grid", str(grid_path),
+            "--code", station_code,
+            "--xyz",
+            "--location", str(x), str(y), str(z),
+            "--output", str(output_path),
+        ]
+
+        Logger.console(f"🚀 Running: {' '.join(command)}")
+
+        try:
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+
+            if result.stdout:
+                for line in result.stdout.strip().splitlines():
+                    Logger.console(line)
+
+            if result.returncode != 0:
+                stderr_msg = result.stderr.strip() if result.stderr else "No error output"
+                Logger.workflow(f"⚠️ interpolate_loading exited with code {result.returncode}: {stderr_msg}")
+                raise RuntimeError(f"interpolate_loading failed (exit code {result.returncode}): {stderr_msg}")
+
+        except subprocess.TimeoutExpired:
+            Logger.workflow("⚠️ interpolate_loading timed out after 120 seconds")
+            raise RuntimeError("interpolate_loading timed out")
+
+    def _update_blq_config(self, key_path: str, blq_filename: str):
+        """
+        Append a generated BLQ filename to the existing BLQ file list in the YAML config.
+
+        Does not add the filename if it is already present or if an existing
+        wildcard pattern already covers it. Preserves existing entries
+        (e.g. the global OLOAD_GO.BLQ / ALOAD_GO.BLQ and any wildcards).
+
+        :param key_path: Dot-separated YAML key path (e.g. 'inputs.tides.ocean_tide_loading_blq_files')
+        :param blq_filename: New BLQ filename relative to inputs_root (e.g. 'ALIC_ocean.BLQ')
+        """
+        import fnmatch
+
+        try:
+            keys = key_path.split(".")
+            node = self.config
+            for k in keys[:-1]:
+                node = node[k]
+            final_key = keys[-1]
+
+            existing = node.get(final_key)
+
+            if isinstance(existing, CommentedSeq):
+                existing_strs = [str(item) for item in existing]
+
+                # Skip if an existing wildcard pattern already covers this filename
+                for entry in existing_strs:
+                    if fnmatch.fnmatch(blq_filename, entry):
+                        return
+
+                # Skip if the exact filename is already present
+                if blq_filename not in existing_strs:
+                    existing.append(normalise_yaml_value(blq_filename))
+                    existing.fa.set_block_style()
+                    self.changes = True
+            else:
+                # No existing list - create one with just the new file
+                new_seq = CommentedSeq([normalise_yaml_value(blq_filename)])
+                new_seq.fa.set_block_style()
+                self.edit_config(key_path, new_seq, False)
+        except Exception as e:
+            Logger.workflow(f"⚠️ Failed to update BLQ config at {key_path}: {e}")
 
     def write_cached_changes(self):
         write_yaml(self.config_path, self.config)
         self.changes = False
 
+    #endregion
+
+    #region PEA Processing Execution
+
+    def _ensure_loading_before_pea(self):
+        """
+        Check whether the station needs loading BLQ files generated and run
+        ensure_loading_blq() synchronously before PEA execution begins.
+
+        When YAML overwrite is disabled, reloads the config from disk first so
+        that BLQ updates are applied on top of the user's manual edits rather
+        than the in-memory UI-applied config.
+
+        Uses marker_name, marker_number, and apriori_position stored by
+        apply_ui_config() or set_loading_params() to ensure the correct
+        station is checked even when receiver_options contains keys from
+        previous runs.
+        """
+        try:
+            marker_name = getattr(self, '_loading_marker_name', None)
+            marker_number = getattr(self, '_loading_marker_number', None)
+            apriori_position = getattr(self, '_loading_apriori_position', None)
+
+            if not marker_name:
+                return
+
+            if not apriori_position or all(v == 0.0 for v in apriori_position):
+                Logger.workflow("⚠️ No valid apriori position - skipping loading BLQ check")
+                return
+
+            # When YAML overwrite is disabled, reload from disk so BLQ updates
+            # are applied on top of the user's manual edits
+            if not self.yaml_overwrite:
+                self.reload_config()
+
+            def check_stop():
+                return self._stop_event.is_set()
+
+            self.ensure_loading_blq(
+                marker_name=marker_name,
+                marker_number=marker_number,
+                apriori_position=list(apriori_position),
+                stop_requested=check_stop,
+            )
+
+        except Exception as e:
+            Logger.workflow(f"⚠️ Loading BLQ pre-check failed (non-fatal): {e}")
+
     def execute_config(self):
         """
         If changes were made since last write, writes config, then executes pea with config.
+        Ensures ocean/atmospheric loading BLQ files are generated before PEA runs.
         All PEA output is logged to the console widget.
+
+        When YAML overwrite is disabled, skips writing UI changes to the config file
+        but still allows BLQ updates via ensure_loading_blq().
         """
         # Check if executable is available
         if self.executable is None:
@@ -426,9 +836,19 @@ class Execution:
         # clear stop flag before each run
         self.reset_stop_flag()
 
-        if self.changes:
+        if self.changes and self.yaml_overwrite:
             self.write_cached_changes()
             self.changes = False
+
+        # Ensure loading BLQ files exist before PEA execution
+        self._ensure_loading_before_pea()
+
+        # Reset yaml_overwrite back to default for next run
+        self.yaml_overwrite = True
+
+        if self._stop_event.is_set():
+            Logger.console("🛑 Execution stopped by user during loading BLQ generation")
+            return
 
         command = [self.executable, "--config", str(self.config_path)]
         workdir = str(Path(self.config_path).parent)
@@ -534,6 +954,10 @@ class Execution:
     def reset_stop_flag(self):
         self._stop_event.clear()
 
+    #endregion
+
+    #region Visualisation Plotting
+
     def build_pos_plots(self, out_dir=None):
         """
         Search for .pos and .POS files directly under outputs_root (not in archive/visual),
@@ -559,31 +983,49 @@ class Execution:
         pos_files = list(root.glob("*.pos")) + list(root.glob("*.POS"))
 
         if pos_files:
-            Logger.terminal(f"📂 Found {len(pos_files)} .pos files in {root}:")
+            Logger.workflow(f"📂 Found {len(pos_files)} .pos files in {root}:")
             for f in pos_files:
-                Logger.terminal(f"   • {f.name}")
+                Logger.workflow(f"   • {f.name}")
         else:
-            Logger.terminal(f"⚠️ No .pos files found in {root}")
+            Logger.workflow(f"⚠️ No .pos files found in {root}")
+
+        # Separate forward and smoothed POS files into two groups
+        forward_pos = [f for f in pos_files if "_smoothed" not in f.stem.lower()]
+        smoothed_pos = [f for f in pos_files if "_smoothed" in f.stem.lower()]
 
         htmls = []
-        for pos_path in pos_files:
-            try:
-                base_name = pos_path.stem
-                save_prefix = out_dir / f"plot_{base_name}"
 
+        # Plot forward (regular) POS files as one unified set
+        if forward_pos:
+            try:
+                forward_paths = [str(f) for f in forward_pos]
+                save_prefix = out_dir / "plot_pos"
                 html_files = plot_pos_files(
-                    input_files=[str(pos_path)],
+                    input_files=forward_paths,
                     save_prefix=str(save_prefix)
                 )
                 htmls.extend(html_files)
             except Exception as e:
-                Logger.terminal(f"[plot_pos] ❌ Failed for {pos_path.name}: {e}")
+                Logger.workflow(f"[plot_pos] ❌ Failed for forward pos files: {e}")
+
+        # Plot smoothed POS files as a separate unified set
+        if smoothed_pos:
+            try:
+                smoothed_paths = [str(f) for f in smoothed_pos]
+                save_prefix = out_dir / "plot_pos_smoothed"
+                html_files = plot_pos_files(
+                    input_files=smoothed_paths,
+                    save_prefix=str(save_prefix)
+                )
+                htmls.extend(html_files)
+            except Exception as e:
+                Logger.workflow(f"[plot_pos] ❌ Failed for smoothed pos files: {e}")
 
         # Final summary
         if htmls:
-            Logger.terminal(f"✅ Generated {len(htmls)} plot(s) → saved in {out_dir}")
+            Logger.workflow(f"✅ Generated {len(htmls)} plot(s) → saved in {out_dir}")
         else:
-            Logger.terminal("⚠️ No plots were generated.")
+            Logger.workflow("⚠️ No plots were generated.")
 
         return htmls
 
@@ -620,11 +1062,11 @@ class Execution:
             trace_files = list(root.glob("*.TRACE")) + list(root.glob("*.trace"))
 
         if trace_files:
-            Logger.terminal(f"📂 Found {len(trace_files)} .TRACE files in {root}:")
+            Logger.workflow(f"📂 Found {len(trace_files)} .TRACE files in {root}:")
             for f in trace_files:
-                Logger.terminal(f"   • {f.name}")
+                Logger.workflow(f"   • {f.name}")
         else:
-            Logger.terminal(f"⚠️ No .TRACE files found in {root}")
+            Logger.workflow(f"⚠️ No .TRACE files found in {root}")
             return []
 
         htmls = []
@@ -644,12 +1086,14 @@ class Execution:
             )
             htmls.extend(html_files)
         except Exception as e:
-            Logger.terminal(f"[plot_trace_res] ❌ Failed to generate trace plots: {e}")
+            Logger.workflow(f"[plot_trace_res] ❌ Failed to generate trace plots: {e}")
 
         # Final summary
         if htmls:
-            Logger.terminal(f"✅ Generated {len(htmls)} trace plot(s) → saved in {out_dir}")
+            Logger.workflow(f"✅ Generated {len(htmls)} trace plot(s) → saved in {out_dir}")
         else:
-            Logger.terminal("⚠️ No trace plots were generated.")
+            Logger.workflow("⚠️ No trace plots were generated.")
 
         return htmls
+
+    #endregion

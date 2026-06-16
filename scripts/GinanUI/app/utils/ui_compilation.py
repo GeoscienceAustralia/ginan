@@ -1,22 +1,15 @@
+"""
+Compiles the Qt .ui file into a Python module for use by Ginan-UI.
+
+Runs pyside6-uic on main_window.ui to produce main_window_ui.py, then patches
+the generated resource import lines to match the project's package structure.
+Intended to be run as a script or called during development setup.
+"""
+
 import subprocess, shutil
 from pathlib import Path
 
-
 def compile_ui():
-    """
-    Compile the Qt `.ui` file into a Python module and fix its resource import.
-
-    Converts `main_window.ui` into `main_window_ui.py` using `pyside6-uic`,
-    then updates the logo import line for correct resource loading.
-
-    Raises:
-      ImportError: If `pyside6-uic` is not found.
-
-    Example:
-      >>> compile_ui()
-      UI compiled successfully.
-    """
-
     # File paths
     ui_file = Path(__file__).parent.parent / "views" / "main_window.ui"
     output_file = Path(__file__).parent.parent / "views" / "main_window_ui.py"
@@ -45,5 +38,6 @@ def compile_ui():
     with open(output_file, 'w') as f:
         f.writelines(lines)
 
+# Run this to compile the the user interface without running Ginan-UI
 if __name__ == "__main__":
     compile_ui()

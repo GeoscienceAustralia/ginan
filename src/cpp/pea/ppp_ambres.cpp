@@ -264,7 +264,7 @@ bool queryBiasUC(
     kfKey.Sat = Sat;
     kfKey.num = static_cast<int>(code);
 
-    if (Sat.prn == 0)  // todo aaron, check if needed and reverse logic
+    if (Sat.prn == 0)  // todo? check if needed and reverse logic
     {
         auto& recOpts = acsConfig.getRecOpts(rec, {Sat.sysName(), enum_to_string(code)});
 

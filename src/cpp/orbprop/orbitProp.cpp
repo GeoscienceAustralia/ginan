@@ -15,7 +15,9 @@
 #include "common/navigation.hpp"
 #include "common/sinex.hpp"
 #include "common/ubxDecoder.hpp"
+#if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
 #include "omp.h"
+#endif
 #include "orbprop/acceleration.hpp"
 #include "orbprop/aod.hpp"
 #include "orbprop/boxwing.hpp"
@@ -57,7 +59,7 @@ void OrbitIntegrator::computeCommon(GTime time)
 
     FrameSwapper frameSwapper(time, erpv);
     eci2ecf  = frameSwapper.i2t_mat;
-    deci2ecf = frameSwapper.di2t_mat;  // todo aaron, just fs this instead of matrices?
+    deci2ecf = frameSwapper.di2t_mat;  // todo? just fs this instead of matrices?
 
     for (auto body : enum_values<E_ThirdBody>())
     {
@@ -1100,62 +1102,72 @@ Orbits prepareOrbits(Trace& trace, const KFState& kfState)
 
                 case KF::EMP_P_0:
                 {
-                    orbit.empInput.push_back({false, 0, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 0, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_1:
                 {
-                    orbit.empInput.push_back({false, 1, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 1, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_2:
                 {
-                    orbit.empInput.push_back({false, 2, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 2, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_3:
                 {
-                    orbit.empInput.push_back({false, 3, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 3, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_P_4:
                 {
-                    orbit.empInput.push_back({false, 4, E_EmpAxis::P, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 4, E_EmpAxis::P, trigType, stateValue, subKey}
                     );
                     break;
                 }
 
                 case KF::EMP_Q_0:
                 {
-                    orbit.empInput.push_back({false, 0, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 0, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_1:
                 {
-                    orbit.empInput.push_back({false, 1, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 1, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_2:
                 {
-                    orbit.empInput.push_back({false, 2, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 2, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_3:
                 {
-                    orbit.empInput.push_back({false, 3, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 3, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }
                 case KF::EMP_Q_4:
                 {
-                    orbit.empInput.push_back({false, 4, E_EmpAxis::Q, trigType, stateValue, subKey}
+                    orbit.empInput.push_back(
+                        {false, 4, E_EmpAxis::Q, trigType, stateValue, subKey}
                     );
                     break;
                 }

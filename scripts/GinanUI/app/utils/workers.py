@@ -1,12 +1,21 @@
-# app/utils/workers.py
+"""
+QObject worker classes for running background tasks in Ginan-UI.
+
+Provides thread-safe workers for:
+  - PeaExecutionWorker: runs a PEA processing execution
+  - DownloadWorker: downloads PPP / BRDC products or retrieves valid analysis centres
+  - BiasProductWorker: fetches and parses BIA code priorities for a given provider
+  - SinexValidationWorker: downloads and validates an IGS CRD SINEX file against RINEX metadata
+
+All workers communicate results back to the UI via Qt signals.
+"""
+
 import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
-
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
-
 from scripts.GinanUI.app.models.dl_products import (
     get_product_dataframe_with_repro3_fallback,
     download_products,
@@ -15,10 +24,9 @@ from scripts.GinanUI.app.models.dl_products import (
     get_provider_constellations,
     get_bia_code_priorities_for_selection,
     download_and_validate_sinex,
-    log_sinex_validation_results
+    log_sinex_validation_results,
 )
 from scripts.GinanUI.app.utils.common_dirs import INPUT_PRODUCTS_PATH
-
 from scripts.GinanUI.app.utils.logger import Logger
 
 class PeaExecutionWorker(QObject):
@@ -37,14 +45,14 @@ class PeaExecutionWorker(QObject):
     @Slot()
     def stop(self):
         try:
-            Logger.terminal("🛑 Stop requested - terminating PEA...")
+            Logger.workflow("🛑 Stop requested - terminating PEA...")
             # recommended to implement stop_all() in Execution to terminate child processes
             if hasattr(self.execution, "stop_all"):
                 self.execution.stop_all()
-                Logger.terminal("🛑 Stopped")
+                Logger.workflow("🛑 Stopped")
         except Exception:
             tb = traceback.format_exc()
-            Logger.terminal(f"⚠️ Exception during stop:\n{tb}")
+            Logger.workflow(f"⚠️ Exception during stop:\n{tb}")
 
     @Slot()
     def run(self):
@@ -53,8 +61,7 @@ class PeaExecutionWorker(QObject):
             self.finished.emit("✅ Execution finished successfully.")
         except Exception:
             tb = traceback.format_exc()
-            Logger.terminal(f"⚠️ Error launching Execution! Exception:\n{tb}")
-
+            Logger.workflow(f"⚠️ Error launching Execution! Exception:\n{tb}")
 
 class DownloadWorker(QObject):
     """
@@ -92,14 +99,14 @@ class DownloadWorker(QObject):
         # 1. Get valid products
         if self.analysis_centers:
             if not self.start_epoch and not self.end_epoch:
-                Logger.terminal(f"📦 No start and/or end date, can't check valid analysis centers")
+                Logger.workflow(f"📦 No start and/or end date, can't check valid analysis centers")
                 self.cancelled.emit()
                 return
-            Logger.terminal(f"📦 Retrieving valid products")
+            Logger.workflow(f"📦 Retrieving valid products")
             try:
                 # Check if stop was requested before starting
                 if self._stop:
-                    Logger.terminal(f"📦 Analysis centres retrieval cancelled")
+                    Logger.workflow(f"📦 Analysis centres retrieval cancelled")
                     self.cancelled.emit()
                     return
                 # Use the repro3 fallback function which automatically checks repro3
@@ -107,13 +114,13 @@ class DownloadWorker(QObject):
                 valid_products = get_product_dataframe_with_repro3_fallback(self.start_epoch, self.end_epoch)
                 # Check again before emitting result - don't emit finished if cancelled
                 if self._stop:
-                    Logger.terminal(f"📦 Analysis centres retrieval cancelled")
+                    Logger.workflow(f"📦 Analysis centres retrieval cancelled")
                     self.cancelled.emit()
                     return
 
                 # Fetch constellation information for each provider
                 if not valid_products.empty:
-                    Logger.terminal(f"📡 Fetching constellation information from SP3 headers...")
+                    Logger.workflow(f"📡 Fetching constellation information from SP3 headers...")
 
                     def check_stop():
                         return self._stop
@@ -125,7 +132,7 @@ class DownloadWorker(QObject):
                     )
 
                     if self._stop:
-                        Logger.terminal(f"📦 Analysis centres retrieval cancelled")
+                        Logger.workflow(f"📦 Analysis centres retrieval cancelled")
                         self.cancelled.emit()
                         return
 
@@ -136,12 +143,12 @@ class DownloadWorker(QObject):
                 self.finished.emit(valid_products)
             except Exception as e:
                 if self._stop:
-                    Logger.terminal(f"📦 Analysis centres retrieval cancelled")
+                    Logger.workflow(f"📦 Analysis centres retrieval cancelled")
                     self.cancelled.emit()
                     return
                 tb = traceback.format_exc()
-                Logger.terminal(f"⚠️ Error whilst retrieving valid products:\n{tb}")
-                Logger.terminal(f"⚠️ {e}")
+                Logger.workflow(f"⚠️ Error whilst retrieving valid products:\n{tb}")
+                Logger.workflow(f"⚠️ {e}")
                 self.cancelled.emit()
             return
 
@@ -151,8 +158,8 @@ class DownloadWorker(QObject):
                 download_metadata(self.download_dir, self.progress.emit, self.atx_downloaded.emit)
             except Exception as e:
                 tb = traceback.format_exc()
-                Logger.terminal(f"⚠️ Error whilst downloading metadata:\n{tb}")
-                Logger.terminal(f"⚠️ {e}")
+                Logger.workflow(f"⚠️ Error whilst downloading metadata:\n{tb}")
+                Logger.workflow(f"⚠️ {e}")
                 self.cancelled.emit()
                 return
 
@@ -170,13 +177,13 @@ class DownloadWorker(QObject):
                                   progress_callback=self.progress.emit, stop_requested=check_stop):
                     pass
             except RuntimeError as e:
-                Logger.terminal(f"⚠️ {e}")
+                Logger.workflow(f"⚠️ {e}")
                 self.cancelled.emit()
                 return
             except Exception as e:
                 tb = traceback.format_exc()
-                Logger.terminal(f"⚠️ Error whilst downloading products:\n{tb}")
-                Logger.terminal(f"⚠️ {e}")
+                Logger.workflow(f"⚠️ Error whilst downloading products:\n{tb}")
+                Logger.workflow(f"⚠️ {e}")
                 self.cancelled.emit()
                 return
 
@@ -294,7 +301,7 @@ class SinexValidationWorker(QObject):
         try:
             # Check if stop was requested before starting
             if self._stop:
-                Logger.terminal(f"📦 SINEX validation cancelled")
+                Logger.workflow(f"📦 SINEX validation cancelled")
                 self.error.emit("SINEX validation cancelled")
                 return
 
@@ -316,12 +323,16 @@ class SinexValidationWorker(QObject):
 
             # Check again after download
             if self._stop:
-                Logger.terminal(f"📦 SINEX validation cancelled")
+                Logger.workflow(f"📦 SINEX validation cancelled")
                 self.error.emit("SINEX validation cancelled")
                 return
 
             if sinex_path is None:
-                self.error.emit("Failed to download SINEX file")
+                # The SINEX file could not be downloaded - it most likely does not
+                # exist for this date (common for recent ultra-rapid / rapid products).
+                # Skip validation gracefully rather than reporting a hard failure.
+                Logger.workflow("ℹ️ SINEX file unavailable for this date - skipping SINEX validation")
+                self.error.emit("SINEX validation skipped: file unavailable")
                 return
 
             # Log the validation results
@@ -335,5 +346,69 @@ class SinexValidationWorker(QObject):
                 self.error.emit("SINEX validation cancelled")
                 return
             tb = traceback.format_exc()
-            Logger.terminal(f"⚠️ Error during SINEX validation:\n{tb}")
+            Logger.workflow(f"⚠️ Error during SINEX validation:\n{tb}")
             self.error.emit(f"Error during SINEX validation: {e}")
+
+class LoadingWorker(QObject):
+    """
+    Ensures ocean and atmospheric tide loading BLQ files exist for a given station.
+
+    Downloads the loading grid netCDF files if needed, checks whether the station
+    already has entries in the existing BLQ files, and runs interpolate_loading
+    to generate station-specific BLQ files when required.
+
+    :param execution: The Execution instance (used for ensure_loading_blq)
+    :param marker_name: 4-character station marker name (e.g. 'ALIC')
+    :param marker_number: DOMES marker number (e.g. '50137M0014') or None
+    :param apriori_position: [X, Y, Z] ECEF coordinates in metres
+    """
+    finished = Signal()           # Emitted when loading BLQ processing completes
+    error = Signal(str)           # Emits error message string
+    progress = Signal(str, int)   # Emits (description, percent) for progress updates
+
+    def __init__(self, execution, marker_name: str, marker_number: Optional[str],
+                 apriori_position: List[float]):
+        super().__init__()
+        self.execution = execution
+        self.marker_name = marker_name
+        self.marker_number = marker_number
+        self.apriori_position = apriori_position
+        self._stop = False
+
+    @Slot()
+    def stop(self):
+        self._stop = True
+
+    @Slot()
+    def run(self):
+        try:
+            if self._stop:
+                Logger.workflow("📦 Loading BLQ generation cancelled")
+                self.error.emit("Loading BLQ generation cancelled")
+                return
+
+            def check_stop():
+                return self._stop
+
+            self.execution.ensure_loading_blq(
+                marker_name=self.marker_name,
+                marker_number=self.marker_number,
+                apriori_position=self.apriori_position,
+                progress_callback=self.progress.emit,
+                stop_requested=check_stop,
+            )
+
+            if self._stop:
+                Logger.workflow("📦 Loading BLQ generation cancelled")
+                self.error.emit("Loading BLQ generation cancelled")
+                return
+
+            self.finished.emit()
+
+        except Exception as e:
+            if self._stop:
+                self.error.emit("Loading BLQ generation cancelled")
+                return
+            tb = traceback.format_exc()
+            Logger.workflow(f"⚠️ Error during loading BLQ generation:\n{tb}")
+            self.error.emit(f"Error during loading BLQ generation: {e}")

@@ -26,7 +26,9 @@
 #include "loading/loading.h"
 #include "loading/tide.h"
 #include "loading/utils.h"
+#if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
 #include "omp.h"
+#endif
 
 namespace po = boost::program_options;
 
@@ -252,8 +254,8 @@ void program_options(int argc, char* argv[], otl_input& input)
             ecef[1] = input.xyz_coords[i][1];
             ecef[2] = input.xyz_coords[i][2];
             ecef2pos(ecef, tmp);
-            input.lon.push_back(tmp[1] * 180.0 / M_PI);
-            input.lat.push_back(tmp[0] * 180.0 / M_PI);
+            input.lon.push_back(tmp[1] * 180.0 / PI);
+            input.lat.push_back(tmp[0] * 180.0 / PI);
         }
     }
 };
@@ -341,11 +343,7 @@ int main(int argc, char* argv[])
 #pragma omp parallel for
         for (unsigned int i_poi = 0; i_poi < input.lat.size(); i_poi++)
         {
-            // BOOST_LOG_TRIVIAL(info) << " Processing coordinates # " << i_poi << " \n\t" <<
-            // timer.format() ;
             load_1_point(tideinfo, &input, load, i_poi);
-            //			BOOST_LOG_TRIVIAL(info) << " end  pt  " << i_poi << " \n\t" <<
-            // timer.format() ;
         }
 
         write_BLQ(&input);

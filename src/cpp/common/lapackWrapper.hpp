@@ -102,13 +102,19 @@ extern "C"
     );
 }
 
-// BLAS function declarations - handle different environments
-// Eigen/OpenBLAS declares these with int return, standard BLAS uses void
-#if !defined(EIGEN_USE_BLAS) && !defined(EIGEN_BLAS_H)
-// Standard BLAS declarations (void return, Fortran style)
+// BLAS function declarations used directly by this wrapper.
+// Eigen 3 declares these Fortran BLAS entry points as returning int, while
+// Eigen 5 changed them to void. Match Eigen when its version macros are visible
+// so this wrapper can coexist with either Eigen BLAS header.
+#if defined(EIGEN_MAJOR_VERSION) && EIGEN_MAJOR_VERSION < 5
+using BlasReturn = int;
+#else
+using BlasReturn = void;
+#endif
+
 extern "C"
 {
-    void dgemm_(
+    BlasReturn dgemm_(
         const char*   transa,
         const char*   transb,
         const int*    m,
@@ -123,7 +129,7 @@ extern "C"
         double*       c,
         const int*    ldc
     );
-    void dgemv_(
+    BlasReturn dgemv_(
         const char*   trans,
         const int*    m,
         const int*    n,
@@ -136,8 +142,8 @@ extern "C"
         double*       y,
         const int*    incy
     );
-    void dcopy_(const int* n, const double* x, const int* incx, double* y, const int* incy);
-    void daxpy_(
+    BlasReturn dcopy_(int* n, double* x, int* incx, double* y, int* incy);
+    BlasReturn daxpy_(
         const int*    n,
         const double* alpha,
         const double* x,
@@ -145,7 +151,7 @@ extern "C"
         double*       y,
         const int*    incy
     );
-    void dsymm_(
+    BlasReturn dsymm_(
         const char*   side,
         const char*   uplo,
         const int*    m,
@@ -159,7 +165,7 @@ extern "C"
         double*       c,
         const int*    ldc
     );
-    void dsyrk_(
+    BlasReturn dsyrk_(
         const char*   uplo,
         const char*   trans,
         const int*    n,
@@ -172,8 +178,6 @@ extern "C"
         const int*    ldc
     );
 }
-#endif
-// Note: When EIGEN_USE_BLAS/EIGEN_BLAS_H is defined, these are already declared by Eigen headers
 
 // Cholesky factorization (positive definite)
 inline int dpotrf(Layout layout, char uplo, int n, double* a, int lda)
@@ -370,9 +374,6 @@ constexpr Layout ROW_MAJOR = Layout::RowMajor;
 // BLAS Wrappers (using pure Fortran BLAS instead of CBLAS)
 // =============================================================================
 
-// BLAS functions are declared by Eigen with int return type on some platforms
-// We don't need to declare them - just use them directly
-
 // Transpose enum to match CBLAS
 enum class Transpose
 {
@@ -500,14 +501,14 @@ inline void daxpy(int n, double alpha, const double* x, int incx, double* y, int
 // where A is symmetric
 inline void dsymm(
     Layout        layout,
-    char          side,    // 'L' for A*B, 'R' for B*A
-    char          uplo,    // 'U' or 'L' - which triangle of A is stored
-    int           m,       // Rows of C
-    int           n,       // Cols of C
+    char          side,  // 'L' for A*B, 'R' for B*A
+    char          uplo,  // 'U' or 'L' - which triangle of A is stored
+    int           m,     // Rows of C
+    int           n,     // Cols of C
     double        alpha,
-    const double* a,       // Symmetric matrix
+    const double* a,     // Symmetric matrix
     int           lda,
-    const double* b,       // General matrix
+    const double* b,     // General matrix
     int           ldb,
     double        beta,
     double*       c,
@@ -539,10 +540,10 @@ inline void dsymm(
 // where C is symmetric
 inline void dsyrk(
     Layout        layout,
-    char          uplo,    // 'U' or 'L' - which triangle of C to update
-    char          trans,   // 'N' for A*A^T, 'T' for A^T*A
-    int           n,       // Order of C
-    int           k,       // Inner dimension
+    char          uplo,   // 'U' or 'L' - which triangle of C to update
+    char          trans,  // 'N' for A*A^T, 'T' for A^T*A
+    int           n,      // Order of C
+    int           k,      // Inner dimension
     double        alpha,
     const double* a,
     int           lda,
@@ -556,18 +557,7 @@ inline void dsyrk(
         return;
     }
 
-    dsyrk_(
-        &uplo,
-        &trans,
-        &n,
-        &k,
-        &alpha,
-        const_cast<double*>(a),
-        &lda,
-        &beta,
-        c,
-        &ldc
-    );
+    dsyrk_(&uplo, &trans, &n, &k, &alpha, const_cast<double*>(a), &lda, &beta, c, &ldc);
 }
 
 }  // namespace LapackWrapper

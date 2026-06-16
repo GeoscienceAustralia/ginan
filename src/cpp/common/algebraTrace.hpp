@@ -159,14 +159,14 @@ void spitFilterToFile(
 
         // On Windows/MinGW, tellp() returns 0 in append mode, so seek to end first
         fileStream.seekp(0, std::ios::end);
-        long int pos = fileStream.tellp();
+        std::streamoff pos = fileStream.tellp();
 
         int type_int = static_cast<int>(type);
         serial & type_int;
         serial & object;
 
-        long int end   = fileStream.tellp();
-        long int delta = end - pos;
+        std::streamoff end = fileStream.tellp();
+        long int       delta = static_cast<long int>(end - pos);
         serial & delta;
     }
     catch (...)
@@ -182,8 +182,8 @@ bool getFilterObjectFromFile(
     E_SerialObject expectedType,  ///< The expected type of object, (determine using
                                   ///< getFilterTypeFromFile() first)
     TYPE&     object,             ///< The pre-declared object to set the value of
-    long int& startPos,           ///< The position in the file of the object's record
-    string    filename            ///< The path to the archive file to read from
+    std::streamoff& startPos,  ///< The position in the file of the object's record
+    string          filename   ///< The path to the archive file to read from
 )
 {
     std::fstream fileStream(filename, std::ios::binary | std::ios::in);
@@ -241,7 +241,7 @@ bool getFilterObjectFromFile(
     return true;
 }
 
-E_SerialObject getFilterTypeFromFile(long int& startPos, string filename);
+E_SerialObject getFilterTypeFromFile(std::streamoff& startPos, string filename);
 
 void tryPrepareFilterPointers(KFState& kfState, ReceiverMap& receiverMap);
 

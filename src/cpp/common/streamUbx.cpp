@@ -63,7 +63,7 @@ void UbxParser::parse(std::istream& inputStream)
         inputStream.read((char*)&crcRead, 2);
         CLEAN_UP_AND_RETURN_ON_FAILURE;
 
-        // todo aaron calculate crcRead
+        // todo? calculate crcRead
         if (0)
         {
             checksumFailure();

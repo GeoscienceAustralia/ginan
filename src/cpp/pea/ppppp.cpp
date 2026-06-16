@@ -21,7 +21,9 @@
 #include "common/trace.hpp"
 #include "inertial/posProp.hpp"
 #include "iono/ionoModel.hpp"
+#if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
 #include "omp.h"
+#endif
 #include "orbprop/coordinates.hpp"
 #include "orbprop/orbitProp.hpp"
 #include "rtklib/lambda.h"
@@ -1198,12 +1200,12 @@ KFState propagateUncertainty(Trace& trace, KFState& kfState)
 }
 
 void chunkFilter(
-    Trace&                      trace,
-    KFState&                    kfState,
-    KFMeas&                     kfMeas,
-    ReceiverMap&                receiverMap,
-    map<string, FilterChunk>&   filterChunkMap,
-    map<string, std::ofstream>& traceList
+    Trace&                        trace,
+    KFState&                      kfState,
+    KFMeas&                       kfMeas,
+    ReceiverMap&                  receiverMap,
+    map<string, FilterChunk>&     filterChunkMap,
+    map<string, PooledTraceFile>& traceList
 )
 {
     filterChunkMap.clear();
@@ -1342,7 +1344,7 @@ void chunkFilter(
             {
                 auto& rec             = recIt->second;
                 traceList[str]        = getTraceFile(rec);
-                filterChunk.trace_ptr = &traceList[str];
+                filterChunk.trace_ptr = traceList[str].trace;
             }
             else
             {
@@ -1574,7 +1576,7 @@ bool isSpecificTimeReset(double epoch, double prev_epoch, const std::vector<doub
         bool   reset_epoch          = epoch_mod == reset_mod;
         bool   prev_epoch_reset     = prev_epoch_mod == reset_mod;
         bool   reset_between_epochs = (prev_epoch_mod < reset_mod && epoch_mod > reset_mod) ||
-                                    (prev_epoch_mod > epoch_mod && reset_mod == 0);
+                                      (prev_epoch_mod > epoch_mod && reset_mod == 0);
 
         if (reset_epoch || reset_between_epochs)
         {
@@ -1697,8 +1699,8 @@ void updateFilter(
 )
 {
     removeBadSatellites(trace,
-                        kfState);  // todo Eugene: revisit this as it doesn't work well
-    removeBadReceivers(trace, kfState, receiverMap);  // todo Eugene: revisit this as well
+                        kfState);                     // todo? revisit this as it doesn't work well
+    removeBadReceivers(trace, kfState, receiverMap);  // todo? revisit this as well
     removeBadAmbiguities(trace, kfState, receiverMap);
     removeBadIonospheres(trace, kfState);
     resetFilterbyConfig(trace, kfState);
@@ -1895,8 +1897,8 @@ void ppp(
         kfState.outputStates(trace, suffix);
     }
 
-    map<string, FilterChunk>   filterChunkMap;
-    map<string, std::ofstream> traceList;  // keep in large scope as we're using pointers
+    map<string, FilterChunk>     filterChunkMap;
+    map<string, PooledTraceFile> traceList;  // keep in large scope as we're using pointers
 
     chunkFilter(trace, kfState, kfMeas, receiverMap, filterChunkMap, traceList);
 
@@ -1915,6 +1917,7 @@ void ppp(
                 kfState.outputStates(
                     *filterChunk.trace_ptr,
                     (string) "/PPPChunk/" + id,
+                    -1,
                     filterChunk.begX,
                     filterChunk.numX
                 );

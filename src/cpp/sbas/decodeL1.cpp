@@ -617,8 +617,8 @@ void decodeL1GEO_Navg(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
     seph.acc[0]  = getbitsInc(data, ind, 10) * 0.0000125;
     seph.acc[1]  = getbitsInc(data, ind, 10) * 0.0000125;
     seph.acc[2]  = getbitsInc(data, ind, 10) * 0.000625;
-    seph.af0 = getbitsInc(data, ind, 12) * P2_31;
-    seph.af0 = getbitsInc(data, ind, 8) * P2_40;
+    seph.af0     = getbitsInc(data, ind, 12) * P2_31;
+    seph.af0     = getbitsInc(data, ind, 8) * P2_40;
 
     nav.sephMap[seph.Sat][seph.type][seph.t0] = seph;
 }

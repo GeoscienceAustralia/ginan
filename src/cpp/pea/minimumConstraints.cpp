@@ -219,7 +219,7 @@ void mincon(
 
     if (acsConfig.mincon_only)
     {
-        long int       startPos = -1;
+        std::streamoff startPos = -1;
         E_SerialObject type     = getFilterTypeFromFile(startPos, acsConfig.mincon_filename);
     }
 
@@ -309,8 +309,8 @@ void mincon(
             aprioriPos    = rec.minconApriori;
             aprioriPosVar = rec.aprioriPosVar * SQR(recOpts.mincon_scale_apriori_sigma);
             filterVar     = kfStateStations.P.block(index, index, 3, 3) *
-                        SQR(recOpts.mincon_scale_filter_sigma);
-            str = rec.id;
+                            SQR(recOpts.mincon_scale_filter_sigma);
+            str           = rec.id;
 
             hasStations = true;
         }
@@ -329,8 +329,8 @@ void mincon(
             aprioriPos    = satNav.aprioriPos;
             aprioriPosVar = Matrix3d::Identity() * SQR(satOpts.mincon_scale_apriori_sigma);
             filterVar     = kfStateStations.P.block(index, index, 3, 3) *
-                        SQR(satOpts.mincon_scale_filter_sigma);
-            str = key.Sat.id();
+                            SQR(satOpts.mincon_scale_filter_sigma);
+            str           = key.Sat.id();
 
             hasSatellites = true;
         }
@@ -508,7 +508,7 @@ void mincon(
             double value = deltaR(xyz);
 
             meas.setValue(value);
-            // todo Eugene: set noise
+            // todo? set noise
 
             // Add null measurement and continue, its needed for inverse later
 
@@ -1029,7 +1029,7 @@ void outputMinconStatistics(Trace& trace, MinconStatistics& minconStatistics, co
 
 KFState minconOnly(Trace& trace, ReceiverMap& receiverMap)
 {
-    long int       startPos = -1;
+    std::streamoff startPos = -1;
     E_SerialObject type     = getFilterTypeFromFile(startPos, acsConfig.mincon_filename);
     if (type != E_SerialObject::FILTER_PLUS)
     {

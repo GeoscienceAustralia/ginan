@@ -123,7 +123,7 @@ bool read_biasSINEX_line(
     }
     else if (sat != "   ")
     {
-        // this should be a satellite, but check its valid		//todo aaron, system for receiver
+        // this should be a satellite, but check its valid		//todo? system for receiver
         // dcbs
 
         if (Sat.prn == 0 || Sat.sys == E_Sys::NONE)

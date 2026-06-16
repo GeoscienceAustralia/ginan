@@ -254,6 +254,7 @@ set(SOFA_SRC
         )
 
 add_library(sofa_lib
+        STATIC
         ${SOFA_SRC})
         
 target_compile_options(sofa_lib PRIVATE -fpie)

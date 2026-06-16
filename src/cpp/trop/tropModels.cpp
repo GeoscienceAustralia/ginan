@@ -114,9 +114,8 @@ double tropModelCoef(int ind, VectorPos& pos)
             if (dlonDeg > atmReg.intLonDeg || atmReg.intLonDeg == 0)
                 return 0;
 
-            return (1 - dlatDeg / atmReg.intLatDeg) *
-                   (1 - dlonDeg / atmReg.intLonDeg
-                   );  // todo aaron use bilinear interpolation function?
+            return (1 - dlatDeg / atmReg.intLatDeg) * (1 - dlonDeg / atmReg.intLonDeg);
+            // todo? use bilinear interpolation function?
         }
         default:
         {
@@ -251,7 +250,7 @@ double tropModel(
         break;
     }
 
-    // todo aaron var might still be < 0 if everything in models failed
+    // todo? var might still be < 0 if everything in models failed
 
     if (tropStates.zenith == 0)  // initialization
     {
@@ -312,7 +311,7 @@ double tropDryZTD(Trace& trace, vector<E_TropModel> models, GTime time, VectorPo
             break;
     }
 
-    // todo aaron var might still be < 0 if everything in models failed
+    // todo? var might still be < 0 if everything in models failed
     return dryZTD;
 }
 

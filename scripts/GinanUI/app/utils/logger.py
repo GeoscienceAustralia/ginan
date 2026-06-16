@@ -2,14 +2,16 @@
 Unified logging system for Ginan-UI
 
 This module provides a thread-safe logging interface that can passes
-messages to different UI channels ("terminal" or "console" at the moment) via Qt signals.
+messages to different UI channels ("Workflow" or "Console" at the moment) via Qt signals.
+Must be initialised with a MainWindow instance
+before use; falls back to stdout if uninitialised.
 
 Usage:
     # In main_window.py initialisation:
     Logger.initialise(main_window_instance)
-    
+
     # Anywhere in your code:
-    Logger.terminal("Message for terminal")
+    Logger.workflow("Message for workflow")
     Logger.console("Message for console")
     Logger.both("Message for both channels")
 """
@@ -17,12 +19,10 @@ Usage:
 from PySide6.QtCore import QObject, Signal
 from typing import Optional
 
-
 class LoggerSignals(QObject):
     """Signal container for thread-safe logging"""
-    terminal_signal = Signal(str)
+    workflow_signal = Signal(str)
     console_signal = Signal(str)
-
 
 class Logger:
     """
@@ -44,32 +44,32 @@ class Logger:
         cls._signals = LoggerSignals()
 
         # Connect signals to main window's log_message method
-        cls._signals.terminal_signal.connect(
-            lambda msg: main_window.log_message(msg, channel = "terminal")
+        cls._signals.workflow_signal.connect(
+            lambda msg: main_window.log_message(msg, channel = "workflow")
         )
         cls._signals.console_signal.connect(
             lambda msg: main_window.log_message(msg, channel = "console")
         )
 
     @classmethod
-    def terminal(cls, message: str):
+    def workflow(cls, message: str):
         """
-        Log a message to the terminal widget.
+        Log a message to the "Workflow" widget.
         Thread-safe.
 
         :param message: Message to log
         """
         if cls._signals is None:
-            print(f"[Logger not initialised - terminal] {message}")
+            print(f"[Logger not initialised - workflow] {message}")
             return
 
         # Simply emit the signal - Qt handles thread safety automatically
-        cls._signals.terminal_signal.emit(message)
+        cls._signals.workflow_signal.emit(message)
 
     @classmethod
     def console(cls, message: str):
         """
-        Log a message to the console widget.
+        Log a message to the "Console" widget.
         Thread-safe.
 
         :param message: Message to log
@@ -84,12 +84,12 @@ class Logger:
     @classmethod
     def both(cls, message: str):
         """
-        Log a message to both terminal and console widgets.
+        Log a message to both "Workflow" and "Console" widgets.
         Thread-safe.
 
         :param message: Message to log
         """
-        cls.terminal(message)
+        cls.workflow(message)
         cls.console(message)
 
     @classmethod

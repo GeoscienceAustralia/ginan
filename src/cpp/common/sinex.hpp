@@ -19,12 +19,11 @@ using std::vector;
 struct SatSys;
 struct Navigation;
 
-//===============================================================================
 /* history structure (optional but recommended)
 * ------------------------------------------------------------------------------
 +INPUT/HISTORY
 *CSNX FMT_ AGC EPOCH_______ AGD START_______ STOP________ T EST__ C A B C D E F
-+SNX 1.23 XXX YR:DOY:SOD.. YYY YR:DOY:SOD   YR:DOY:SOD   C 01234 D S O E T C A
+ +SNX 1.23 XXX YR:DOY:SOD.. YYY YR:DOY:SOD   YR:DOY:SOD   C 01234 D S O E T C A
 */
 struct SinexInputHistory
 {
@@ -111,18 +110,18 @@ struct SinexSourceId
 */
 struct SinexSiteId
 {
-    string sitecode;  // station (4)
-    string ptcode;    // physical monument used at the site (2)
-    char   typecode;  // observation technique {C,D,L,M,P,or R}
-    string domes;     // domes number unique monument num (9)
-    string desc;      // site description eg town/city (22)
-    int    lon_deg;   // longitude degrees (uint16_t) east is positive
-    int    lon_min;   //
-    double lon_sec;   //
-    int    lat_deg;   // latitude degrees north is positive
-    int    lat_min;   // uint8_t
-    double lat_sec;   // float
-    double height;    //
+    string sitecode;                // station (4)
+    string ptcode   = "A";          // physical monument used at the site (2)
+    char   typecode = 'P';          // observation technique {C,D,L,M,P,or R}
+    string domes    = "     M   ";  // domes number unique monument num (9)
+    string desc;                    // site description eg town/city (22)
+    int    lon_deg;                 // longitude degrees (uint16_t) east is positive
+    int    lon_min;                 //
+    double lon_sec;                 //
+    int    lat_deg;                 // latitude degrees north is positive
+    int    lat_min;                 // uint8_t
+    double lat_sec;                 // float
+    double height;                  //
     bool   used = false;
 };
 
@@ -133,13 +132,13 @@ struct SinexSiteId
 */
 struct SinexSiteData
 {
-    string site;        // 4 call sign for solved parameters
-    string station_pt;  // 2 physical
-    string soln_id;     // 4 solution number to which this input is referred to (int?)
-    string sitecode;    // 4 call sign from input sinex file
-    string site_pt;     // 2 physical from above
-    string sitesoln;    // 4 solution number for site/pt from input sinex file
-    char   obscode;     //
+    string site;                 // 4 call sign for solved parameters
+    string station_pt = "A";     // 2 physical
+    string soln_id    = "----";  // 4 solution number to which this input is referred to (int?)
+    string sitecode;             // 4 call sign from input sinex file
+    string site_pt  = "A";       // 2 physical from above
+    string sitesoln = "----";    // 4 solution number for site/pt from input sinex file
+    char   obscode  = 'P';       //
     UYds   start;
     UYds   stop;
     string agency;  // 3 - code agency of creation
@@ -154,15 +153,15 @@ struct SinexSiteData
 */
 struct SinexReceiver
 {
-    string sitecode;  // station (4)
-    string ptcode;    // physical monument used at the site  (2)
-    string solnid;    // solution number (4) or '----'
-    char   typecode;
-    UYds   start;     // receiver start time
-    UYds   end;       // receiver end time
-    string type;      // receiver type (20)
-    string sn;        // receiver serial number (5)
-    string firm;      // receiver firmware  (11)
+    string sitecode;              // station (4)
+    string ptcode   = "A";        // physical monument used at the site  (2)
+    string solnid   = "----";     // solution number (4) or '----'
+    char   typecode = 'P';
+    UYds   start;                 // receiver start time
+    UYds   end;                   // receiver end time
+    string type;                  // receiver type (20)
+    string sn   = "-----";        // receiver serial number (5)
+    string firm = "-----------";  // receiver firmware  (11)
     bool   used = false;
 };
 
@@ -175,14 +174,14 @@ struct SinexReceiver
 struct SinexAntenna
 {
     string sitecode;
-    string ptcode;  // physical monument used at the site (2)
-    string solnnum;
-    string calibModel;
-    char   typecode;
-    UYds   start; /* antenna start time */
-    UYds   end;   /* antenna end time  */
-    string type;  /* receiver type (20)*/
-    string sn;    /* receiver serial number (5)*/
+    string ptcode     = "A";  // physical monument used at the site (2)
+    string solnnum    = "----";
+    string calibModel = "-----";
+    char   typecode   = 'P';
+    UYds   start;          /* antenna start time */
+    UYds   end;            /* antenna end time  */
+    string type;           /* receiver type (20)*/
+    string sn   = "-----"; /* receiver serial number (5)*/
     bool   used = false;
 };
 
@@ -192,11 +191,11 @@ struct SinexAntenna
 */
 struct SinexGpsPhaseCenter
 {
-    string   antname;   // 20 name and model
-    string   serialno;  // 5
-    Vector3d L1;        // UNE d6.4*3
-    Vector3d L2;        // UNE d6.4*3
-    string   calib;     // 10 calibration model
+    string   antname;               // 20 name and model
+    string   serialno = "-----";    // 5
+    Vector3d L1;                    // UNE d6.4*3
+    Vector3d L2;                    // UNE d6.4*3
+    string   calib = "----------";  // 10 calibration model
 };
 
 /* gal phase centre block structure (mandatory for Gallileo)
@@ -208,14 +207,14 @@ struct SinexGpsPhaseCenter
 */
 struct SinexGalPhaseCenter
 {
-    string   antname;   // 20 name and model
-    string   serialno;  // 5
-    Vector3d L1;        // UNE d6.4*3
-    Vector3d L5;        // UNE d6.4*3
-    Vector3d L6;        // UNE d6.4*3
-    Vector3d L7;        // UNE d6.4*3
-    Vector3d L8;        // UNE d6.4*3
-    string   calib;     // 10 calibration model
+    string   antname;               // 20 name and model
+    string   serialno = "-----";    // 5
+    Vector3d L1;                    // UNE d6.4*3
+    Vector3d L5;                    // UNE d6.4*3
+    Vector3d L6;                    // UNE d6.4*3
+    Vector3d L7;                    // UNE d6.4*3
+    Vector3d L8;                    // UNE d6.4*3
+    string   calib = "----------";  // 10 calibration model
 };
 
 /*
@@ -225,180 +224,17 @@ struct SinexGalPhaseCenter
 */
 struct SinexSiteEcc
 {
-    string    sitecode;  // 4
-    string    ptcode;    // 2 - physical monument used at the site
-    string    solnnum;
-    char      typecode;
-    UYds      start; /* ecc start time */
-    UYds      end;   /* ecc end time */
-    string    rs;    /* 3 - reference system UNE (0) or XYZ (1) */
-    VectorEnu ecc;   /* eccentricity UNE or XYZ (m) d8.4*3 */
+    string    sitecode;        // 4
+    string    ptcode   = "A";  // 2 - physical monument used at the site
+    string    solnnum  = "----";
+    char      typecode = 'P';
+    UYds      start;      /* ecc start time */
+    UYds      end;        /* ecc end time */
+    string    rs = "UNE"; /* 3 - reference system UNE (0) or XYZ (1) */
+    VectorEnu ecc;        /* eccentricity UNE or XYZ (m) d8.4*3 */
     bool      used = false;
 };
 
-/*
-+SOLUTION/EPOCHS (mandatory) *OR*
-+BIAS/EPOCHS (mandatory when biases are included)
-*CODE PT SOLN T _DATA_START_ __DATA_END__ _MEAN_EPOCH_
- ALBH  A    1 C 94:002:00000 94:104:00000 94:053:00000
-*/
-struct SinexSolEpoch
-{
-    string sitecode;  // 4
-    string ptcode;    // 2 - physical monument used at the site
-    string solnnum;
-    char   typecode;
-    UYds   start;
-    UYds   end;
-    UYds   mean;
-};
-
-/*
-+SOLUTION/STATISTICS
-*STAT_NAME (30 chars) value (22char double)
-*/
-struct SinexSolStatistic
-{
-    string name;
-    short  etype;  // 0 = int, 1 = double
-    union
-    {
-        int    ival;
-        double dval;
-    } value;
-};
-
-/*
-+SOLUTION/ESTIMATE
-*INDEX _TYPE_ CODE PT SOLN _REF_EPOCH__ UNIT S ___ESTIMATED_VALUE___ __STD_DEV__
-    1 STAX   ALBH  A    1 10:001:00000 m    2 -2.34133301687257e+06 5.58270e-04
-    2 STAY   ALBH  A    1 10:001:00000 m    2 -3.53904951624333e+06 7.77370e-04
-    3 STAZ   ALBH  A    1 10:001:00000 m    2  4.74579129951391e+06 8.98560e-04
-    4 VELX   ALBH  A    1 10:001:00000 m/y  2 -9.92019926884722e-03 1.67050e-05
-    5 VELY   ALBH  A    1 10:001:00000 m/y  2 -8.46787398931193e-04 2.12080e-05
-    6 VELZ   ALBH  A    1 10:001:00000 m/y  2 -4.85721729753769e-03 2.39140e-05
-*/
-struct SinexSolEstimate
-{
-    int    index;
-    string type;      // 6
-    string sitecode;  // 4
-    string ptcode;    // 2 - physical monument used at the site
-    string solnnum;
-    UYds   refepoch;
-    string unit;  // 4
-    char   constraint;
-    double estimate;
-    double stddev;
-    string file;
-
-    bool used = false;
-};
-
-/*
-+SOLUTION/APRIORI
-*INDEX PARAMT SITE PT SOLN EPOCH_____ UNIT C PARAM________________ STD_DEV____
- 12345 AAAAAA XXXX YY NNNN YR:DOY:SOD UUUU A 12345.123456789ABCDEF 1234.123456
-*/
-struct SinexSolApriori
-{
-    int    idx;
-    string param_type;  // 6 - select from
-    string sitecode;    // 4
-    string ptcode;      // 2
-    string solnnum;
-    UYds   epoch;
-    string unit;        // 4 - select from
-    char   constraint;  // for inner constraints, choose 1
-    double param;       // d21.15 apriori parameter
-    double stddev;      // std deviation of parameter
-};
-
-/*
-+SOLUTION/NORMAL_EQUATION_VECTOR
-*PARAM PTYPE_ SITE PT SOLN EPOCH_____ UNIT C NORMAL______________
- 12345 AAAAAA XXXX YY NNNN YR:DOY:SOD UUUU A 12345.123456789ABCDEF
-*/
-struct SinexSolNeq
-{
-    int    param;       // 5 index of estimated parameters
-    string ptype;       // 6 - type of parameter
-    string site;        // 4 - station
-    string pt;          // 2 - point code
-    string solnnum;     // 4 solution number
-    UYds   epoch;
-    string unit;        // 4
-    char   constraint;  //
-    double normal;      // right hand side of normal equation
-};
-
-/*
-+SOLUTION/MATRIX_ESTIMATE C TYPE (mandatory)
-+SOLUTION/MATRIX_APRIORI C TYPE (recommended)
-+SOLUTION/MATRIX_NORMAL_EQUATION C (mandatory for normal equations)
-* (Not used until I understand it better)
-* C must be L or U (matrix is always symmetric about main diagonal)
-* TYPE must be one of CORR/COVA/INFO for correlation, covariance and info (covariance inverse)
-* APRIORI VALUES are 21.16lf, estimates and normal_equations are 21.14lf!
-*ROW__ COL__ ELEM1________________ ELEM2________________ ELEM3________________
-*/
-struct SinexSolMatrix
-{
-    int    row;       // 5 - must match the solution/estimate row
-    int    col;       // 5 - must match the solution/estimate col
-    int    numvals;
-    double value[3];  // each d21.14 cols col, col+1, col+2 of the row
-};
-
-//=============================================================================
-/*
-+SOLUTION/DATA_HANDLING
-*CODE PT UNIT T _DATA_START_ __DATA_END__ M __E-VALUE___ STD_DEV _E-RATE__ CMNTS
- 7090 -- ms   A 09:344:31560 09:345:70200 T      0.90920
- 7840 -- %    A 95:358:00000 95:358:86400 H     -20.00                     HER
- 7080 -- mB   A 95:065:00000 96:026:00000 P        -2.10
- 1873 -- mm   A 95:001:00000 00:001:00000 R      -270.00
-*/
-//=============================================================================
-struct SinexDataHandling
-{
-    string sitecode;    // 4 - CDP ID
-    string ptcode;      // 2 - satellites these biases apply to (-- = all)
-    string solnnum;     // 4 - solution number
-    string t;           // 1
-    UYds   epochstart;  // yr:doy:sod
-    UYds   epochend;    // yr:doy:sod
-    string m;           // 1
-    double estimate;
-    double stddev;
-    double estrate;
-    string unit;      // 4 - units of estimate
-    string comments;  // 4
-};
-
-typedef enum
-{
-    ESTIMATE,
-    APRIORI,
-    NORMAL_EQN,
-    MAX_MATRIX_TYPE
-} matrix_type;
-
-typedef enum
-{
-    CORRELATION,
-    COVARIANCE,
-    INFORMATION,
-    MAX_MATRIX_VALUE
-} matrix_value;
-
-typedef enum
-{
-    P_ANT,  // P: antenna //todo: check the meaning of 'P'
-    L_LRA   // L: laser retroreflector array
-} E_EccType;
-
-//=============================================================================
 // TODO: satid and satident/satprn need to be checked for consistency ...
 /*
 +SATELLITE/ID (recommmended for GNSS)
@@ -416,6 +252,23 @@ struct SinexSatId
     UYds timeUntilDecom;  // yy:doy:sod a value of 0 everywhere mean still in commission after file
                           // epoch end
     string antRcvType;    // 20 - satellite antenna receiver type
+};
+
+/*
++SATELLITE/PHASE_CENTER
+*NB Can have more than one line if satellite transmits on more than 2 frequencies
+*SVN_ C ZZZZZZ XXXXXX YYYYYY C ZZZZZZ XXXXXX YYYYYY ANTENNA___ T M
+*/
+struct SinexSatPc
+{
+    string   svn;      // 4
+    char     freq;     // 1/2/5 for GPS & GLONASS, 1/5/6/7/8 for Gallileo
+    Vector3d zxy;      // metres offset from COM in the order given 3* d6.4
+    char     freq2;    // as above
+    Vector3d zxy2;     // as above
+    string   antenna;  // 10 - model of antenna
+    char     type;     // Phase Center Variation A(bsolute)/R(elative)
+    char     model;    // F(ull)/E(levation model only)
 };
 
 /*
@@ -458,6 +311,21 @@ struct SinexSatFreqChn
     UYds   stop;
     int    channel;
     string comment;  // 40?
+};
+
+/*
++SATELLITE/PLANE
+*SVN_ Valid_From____ Valid_To______ P Slot__ Comment____________________________
+ G032 2000:028:00000 2004:181:00000 6 F4 [PL05]
+*/
+struct SinexSatPlane
+{
+    string svn;      // 4
+    UYds   start;    // yr:doy:sod
+    UYds   stop;     // yr:doy:sod
+    char   plane;    // orbital plane
+    string slot;     // 6
+    string comment;  // 35
 };
 
 /*
@@ -517,23 +385,6 @@ struct SinexSatPower
 };
 
 /*
-+SATELLITE/PHASE_CENTER
-*NB Can have more than one line if satellite transmits on more than 2 frequencies
-*SVN_ C ZZZZZZ XXXXXX YYYYYY C ZZZZZZ XXXXXX YYYYYY ANTENNA___ T M
-*/
-struct SinexSatPc
-{
-    string   svn;      // 4
-    char     freq;     // 1/2/5 for GPS & GLONASS, 1/5/6/7/8 for Gallileo
-    Vector3d zxy;      // metres offset from COM in the order given 3* d6.4
-    char     freq2;    // as above
-    Vector3d zxy2;     // as above
-    string   antenna;  // 10 - model of antenna
-    char     type;     // Phase Center Variation A(bsolute)/R(elative)
-    char     model;    // F(ull)/E(levation model only)
-};
-
-/*
 +SATELLITE/YAW_BIAS_RATE
 *SVN_ Valid_From____ Valid_To______   YB Yaw Rate  Comment________________________________
  G001 1978:053:00000 1985:199:00000    U   0.1999  Launched 1978-02-22; NAVSTAR 1; mass 453800. in
@@ -560,6 +411,144 @@ struct SinexSatAttMode
     GEpoch start;    ///< valid from (yyyy-mm-dd hh-mm-ss)
     GEpoch stop;     ///< valid until (yyyy-mm-dd hh-mm-ss)
     string attMode;  ///< attitude mode
+};
+
+/*
++SOLUTION/EPOCHS (mandatory) *OR*
++BIAS/EPOCHS (mandatory when biases are included)
+*CODE PT SOLN T _DATA_START_ __DATA_END__ _MEAN_EPOCH_
+ ALBH  A    1 C 94:002:00000 94:104:00000 94:053:00000
+*/
+struct SinexSolEpoch
+{
+    string sitecode;        // 4
+    string ptcode   = "A";  // 2 - physical monument used at the site
+    string solnnum  = "1";
+    char   typecode = 'P';
+    UYds   start;
+    UYds   end;
+    UYds   mean;
+};
+
+/*
++SOLUTION/STATISTICS
+*STAT_NAME (30 chars) value (22char double)
+*/
+struct SinexSolStatistic
+{
+    string name;
+    short  etype;  // 0 = int, 1 = double
+    union
+    {
+        int    ival;
+        double dval;
+    } value;
+};
+
+/*
++SOLUTION/ESTIMATE
+*INDEX _TYPE_ CODE PT SOLN _REF_EPOCH__ UNIT S ___ESTIMATED_VALUE___ __STD_DEV__
+    1 STAX   ALBH  A    1 10:001:00000 m    2 -2.34133301687257e+06 5.58270e-04
+    2 STAY   ALBH  A    1 10:001:00000 m    2 -3.53904951624333e+06 7.77370e-04
+    3 STAZ   ALBH  A    1 10:001:00000 m    2  4.74579129951391e+06 8.98560e-04
+    4 VELX   ALBH  A    1 10:001:00000 m/y  2 -9.92019926884722e-03 1.67050e-05
+    5 VELY   ALBH  A    1 10:001:00000 m/y  2 -8.46787398931193e-04 2.12080e-05
+    6 VELZ   ALBH  A    1 10:001:00000 m/y  2 -4.85721729753769e-03 2.39140e-05
+*/
+struct SinexSolEstimate
+{
+    int    index;
+    string type;           // 6
+    string sitecode;       // 4
+    string ptcode  = "A";  // 2 - physical monument used at the site
+    string solnnum = "1";
+    UYds   refepoch;
+    string unit;  // 4
+    char   constraint;
+    double estimate;
+    double stddev;
+    string file;
+
+    bool used = false;
+};
+
+/*
++SOLUTION/APRIORI
+*INDEX PARAMT SITE PT SOLN EPOCH_____ UNIT C PARAM________________ STD_DEV____
+ 12345 AAAAAA XXXX YY NNNN YR:DOY:SOD UUUU A 12345.123456789ABCDEF 1234.123456
+*/
+struct SinexSolApriori
+{
+    int    idx;
+    string param_type;     // 6 - select from
+    string sitecode;       // 4
+    string ptcode  = "A";  // 2
+    string solnnum = "1";
+    UYds   epoch;
+    string unit;        // 4 - select from
+    char   constraint;  // for inner constraints, choose 1
+    double param;       // d21.15 apriori parameter
+    double stddev;      // std deviation of parameter
+};
+
+/*
++SOLUTION/NORMAL_EQUATION_VECTOR
+*PARAM PTYPE_ SITE PT SOLN EPOCH_____ UNIT C NORMAL______________
+ 12345 AAAAAA XXXX YY NNNN YR:DOY:SOD UUUU A 12345.123456789ABCDEF
+*/
+struct SinexSolNeq
+{
+    int    param;          // 5 index of estimated parameters
+    string ptype;          // 6 - type of parameter
+    string site;           // 4 - station
+    string pt      = "A";  // 2 - point code
+    string solnnum = "1";  // 4 solution number
+    UYds   epoch;
+    string unit;           // 4
+    char   constraint;     //
+    double normal;         // right hand side of normal equation
+};
+
+/*
++SOLUTION/MATRIX_ESTIMATE C TYPE (mandatory)
++SOLUTION/MATRIX_APRIORI C TYPE (recommended)
++SOLUTION/MATRIX_NORMAL_EQUATION C (mandatory for normal equations)
+* (Not used until I understand it better)
+* C must be L or U (matrix is always symmetric about main diagonal)
+* TYPE must be one of CORR/COVA/INFO for correlation, covariance and info (covariance inverse)
+* APRIORI VALUES are 21.16lf, estimates and normal_equations are 21.14lf!
+*ROW__ COL__ ELEM1________________ ELEM2________________ ELEM3________________
+*/
+struct SinexSolMatrix
+{
+    int    row;       // 5 - must match the solution/estimate row
+    int    col;       // 5 - must match the solution/estimate col
+    int    numvals;
+    double value[3];  // each d21.14 cols col, col+1, col+2 of the row
+};
+
+/*
++SOLUTION/DATA_HANDLING
+*CODE PT UNIT T _DATA_START_ __DATA_END__ M __E-VALUE___ STD_DEV _E-RATE__ CMNTS
+ 7090 -- ms   A 09:344:31560 09:345:70200 T      0.90920
+ 7840 -- %    A 95:358:00000 95:358:86400 H     -20.00                     HER
+ 7080 -- mB   A 95:065:00000 96:026:00000 P        -2.10
+ 1873 -- mm   A 95:001:00000 00:001:00000 R      -270.00
+*/
+struct SinexDataHandling
+{
+    string sitecode;        // 4 - CDP ID
+    string ptcode  = "--";  // 2 - satellites these biases apply to (-- = all)
+    string solnnum = "1";   // 4 - solution number
+    string t;               // 1
+    UYds   epochstart;      // yr:doy:sod
+    UYds   epochend;        // yr:doy:sod
+    string m;               // 1
+    double estimate;
+    double stddev;
+    double estrate;
+    string unit;      // 4 - units of estimate
+    string comments;  // 4
 };
 
 /*
@@ -605,38 +594,61 @@ struct Sinex
     string currentFile;
 
     /* header block */
-    string snxtype;            /* SINEX file type */
+    // string snxtype;            /* SINEX file type */
     double ver;                /* version */
     string createagc;          /* file creation agency */
     UYds   filedate;           /* file create date as yr:doy:sod */
     string dataagc;            /* data source agency */
     UYds   solutionstartdate;  // start date of solution
-    UYds   solutionenddate;
+    UYds   solutionenddate;    // end date of solution
     char   obsCode;            /* observation code */
     int    numparam;           /* number of estimated parameters */
     char   constCode;          /* constraint code */
     string solcont;            /* solution types S O E T C A */
-    string markerName;
+    string markerName;         // marker name for Troposphere Sinex
 
     map<string, list<string>> blockComments;
-    list<string>              refstrings;
-    list<SinexInputHistory>   inputHistory;
-    list<SinexInputFile>      inputFiles;
-    list<SinexAck>            acknowledgements;
+
+    /* file stuff */
+    list<string> refstrings;
+    list<string> fileComments;
+
+    /* input stuff */
+    list<SinexInputHistory> inputHistory;
+    list<SinexInputFile>    inputFiles;
+    list<SinexAck>          acknowledgements;
+
+    /* VLBI stuff - ignored for now */
+    list<SinexNutCode>  listnutcodes;
+    list<SinexPreCode>  listprecessions;
+    list<SinexSourceId> listsourceids;
 
     /* site stuff */
     map<string, SinexSiteId>                                    mapsiteids;
     list<SinexSiteData>                                         listsitedata;
     map<string, map<GTime, SinexReceiver, std::greater<GTime>>> mapreceivers;
     map<string, map<GTime, SinexAntenna, std::greater<GTime>>>  mapantennas;
-    map<string, map<GTime, SinexSiteEcc, std::greater<GTime>>>  mapeccentricities;
     list<SinexGpsPhaseCenter>                                   listgpspcs;
     list<SinexGalPhaseCenter>                                   listgalpcs;
+    map<string, map<GTime, SinexSiteEcc, std::greater<GTime>>>  mapeccentricities;
+
+    /* satellite stuff */
+    list<SinexSatId>                                              listsatids;
+    list<SinexSatPc>                                              listsatpcs;
+    map<string, SinexSatIdentity>                                 satIdentityMap;
+    list<SinexSatPrn>                                             listsatprns;
+    list<SinexSatFreqChn>                                         listsatfreqchns;
+    map<string, map<GTime, SinexSatPlane, std::greater<GTime>>>   satPlaneMap;
+    map<string, map<GTime, SinexSatMass>>                         mapsatmasses;
+    list<SinexSatCom>                                             listsatcoms;
+    list<SinexSatEcc>                                             listsateccs;
+    map<string, map<GTime, SinexSatPower>>                        mapsatpowers;
+    map<string, map<GTime, SinexSatYawRate, std::greater<GTime>>> satYawRateMap;
+    map<string, map<GTime, SinexSatAttMode, std::greater<GTime>>> satAttModeMap;
 
     /* solution stuff - tied to sites */
-    bool                       epochshavebias;
-    map<string, SinexSolEpoch> solEpochMap;
-    // 	list<SinexSolEpoch> list_solepochs;
+    bool                                                                        epochshavebias;
+    map<string, SinexSolEpoch>                                                  solEpochMap;
     list<SinexSolStatistic>                                                     liststatistics;
     map<string, map<string, map<GTime, SinexSolEstimate, std::greater<GTime>>>> estimatesMap;
     map<int, SinexSolApriori>                                                   apriorimap;
@@ -645,49 +657,84 @@ struct Sinex
     map<string, map<string, map<char, map<GTime, SinexDataHandling, std::greater<GTime>>>>>
         mapdatahandling;
 
-    /* satellite stuff */
-    list<SinexSatPc>              listsatpcs;
-    list<SinexSatId>              listsatids;
-    map<string, SinexSatIdentity> satIdentityMap;
-
-    map<string, map<GTime, SinexSatMass>>  mapsatmasses;
-    map<string, map<GTime, SinexSatPower>> mapsatpowers;
-
-    list<SinexSatPrn>     listsatprns;
-    list<SinexSatFreqChn> listsatfreqchns;
-    list<SinexSatCom>     listsatcoms;
-    list<SinexSatEcc>     listsateccs;
-
-    map<string, map<GTime, SinexSatYawRate, std::greater<GTime>>> satYawRateMap;
-    map<string, map<GTime, SinexSatAttMode, std::greater<GTime>>> satAttModeMap;
-
-    /* VLBI - ignored for now */
-    list<SinexSourceId> listsourceids;
-    list<SinexNutCode>  listnutcodes;
-    list<SinexPreCode>  listprecessions;
+    // Troposphere Sinex data
+    SinexTropDesc           tropDesc = {};
+    map<string, int>        tropSiteCoordBodyFPosMap;
+    map<string, VectorEcef> tropSiteCoordMapMap;  // indexed by station ID, then axis #
+    map<string, int>        tropSolFootFPosMap;
+    list<SinexTropSol>      tropSolList;
 
     // constructor
     Sinex(bool epochshavebias = false)
         : epochshavebias(epochshavebias) {
 
           };
-
-    // Troposphere Sinex data
-    map<string, int>        tropSiteCoordBodyFPosMap;
-    map<string, int>        tropSolFootFPosMap;
-    SinexTropDesc           tropDesc = {};
-    map<string, VectorEcef> tropSiteCoordMapMap;  // indexed by station ID, then axis #
-    list<SinexTropSol>      tropSolList;
 };
 
-struct Sinex_stn_soln
-{
-    string type;     /* parameter type */
-    string unit;     /* parameter units */
-    double pos  = 0; /* real position (ecef) (m)*/
-    double pstd = 0; /* position std (m) */
-    UYds   yds;      /* epoch when valid */
-};
+extern Sinex theSinex;  // the one and only sinex object.
+
+// struct Sinex_stn_soln
+// {
+//     string type;     /* parameter type */
+//     string unit;     /* parameter units */
+//     double pos  = 0; /* real position (ecef) (m)*/
+//     double pstd = 0; /* position std (m) */
+//     UYds   yds;      /* epoch when valid */
+// };
+
+void nearestYear(double& year);
+
+bool readSinex(const string& filepath);
+
+void updateSinexHeader(
+    string&    create_agc,
+    string&    data_agc, /* satellite meta data */
+    UYds       soln_start,
+    UYds       soln_end,
+    const char obsCode,
+    const char constCode,
+    string&    contents,
+    int        numParam,
+    double     sinexVer
+);
+
+int  sinexCheckAddGaReference(string solType, string peaVer, bool isTrop);
+void sinexAddComment(const string what);
+void sinexAddFiles(
+    const string&         who,
+    const GTime&          when,
+    const vector<string>& filenames,
+    const string&         description
+);
+// void sinexAddAcknowledgement(const string& who, const string& description);
+void sinexAddStatistic(const string& what, const int value);
+void sinexAddStatistic(const string& what, const double value);
+
+// snx.cpp fns used in tropSinex.cpp
+void writeAsComments(Trace& out, list<string>& comments);
+void writeSnxReference(std::ofstream& out);
+
+struct KFState;
+struct Receiver;
+
+void writeSinex(
+    string                 filepath,
+    KFState&               kfState,
+    map<string, Receiver>& receiverMap,
+    UYds                   soln_start,
+    UYds                   soln_end
+);
+
+// Trop sinex
+void outputTropSinex(
+    string   filename,
+    GTime    time,
+    KFState& netKfState,
+    string   markerName = "MIX",
+    bool     isSmoothed = false
+);
+
+struct SinexRecData;
 
 extern SinexSatIdentity dummySinexSatIdentity;
 extern SinexSatEcc      dummySinexSatEcc;
@@ -695,14 +742,8 @@ extern SinexSatEcc      dummySinexSatEcc;
 /* satellite meta data */
 struct SinexSatSnx
 {
-    string            svn;
-    string            prn;
-    SinexSatIdentity* id_ptr      = &dummySinexSatIdentity;
-    SinexSatEcc*      ecc_ptrs[2] = {&dummySinexSatEcc, &dummySinexSatEcc};
-    double            mass;    /* kg */
-    int               channel; /* GLONASS ONLY */
-    Vector3d          com;     /* centre of mass offsets (m) */
-    int               power;   /* Tx Power (watts); */
+    SinexSatIdentity* id_ptr =
+        &dummySinexSatIdentity;  // Eugene: should be initialised with nullptr?
 
     string   antenna;
     int      numfreqs; /* number of phase center frequencies */
@@ -711,20 +752,17 @@ struct SinexSatSnx
     char     pctype;
     char     pcmodel;
 
+    string       svn;
+    string       prn;
+    int          channel; /* GLONASS ONLY */
+    double       mass;    /* kg */
+    Vector3d     com;     /* centre of mass offsets (m) */
+    SinexSatEcc* ecc_ptrs[2] = {&dummySinexSatEcc, &dummySinexSatEcc};
+    int          power;   /* Tx Power (watts); */
+
     UYds start;
     UYds stop;
 };
-
-void nearestYear(double& year);
-
-bool readSinex(const string& filepath);
-
-struct KFState;
-struct Receiver;
-
-void writeSinex(string filepath, KFState& kfState, map<string, Receiver>& receiverMap);
-
-struct SinexRecData;
 
 union GetSnxResult
 {
@@ -745,57 +783,12 @@ union GetSnxResult
 
 GetSnxResult getRecSnx(string id, GTime time, SinexRecData& snx);
 GetSnxResult getSatSnx(string prn, GTime time, SinexSatSnx& snx);
-void         getSlrRecBias(string id, string prn, GTime time, map<char, double>& recBias);
 int          getGloFreqChannel(const SatSys& sat, const GTime& time, Navigation& nav);
-
-void sinexAddStatistic(const string& what, const int value);
-void sinexAddStatistic(const string& what, const double value);
-int  sinexCheckAddGaReference(string solType, string peaVer, bool isTrop);
-void sinexAddAcknowledgement(const string& who, const string& description);
-void sinexAddComment(const string what);
-void sinexAddFiles(
-    const string&         who,
-    const GTime&          when,
-    const vector<string>& filenames,
-    const string&         description
-);
-
-void updateSinexHeader(
-    string&    create_agc,
-    string&    data_agc, /* satellite meta data */
-    UYds       soln_start,
-    UYds       soln_end,
-    const char obsCode,
-    const char constCode,
-    string&    contents,
-    int        numParam,
-    double     sinexVer
-);
+bool         getSnxSatMaxYawRate(string prn, GTime& time, double& maxYawRate);
+bool         getSnxSatAttMode(string svn, GTime& time, string& attMode);
+// bool getSnxSatBlockType(string svn, string& blockType);
+void getSlrRecBias(string id, string prn, GTime time, map<char, double>& recBias);
 
 void sinexPostProcessing(GTime time, map<string, Receiver>& receiverMap, KFState& netKFState);
-
+void updateReceiverMetadata(GTime time, Receiver& rec);
 void sinexPerEpochPerStation(Trace& trace, GTime time, Receiver& rec);
-
-// Trop sinex
-void outputTropSinex(
-    string   filename,
-    GTime    time,
-    KFState& netKfState,
-    string   markerName = "MIX",
-    bool     isSmoothed = false
-);
-
-// snx.cpp fns used in tropSinex.cpp
-void writeAsComments(Trace& out, list<string>& comments);
-
-void writeSnxReference(std::ofstream& out);
-
-bool getSnxSatMaxYawRate(string prn, GTime& time, double& maxYawRate);
-
-bool getSnxSatBlockType(string svn, string& blockType);
-
-bool getSnxSatAttMode(string svn, GTime& time, string& attMode);
-
-extern Sinex theSinex;  // the one and only sinex object.
-
-void getReceiversFromSinex(map<string, Receiver>& receiverMap, KFState& kfState);

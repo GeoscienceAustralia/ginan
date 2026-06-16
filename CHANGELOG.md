@@ -3,6 +3,71 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [4.1.2] 2026-06-16
+
+## Added
+
+Ginan core:
+- Added RTCM extension work, including receiver metadata support and associated tests.
+- Added diagnostics for preprocessor slip detection, including SCDIA diagnostics and clearer slip reason handling.
+- Added dry-run options for checking configuration/execution flow without running a full processing job.
+- Added support for SINEX PSD annual-frequency corrections.
+
+GinanUI:
+- Added a YAML/HTML inspector path in GinanUI, including generated inspector styling and integration into the UI.
+- Added a YAML configuration tab and controls for config overwrite behaviour.
+- Added GinanUI support for ocean and atmospheric loading workflows.
+- Added visualisation pop-out support.
+- Added SINEX output controls to GinanUI.
+
+## Changed
+
+Ginan core:
+- Improved realtime operation: config reloads now retire removed streams, clear removed inputs, keep trace/RTCM outputs open while appending, and improve sync/reconnect diagnostics.
+- Improved stream/file handling by keeping file streams open across parses and reducing unnecessary open/close cycles.
+- Improved data handling for multiple input streams, EOF handling, start/end epoch logic, and stream state checks.
+- Updated preprocessor so basic preparation still runs when the preprocessor is disabled.
+
+GinanUI:
+- Refactored GinanUI into smaller controllers/models for maintainability and accessibility.
+- Improved GinanUI config update paths and visualisation controls.
+
+Build and dependencies:
+- Added Eigen 5 compatibility using a simpler integration path after the initial migration approach proved unsuitable.
+- Improved Eigen/BLAS compatibility and Windows portability.
+- Added CI/vcpkg updates for dependency unit testing.
+
+## Fixed
+
+Ginan core:
+- Fixed RTS/chunking output and chunk-parallel transition handling.
+- Fixed loading grid longitude handling for 0-360 degree grids.
+- Fixed unsafe `nullStream` behaviour in multi-threaded runs.
+
+GinanUI:
+- Fixed duplicate `.pos` plotting for multi-day observations.
+- Fixed restoration handling for `igs_satellite_metadata.snx`.
+
+# [4.1.1] 2026-02-12
+
+## Added
+
+Ginan core:
+- Added support for reading GLONASS satellites from RINEX 2 files.
+
+GinanUI:
+- Added apriori position as a configuration option in the interface.
+- Added support for running faster-rate clocks, including 1 Hz to 100 Hz workflows.
+- Added SINEX downloading and validation support.
+- Added download verification against CDDIS checksums.
+- Added support for using archived products when they are already available.
+
+## Fixed
+
+Ginan core:
+- Fixed reading CRLF-ended RINEX files in Windows binaries.
+- Fixed configuration parsing so station and receiver names can start with a number, for example `4RMA00AUS`.
+
 # [4.1] 2026-01-30
 
 ## Added

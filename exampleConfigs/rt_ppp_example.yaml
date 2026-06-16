@@ -84,12 +84,15 @@ receiver_options:
   global:
     elevation_mask: 15 # (degrees)
     error_model: ELEVATION_DEPENDENT # {uniform,elevation_dependent}
+    meta_priority: [RTCM, SINEX] # Highest priority first within META
     code_sigma: 0.3 # Standard deviation of code measurements (m)
     phase_sigma: 0.003 # Standard deviation of phase measurmeents (m)
     clock_codes: [AUTO, AUTO]
     zero_dcb_codes: [AUTO, AUTO]
     rec_reference_system: GPS
     models:
+      pos:
+        sources: [KALMAN, META, SPP, REMOTE]
       phase_bias:
         enable: false
       troposphere: # Tropospheric modelling accounts for delays due to refraction of light in water vapour
@@ -105,15 +108,17 @@ receiver_options:
       ionospheric_components:
         use_2nd_order: true
         use_3rd_order: true
-
-  ALIC:
-    receiver_type: "SEPT POLARX5"
-    antenna_type: "TWIVC6050       NONE"
-    apriori_position: [-4052052.7352, 4212835.9833, -2545104.5853]
-    models:
       eccentricity:
         enable: true
-        offset: [0.0000, 0.0000, 0.0250]
+
+  # ALIC:
+  #   receiver_type: "SEPT POLARX5"
+  #   antenna_type: "TWIVC6050       NONE"
+  #   apriori_position: [-4052052.7352, 4212835.9833, -2545104.5853]
+  #   models:
+  #     eccentricity:
+  #       enable: true
+  #       offset: [0.0000, 0.0000, 0.0250]
 
   MAW1:
     receiver_type: "SEPT POLARX5"
@@ -317,7 +322,7 @@ estimation_parameters:
             process_noise: [0.001]
 
 mongo: # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
-  enable: primary # Enable and connect to mongo database {none,primary,secondary,both}
+  enable: none # Enable and connect to mongo database {none,primary,secondary,both}
   primary_uri: mongodb://localhost:27017 # Location and port of the mongo database to connect to
   primary_database: <CONFIG>
   primary_suffix: "" # Suffix to append to database elements to make distinctions between runs for comparison

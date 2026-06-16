@@ -281,8 +281,8 @@ void filterIonosphere(
                 meas.addDsgnEntry(recDCBKey, 1, init);
 
             /************ satellite DCB ************/ /* We may need to change this for multi-code
-                                                         solutions */
-            if (acsConfig.ionModelOpts.estimate_sat_dcb  /// todo aaron, ew..
+                                                            solutions */
+            if (acsConfig.ionModelOpts.estimate_sat_dcb  /// todo? ew..
                 || mainObsCombo[sys] != obs.stecCodeCombo)
             {
                 InitialState init = initialStateFromConfig(satOpts.code_bias);

@@ -203,7 +203,7 @@ void writeTropSiteId(
             if (result.failureSiteId)
                 continue;  // Receiver not found in sinex file
             if (result.failureEstimate)
-                continue;  // Position not found in sinex file		//todo aaron, remove this, use
+                continue;  // Position not found in sinex file		//todo? remove this, use
                            // other function
 
             VectorEnu& antdel = stationSinex.ecc_ptr->ecc;
@@ -632,10 +632,8 @@ void setTropSolFromFilter(KFState& kfState)  ///< KF state
         kfState.getKFValue(key, x, &var);
 
         double oldVar = tropSumMap[id][typeWet].var;
-        double newVar =
-            var +
-            oldVar;  // Ref:
-                     // https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulae
+        double newVar = var + oldVar;  // Ref:
+        // https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulae
 
         // Add on filter estimates
         if (key.type == KF::TROP)
@@ -694,7 +692,8 @@ void setTropSolFromFilter(KFState& kfState)  ///< KF state
                 entry.x -= modelledZhd;
             }
 
-            stationEntry.solutions.push_back({type, entry.x, units, 8}
+            stationEntry.solutions.push_back(
+                {type, entry.x, units, 8}
             );  // type, value, units (multiplier), printing width
             stationEntry.solutions.push_back({"STDDEV", sqrt(entry.var), 1e3, 8});
         }

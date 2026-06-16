@@ -86,13 +86,6 @@ void RtcmTrace::traceSsrEph(RtcmMessageType messCode, SatSys Sat, SSREph& ssrEph
         return;
     }
 
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
-        return;
-    }
-
     GTime nearTime = timeGet();
 
     boost::json::object doc;
@@ -122,20 +115,14 @@ void RtcmTrace::traceSsrEph(RtcmMessageType messCode, SatSys Sat, SSREph& ssrEph
     doc["DotDeltaAlongTrack"] = ssrEph.ddeph[1];
     doc["DotDeltaCrossTrack"] = ssrEph.ddeph[2];
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void RtcmTrace::traceSsrClk(RtcmMessageType messCode, SatSys Sat, SSRClk& ssrClk)
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -153,30 +140,25 @@ void RtcmTrace::traceSsrClk(RtcmMessageType messCode, SatSys Sat, SSRClk& ssrClk
     doc["SSRUpdateIntervalSec"]     = ssrClk.udi;
     doc["SSRUpdateIntervalIndex"]   = ssrClk.ssrMeta.updateIntIndex;
     doc["MultipleMessageIndicator"] = ssrClk.ssrMeta.multipleMessage;
-    doc["SatReferenceDatum"]        = static_cast<int>(ssrClk.ssrMeta.referenceDatum
+    doc["SatReferenceDatum"]        = static_cast<int>(
+        ssrClk.ssrMeta.referenceDatum
     );  // 0 = ITRF, 1 = Regional	// could be combined corrections
-    doc["IODSSR"]                   = ssrClk.iod;
-    doc["SSRProviderID"]            = static_cast<int>(ssrClk.ssrMeta.provider);
-    doc["SSRSolutionID"]            = static_cast<int>(ssrClk.ssrMeta.solution);
-    doc["Sat"]                      = Sat.id();
-    doc["DeltaClockC0"]             = ssrClk.dclk[0];
-    doc["DeltaClockC1"]             = ssrClk.dclk[1];
-    doc["DeltaClockC2"]             = ssrClk.dclk[2];
+    doc["IODSSR"]        = ssrClk.iod;
+    doc["SSRProviderID"] = static_cast<int>(ssrClk.ssrMeta.provider);
+    doc["SSRSolutionID"] = static_cast<int>(ssrClk.ssrMeta.solution);
+    doc["Sat"]           = Sat.id();
+    doc["DeltaClockC0"]  = ssrClk.dclk[0];
+    doc["DeltaClockC1"]  = ssrClk.dclk[1];
+    doc["DeltaClockC2"]  = ssrClk.dclk[2];
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void RtcmTrace::traceSsrUra(RtcmMessageType messCode, SatSys Sat, SSRUra& ssrUra)
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -200,20 +182,14 @@ void RtcmTrace::traceSsrUra(RtcmMessageType messCode, SatSys Sat, SSRUra& ssrUra
     doc["Sat"]                      = Sat.id();
     doc["SSRURA"]                   = ssrUra.ura;
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void RtcmTrace::traceSsrHRClk(RtcmMessageType messCode, SatSys Sat, SSRHRClk& SsrHRClk)
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -237,7 +213,8 @@ void RtcmTrace::traceSsrHRClk(RtcmMessageType messCode, SatSys Sat, SSRHRClk& Ss
     doc["Sat"]                      = Sat.id();
     doc["HighRateClockCorr"]        = SsrHRClk.hrclk;
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void RtcmTrace::traceSsrCodeBias(
@@ -249,13 +226,6 @@ void RtcmTrace::traceSsrCodeBias(
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -280,7 +250,8 @@ void RtcmTrace::traceSsrCodeBias(
     doc["Code"]                     = enum_to_string(code);
     doc["Bias"]                     = ssrBias.obsCodeBiasMap[code].bias;
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void RtcmTrace::traceSsrPhasBias(
@@ -292,13 +263,6 @@ void RtcmTrace::traceSsrPhasBias(
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -330,7 +294,8 @@ void RtcmTrace::traceSsrPhasBias(
     doc["SignalDiscontinuityCount"]  = (int)ssrBias.ssrPhaseChs[code].signalDisconCnt;
     doc["Bias"]                      = ssrBias.obsCodeBiasMap[code].bias;
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void RtcmTrace::traceTimestamp(GTime time)
@@ -340,38 +305,25 @@ void RtcmTrace::traceTimestamp(GTime time)
         return;
     }
 
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
-        return;
-    }
-
     boost::json::object doc;
     doc["type"]       = "timestamp";
     doc["Mountpoint"] = rtcmMountpoint;
     doc["time"]       = (string)time;
     doc["ticks"]      = (double)time.bigTime;
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 /** Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file
  */
-void RtcmTrace::traceBrdcEph(  // todo aaron, template this for gps/glo?
+void RtcmTrace::traceBrdcEph(  // todo? template this for gps/glo?
     RtcmMessageType messCode,
     Eph&            eph
 )
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -392,7 +344,8 @@ void RtcmTrace::traceBrdcEph(  // todo aaron, template this for gps/glo?
 
     traceBrdcEphBody(doc, eph);
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 /** Write decoded/encoded GAL ephemeris messages to a json file
@@ -401,13 +354,6 @@ void RtcmTrace::traceBrdcEph(RtcmMessageType messCode, Geph& geph)
 {
     if (rtcmTraceFilename.empty())
     {
-        return;
-    }
-
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
         return;
     }
 
@@ -429,7 +375,8 @@ void RtcmTrace::traceBrdcEph(RtcmMessageType messCode, Geph& geph)
 
     traceBrdcEphBody(doc, geph);
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 void traceBrdcEphBody(boost::json::object& doc, Eph& eph)
@@ -651,13 +598,6 @@ void RtcmTrace::traceMSM(RtcmMessageType messCode, GTime time, SatSys Sat, Sig& 
         return;
     }
 
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
-        return;
-    }
-
     GTime nearTime = timeGet();
 
     boost::json::object doc;
@@ -676,7 +616,8 @@ void RtcmTrace::traceMSM(RtcmMessageType messCode, GTime time, SatSys Sat, Sig& 
     doc["LLI"]                  = sig.LLI;
     doc["IsInvalid"]            = sig.invalid;
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }
 
 /** Write unknown message to a json file
@@ -688,15 +629,9 @@ void RtcmTrace::traceUnknown()
         return;
     }
 
-    std::ofstream fout(rtcmTraceFilename, std::ios::app);
-    if (!fout)
-    {
-        std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ << "\n";
-        return;
-    }
-
     boost::json::object doc;
     doc["type"] = "?";
 
-    fout << boost::json::serialize(doc) << "\n";
+    rtcmTraceFile << boost::json::serialize(doc) << "\n";
+    flush();
 }

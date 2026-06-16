@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "common/attitude.hpp"
 #include "common/cache.hpp"
 #include "common/common.hpp"
@@ -42,6 +44,116 @@ struct RinexStation
     Vector3d pos = Vector3d::Zero();
 };
 
+constexpr uint32_t receiverMetaSourceBit(E_ReceiverMetaSource source)
+{
+    return source == E_ReceiverMetaSource::NONE
+               ? 0
+               : (uint32_t(1) << (static_cast<uint32_t>(source) - 1));
+}
+
+template <typename T>
+struct ReceiverMetaField
+{
+    T                    value         = {};
+    bool                 valid         = false;
+    E_ReceiverMetaSource winningSource = E_ReceiverMetaSource::NONE;
+    uint32_t             sourceMask    = 0;
+
+    bool hasSource(E_ReceiverMetaSource source) const
+    {
+        return (sourceMask & receiverMetaSourceBit(source)) != 0;
+    }
+};
+
+struct ReceiverOptions;
+struct RtcmStationInfo;
+struct SinexRecData;
+
+inline vector<E_ReceiverMetaSource> defaultReceiverMetaSourcePriority()
+{
+    return {
+        E_ReceiverMetaSource::CONFIG,
+        E_ReceiverMetaSource::SINEX,
+        E_ReceiverMetaSource::RINEX,
+        E_ReceiverMetaSource::RTCM
+    };
+}
+
+inline size_t receiverMetaPriorityIndex(
+    E_ReceiverMetaSource                source,
+    const vector<E_ReceiverMetaSource>& priorityOrder
+)
+{
+    auto it = std::find(priorityOrder.begin(), priorityOrder.end(), source);
+    if (it != priorityOrder.end())
+    {
+        return std::distance(priorityOrder.begin(), it);
+    }
+
+    return priorityOrder.size() + static_cast<size_t>(source);
+}
+
+inline bool receiverMetaSourceEnabled(
+    E_ReceiverMetaSource                source,
+    const vector<E_ReceiverMetaSource>& priorityOrder
+)
+{
+    return std::find(priorityOrder.begin(), priorityOrder.end(), source) != priorityOrder.end();
+}
+
+template <typename T>
+void ingestReceiverMetaField(
+    ReceiverMetaField<T>&               field,
+    const T&                            candidate,
+    bool                                present,
+    E_ReceiverMetaSource                source,
+    const vector<E_ReceiverMetaSource>& priorityOrder
+)
+{
+    if (present == false)
+    {
+        return;
+    }
+
+    if (receiverMetaSourceEnabled(source, priorityOrder) == false)
+    {
+        return;
+    }
+
+    field.sourceMask |= receiverMetaSourceBit(source);
+
+    if (field.valid == false || receiverMetaPriorityIndex(source, priorityOrder) <
+                                    receiverMetaPriorityIndex(field.winningSource, priorityOrder))
+    {
+        field.value         = candidate;
+        field.valid         = true;
+        field.winningSource = source;
+    }
+}
+
+struct ReceiverMetadata
+{
+    vector<E_ReceiverMetaSource> sourcePriority = defaultReceiverMetaSourcePriority();
+
+    ReceiverMetaField<string>   receiverType;
+    ReceiverMetaField<string>   receiverFirmware;
+    ReceiverMetaField<string>   receiverSerial;
+    ReceiverMetaField<string>   antennaDescriptor;
+    ReceiverMetaField<string>   antennaSerial;
+    ReceiverMetaField<string>   markerName;
+    ReceiverMetaField<string>   markerNumber;
+    ReceiverMetaField<Vector3d> antennaDelta;
+    ReceiverMetaField<Vector3d> stationPosition;
+
+    void reset();
+    void setPriority(const vector<E_ReceiverMetaSource>& priorityOrder);
+
+    void ingestConfig(const ReceiverOptions& recOpts);
+    void ingestSinex(const SinexRecData& recSnx);
+    void ingestRinex(const RinexStation& rnxRec);
+    void ingestRtcm(const RtcmStationInfo& rtcmInfo);
+};
+
 struct ReceiverLogs
 {
     PTime               firstEpoch = GTime::noTime();
@@ -61,9 +173,9 @@ struct Rtk
     Solution             sol;  ///< RTK solution
     string               antennaType;
     string               receiverType;
-    string               antennaId;
+    string               antennaId;  ///< Derived ATX lookup id after antenna/radome resolution
     map<SatSys, SatStat> satStatMap;
-    VectorEnu            antDelta;  ///< antenna delta {rov_e,rov_n,rov_u}
+    VectorEnu            antDelta;   ///< antenna delta {rov_e,rov_n,rov_u}
     AttStatus            attStatus;
 };
 
@@ -79,13 +191,13 @@ extern SinexSiteEcc  dummySiteEcc;
 
 struct SinexRecData
 {
-    SinexSiteId*   id_ptr  = &dummySiteid;
+    SinexSiteId*   id_ptr  = &dummySiteid;  // Eugene: should be initialised with nullptr?
     SinexReceiver* rec_ptr = &dummyReceiver;
     SinexAntenna*  ant_ptr = &dummyAntenna;
     SinexSiteEcc*  ecc_ptr = &dummySiteEcc;
 
     UYds start;
-    UYds stop = UYds(-1, -1, -1);
+    UYds stop;
 
     bool primary = false;  ///< this position estimate is considered to come from a primary source
     VectorEcef pos;
@@ -98,9 +210,10 @@ struct SinexRecData
  */
 struct Receiver : ReceiverLogs, Rtk
 {
-    bool         isPseudoRec = false;
-    bool         invalid     = false;
-    SinexRecData snx;  ///< Antenna information
+    bool             isPseudoRec = false;
+    bool             invalid     = false;
+    SinexRecData     snx;  ///< Antenna information
+    ReceiverMetadata metadata;
 
     map<string, string> metaDataMap;
 
@@ -140,7 +253,6 @@ struct Receiver : ReceiverLogs, Rtk
             unsigned failureSinex : 1;
             unsigned failureAprioriPos : 1;
             unsigned failureEccentricity : 1;
-            unsigned failureAntenna : 1;
         };
     };
     Cache<tuple<Vector3d, Vector3d, Vector3d, Vector3d, Vector3d>> pppTideCache;
@@ -154,6 +266,8 @@ struct ReceiverMap : map<string, Receiver>
 extern ReceiverMap receiverMap;
 
 void extractTrackedSignals(Receiver& rec, Parser& parser, ObsList* obsList = nullptr);
+void extractReceiverMetadata(Receiver& rec, Parser& parser, ObsList* obsList = nullptr);
+void syncReceiverMetadata(Receiver& rec);
 
 struct Network
 {

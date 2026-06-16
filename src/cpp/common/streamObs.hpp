@@ -14,6 +14,8 @@ struct ObsStream : StreamParser
 {
     E_ObsAgeCode obsAgeCode =
         E_ObsAgeCode::CURRENT_OBS;  ///< Age code of observation retrieved from memory
+    GTime  lastReadTime = GTime::noTime();
+    double interval     = 0;
 
     bool isPseudoRec;
 
@@ -32,106 +34,98 @@ struct ObsStream : StreamParser
         {
             auto& obsLister = dynamic_cast<ObsLister&>(parser);
 
-            if (obsLister.obsListList.size() < 2)
+            for (auto it = obsLister.obsListList.begin(); it != obsLister.obsListList.end();)
             {
+                if (it->empty())
+                {
+                    BOOST_LOG_TRIVIAL(info)
+                        << "Dropping empty ObsList from parser queue before getObs"
+                        << ", parser=" << parser.parserType() << ", source=" << stream.sourceString
+                        << ", lastReadTime="
+                        << (lastReadTime == GTime::noTime() ? string("noTime")
+                                                            : lastReadTime.to_string(6))
+                        << ", queued_epochs=" << obsLister.obsListList.size();
+                    it = obsLister.obsListList.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+
+            BOOST_LOG_TRIVIAL(debug)
+                << "obsLister.obsListList.size()=" << obsLister.obsListList.size();
+
+            if (obsLister.obsListList.size() < 2 && stream.isDead() == false)
+            {
+                BOOST_LOG_TRIVIAL(debug) << "Not enough data in master list, reading new obs ...";
+
                 parse();
+            }
+            else if (obsLister.obsListList.size() >= 2)
+            {
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Plenty of data in master list, no need to read more obs";
+            }
+            else
+            {
+                BOOST_LOG_TRIVIAL(debug) << "Input stream is dead, skip reading ...";
             }
 
             if (obsLister.obsListList.empty())
             {
+                BOOST_LOG_TRIVIAL(debug) << "No obs";
+
                 return ObsList();
             }
 
-            ObsList& obsList = obsLister.obsListList.front();
-
-            for (auto& obs : only<GObs>(obsList))
-                for (auto& [ftype, sigsList] : obs.sigsLists)
+            ObsList& latestObsList = obsLister.obsListList.back();
+            if (latestObsList.empty() == false)
+            {
+                if (lastReadTime != GTime::noTime())
                 {
-                    E_Sys sys = obs.Sat.sys;
+                    double newInterval = (latestObsList.front()->time - lastReadTime).to_double();
 
-                    if (sys == E_Sys::GPS)
+                    if (newInterval > 0 && (interval <= 0 || interval > newInterval))
                     {
-                        double dirty_C1W_phase = 0;
-                        for (auto& sig : sigsList)
-                        {
-                            if (sig.code == E_ObsCode::L1C)
-                                dirty_C1W_phase = sig.L;
-
-                            if (sig.code == E_ObsCode::L1W && sig.P == 0)
-                            {
-                                sig.L = 0;
-                            }
-                        }
-
-                        for (auto& sig : sigsList)
-                            if (sig.code == E_ObsCode::L1W && sig.L == 0 && sig.P != 0)
-                            {
-                                sig.L = dirty_C1W_phase;
-                                break;
-                            }
-                    }
-                    sigsList.remove_if(
-                        [sys](Sig& a)
-                        {
-                            return std::find(
-                                       acsConfig.code_priorities[sys].begin(),
-                                       acsConfig.code_priorities[sys].end(),
-                                       a.code
-                                   ) == acsConfig.code_priorities[sys].end();
-                        }
-                    );
-                    sigsList.sort(
-                        [sys](Sig& a, Sig& b)
-                        {
-                            auto iterA = std::find(
-                                acsConfig.code_priorities[sys].begin(),
-                                acsConfig.code_priorities[sys].end(),
-                                a.code
-                            );
-                            auto iterB = std::find(
-                                acsConfig.code_priorities[sys].begin(),
-                                acsConfig.code_priorities[sys].end(),
-                                b.code
-                            );
-
-                            if (a.L == 0)
-                                return false;
-                            if (b.L == 0)
-                                return true;
-                            if (a.P == 0)
-                                return false;
-                            if (b.P == 0)
-                                return true;
-                            if (iterA < iterB)
-                                return true;
-                            else
-                                return false;
-                        }
-                    );
-
-                    if (sigsList.empty())
-                    {
-                        continue;
-                    }
-
-                    Sig firstOfType = sigsList.front();
-
-                    // use first of type as representative if its in the priority list
-                    auto iter = std::find(
-                        acsConfig.code_priorities[sys].begin(),
-                        acsConfig.code_priorities[sys].end(),
-                        firstOfType.code
-                    );
-                    if (iter != acsConfig.code_priorities[sys].end())
-                    {
-                        obs.sigs[ftype] = Sig(firstOfType);
+                        interval = newInterval;
                     }
                 }
+
+                lastReadTime = latestObsList.front()->time;
+            }
+            else
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "Latest ObsList is empty after parse"
+                    << ", parser=" << parser.parserType() << ", source=" << stream.sourceString
+                    << ", lastReadTime="
+                    << (lastReadTime == GTime::noTime() ? string("noTime")
+                                                        : lastReadTime.to_string(6))
+                    << ", queued_epochs=" << obsLister.obsListList.size();
+            }
+
+            ObsList& obsList = obsLister.obsListList.front();
+            if (obsList.empty())
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "Front ObsList is empty after parse"
+                    << ", parser=" << parser.parserType() << ", source=" << stream.sourceString
+                    << ", lastReadTime="
+                    << (lastReadTime == GTime::noTime() ? string("noTime")
+                                                        : lastReadTime.to_string(6))
+                    << ", queued_epochs=" << obsLister.obsListList.size();
+                return ObsList();
+            }
+
+            BOOST_LOG_TRIVIAL(debug)
+                << "Getting front ..., obsTime=" << obsList.front()->time.to_string(6);
 
             return obsList;
         }
         catch (...)
         {
+            BOOST_LOG_TRIVIAL(debug) << "Error getting obs";
         }
 
         return ObsList();
@@ -149,7 +143,7 @@ struct ObsStream : StreamParser
      * NOTE: This function may be overridden by objects that use this interface
      */
     ObsList getObs(
-        GTime  time,        ///< Timestamp to get observations for
+        GTime& time,        ///< Timestamp to get observations for
         double delta = 0.5  ///< Acceptable tolerance around requested time
     )
     {
@@ -166,10 +160,10 @@ struct ObsStream : StreamParser
             }
             else if (time == GTime::noTime())
             {
-                // Start epoch not given, use time of first obs as start time
-                foundGoodObs = true;
-                dropObs();
-                bigObsList += obsList;
+                // Start epoch not given, get first obs time
+                obsAgeCode = E_ObsAgeCode::UNKNOWN;
+                time       = obsList.front()->time;
+                BOOST_LOG_TRIVIAL(debug) << "obsAgeCode=" << obsAgeCode << ", dropping front";
                 break;
             }
             else if (obsList.front()->time < time - delta)
@@ -177,6 +171,7 @@ struct ObsStream : StreamParser
                 // Save earlier data to preprocess in case preprocess_all_data is on
                 obsAgeCode = E_ObsAgeCode::PAST_OBS;
                 dropObs();
+                BOOST_LOG_TRIVIAL(debug) << "obsAgeCode=" << obsAgeCode << ", dropping front";
                 if (foundGoodObs == false)
                 {
                     // Only push past obs when good obs not found yet, i.e. drop past obs coming
@@ -190,6 +185,7 @@ struct ObsStream : StreamParser
             {
                 // Future obs, do nothing and leave the data to read later
                 obsAgeCode = E_ObsAgeCode::FUTURE_OBS;
+                BOOST_LOG_TRIVIAL(debug) << "obsAgeCode=" << obsAgeCode << ", checking next epoch";
                 break;
             }
             else
@@ -198,6 +194,8 @@ struct ObsStream : StreamParser
                 foundGoodObs = true;
                 dropObs();
                 bigObsList += obsList;
+                BOOST_LOG_TRIVIAL(debug)
+                    << "obsAgeCode=" << E_ObsAgeCode::CURRENT_OBS << ", dropping front";
             }
         }
 
@@ -206,10 +204,6 @@ struct ObsStream : StreamParser
             // Future obs may have been attempted (obsAgeCode is now FUTURE_OBS) or no more
             // obs (obsAgeCode is now NO_OBS) even good obs found, reset obsAgeCode to CURRENT_OBS
             obsAgeCode = E_ObsAgeCode::CURRENT_OBS;
-        }
-        else if (obsAgeCode == E_ObsAgeCode::FUTURE_OBS)
-        {
-            return ObsList();
         }
 
         return bigObsList;

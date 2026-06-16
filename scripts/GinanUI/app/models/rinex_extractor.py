@@ -1,11 +1,17 @@
+"""
+Extracts metadata from RINEX observation files for use in Ginan-UI config generation.
+
+Parses RINEX v2, v3, and v4 headers to extract marker name, receiver and antenna
+types, antenna offsets, approximate position, observation time window, data interval,
+and per-constellation observation codes. Results are used to pre-populate the UI
+and generate the PEA YAML config.
+"""
+
 import re
 from datetime import datetime
-from pathlib import Path
-
 from scripts.GinanUI.app.utils.logger import Logger
 from scripts.GinanUI.app.utils.yaml import load_yaml
 from scripts.GinanUI.app.utils.common_dirs import GENERATED_YAML
-
 
 class RinexExtractor:
     def __init__(self, rinex_path: str):
@@ -45,6 +51,8 @@ class RinexExtractor:
             "J": [],  # QZS
         }
         current_obs_system = None  # Track the current system for continuation lines
+
+        #region Helper Functions
 
         def format_time(year, month, day, hour, minute, second):
             """
@@ -113,6 +121,8 @@ class RinexExtractor:
                 # Some other system we don't care about (e.g., "S", "I")
                 return (first_char, [])
 
+        #endregion
+
         rinex_version = None
         previous_observation_dt = None
         epoch_interval = None
@@ -120,16 +130,18 @@ class RinexExtractor:
         start_epoch = None
         end_epoch = None
         marker_name = None
+        marker_number = None
         receiver_type = None
         antenna_type = None
         antenna_offset = None
         apriori_position = None
 
+        # Read the RINEX file line and add each line to "lines"
         with open(rinex_path, "r", errors="replace") as f:
             lines = f.readlines()
 
-        i = 0
-        n = len(lines)
+        i = 0          # Currently iterated upon RINEX line
+        n = len(lines) # Number of lines in RINEX file
 
         # ---------- Header ----------
         while i < n:
@@ -144,6 +156,7 @@ class RinexExtractor:
                     pass
 
             if in_header:
+                #region Extract RINEX - v2 Header
                 # ----- RINEX v2 header -----
                 if rinex_version and rinex_version < 3.0:
                     if label == "# / TYPES OF OBSERV":
@@ -186,6 +199,8 @@ class RinexExtractor:
                         raw_marker = line[0:60].strip()
                         # v2: first 4 chars are the station ID
                         marker_name = raw_marker[:4] if len(raw_marker) >= 4 else raw_marker
+                    elif label == "MARKER NUMBER":
+                        marker_number = line[0:20].strip() or None
                     elif label == "REC # / TYPE / VERS":
                         receiver_type = line[20:40].strip()
                     elif label == "ANT # / TYPE":
@@ -212,6 +227,9 @@ class RinexExtractor:
                     elif label == "END OF HEADER":
                         in_header = False
                         break
+                #endregion
+
+                #region Extract RINEX - v3 / v4 Header
                 # ----- RINEX v3/v4 header -----
                 else:
                     if label == "SYS / # / OBS TYPES":
@@ -266,6 +284,8 @@ class RinexExtractor:
                             pass
                     elif label == "MARKER NAME":
                         marker_name = line[0:60].strip()
+                    elif label == "MARKER NUMBER":
+                        marker_number = line[0:20].strip() or None
                     elif label == "REC # / TYPE / VERS":
                         receiver_type = line[20:40].strip()
                     elif label == "ANT # / TYPE":
@@ -292,9 +312,12 @@ class RinexExtractor:
                     elif label == "END OF HEADER":
                         in_header = False
                         break
+
+                #endregion
             else:
                 break  # safety
 
+        # Check if we found the RINEX version in the header
         if rinex_version is None:
             raise ValueError("Could not determine RINEX version.")
 
@@ -303,7 +326,9 @@ class RinexExtractor:
             r'^\s*\d{2,4}\s+\d{1,2}\s+\d{1,2}\s+\d{1,2}\s+\d{1,2}\s+[0-9.]'
         )
 
+        # ---------- Body ----------
         if rinex_version < 3.0:
+            # region Extract RINEX - v2 Body
             # ---------- RINEX v2 body ----------
             # YY or YYYY MM DD hh mm ss.sssssss FLAG NSAT [SATLIST...]
             epoch_re = re.compile(
@@ -362,8 +387,9 @@ class RinexExtractor:
                         found_constellations.add(system_mapping[sys])
 
                 i = j
-
+            #endregion
         else:
+            #region Extract RINEX - v3 / v4 Body
             # ---------- RINEX v3/v4 body ----------
             while i < n:
                 line = lines[i]
@@ -410,6 +436,7 @@ class RinexExtractor:
                         found_constellations.add(system_mapping[sys])
 
                 i = j
+            #endregion
 
         # ---------- Safety checks ----------
         if not start_epoch:
@@ -419,6 +446,7 @@ class RinexExtractor:
         if epoch_interval is None:
             raise ValueError("Epoch interval could not be determined")
 
+        #region Extract RINEX - v2 Type Conversion
         # ---------- RINEX v2 observation type conversion ----------
         # Convert v2 obs types (C1, C2, P1, P2) to v3 codes using YAML config mappings
         if rinex_version and rinex_version < 3.0:
@@ -468,6 +496,9 @@ class RinexExtractor:
             # Clean up temporary attribute
             if hasattr(self, '_v2_obs_types'):
                 delattr(self, '_v2_obs_types')
+        #endregion
+
+        #region Observation Codes Management
 
         # Cull observation types to only L-codes (converting C to L)
         def cull_observation_codes(obs_list):
@@ -497,7 +528,7 @@ class RinexExtractor:
             # Return sorted list to maintain consistent order
             return sorted(list(l_codes))
 
-        # Apply culling to all observation types (only for v3/v4 files)
+        # Apply culling to all observation types (only for v3 / v4 files)
         # For v2 files, codes are already converted to L-codes with correct priority order
         if not (rinex_version and rinex_version < 3.0):
             obs_types_by_system['G'] = cull_observation_codes(obs_types_by_system['G'])
@@ -612,12 +643,16 @@ class RinexExtractor:
         Logger.console(f"QZS (J): {obs_types_by_system['J']}")
         Logger.console("======================================================")
 
+        #endregion
+
+        # Final RINEX extraction result
         return {
             "rinex_version": rinex_version,
             "start_epoch": start_epoch,
             "end_epoch": end_epoch,
             "epoch_interval": epoch_interval,
             "marker_name": marker_name,
+            "marker_number": marker_number,
             "receiver_type": receiver_type,
             "antenna_type": antenna_type,
             "antenna_offset": antenna_offset,

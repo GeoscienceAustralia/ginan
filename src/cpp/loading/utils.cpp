@@ -59,12 +59,12 @@ void calcDistanceBearing(
     double deltalon = lon2_r - lon1_r;
     double deltalat = lat2_r - lat1_r;
     double a        = sin(deltalat / 2) * sin(deltalat / 2) +
-               cos(lat1_r) * cos(lat2_r) * sin(deltalon / 2) * sin(deltalon / 2);
-    double y = sin(deltalon) * cos(lat2_r);
-    double x = cos(lat1_r) * sin(lat2_r) - sin(lat1_r) * cos(lat2_r) * cos(deltalon);
+                      cos(lat1_r) * cos(lat2_r) * sin(deltalon / 2) * sin(deltalon / 2);
+    double y        = sin(deltalon) * cos(lat2_r);
+    double x        = cos(lat1_r) * sin(lat2_r) - sin(lat1_r) * cos(lat2_r) * cos(deltalon);
 
     *brng = atan2(y, x);
     *dist = 2 * atan2(sqrt(a), sqrt(1 - a));
     if (*dist != *dist)
-        *dist = M_PI;
+        *dist = PI;
 }

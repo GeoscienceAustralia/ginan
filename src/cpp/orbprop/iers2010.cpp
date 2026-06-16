@@ -8,7 +8,9 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
 #include <omp.h>
+#endif
 #include <string>
 #include "3rdparty/sofa/src/sofa.h"
 #include "common/common.hpp"
@@ -198,8 +200,7 @@ Array6d IERS2010::doodson(GTime time, double ut1_utc)
     FundamentalArgs fundArgs(time, ut1_utc);
 
     Array6d Doodson;
-    Doodson(4) =
-        -1 * fundArgs(5);  // todo aaron, change to use named parameters, remove setBeta function
+    Doodson(4) = -1 * fundArgs(5);  // todo? change to use named parameters, remove setBeta function
     Doodson(1) = fundArgs(3) + fundArgs(5);
     Doodson(0) = fundArgs(0) - Doodson(1);
     Doodson(2) = Doodson(1) - fundArgs(4);

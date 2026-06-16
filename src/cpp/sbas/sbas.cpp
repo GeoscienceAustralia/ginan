@@ -74,7 +74,7 @@ void writeEMSdata(
     {
         if (frameTime > lastEMSWritten)
         {
-            // todo aaron, use the standard file rotations
+            // todo? use the standard file rotations
             PTime                    pTime = frameTime;
             boost::posix_time::ptime otherPTime =
                 boost::posix_time::from_time_t((time_t)pTime.bigTime);
@@ -191,7 +191,7 @@ void loadSBASdata(Trace& trace, GTime time, Navigation& nav)
         auto& sbs = satDat.currentSBAS;
         for (auto it = sbs.slowUpdt.begin(); it != sbs.slowUpdt.end();)
         {
-            auto slowUpdt = it->second;
+            auto& slowUpdt = it->second;
             for (auto it2 = slowUpdt.begin(); it2 != slowUpdt.end();)
             {
                 auto teph = it2->first;
@@ -209,7 +209,7 @@ void loadSBASdata(Trace& trace, GTime time, Navigation& nav)
 
         for (auto it = sbs.fastUpdt.begin(); it != sbs.fastUpdt.end();)
         {
-            auto fastUpdt = it->second;
+            auto& fastUpdt = it->second;
             for (auto it2 = fastUpdt.begin(); it2 != fastUpdt.end();)
             {
                 auto teph = it2->first;
@@ -292,7 +292,7 @@ void writeSPP(string filename, Receiver& rec)
     std::ofstream output(filename, std::fstream::out | std::fstream::app);
     if (!output.is_open())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Warning: Error opening POS file '" << filename;
+        BOOST_LOG_TRIVIAL(warning) << "Error opening POS file '" << filename;
         return;
     }
 

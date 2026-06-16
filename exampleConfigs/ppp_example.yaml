@@ -42,8 +42,8 @@ inputs:
       # - "*.rnx"
       - ALIC00AUS_R_20191990000_01D_30S_MO.rnx
       # - ALIC2.rnx
-      # - DARW00AUS_R_20191990000_01D_30S_MO.rnx
-      # - HOB200AUS_R_20191990000_01D_30S_MO.rnx
+      - DARW00AUS_R_20191990000_01D_30S_MO.rnx
+      - HOB200AUS_R_20191990000_01D_30S_MO.rnx
       # - "M*.rnx"
 
 outputs:
@@ -59,7 +59,7 @@ outputs:
     output: true
     filename: <SOURCE>.POS
   trace:
-    level: 2
+    level: 4
     output_receivers: true
     output_network: true
     receiver_filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.TRACE

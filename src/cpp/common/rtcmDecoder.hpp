@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "common/acsConfig.hpp"
 #include "common/enums.h"
 #include "common/gTime.hpp"
@@ -16,11 +18,70 @@ struct SignalInfo
     E_ObsCode obsCode;
 };
 
+struct RtcmStationInfo
+{
+    // From messages 1005/1006 (Stationary RTK Reference ARP)
+    double ecefX            = 0;  ///< Reference station ECEF X (m)
+    double ecefY            = 0;  ///< Reference station ECEF Y (m)
+    double ecefZ            = 0;  ///< Reference station ECEF Z (m)
+    double antennaHeight    = 0;  ///< Antenna height above marker (m), populated by 1006
+    bool   hasAntennaHeight = false;
+    bool   gpsSys           = false;
+    bool   gloSys           = false;
+    bool   galSys           = false;
+    bool   refStation       = false;
+    bool   singleOsc        = false;
+    int    quarterCycle     = 0;
+
+    // From messages 1007/1008 (Antenna Descriptors)
+    string antennaDesc;
+    int    antennaSetupId = 0;
+    string antennaSerial;  ///< populated by 1008
+
+    // From message 1033 (Antenna and Receiver Descriptor)
+    string receiverType;
+    string receiverFirmware;
+    string receiverSerial;
+
+    // From message 1032 (Physical Reference Station Position)
+    int    physicalStationId = -1;  ///< -1 if not yet received
+    double physEcefX         = 0;
+    double physEcefY         = 0;
+    double physEcefZ         = 0;
+};
+
+inline const RtcmStationInfo* selectRtcmStationInfoForMetadata(
+    const map<int, RtcmStationInfo>& stationInfoMap,
+    int                              lastReferenceStationId
+)
+{
+    if (lastReferenceStationId >= 0)
+    {
+        auto it = stationInfoMap.find(lastReferenceStationId);
+        if (it != stationInfoMap.end())
+        {
+            return &it->second;
+        }
+
+        return nullptr;
+    }
+
+    if (stationInfoMap.size() == 1)
+    {
+        return &stationInfoMap.begin()->second;
+    }
+
+    return nullptr;
+}
+
 struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 {
     static double rtcmDeltaTime;  ///< Common time used among all rtcmDecoders for delaying decoding
                                   ///< when realtime is enabled
     static map<GTime, int> receivedTimeMap;
+
+    map<int, RtcmStationInfo> stationInfoMap;  ///< Station metadata keyed by RTCM station ID
+    int                       lastReferenceStationId = -1;
 
     GTime lastTimeStamp;
 
@@ -61,7 +122,25 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
 
     ObsList decodeMSM(vector<unsigned char>& message);
 
-    string recordFilename;
+    string        recordFilename;
+    std::ofstream recordFile;
+    std::mutex    recordFileMutex;
+
+    void setRecordFilename(const string& filename)
+    {
+        std::lock_guard<std::mutex> lock(recordFileMutex);
+
+        if (filename == recordFilename)
+            return;
+
+        if (recordFile.is_open())
+        {
+            recordFile.flush();
+            recordFile.close();
+        }
+
+        recordFilename = filename;
+    }
 
     void recordFrame(vector<unsigned char>& data, unsigned int crcRead)
     {
@@ -70,28 +149,43 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
             return;
         }
 
-        std::ofstream ofs(recordFilename, std::ofstream::app);
+        std::lock_guard<std::mutex> lock(recordFileMutex);
 
-        if (!ofs)
+        if (recordFile.is_open() == false)
+        {
+            recordFile.open(recordFilename, std::ios::app | std::ios::binary);
+        }
+
+        if (!recordFile)
         {
             return;
         }
 
         // Write the custom time stamp message.
         RtcmEncoder encoder;
-        encoder.rtcmTraceFilename = rtcmTraceFilename;
+        setTraceFilename(rtcmTraceFilename);
 
         auto buffer = encoder.encodeTimeStampRTCM();
         bool write  = encoder.encodeWriteMessageToBuffer(buffer);
 
         if (write)
         {
-            encoder.encodeWriteMessages(ofs);
+            encoder.encodeWriteMessages(recordFile);
         }
 
         // copy the message to the output file too
-        ofs.write((char*)data.data(), data.size());
-        ofs.write((char*)&crcRead, 3);
+        recordFile.write((char*)data.data(), data.size());
+        recordFile.write((char*)&crcRead, 3);
+    }
+
+    ~RtcmDecoder()
+    {
+        std::lock_guard<std::mutex> lock(recordFileMutex);
+        if (recordFile.is_open())
+        {
+            recordFile.flush();
+            recordFile.close();
+        }
     }
 
     E_ReturnType decodeCustom(vector<unsigned char>& message)
@@ -132,7 +226,7 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
                     break;
                 }
 
-                if (1)
+                if (0)
                 {
                     int& waitingStreams = receivedTimeMap[timeStamp];
 
@@ -192,21 +286,62 @@ struct RtcmDecoder : RtcmTrace, ObsLister, PacketStatistics
     E_ReturnType decode(vector<unsigned char>& message);
 };
 
-unsigned int getbitu(const unsigned char* buff, int pos, int len);
-int          getbits(const unsigned char* buff, int pos, int len, bool* failure_ptr = nullptr);
-unsigned int getbituInc(const unsigned char* buff, int& pos, int len);
-int          getbitsInc(const unsigned char* buff, int& pos, int len, bool* failure_ptr = nullptr);
+uint32_t getbitu(const unsigned char* buff, int pos, int len);
+int32_t  getbits(const unsigned char* buff, int pos, int len, bool* failure_ptr = nullptr);
+uint32_t getbituInc(const unsigned char* buff, int& pos, int len);
+int32_t  getbitsInc(const unsigned char* buff, int& pos, int len, bool* failure_ptr = nullptr);
 
-int getbitg(const unsigned char* buff, int pos, int len);
-int getbitgInc(const unsigned char* buff, int& pos, int len);
+/** Bounds-checked variant of getbituInc().
+ * Returns false instead of reading when the requested bit range is outside the
+ * supplied buffer bounds. Intended for future decoder hardening paths that need
+ * to reject truncated or malformed RTCM payloads safely.
+ */
+[[maybe_unused]] bool
+getbituIncChecked(const unsigned char* buff, int buffBits, int& pos, int len, uint32_t& out);
 
-int getbitgInc(vector<unsigned char>& buff, int& pos, int len);
+/** Bounds-checked variant of getbitsInc().
+ * Returns false instead of reading when the requested bit range is outside the
+ * supplied buffer bounds. The optional failure pointer is forwarded to the
+ * signed extractor when the read is valid.
+ */
+[[maybe_unused]] bool getbitsIncChecked(
+    const unsigned char* buff,
+    int                  buffBits,
+    int&                 pos,
+    int                  len,
+    int32_t&             out,
+    bool*                failure_ptr = nullptr
+);
 
-unsigned int getbitu(vector<unsigned char>& buff, int pos, int len);
+int32_t getbitg(const unsigned char* buff, int pos, int len);
+int32_t getbitgInc(const unsigned char* buff, int& pos, int len);
 
-unsigned int getbituInc(vector<unsigned char>& buff, int& pos, int len);
+int32_t getbitgInc(vector<unsigned char>& buff, int& pos, int len);
 
-int getbitsInc(vector<unsigned char>& buff, int& pos, int len, bool* failure_ptr = nullptr);
+uint32_t getbitu(vector<unsigned char>& buff, int pos, int len);
+
+uint32_t getbituInc(vector<unsigned char>& buff, int& pos, int len);
+
+int32_t getbitsInc(vector<unsigned char>& buff, int& pos, int len, bool* failure_ptr = nullptr);
+
+/** Vector overload of the bounds-checked unsigned incremental bit reader.
+ * Uses the vector size to derive the valid bit range before delegating to the
+ * raw-buffer implementation.
+ */
+[[maybe_unused]] bool
+getbituIncChecked(vector<unsigned char>& buff, int& pos, int len, uint32_t& out);
+
+/** Vector overload of the bounds-checked signed incremental bit reader.
+ * Uses the vector size to derive the valid bit range before delegating to the
+ * raw-buffer implementation.
+ */
+[[maybe_unused]] bool getbitsIncChecked(
+    vector<unsigned char>& buff,
+    int&                   pos,
+    int                    len,
+    int32_t&               out,
+    bool*                  failure_ptr = nullptr
+);
 
 double getbituIncScale(vector<unsigned char>& buff, int& pos, int len, double scale);
 

@@ -1,15 +1,17 @@
 #include "common/algebra.hpp"
+#include <algorithm>
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <sstream>
 #include <utility>
+#include <vector>
 #include "architectureDocs.hpp"
 #include "common/acsConfig.hpp"
 #include "common/algebraTrace.hpp"
+#include "common/blasThreading.hpp"
 #include "common/common.hpp"
 #include "common/constants.hpp"
 #include "common/eigenIncluder.hpp"
-#include "common/kalmanBlas.hpp"
 #include "common/lapackWrapper.hpp"
 #include "common/mongo.hpp"
 #include "common/mongoWrite.hpp"
@@ -910,9 +912,10 @@ void KFState::stateTransition(
                                     (+2 * tgap  // one tau from front tau3 distributed to prevent
                                                 // divide by zero
                                      - 4 * tau * (1 - exp(-1 * tgap / tau)) +
-                                     1 * tau * (1 - exp(-2 * tgap / tau))
-                                    );  // correct formula re-derived according
-                                        // to Ref: Carpenter and Lee (2008)
+                                     1 * tau *
+                                         (1 - exp(-2 * tgap /
+                                                  tau)));  // correct formula re-derived according
+                                                           // to Ref: Carpenter and Lee (2008)
                                 // Q0(sourceIndex, destIndex) +=
                                 // sourceProcessNoise / 2
                                 // * tau * tau * (1-exp(-tgap/tau)) * (1-exp(-tgap/tau));
@@ -972,6 +975,131 @@ void KFState::stateTransition(
     {
         Q0.setZero();
     }
+    bool blockCovarianceTransition = acsConfig.pppOpts.receiver_chunking;
+
+    struct TransitionChunk
+    {
+        string      id;
+        vector<int> rows;
+        vector<int> cols;
+    };
+
+    vector<TransitionChunk> transitionChunks;
+    map<string, int>        transitionChunkIndex;
+
+    if (blockCovarianceTransition)
+    {
+        auto addUnique = [](vector<int>& list, int value)
+        {
+            if (std::find(list.begin(), list.end(), value) == list.end())
+            {
+                list.push_back(value);
+            }
+        };
+
+        for (auto& [dest, sourceMap] : stateTransitionMap)
+        {
+            if (dest == oneKey)
+            {
+                continue;
+            }
+
+            if (dest.str.empty())
+            {
+                blockCovarianceTransition = false;
+                break;
+            }
+
+            auto destIter = newKFIndexMap.find(dest);
+            if (destIter == newKFIndexMap.end())
+            {
+                blockCovarianceTransition = false;
+                break;
+            }
+
+            auto& chunkId = dest.str;
+
+            auto [chunkIndexIt, inserted] =
+                transitionChunkIndex.try_emplace(chunkId, transitionChunks.size());
+            if (inserted)
+            {
+                transitionChunks.push_back({chunkId, {}, {}});
+            }
+
+            auto& chunk = transitionChunks[chunkIndexIt->second];
+            chunk.rows.push_back(destIter->second);
+
+            for (auto& [source, values] : sourceMap)
+            {
+                if (source == oneKey)
+                {
+                    continue;
+                }
+
+                if (source.str.empty() || source.str != chunkId)
+                {
+                    blockCovarianceTransition = false;
+                    break;
+                }
+
+                int sourceIndex = getKFIndex(source);
+                if ((sourceIndex < 0) || (sourceIndex >= F.cols()))
+                {
+                    continue;
+                }
+
+                addUnique(chunk.cols, sourceIndex);
+            }
+
+            if (blockCovarianceTransition == false)
+            {
+                break;
+            }
+        }
+
+        for (auto& chunk : transitionChunks)
+        {
+            std::sort(chunk.cols.begin(), chunk.cols.end());
+        }
+    }
+
+    if (blockCovarianceTransition)
+    {
+        MatrixXd Pnew = MatrixXd::Zero(newStateCount, newStateCount);
+
+        bool parallelChunks = transitionChunks.size() > 1;
+        BlasThreading::ScopedOpenBlasThreadLimit openblasThreadLimit(parallelChunks ? 1 : 0);
+#ifdef ENABLE_PARALLELISATION
+#pragma omp parallel for schedule(dynamic) if (parallelChunks)
+#endif
+        for (int c = 0; c < (int)transitionChunks.size(); c++)
+        {
+            auto& chunk = transitionChunks[c];
+            auto& rows  = chunk.rows;
+            auto& cols  = chunk.cols;
+
+            if (cols.empty())
+            {
+                Pnew(rows, rows) = Q0(rows, rows);
+                continue;
+            }
+
+            MatrixXd Fblock = MatrixXd::Zero(rows.size(), cols.size());
+            for (int i = 0; i < rows.size(); i++)
+            {
+                for (int j = 0; j < cols.size(); j++)
+                {
+                    Fblock(i, j) = F.coeff(rows[i], cols[j]);
+                }
+            }
+
+            Pnew(rows, rows) =
+                (Fblock * P(cols, cols) * Fblock.transpose() + Q0(rows, rows)).eval();
+        }
+
+        P = std::move(Pnew);
+    }
+    else
     {
         P = (F * P * F.transpose() + Q0).eval();
     }
@@ -1068,8 +1196,8 @@ void KFState::leastSquareSigmaChecks(
     if (maxMeasRatio > lsqOpts.meas_sigma_threshold)
     {
         trace << "\n"
-              << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measIndex
-              << " :\t" << kfMeas.obsKeys[measIndex];
+              << time << "\tLARGE MEAS    ERROR OF : " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measIndex << " :\t" << kfMeas.obsKeys[measIndex];
 
         callbackDetails.measIndex = measIndex;
     }
@@ -1159,11 +1287,11 @@ void KFState::preFitSigmaChecks(
         maxStateRatio > prefitOpts.state_sigma_threshold)
     {
         trace << "\n"
-              << time << "\tLARGE STATE   ERROR OF : " << maxStateRatio << "\tAT "
-              << stateChunkIndex << " :\t" << stateKey;
+              << time << "\tLARGE STATE   ERROR OF : " << std::setw(11) << maxStateRatio << "\tAT "
+              << std::setw(4) << stateChunkIndex << " :\t" << stateKey;
         trace << "\n"
-              << time << "\tLargest meas  error is : " << maxMeasRatio << "\tAT " << measChunkIndex
-              << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
+              << time << "\tLargest meas  error is : " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
         measRatios =
             (H.col(stateIndex).array() != 0)
@@ -1171,9 +1299,8 @@ void KFState::preFitSigmaChecks(
         maxMeasRatio   = measRatios.abs().maxCoeff(&measIndex);
         measChunkIndex = measIndex + begH;
 
-        trace << "\n"
-              << time << "\tLargest  ref meas error is: " << maxMeasRatio << "\tAT "
-              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
+        trace << time << "\tLargest  ref meas error: " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
         callbackDetails.kfKey      = stateKey;
         callbackDetails.stateIndex = stateChunkIndex;
@@ -1183,18 +1310,17 @@ void KFState::preFitSigmaChecks(
         double minMeasRatio = measRatios.abs().minCoeff(&measIndex);
         measChunkIndex      = measIndex + begH;
 
-        trace << "\n"
-              << time << "\tSmallest ref meas error is: " << minMeasRatio << "\tAT "
-              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
+        trace << time << "\tSmallest ref meas error: " << std::setw(11) << minMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
     }
     else if (maxMeasRatio > prefitOpts.meas_sigma_threshold)
     {
         trace << "\n"
-              << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measChunkIndex
-              << " :\t" << kfMeas.obsKeys[measChunkIndex];
+              << time << "\tLARGE MEAS    ERROR OF : " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex];
         trace << "\n"
-              << time << "\tLargest state error is : " << maxStateRatio << "\tAT "
-              << stateChunkIndex << " :\t" << stateKey << "\n";
+              << time << "\tLargest state error is : " << std::setw(11) << maxStateRatio << "\tAT "
+              << std::setw(4) << stateChunkIndex << " :\t" << stateKey << "\n";
 
         callbackDetails.measIndex = measChunkIndex;
     }
@@ -1390,11 +1516,11 @@ void KFState::postFitSigmaChecks(
         maxStateRatio > postfitOpts.state_sigma_threshold)
     {
         trace << "\n"
-              << time << "\tLARGE STATE   ERROR OF : " << maxStateRatio << "\tAT "
-              << stateChunkIndex << " :\t" << stateKey;
+              << time << "\tLARGE STATE   ERROR OF : " << std::setw(11) << maxStateRatio << "\tAT "
+              << std::setw(4) << stateChunkIndex << " :\t" << stateKey;
         trace << "\n"
-              << time << "\tLargest meas  error is : " << maxMeasRatio << "\tAT " << measChunkIndex
-              << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
+              << time << "\tLargest meas  error is : " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
         measRatios =
             (H.col(stateIndex).array() != 0)
@@ -1402,9 +1528,8 @@ void KFState::postFitSigmaChecks(
         maxMeasRatio   = measRatios.abs().maxCoeff(&measIndex);
         measChunkIndex = measIndex + begH;
 
-        trace << "\n"
-              << time << "\tLargest  ref meas error is: " << maxMeasRatio << "\tAT "
-              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
+        trace << time << "\tLargest  ref meas error: " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
 
         callbackDetails.kfKey      = stateKey;
         callbackDetails.stateIndex = stateChunkIndex;
@@ -1414,18 +1539,17 @@ void KFState::postFitSigmaChecks(
         double minMeasRatio = measRatios.abs().minCoeff(&measIndex);
         measChunkIndex      = measIndex + begH;
 
-        trace << "\n"
-              << time << "\tSmallest ref meas error is: " << minMeasRatio << "\tAT "
-              << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
+        trace << time << "\tSmallest ref meas error: " << std::setw(11) << minMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex] << "\n";
     }
     else if (maxMeasRatio > postfitOpts.meas_sigma_threshold)
     {
         trace << "\n"
-              << time << "\tLARGE MEAS    ERROR OF : " << maxMeasRatio << "\tAT " << measChunkIndex
-              << " :\t" << kfMeas.obsKeys[measChunkIndex];
+              << time << "\tLARGE MEAS    ERROR OF : " << std::setw(11) << maxMeasRatio << "\tAT "
+              << std::setw(4) << measChunkIndex << " :\t" << kfMeas.obsKeys[measChunkIndex];
         trace << "\n"
-              << time << "\tLargest state error is : " << maxStateRatio << "\tAT "
-              << stateChunkIndex << " :\t" << stateKey << "\n";
+              << time << "\tLargest state error is : " << std::setw(11) << maxStateRatio << "\tAT "
+              << std::setw(4) << stateChunkIndex << " :\t" << stateKey << "\n";
 
         callbackDetails.measIndex = measChunkIndex;
     }
@@ -1537,7 +1661,8 @@ bool KFState::kFilter(
     int       begX,   ///< Index of first state element to process
     int       numX,   ///< Number of state elements to process
     int       begH,   ///< Index of first measurement to process
-    int       numH    ///< Number of measurements to process
+    int       numH,   ///< Number of measurements to process
+    bool      resetOnFailure
 )
 {
     auto& R      = kfMeas.R;
@@ -1545,7 +1670,7 @@ bool KFState::kFilter(
     auto& H      = kfMeas.H;
     auto& H_star = kfMeas.H_star;
 
-    auto noise = kfMeas.uncorrelatedNoise.asDiagonal();  // todo Eugene: check chunking indices
+    auto noise = kfMeas.uncorrelatedNoise.asDiagonal();  // todo? check chunking indices
 
     // Get pointers to block data (no copying!)
     const double* H_ptr = H.data() + begH + begX * H.rows();  // H block starting point
@@ -1677,15 +1802,24 @@ bool KFState::kFilter(
                     << "dgetrf (general LU factorization) failed with info = " << info
                     << " - all factorization methods exhausted";
 
-                xp = x;
-                Pp = P;
-                dx = VectorXd::Zero(xp.rows());
+                if (resetOnFailure)
+                {
+                    xp = x;
+                    Pp = P;
+                    dx = VectorXd::Zero(xp.rows());
+                }
 
-                trace << "\n" << "Kalman Filter Error - Matrix Factorization Failed";
-                trace << "\n" << "Q: " << "\n" << Q;
-                trace << "\n" << "H block size: " << numH << "x" << numX;
-                trace << "\n" << "R block size: " << numH << "x" << numH;
-                trace << "\n" << "P block size: " << numX << "x" << numX;
+                trace << "\n"
+                      << "Kalman Filter Error - Matrix Factorization Failed";
+                trace << "\n"
+                      << "Q: " << "\n"
+                      << Q;
+                trace << "\n"
+                      << "H block size: " << numH << "x" << numX;
+                trace << "\n"
+                      << "R block size: " << numH << "x" << numH;
+                trace << "\n"
+                      << "P block size: " << numX << "x" << numX;
 
                 return false;
             }
@@ -1746,9 +1880,12 @@ bool KFState::kFilter(
     {
         BOOST_LOG_TRIVIAL(error) << "Solve failed for Kalman gain with info = " << info;
 
-        xp = x;
-        Pp = P;
-        dx = VectorXd::Zero(xp.rows());
+        if (resetOnFailure)
+        {
+            xp = x;
+            Pp = P;
+            dx = VectorXd::Zero(xp.rows());
+        }
         return false;
     }
 
@@ -2785,12 +2922,64 @@ void KFState::filterKalman(
     statisticsMap["States"] = x.rows();
     BOOST_LOG_TRIVIAL(info) << " ------- FILTERING BY CHUNK " << filterChunkMap.size()
                             << "         --------\n";
+
+    vector<FilterChunk*> activeChunks;
+    activeChunks.reserve(filterChunkMap.size());
     for (auto& [id, fc] : filterChunkMap)
     {
         if (fc.numH == 0)
         {
             continue;
         }
+
+        activeChunks.push_back(&fc);
+    }
+
+    struct ChunkFilterResult
+    {
+        bool     computed = false;
+        bool     pass     = false;
+        MatrixXd Qinv;
+        MatrixXd QinvH;
+    };
+
+    vector<ChunkFilterResult> chunkResults(activeChunks.size());
+
+    if (postfitOpts.max_iterations > 0)
+    {
+        bool parallelChunks = activeChunks.size() > 1;
+        BlasThreading::ScopedOpenBlasThreadLimit openblasThreadLimit(parallelChunks ? 1 : 0);
+#ifdef ENABLE_PARALLELISATION
+#pragma omp parallel for schedule(dynamic) if (parallelChunks)
+#endif
+        for (int c = 0; c < (int)activeChunks.size(); c++)
+        {
+            auto& fc     = *activeChunks[c];
+            auto& result = chunkResults[c];
+
+            result.Qinv  = MatrixXd::Identity(fc.numH, fc.numH);
+            result.QinvH = MatrixXd::Ones(fc.numH, fc.numX);
+            result.pass  = kFilter(
+                nullStream,
+                kfMeas,
+                xp,
+                Pp,
+                dx,
+                result.Qinv,
+                result.QinvH,
+                fc.begX,
+                fc.numX,
+                fc.begH,
+                fc.numH,
+                false
+            );
+            result.computed = true;
+        }
+    }
+
+    for (int c = 0; c < activeChunks.size(); c++)
+    {
+        auto& fc = *activeChunks[c];
 
         if (fc.id.empty() == false)
         {
@@ -2806,8 +2995,29 @@ void KFState::filterKalman(
         KFStatistics statistics;
         for (int i = 0; i < postfitOpts.max_iterations; i++)
         {
-            bool pass =
-                kFilter(trace, kfMeas, xp, Pp, dx, Qinv, QinvH, fc.begX, fc.numX, fc.begH, fc.numH);
+            bool pass = false;
+            if (i == 0 && chunkResults[c].computed)
+            {
+                pass  = chunkResults[c].pass;
+                Qinv  = std::move(chunkResults[c].Qinv);
+                QinvH = std::move(chunkResults[c].QinvH);
+            }
+            else
+            {
+                pass = kFilter(
+                    trace,
+                    kfMeas,
+                    xp,
+                    Pp,
+                    dx,
+                    Qinv,
+                    QinvH,
+                    fc.begX,
+                    fc.numX,
+                    fc.begH,
+                    fc.numH
+                );
+            }
 
             if (pass == false)
             {
@@ -2822,6 +3032,20 @@ void KFState::filterKalman(
                     kfMeas.V.segment(fc.begH, fc.numH) -
                     kfMeas.H.block(fc.begH, fc.begX, fc.numH, fc.numX) *
                         dx.segment(fc.begX, fc.numX);
+            }
+
+            if (output_residuals)
+            {
+                outputResiduals(trace, kfMeas, suffix, i, fc.begH, fc.numH);
+            }
+
+            if (traceLevel >= 5)
+            {
+                KFState kfStateCopy = *this;
+                kfStateCopy.x       = xp;
+                kfStateCopy.P       = Pp;
+
+                kfStateCopy.outputStates(trace, suffix, i, fc.begX, fc.numX);
             }
 
             bool stopIterating = true;
@@ -2886,20 +3110,6 @@ void KFState::filterKalman(
                     *fc.trace_ptr << stringBuffer.str();
             }
 
-            if (output_residuals)
-            {
-                outputResiduals(trace, kfMeas, suffix, i, fc.begH, fc.numH);
-            }
-
-            if (traceLevel >= 5)
-            {
-                KFState kfStateCopy = *this;
-                kfStateCopy.x       = xp;
-                kfStateCopy.P       = Pp;
-
-                kfStateCopy.outputStates(trace, suffix, i, fc.begH, fc.numH);
-            }
-
             if (stopIterating)
             {
                 statisticsMap["Filter iterations " + std::to_string(i + 1)]++;
@@ -2940,9 +3150,10 @@ void KFState::filterKalman(
 
             auto& chunkTrace = *fc.trace_ptr;
 
-            switch (chiSquareTest.mode
-            )  // todo Eugene: rethink Chi-Square test modes, consider keep only INNOVATION
-               // and determine DOF automatically based on process noises
+            switch (
+                chiSquareTest
+                    .mode)  // todo? rethink Chi-Square test modes, consider keep only
+                            // INNOVATION and determine DOF automatically based on process noises
             {
                 case E_ChiSqMode::INNOVATION:
                 {
@@ -2974,7 +3185,7 @@ void KFState::filterKalman(
             testStatistics.dof = x.rows() - 1;
         else
             testStatistics.dof =
-                kfMeas.H.rows();  // todo Eugene: revisit DOF in the future for MEASUREMENT mode
+                kfMeas.H.rows();  // todo? revisit DOF in the future for MEASUREMENT mode
 
         testStatistics.chiSqPerDof = testStatistics.chiSq / testStatistics.dof;
 
@@ -3142,7 +3353,7 @@ bool KFState::leastSquareInitStates(
             leastSquareMeas.V(measIndex) = x(stateIndex);  // take 0 as apriori state
         }
         leastSquareMeas.R(measIndex, measIndex) =
-            P(stateIndex, stateIndex);  // todo Eugene: check equivalence w/ back-subsitution -
+            P(stateIndex, stateIndex);  // todo? check equivalence w/ back-subsitution -
                                         // pseudo var should be 0 instead of P, or doesn't matter?
         leastSquareMeas.H(measIndex, stateIndex) = 1;
     }
@@ -3190,6 +3401,11 @@ bool KFState::leastSquareInitStates(
         }
 
         leastSquareMeasSubs.VV = leastSquareMeasSubs.V - leastSquareMeasSubs.H * xp;
+
+        if (output_residuals && traceLevel >= 5)
+        {
+            outputResiduals(trace, leastSquareMeasSubs, suffix, i, 0, leastSquareMeasSubs.H.rows());
+        }
 
         if (chiSquareTest.enable)
         {
@@ -3247,11 +3463,6 @@ bool KFState::leastSquareInitStates(
             }
 
             trace << stringBuffer.str();
-        }
-
-        if (output_residuals && traceLevel >= 5)
-        {
-            outputResiduals(trace, leastSquareMeasSubs, suffix, i, 0, leastSquareMeasSubs.H.rows());
         }
 
         if (stopIterating)

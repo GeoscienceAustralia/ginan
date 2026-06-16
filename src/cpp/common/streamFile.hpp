@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <istream>
 #include <memory>
 #include <string>
@@ -9,43 +10,54 @@ using std::make_unique;
 using std::string;
 using std::unique_ptr;
 
-struct FileState : std::ifstream
+struct FileState : std::istream
 {
-    long int& filePos;
+    std::ifstream& persistentStream;
+    long int&      filePos;
 
-    FileState(string path, long int& filePos, std::ifstream::openmode mode = std::ifstream::in | std::ios::binary)
-        : filePos{filePos}
+    FileState(
+        std::ifstream&          persistentStream,
+        const string&           path,
+        long int&               filePos,
+        std::ifstream::openmode mode = std::ifstream::in | std::ios::binary
+    )
+        : std::istream(nullptr), persistentStream{persistentStream}, filePos{filePos}
     {
+        this->persistentStream.clear();
+
         if (filePos < 0)
         {
-            // 			BOOST_LOG_TRIVIAL(error) << "Error seeking to negative position in file at "
-            // << path << " to "
-            // << filePos;
-            close();
+            this->persistentStream.setstate(std::ios::failbit);
+            setstate(std::ios::failbit);
             return;
         }
 
-        open(path, mode);
-
-        if (!*this)
+        if (this->persistentStream.is_open() == false)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error opening file at " << path << "\n"
-                                     << " - " << strerror(errno);
-            filePos = -1;
-            return;
+            this->persistentStream.open(path, mode);
+
+            if (!this->persistentStream)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Error opening file at " << path;
+                filePos = -1;
+                setstate(std::ios::failbit);
+                return;
+            }
         }
 
-        seekg(filePos);
+        this->persistentStream.seekg(filePos);
 
-        if (!*this)
+        if (!this->persistentStream)
         {
-            BOOST_LOG_TRIVIAL(error)
-                << "Error seeking in file at " << filePos << " in " << path << "\n"
-                << " - " << strerror(errno);
+            BOOST_LOG_TRIVIAL(error) << "Error seeking in file at " << filePos << " in " << path;
 
             filePos = -1;
+            setstate(std::ios::failbit);
             return;
         }
+
+        rdbuf(this->persistentStream.rdbuf());
+        clear();
     }
 
     ~FileState() { filePos = streamPos(*this); }
@@ -53,37 +65,26 @@ struct FileState : std::ifstream
 
 struct FileStream : Stream
 {
-    string   path;
-    long int filePos = 0;
+    string        path;
+    long int      filePos = 0;
+    std::ifstream persistentStream;
 
-    FileStream(string path) : path(path) {}
+    FileStream(const string& path) : path(path) {}
 
     unique_ptr<std::istream> getIStream_ptr() override
     {
-        // 		std::cout << "Getting FileStream" << "\n";
-
-        return make_unique<FileState>(path, filePos);
+        return make_unique<FileState>(persistentStream, path, filePos);
     }
 
-    bool isDead() override
-    {
-        if (filePos < 0)
-        {
-            return true;
-        }
-
-        return false;
-    }
+    bool isDead() override { return filePos < 0; }
 
     bool isAvailable() override
     {
-        std::ifstream input(path, std::ifstream::in);
-
-        if (input)
+        if (persistentStream.is_open())
         {
             return true;
         }
 
-        return false;
+        return std::filesystem::exists(path) && std::filesystem::is_regular_file(path);
     }
 };

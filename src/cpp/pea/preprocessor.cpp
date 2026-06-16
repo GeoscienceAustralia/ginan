@@ -604,6 +604,93 @@ void obsVariances(ObsList& obsList)
     }
 }
 
+void cleanSignals(ObsList& obsList)
+{
+    for (auto& obs : only<GObs>(obsList))
+        for (auto& [ftype, sigsList] : obs.sigsLists)
+        {
+            E_Sys sys = obs.Sat.sys;
+
+            if (sys == E_Sys::GPS)
+            {
+                double dirty_C1W_phase = 0;
+                for (auto& sig : sigsList)
+                {
+                    if (sig.code == E_ObsCode::L1C)
+                        dirty_C1W_phase = sig.L;
+
+                    if (sig.code == E_ObsCode::L1W && sig.P == 0)
+                    {
+                        sig.L = 0;
+                    }
+                }
+
+                for (auto& sig : sigsList)
+                    if (sig.code == E_ObsCode::L1W && sig.L == 0 && sig.P != 0)
+                    {
+                        sig.L = dirty_C1W_phase;
+                        break;
+                    }
+            }
+            sigsList.remove_if(
+                [sys](Sig& a)
+                {
+                    return std::find(
+                               acsConfig.code_priorities[sys].begin(),
+                               acsConfig.code_priorities[sys].end(),
+                               a.code
+                           ) == acsConfig.code_priorities[sys].end();
+                }
+            );
+            sigsList.sort(
+                [sys](Sig& a, Sig& b)
+                {
+                    auto iterA = std::find(
+                        acsConfig.code_priorities[sys].begin(),
+                        acsConfig.code_priorities[sys].end(),
+                        a.code
+                    );
+                    auto iterB = std::find(
+                        acsConfig.code_priorities[sys].begin(),
+                        acsConfig.code_priorities[sys].end(),
+                        b.code
+                    );
+
+                    if (a.L == 0)
+                        return false;
+                    if (b.L == 0)
+                        return true;
+                    if (a.P == 0)
+                        return false;
+                    if (b.P == 0)
+                        return true;
+                    if (iterA < iterB)
+                        return true;
+                    else
+                        return false;
+                }
+            );
+
+            if (sigsList.empty())
+            {
+                continue;
+            }
+
+            Sig firstOfType = sigsList.front();
+
+            // use first of type as representative if its in the priority list
+            auto iter = std::find(
+                acsConfig.code_priorities[sys].begin(),
+                acsConfig.code_priorities[sys].end(),
+                firstOfType.code
+            );
+            if (iter != acsConfig.code_priorities[sys].end())
+            {
+                obs.sigs[ftype] = Sig(firstOfType);
+            }
+        }
+}
+
 void excludeUnprocessed(ObsList& obsList)
 {
     for (auto& obs : only<GObs>(obsList))
@@ -665,16 +752,18 @@ void preprocessor(
 {
     DOCS_REFERENCE(Preprocessing__);
 
-    if ((acsConfig.process_preprocessor == false) ||
-        (acsConfig.preprocOpts.preprocess_all_data == true && realEpoch == true) ||
-        (acsConfig.preprocOpts.preprocess_all_data == false && realEpoch == false))
+    // Only preprocess once: either while reading data, or in main processing.
+    const bool handledByPreprocessor =
+        acsConfig.process_preprocessor && (acsConfig.preprocOpts.preprocess_all_data == realEpoch);
+
+    // Without the preprocessor, still do basic preparation for real epochs.
+    const bool outsideProcessingEpoch =
+        (acsConfig.process_preprocessor == false && realEpoch == false);
+
+    if (handledByPreprocessor || outsideProcessingEpoch)
     {
         return;
     }
-
-    auto jsonTrace = getTraceFile(rec, true);
-
-    auto& recOpts = acsConfig.getRecOpts(rec.id);
 
     auto& obsList = rec.obsList;
 
@@ -683,22 +772,16 @@ void preprocessor(
         return;
     }
 
-    PTime startTime;
-    startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
-
-    double tol;
-    if (acsConfig.assign_closest_epoch)
-        tol = acsConfig.epoch_interval / 2;  // todo aaron this should be the epoch_tolerance?
-    else
-        tol = 0.5;
-
     GTime time = obsList.front()->time;
-    if (acsConfig.start_epoch.is_not_a_date_time() == false && time < (GTime)startTime - tol)
+    if (acsConfig.start_epoch.is_not_a_date_time() == false &&
+        time < GTime(acsConfig.start_epoch) - acsConfig.epoch_tolerance)
     {
         return;
     }
 
-    getRecSnx(rec.id, time, rec.snx);
+    updateReceiverMetadata(time, rec);
+
+    auto& recOpts = acsConfig.getRecOpts(rec.id);
 
     bool dummy;
     updateAprioriRecPos(trace, rec, recOpts, dummy, remote_ptr);
@@ -760,12 +843,18 @@ void preprocessor(
         satazel(pos, satStat.e, satStat);
     }
 
+    if (acsConfig.process_preprocessor == false)
+    {
+        return;
+    }
+
     clearSlips(obsList);
 
     excludeUnprocessed(obsList);
 
     if (acsConfig.output_observations)
     {
+        auto jsonTrace = getTraceFile(rec, true);
         outputObservations(trace, jsonTrace, obsList, rec, pos);
     }
 

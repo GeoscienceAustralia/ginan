@@ -9,7 +9,7 @@
 
 using std::vector;
 
-// todo aaron global
+// todo? global
 StaticField egm;
 
 /** Read the static gravity field

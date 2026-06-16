@@ -43,7 +43,7 @@ GTime RtcmDecoder::rtcmTime()
         time = rtcmTimestampTime;
     else if (tsync != GTime::noTime())
         time = tsync;
-    // todo Eugene: gps nav
+    // todo? gps nav
     else
         time = timeGet();
 
@@ -145,7 +145,15 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
     string messCodeStr = enum_to_string(messCode);
     string messTypeStr = messCodeStr.substr(8);
 
-    E_Sys sys = rtcmMessageSystemMap[messCode];
+    auto sysIt = rtcmMessageSystemMap.find(messCode);
+    if (sysIt == rtcmMessageSystemMap.end())
+    {
+        BOOST_LOG_TRIVIAL(error) << "No message-system mapping for " << messCode << " in "
+                                 << __FUNCTION__;
+        return;
+    }
+
+    E_Sys sys = sysIt->second;
 
     if (sys == E_Sys::NONE)
     {
@@ -464,7 +472,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
                         continue;
                     }
 
-                    ssrBiasCode.obsCodeBiasMap[obsCode].bias = bias;  // todo aaron missing var
+                    ssrBiasCode.obsCodeBiasMap[obsCode].bias = bias;  // todo? missing var
 
                     if (acsConfig.output_decoded_rtcm_json)
                         traceSsrCodeBias(messCode, Sat, obsCode, ssrBiasCode);
@@ -575,7 +583,7 @@ void RtcmDecoder::decodeSSR(vector<unsigned char>& data)  ///< stream data
                     }
 
                     ssrBiasPhas.obsCodeBiasMap[obsCode].bias =
-                        bias;  // offset meters due to satellite rotation.	//todo aaron missing var
+                        bias;  // offset meters due to satellite rotation.	//todo? missing var
                     ssrBiasPhas.ssrPhaseChs[obsCode] = ssrPhaseCh;
 
                     if (acsConfig.output_decoded_rtcm_json)
@@ -917,33 +925,33 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
         int prn          = getbituInc(data, i, 6);
         eph.weekRollOver = getbituInc(data, i, 12);
         eph.week         = adjGstWeek(eph.weekRollOver) +
-                   1024;                  // rolled-over week -> full week number and align to GPST
-        eph.iode   = getbituInc(data, i, 10);
-        eph.iodc   = eph.iode;            // Documented as IODnav
-        eph.sva    = getbituInc(data, i, 8);
-        eph.ura[0] = svaToSisa(eph.sva);  // Documented SISA
-        eph.idot   = getbitsInc(data, i, 14) * P2_43 * SC2RAD;
-        eph.tocs   = getbituInc(data, i, 14) * 60.0;
-        eph.f2     = getbitsInc(data, i, 6) * P2_59;
-        eph.f1     = getbitsInc(data, i, 21) * P2_46;
-        eph.f0     = getbitsInc(data, i, 31) * P2_34;
-        eph.crs    = getbitsInc(data, i, 16) * P2_5;
-        eph.deln   = getbitsInc(data, i, 16) * P2_43 * SC2RAD;
-        eph.M0     = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
-        eph.cuc    = getbitsInc(data, i, 16) * P2_29;
-        eph.e      = getbituInc(data, i, 32) * P2_33;
-        eph.cus    = getbitsInc(data, i, 16) * P2_29;
-        eph.sqrtA  = getbituInc(data, i, 32) * P2_19;
-        eph.A      = SQR(eph.sqrtA);
-        eph.toes   = getbituInc(data, i, 14) * 60.0;
-        eph.cic    = getbitsInc(data, i, 16) * P2_29;
-        eph.OMG0   = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
-        eph.cis    = getbitsInc(data, i, 16) * P2_29;
-        eph.i0     = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
-        eph.crc    = getbitsInc(data, i, 16) * P2_5;
-        eph.omg    = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
-        eph.OMGd   = getbitsInc(data, i, 24) * P2_43 * SC2RAD;
-        eph.tgd[0] = getbitsInc(data, i, 10) * P2_32;
+                           1024;      // rolled-over week -> full week number and align to GPST
+        eph.iode         = getbituInc(data, i, 10);
+        eph.iodc         = eph.iode;  // Documented as IODnav
+        eph.sva          = getbituInc(data, i, 8);
+        eph.ura[0]       = svaToSisa(eph.sva);  // Documented SISA
+        eph.idot         = getbitsInc(data, i, 14) * P2_43 * SC2RAD;
+        eph.tocs         = getbituInc(data, i, 14) * 60.0;
+        eph.f2           = getbitsInc(data, i, 6) * P2_59;
+        eph.f1           = getbitsInc(data, i, 21) * P2_46;
+        eph.f0           = getbitsInc(data, i, 31) * P2_34;
+        eph.crs          = getbitsInc(data, i, 16) * P2_5;
+        eph.deln         = getbitsInc(data, i, 16) * P2_43 * SC2RAD;
+        eph.M0           = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
+        eph.cuc          = getbitsInc(data, i, 16) * P2_29;
+        eph.e            = getbituInc(data, i, 32) * P2_33;
+        eph.cus          = getbitsInc(data, i, 16) * P2_29;
+        eph.sqrtA        = getbituInc(data, i, 32) * P2_19;
+        eph.A            = SQR(eph.sqrtA);
+        eph.toes         = getbituInc(data, i, 14) * 60.0;
+        eph.cic          = getbitsInc(data, i, 16) * P2_29;
+        eph.OMG0         = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
+        eph.cis          = getbitsInc(data, i, 16) * P2_29;
+        eph.i0           = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
+        eph.crc          = getbitsInc(data, i, 16) * P2_5;
+        eph.omg          = getbitsInc(data, i, 32) * P2_31 * SC2RAD;
+        eph.OMGd         = getbitsInc(data, i, 24) * P2_43 * SC2RAD;
+        eph.tgd[0]       = getbitsInc(data, i, 10) * P2_32;
 
         if (messCode == RtcmMessageType::GAL_FNAV_EPHEMERIS)
         {
@@ -1236,6 +1244,8 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
     int smoothing_indicator      = getbituInc(data, i, 1);
     int smoothing_interval       = getbituInc(data, i, 3);
 
+    lastReferenceStationId = reference_station_id;
+
     RtcmMessageType messCode;
     try
     {
@@ -1363,6 +1373,11 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
         nsat++;
     }
 
+    if (nsat == 0)
+    {
+        return obsList;
+    }
+
     // create a temporary list of signals
     vector<E_ObsCode> signalMaskList;
     for (int sig = 0; sig < 32; sig++)
@@ -1397,9 +1412,9 @@ ObsList RtcmDecoder::decodeMSM(vector<unsigned char>& data)
             if (code2Freq.find(rtcmsys) != code2Freq.end())
             {
                 if (code2Freq[rtcmsys].find(sig.code) !=
-                    code2Freq[rtcmsys].end(
-                    ))  // must not skip unknwon/unsupported systems or signals in the list of
-                        // signals -- unknown != no observation
+                    code2Freq[rtcmsys]
+                        .end())  // must not skip unknwon/unsupported systems or signals in the list
+                                 // of signals -- unknown != no observation
                 {
                     ft = code2Freq[rtcmsys][sig.code];
                 }
@@ -1638,6 +1653,471 @@ void RtcmDecoder::traceLatency(GTime tobs)
     numMessagesLatency++;
 }
 
+static void
+logRtcmStationInfoDebug(int stationId, const RtcmStationInfo& info, const char* sourceMsg)
+{
+    BOOST_LOG_TRIVIAL(debug) << "RTCM stationInfo (" << sourceMsg << "): stationId=" << stationId
+                             << " ecef=[" << info.ecefX << "," << info.ecefY << "," << info.ecefZ
+                             << "]"
+                             << " antH=" << info.antennaHeight << " sys[gps,glo,gal,ref]=["
+                             << info.gpsSys << "," << info.gloSys << "," << info.galSys << ","
+                             << info.refStation << "]"
+                             << " singleOsc=" << info.singleOsc
+                             << " quarterCycle=" << info.quarterCycle << " antDesc='"
+                             << info.antennaDesc << "'"
+                             << " antSetup=" << info.antennaSetupId << " antSerial='"
+                             << info.antennaSerial << "'"
+                             << " recType='" << info.receiverType << "'"
+                             << " recFw='" << info.receiverFirmware << "'"
+                             << " recSerial='" << info.receiverSerial << "'"
+                             << " physId=" << info.physicalStationId << " physEcef=["
+                             << info.physEcefX << "," << info.physEcefY << "," << info.physEcefZ
+                             << "]";
+}
+
+static bool decodeStationaryRtkRefArp1005(
+    vector<unsigned char>&     message,
+    map<int, RtcmStationInfo>& stationInfoMap
+)
+{
+    constexpr int RTCM1005_BITS = 152;
+    if ((int)message.size() * 8 < RTCM1005_BITS)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1005 length error: len=" << message.size();
+        return false;
+    }
+
+    int i = 0;
+
+    uint32_t messageNumber = getbituInc(message, i, 12);
+    uint32_t stationId     = getbituInc(message, i, 12);
+    uint32_t reserved6     = getbituInc(message, i, 6);
+    uint32_t gpsInd        = getbituInc(message, i, 1);
+    uint32_t gloInd        = getbituInc(message, i, 1);
+    uint32_t galInd        = getbituInc(message, i, 1);
+    uint32_t refStationInd = getbituInc(message, i, 1);
+
+    auto getSigned38 = [&](int& bitPos) -> int64_t
+    {
+        uint64_t raw = (uint64_t)getbituInc(message, bitPos, 32);
+        raw          = (raw << 6) | getbituInc(message, bitPos, 6);
+
+        if (raw & (uint64_t(1) << 37))
+        {
+            raw |= (~uint64_t(0) << 38);
+        }
+
+        return (int64_t)raw;
+    };
+
+    double ecefX = getSigned38(i) * 0.0001;
+
+    uint32_t singleReceiverOsc = getbituInc(message, i, 1);
+    uint32_t reserved1         = getbituInc(message, i, 1);
+
+    double ecefY = getSigned38(i) * 0.0001;
+
+    uint32_t quarterCycleInd = getbituInc(message, i, 2);
+
+    double ecefZ = getSigned38(i) * 0.0001;
+
+    auto& info            = stationInfoMap[stationId];
+    info.ecefX            = ecefX;
+    info.ecefY            = ecefY;
+    info.ecefZ            = ecefZ;
+    info.hasAntennaHeight = false;
+    info.gpsSys           = gpsInd != 0;
+    info.gloSys           = gloInd != 0;
+    info.galSys           = galInd != 0;
+    info.refStation       = refStationInd != 0;
+    info.singleOsc        = singleReceiverOsc != 0;
+    info.quarterCycle     = (int)quarterCycleInd;
+
+    BOOST_LOG_TRIVIAL(debug) << "RTCM 1005 decoded: stationId=" << stationId << " gps=" << gpsInd
+                             << " glo=" << gloInd << " gal=" << galInd << " ref=" << refStationInd
+                             << " x=" << ecefX << " y=" << ecefY << " z=" << ecefZ
+                             << " singleOsc=" << singleReceiverOsc
+                             << " quarterCycle=" << quarterCycleInd;
+    logRtcmStationInfoDebug((int)stationId, info, "1005");
+
+    (void)messageNumber;
+    (void)reserved1;
+    (void)reserved6;
+
+    return true;
+}
+
+static bool decodeStationaryRtkRefAprHeight1006(
+    vector<unsigned char>&     message,
+    map<int, RtcmStationInfo>& stationInfoMap
+)
+{
+    constexpr int RTCM1006_BITS = 168;
+    if ((int)message.size() * 8 < RTCM1006_BITS)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1006 length error: len=" << message.size();
+        return false;
+    }
+
+    int i = 0;
+
+    uint32_t messageNumber = getbituInc(message, i, 12);
+    uint32_t stationId     = getbituInc(message, i, 12);
+    uint32_t reserved6     = getbituInc(message, i, 6);
+    uint32_t gpsInd        = getbituInc(message, i, 1);
+    uint32_t gloInd        = getbituInc(message, i, 1);
+    uint32_t galInd        = getbituInc(message, i, 1);
+    uint32_t refStationInd = getbituInc(message, i, 1);
+
+    auto getSigned38 = [&](int& bitPos) -> int64_t
+    {
+        uint64_t raw = (uint64_t)getbituInc(message, bitPos, 32);
+        raw          = (raw << 6) | getbituInc(message, bitPos, 6);
+
+        if (raw & (uint64_t(1) << 37))
+        {
+            raw |= (~uint64_t(0) << 38);
+        }
+
+        return (int64_t)raw;
+    };
+
+    double ecefX = getSigned38(i) * 0.0001;
+
+    uint32_t singleReceiverOsc = getbituInc(message, i, 1);
+    uint32_t reserved1         = getbituInc(message, i, 1);
+
+    double ecefY = getSigned38(i) * 0.0001;
+
+    uint32_t quarterCycleInd = getbituInc(message, i, 2);
+
+    double ecefZ = getSigned38(i) * 0.0001;
+
+    uint32_t antennaHeight       = getbituInc(message, i, 16);
+    double   antennaHeightMeters = antennaHeight * 0.0001;
+
+    auto& info            = stationInfoMap[stationId];
+    info.ecefX            = ecefX;
+    info.ecefY            = ecefY;
+    info.ecefZ            = ecefZ;
+    info.antennaHeight    = antennaHeightMeters;
+    info.hasAntennaHeight = true;
+    info.gpsSys           = gpsInd != 0;
+    info.gloSys           = gloInd != 0;
+    info.galSys           = galInd != 0;
+    info.refStation       = refStationInd != 0;
+    info.singleOsc        = singleReceiverOsc != 0;
+    info.quarterCycle     = (int)quarterCycleInd;
+
+    BOOST_LOG_TRIVIAL(debug) << "RTCM 1006 decoded: stationId=" << stationId << " gps=" << gpsInd
+                             << " glo=" << gloInd << " gal=" << galInd << " ref=" << refStationInd
+                             << " x=" << ecefX << " y=" << ecefY << " z=" << ecefZ
+                             << " singleOsc=" << singleReceiverOsc
+                             << " quarterCycle=" << quarterCycleInd
+                             << " height=" << antennaHeightMeters;
+    logRtcmStationInfoDebug((int)stationId, info, "1006");
+
+    (void)messageNumber;
+    (void)reserved1;
+    (void)reserved6;
+
+    return true;
+}
+
+static bool decodeAntennaDescriptors1007(
+    vector<unsigned char>&     message,
+    map<int, RtcmStationInfo>& stationInfoMap
+)
+{
+    constexpr int RTCM1007_MIN_BITS = 40;  // 12+12+8+0+8 (minimum with zero-length descriptor)
+
+    int totalBits = (int)message.size() * 8;
+    if (totalBits < RTCM1007_MIN_BITS)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1007 length error: len=" << message.size();
+        return false;
+    }
+
+    int i = 0;
+
+    uint32_t messageNumber = getbituInc(message, i, 12);
+    uint32_t stationId     = getbituInc(message, i, 12);
+    uint32_t descriptorLen = getbituInc(message, i, 8);
+
+    // Validate we have enough bits for descriptor + setup ID
+    int requiredBits = i + (descriptorLen * 8) + 8;
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1007 descriptor overrun: len=" << message.size()
+                                 << " needed=" << (requiredBits / 8);
+        return false;
+    }
+
+    // Read ASCII descriptor string
+    std::string descriptor;
+    for (uint32_t j = 0; j < descriptorLen; ++j)
+    {
+        descriptor += (char)getbituInc(message, i, 8);
+    }
+
+    uint32_t setupId = getbituInc(message, i, 8);
+
+    auto& info          = stationInfoMap[stationId];
+    info.antennaDesc    = descriptor;
+    info.antennaSetupId = (int)setupId;
+
+    BOOST_LOG_TRIVIAL(debug) << "RTCM 1007 decoded: stationId=" << stationId << " descriptor='"
+                             << descriptor << "' setupId=" << setupId;
+    logRtcmStationInfoDebug((int)stationId, info, "1007");
+
+    (void)messageNumber;
+
+    return true;
+}
+
+static bool decodeAntennaDescriptorsSerial1008(
+    vector<unsigned char>&     message,
+    map<int, RtcmStationInfo>& stationInfoMap
+)
+{
+    constexpr int RTCM1008_MIN_BITS =
+        56;  // 12+12+8+0+8+8+0 (minimum with zero-length descriptor and serial)
+
+    int totalBits = (int)message.size() * 8;
+    if (totalBits < RTCM1008_MIN_BITS)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1008 length error: len=" << message.size();
+        return false;
+    }
+
+    int i = 0;
+
+    uint32_t messageNumber = getbituInc(message, i, 12);
+    uint32_t stationId     = getbituInc(message, i, 12);
+    uint32_t descriptorLen = getbituInc(message, i, 8);
+
+    // Validate we have enough bits for descriptor + setup ID + serial count
+    int requiredBits = i + (descriptorLen * 8) + 8 + 8;
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1008 descriptor overrun: len=" << message.size()
+                                 << " needed=" << (requiredBits / 8);
+        return false;
+    }
+
+    // Read ASCII descriptor string
+    std::string descriptor;
+    for (uint32_t j = 0; j < descriptorLen; ++j)
+    {
+        descriptor += (char)getbituInc(message, i, 8);
+    }
+
+    uint32_t setupId         = getbituInc(message, i, 8);
+    uint32_t serialNumberLen = getbituInc(message, i, 8);
+
+    // Validate we have enough bits for serial number string
+    requiredBits = i + (serialNumberLen * 8);
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1008 serial number overrun: len=" << message.size()
+                                 << " needed=" << (requiredBits / 8);
+        return false;
+    }
+
+    // Read ASCII serial number string
+    std::string serialNumber;
+    for (uint32_t j = 0; j < serialNumberLen; ++j)
+    {
+        serialNumber += (char)getbituInc(message, i, 8);
+    }
+
+    auto& info          = stationInfoMap[stationId];
+    info.antennaDesc    = descriptor;
+    info.antennaSetupId = (int)setupId;
+    info.antennaSerial  = serialNumber;
+
+    BOOST_LOG_TRIVIAL(debug) << "RTCM 1008 decoded: stationId=" << stationId << " descriptor='"
+                             << descriptor << "' setupId=" << setupId << " serialNumber='"
+                             << serialNumber << "'";
+    logRtcmStationInfoDebug((int)stationId, info, "1008");
+
+    (void)messageNumber;
+
+    return true;
+}
+
+static bool decodeAntennaReceiverDescriptor1033(
+    vector<unsigned char>&     message,
+    map<int, RtcmStationInfo>& stationInfoMap
+)
+{
+    constexpr int RTCM1033_MIN_BITS =
+        80;  // 12+12+8+0+8+8+0+8+0+8+0 (minimum with all zero-length descriptors)
+
+    int totalBits = (int)message.size() * 8;
+    if (totalBits < RTCM1033_MIN_BITS)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1033 length error: len=" << message.size();
+        return false;
+    }
+
+    int i = 0;
+
+    uint32_t messageNumber = getbituInc(message, i, 12);
+    uint32_t stationId     = getbituInc(message, i, 12);
+
+    // Antenna descriptor
+    uint32_t antennaDescLen = getbituInc(message, i, 8);
+    int      requiredBits   = i + (antennaDescLen * 8) + 8 + 8;
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1033 antenna descriptor overrun: len=" << message.size();
+        return false;
+    }
+
+    std::string antennaDesc;
+    for (uint32_t j = 0; j < antennaDescLen; ++j)
+    {
+        antennaDesc += (char)getbituInc(message, i, 8);
+    }
+
+    uint32_t antennaSetupId = getbituInc(message, i, 8);
+
+    // Antenna serial number
+    uint32_t antennaSerialLen = getbituInc(message, i, 8);
+    requiredBits              = i + (antennaSerialLen * 8) + 8 + 8 + 8;
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1033 antenna serial overrun: len=" << message.size();
+        return false;
+    }
+
+    std::string antennaSerial;
+    for (uint32_t j = 0; j < antennaSerialLen; ++j)
+    {
+        antennaSerial += (char)getbituInc(message, i, 8);
+    }
+
+    // Receiver type descriptor
+    uint32_t receiverTypeLen = getbituInc(message, i, 8);
+    requiredBits             = i + (receiverTypeLen * 8) + 8 + 8;
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1033 receiver type overrun: len=" << message.size();
+        return false;
+    }
+
+    std::string receiverType;
+    for (uint32_t j = 0; j < receiverTypeLen; ++j)
+    {
+        receiverType += (char)getbituInc(message, i, 8);
+    }
+
+    // Receiver firmware version
+    uint32_t receiverFirmwareLen = getbituInc(message, i, 8);
+    requiredBits                 = i + (receiverFirmwareLen * 8) + 8;
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1033 receiver firmware overrun: len=" << message.size();
+        return false;
+    }
+
+    std::string receiverFirmware;
+    for (uint32_t j = 0; j < receiverFirmwareLen; ++j)
+    {
+        receiverFirmware += (char)getbituInc(message, i, 8);
+    }
+
+    // Receiver serial number
+    uint32_t receiverSerialLen = getbituInc(message, i, 8);
+    requiredBits               = i + (receiverSerialLen * 8);
+    if (totalBits < requiredBits)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1033 receiver serial overrun: len=" << message.size();
+        return false;
+    }
+
+    std::string receiverSerial;
+    for (uint32_t j = 0; j < receiverSerialLen; ++j)
+    {
+        receiverSerial += (char)getbituInc(message, i, 8);
+    }
+
+    auto& info            = stationInfoMap[stationId];
+    info.antennaDesc      = antennaDesc;
+    info.antennaSetupId   = antennaSetupId;
+    info.antennaSerial    = antennaSerial;
+    info.receiverType     = receiverType;
+    info.receiverFirmware = receiverFirmware;
+    info.receiverSerial   = receiverSerial;
+
+    BOOST_LOG_TRIVIAL(debug) << "RTCM 1033 decoded: stationId=" << stationId << " antenna='"
+                             << antennaDesc << "' antennaSetup=" << antennaSetupId << " antSerial='"
+                             << antennaSerial << "'"
+                             << " receiver='" << receiverType << "' firmware='" << receiverFirmware
+                             << "' serial='" << receiverSerial << "'";
+    logRtcmStationInfoDebug((int)stationId, info, "1033");
+
+    (void)messageNumber;
+
+    return true;
+}
+
+static bool decodePhysicalRefStationPosition1032(
+    vector<unsigned char>&     message,
+    map<int, RtcmStationInfo>& stationInfoMap
+)
+{
+    // 1032 layout: msgNum(12) + nonPhysicalStationId(12) + physicalStationId(12)
+    //              + reserved6(6) + ecefX(38) + ecefY(38) + ecefZ(38) = 156 bits
+    constexpr int RTCM1032_BITS = 156;
+    if ((int)message.size() * 8 < RTCM1032_BITS)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RTCM3 1032 length error: len=" << message.size();
+        return false;
+    }
+
+    int i = 0;
+
+    uint32_t messageNumber        = getbituInc(message, i, 12);
+    uint32_t nonPhysicalStationId = getbituInc(message, i, 12);
+    uint32_t physicalStationId    = getbituInc(message, i, 12);
+    uint32_t reserved6            = getbituInc(message, i, 6);
+
+    auto getSigned38 = [&](int& bitPos) -> int64_t
+    {
+        uint64_t raw = (uint64_t)getbituInc(message, bitPos, 32);
+        raw          = (raw << 6) | getbituInc(message, bitPos, 6);
+
+        if (raw & (uint64_t(1) << 37))
+        {
+            raw |= (~uint64_t(0) << 38);
+        }
+
+        return (int64_t)raw;
+    };
+
+    double ecefX = getSigned38(i) * 0.0001;
+    double ecefY = getSigned38(i) * 0.0001;
+    double ecefZ = getSigned38(i) * 0.0001;
+
+    BOOST_LOG_TRIVIAL(debug) << "RTCM 1032 decoded: nonPhysicalStationId=" << nonPhysicalStationId
+                             << " physicalStationId=" << physicalStationId << " x=" << ecefX
+                             << " y=" << ecefY << " z=" << ecefZ;
+    auto& info             = stationInfoMap[nonPhysicalStationId];
+    info.physicalStationId = physicalStationId;
+    info.physEcefX         = ecefX;
+    info.physEcefY         = ecefY;
+    info.physEcefZ         = ecefZ;
+
+    logRtcmStationInfoDebug((int)nonPhysicalStationId, info, "1032");
+
+    (void)messageNumber;
+    (void)reserved6;
+
+    return true;
+}
+
 E_ReturnType RtcmDecoder::decode(vector<unsigned char>& message)
 {
     E_ReturnType retVal = E_ReturnType::OK;
@@ -1645,7 +2125,7 @@ E_ReturnType RtcmDecoder::decode(vector<unsigned char>& message)
     int             messageNumber = getbitu(message, 0, 12);
     RtcmMessageType messCode      = messageNumberToRtcmType(messageNumber);
 
-    // 	std::cout << "\n" << "Received " << enum_to_string(messageNumberToRtcmType(messageNumber));
+    BOOST_LOG_TRIVIAL(debug) << "Received " << enum_to_string(messCode) << ", decoding ...";
 
     switch (messCode)
     {
@@ -1655,6 +2135,42 @@ E_ReturnType RtcmDecoder::decode(vector<unsigned char>& message)
 
         case RtcmMessageType::CUSTOM:
             retVal = decodeCustom(message);
+            break;
+        case RtcmMessageType::STATIONARY_RTK_REF_ARP:
+            if (decodeStationaryRtkRefArp1005(message, stationInfoMap) == false)
+            {
+                retVal = E_ReturnType::BAD_LENGTH;
+            }
+            break;
+        case RtcmMessageType::STATIONARY_RTK_REF_ARP_HEIGHT:
+            if (decodeStationaryRtkRefAprHeight1006(message, stationInfoMap) == false)
+            {
+                retVal = E_ReturnType::BAD_LENGTH;
+            }
+            break;
+        case RtcmMessageType::ANTENNA_DESCRIPTOR:
+            if (decodeAntennaDescriptors1007(message, stationInfoMap) == false)
+            {
+                retVal = E_ReturnType::BAD_LENGTH;
+            }
+            break;
+        case RtcmMessageType::ANTENNA_DESCRIPTOR_SN:
+            if (decodeAntennaDescriptorsSerial1008(message, stationInfoMap) == false)
+            {
+                retVal = E_ReturnType::BAD_LENGTH;
+            }
+            break;
+        case RtcmMessageType::ANTENNA_RECEIVER_DESCRIPTOR:
+            if (decodeAntennaReceiverDescriptor1033(message, stationInfoMap) == false)
+            {
+                retVal = E_ReturnType::BAD_LENGTH;
+            }
+            break;
+        case RtcmMessageType::PHYSICAL_REF_STATION_POSITION:
+            if (decodePhysicalRefStationPosition1032(message, stationInfoMap) == false)
+            {
+                retVal = E_ReturnType::BAD_LENGTH;
+            }
             break;
         case RtcmMessageType::GPS_EPHEMERIS:       // fallthrough
         case RtcmMessageType::GLO_EPHEMERIS:       // fallthrough
@@ -1736,12 +2252,23 @@ E_ReturnType RtcmDecoder::decode(vector<unsigned char>& message)
             int i            = 54;
             int multimessage = getbituInc(message, i, 1);
 
+            if (obsList.size() > 0)
+            {
+                BOOST_LOG_TRIVIAL(debug) << "Parsed " << obsList.size()
+                                         << " obs, obsTime=" << obsList.front()->time.to_string(6)
+                                         << ", multimessage=" << multimessage;
+            }
+            else
+            {
+                BOOST_LOG_TRIVIAL(debug) << "No obs parsed, multimessage=" << multimessage;
+            }
+
             // 			tracepdeex(0, std::cout, "\n%2d %s %2d %2d ", messageId,
             // obsList.front()->time.to_string().c_str(), obsList.size(), multimessage);
 
             if (superObsList.empty() == false && obsList.empty() == false &&
                 fabs((superObsList.front()->time - obsList.front()->time).to_double()) >
-                    DTTOL)  // todo aaron ew, fix
+                    DTTOL)  // todo? Use epoch tolerance?
             {
                 // time delta, push the old list and start a new one
                 obsListList.push_back(std::move(superObsList));
@@ -1755,10 +2282,20 @@ E_ReturnType RtcmDecoder::decode(vector<unsigned char>& message)
 
             if (multimessage == 0)
             {
-                obsListList.push_back(std::move(superObsList));
-                superObsList.clear();
+                if (superObsList.empty() == false)
+                {
+                    obsListList.push_back(std::move(superObsList));
+                    superObsList.clear();
 
-                retVal = E_ReturnType::GOT_OBS;
+                    retVal = E_ReturnType::GOT_OBS;
+                }
+                else
+                {
+                    BOOST_LOG_TRIVIAL(info)
+                        << "RTCM decoder reached multimessage flush with empty superObsList"
+                        << ", messageType=" << enum_to_string(messCode)
+                        << ", multimessage=" << multimessage << ", decoded_obs=" << obsList.size();
+                }
             }
 
             if (superObsList.size() > 1000)
@@ -1794,22 +2331,22 @@ E_ReturnType RtcmDecoder::decode(vector<unsigned char>& message)
 
 /** extract unsigned bits from byte data
  */
-unsigned int getbitu(
+uint32_t getbitu(
     const unsigned char* buff,  ///< byte data
     int                  pos,   ///< bit position from start of data (bits)
     int                  len    ///< bit length (bits) (len<=32)
 )
 {
-    unsigned int bits = 0;
+    uint32_t bits = 0;
     for (int i = pos; i < pos + len; i++)
-        bits = (bits << 1) + ((buff[i / 8] >> (7 - i % 8)) & 1u);
+        bits = (bits << 1) + ((buff[i / 8] >> (7 - i % 8)) & uint32_t(1));
 
     return bits;
 }
 
 /** extract unsigned bits from RTCM messages
  */
-unsigned int getbitu(
+uint32_t getbitu(
     vector<unsigned char>& buff,  ///< RTCM messages
     int                    pos,   ///< bit position from start of data (bits)
     int                    len    ///< bit length (bits) (len<=32)
@@ -1820,16 +2357,16 @@ unsigned int getbitu(
 
 /** extract signed bits from byte data
  */
-int getbits(
+int32_t getbits(
     const unsigned char* buff,        ///< byte data
     int                  pos,         ///< bit position from start of data (bits)
     int                  len,         ///< bit length (bits) (len<=32)
     bool*                failure_ptr  ///< pointer for failure flag
 )
 {
-    unsigned int bits = getbitu(buff, pos, len);
+    uint32_t bits = getbitu(buff, pos, len);
 
-    long int invalid = (1ul << (len - 1));
+    uint32_t invalid = (uint32_t(1) << (len - 1));
 
     if (bits == invalid)
     {
@@ -1842,29 +2379,29 @@ int getbits(
         }
     }
 
-    if (len <= 0 || len >= 32 || !(bits & (1u << (len - 1))))
+    if (len <= 0 || len >= 32 || !(bits & (uint32_t(1) << (len - 1))))
     {
-        return (int)bits;
+        return (int32_t)bits;
     }
-    return (int)(bits | (~0u << len)); /* extend sign */
+    return (int32_t)(bits | (~uint32_t(0) << len)); /* extend sign */
 }
 
 /** increasingly extract unsigned bits from byte data
  */
-unsigned int getbituInc(
+uint32_t getbituInc(
     const unsigned char* buff,  ///< byte data
     int&                 pos,   ///< bit position from start of data (bits)
     int                  len    ///< bit length (bits) (len<=32)
 )
 {
-    unsigned int ans = getbitu(buff, pos, len);
+    uint32_t ans = getbitu(buff, pos, len);
     pos += len;
     return ans;
 }
 
 /** increasingly extract unsigned bits from RTCM messages
  */
-unsigned int getbituInc(
+uint32_t getbituInc(
     vector<unsigned char>& buff,  ///< byte data
     int&                   pos,   ///< bit position from start of data (bits)
     int                    len    ///< bit length (bits) (len<=32)
@@ -1875,21 +2412,56 @@ unsigned int getbituInc(
 
 /** increasingly extract signed bits from byte data
  */
-int getbitsInc(
+int32_t getbitsInc(
     const unsigned char* buff,        ///< byte data
     int&                 pos,         ///< bit position from start of data (bits)
     int                  len,         ///< bit length (bits) (len<=32)
     bool*                failure_ptr  ///< pointer for failure flag
 )
 {
-    int ans = getbits(buff, pos, len, failure_ptr);
+    int32_t ans = getbits(buff, pos, len, failure_ptr);
     pos += len;
     return ans;
 }
 
+bool getbituIncChecked(
+    const unsigned char* buff,  ///< byte data
+    int                  buffBits,
+    int&                 pos,   ///< bit position from start of data (bits)
+    int                  len,   ///< bit length (bits) (len<=32)
+    uint32_t&            out
+)
+{
+    if (len <= 0 || len > 32 || pos < 0 || pos + len > buffBits)
+    {
+        return false;
+    }
+
+    out = getbituInc(buff, pos, len);
+    return true;
+}
+
+bool getbitsIncChecked(
+    const unsigned char* buff,        ///< byte data
+    int                  buffBits,
+    int&                 pos,         ///< bit position from start of data (bits)
+    int                  len,         ///< bit length (bits) (len<=32)
+    int32_t&             out,
+    bool*                failure_ptr  ///< pointer for failure flag
+)
+{
+    if (len <= 0 || len > 32 || pos < 0 || pos + len > buffBits)
+    {
+        return false;
+    }
+
+    out = getbitsInc(buff, pos, len, failure_ptr);
+    return true;
+}
+
 /** increasingly extract signed bits from RTCM messages
  */
-int getbitsInc(
+int32_t getbitsInc(
     vector<unsigned char>& buff,        ///< byte data
     int&                   pos,         ///< bit position from start of data (bits)
     int                    len,         ///< bit length (bits) (len<=32)
@@ -1897,6 +2469,27 @@ int getbitsInc(
 )
 {
     return getbitsInc(buff.data(), pos, len, failure_ptr);
+}
+
+bool getbituIncChecked(
+    vector<unsigned char>& buff,  ///< byte data
+    int&                   pos,   ///< bit position from start of data (bits)
+    int                    len,   ///< bit length (bits) (len<=32)
+    uint32_t&              out
+)
+{
+    return getbituIncChecked(buff.data(), (int)buff.size() * 8, pos, len, out);
+}
+
+bool getbitsIncChecked(
+    vector<unsigned char>& buff,        ///< byte data
+    int&                   pos,         ///< bit position from start of data (bits)
+    int                    len,         ///< bit length (bits) (len<=32)
+    int32_t&               out,
+    bool*                  failure_ptr  ///< pointer for failure flag
+)
+{
+    return getbitsIncChecked(buff.data(), (int)buff.size() * 8, pos, len, out, failure_ptr);
 }
 
 /** increasingly extract signed bits from RTCM messages with scale factor/resolution applied
@@ -1926,32 +2519,32 @@ double getbituIncScale(
 
 /** extract sign-magnitude bits applied in GLO nav messages from byte data
  */
-int getbitg(
+int32_t getbitg(
     const unsigned char* buff,  ///< byte data
     int                  pos,   ///< bit position from start of data (bits)
     int                  len    ///< bit length (bits) (len<=32)
 )
 {
-    int value = getbitu(buff, pos + 1, len - 1);
+    int32_t value = getbitu(buff, pos + 1, len - 1);
     return getbitu(buff, pos, 1) ? -value : value;
 }
 
 /** increasingly extract sign-magnitude bits applied in GLO nav messages from byte data
  */
-int getbitgInc(
+int32_t getbitgInc(
     const unsigned char* buff,  ///< byte data
     int&                 pos,   ///< bit position from start of data (bits)
     int                  len    ///< bit length (bits) (len<=32)
 )
 {
-    int ans = getbitg(buff, pos, len);
+    int32_t ans = getbitg(buff, pos, len);
     pos += len;
     return ans;
 }
 
 /** increasingly extract sign-magnitude bits applied in GLO nav messages from RTCM messages
  */
-int getbitgInc(
+int32_t getbitgInc(
     vector<unsigned char>& buff,  ///< byte data
     int&                   pos,   ///< bit position from start of data (bits)
     int                    len    ///< bit length (bits) (len<=32)

@@ -69,8 +69,8 @@ struct FilterData
 class RtsFileReader
 {
    private:
-    string   inputFile;
-    long int currentPosition = -1;
+    string         inputFile;
+    std::streamoff currentPosition = -1;
 
     // Data presence flags for current epoch
     bool hasMetadata         = false;
@@ -93,7 +93,7 @@ class RtsFileReader
     void resetEpochFlags();
 
     /** Get current file position */
-    long int getCurrentPosition() const { return currentPosition; }
+    std::streamoff getCurrentPosition() const { return currentPosition; }
 
     /** Check if we've reached the beginning of file */
     bool isAtBeginning() const { return currentPosition == 0; }
@@ -179,8 +179,8 @@ class RtsTimingLogger
 class RtsOutputFileReader
 {
    private:
-    string   reversedStatesFilename;
-    long int currentPosition = -1;
+    string         reversedStatesFilename;
+    std::streamoff currentPosition = -1;
 
    public:
     /** Constructor */
