@@ -276,19 +276,24 @@ void addReceiverData(
         shared_ptr<StreamParser> streamParser_ptr;
 
         if (dataType == "OBS")
+        {
             streamParser_ptr = make_shared<ObsStream>(std::move(stream_ptr), std::move(parser_ptr));
+
+            auto& rec = receiverMap[id];
+            rec.id    = id;
+        }
         else if (dataType == "PSEUDO")
+        {
             streamParser_ptr =
                 make_shared<ObsStream>(std::move(stream_ptr), std::move(parser_ptr), true);
+
+            auto& rec       = receiverMap[id];
+            rec.isPseudoRec = true;
+        }
         else
+        {
             streamParser_ptr =
                 make_shared<StreamParser>(std::move(stream_ptr), std::move(parser_ptr));
-
-        if (dataType == "OBS")
-        {
-            auto& rec = receiverMap[id];
-
-            rec.id = id;
         }
 
         streamParser_ptr->stream.sourceString = inputName;

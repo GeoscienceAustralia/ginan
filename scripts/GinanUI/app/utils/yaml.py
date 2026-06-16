@@ -1,18 +1,9 @@
-from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedSeq, CommentedMap
-from ruamel.yaml.scalarstring import PlainScalarString
-from pathlib import Path
-import tempfile
-import os
-
-from scripts.GinanUI.app.utils.logger import Logger
-
 """
 YAML utilities for the Ginan-UI application.
 
-This module provides safe wrappers around ruamel.yaml to ensure that Python
-objects (e.g., pathlib.Path, lists, strings) are always serialised and
-deserialised in a consistent way.
+Provides safe wrappers around ruamel.yaml for loading, writing, and updating YAML
+config files while preserving comments and formatting. Normalises Python objects
+(Path, list, str) to types that ruamel.yaml can serialise reliably.
 
 Key functions:
 - load_yaml(file_path):    Load YAML into memory, converting path-like strings
@@ -24,35 +15,25 @@ Key functions:
                            list → CommentedSeq, str → PlainScalarString).
 - _normalise_inplace():    Internal helper to recursively normalise an entire
                            config tree in-place. Used as a safety net in write_yaml().
-
-Conventions:
-- Leading underscore (_) marks helpers intended for internal use only.
-- Public functions (no underscore) are part of the module’s stable API and
-  should be used by other parts of the application.
 """
 
+import os
+import tempfile
+from pathlib import Path
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedSeq, CommentedMap
+from ruamel.yaml.scalarstring import PlainScalarString
+from scripts.GinanUI.app.utils.logger import Logger
+
 # Configure YAML parser
+# These values work, don't need to change
 yaml = YAML()
 yaml.preserve_quotes = True
 yaml.indent(mapping=4, sequence=4, offset=4)
 yaml.width = 4096  # Avoid line wrapping
 yaml.default_flow_style = False  # Use block-style lists
 
-
-def _convert_paths(obj):
-    """Recursively convert plain strings that look like filesystem paths into Path objects."""
-    if isinstance(obj, dict):
-        return {k: _convert_paths(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [_convert_paths(v) for v in obj]
-    elif isinstance(obj, (PlainScalarString, str)):
-        s = str(obj)
-        # heuristic: treat as path if it looks like one
-        if "/" in s or s.startswith(".") or s.startswith("~") or os.path.isabs(s):
-            return Path(s).expanduser()
-        return s
-    else:
-        return obj
+#region YAML Manipulation
 
 def load_yaml(file_path: Path) -> CommentedMap:
     """
@@ -110,6 +91,9 @@ def update_yaml_values(file_path: Path, updates: list[tuple[str, str]]):
     with file_path.open("w", encoding='utf-8') as f:
         yaml.dump(data, f)
 
+#endregion
+
+#region Helper Functions
 
 def normalise_yaml_value(val):
     """
@@ -128,6 +112,21 @@ def normalise_yaml_value(val):
         return seq
     return val
 
+def _convert_paths(obj):
+    """Recursively convert plain strings that look like filesystem paths into Path objects."""
+    if isinstance(obj, dict):
+        return {k: _convert_paths(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_paths(v) for v in obj]
+    elif isinstance(obj, (PlainScalarString, str)):
+        s = str(obj)
+        # heuristic: treat as path if it looks like one
+        if "/" in s or s.startswith(".") or s.startswith("~") or os.path.isabs(s):
+            return Path(s).expanduser()
+        return s
+    else:
+        return obj
+
 def _normalise_inplace(obj):
     """
     Recursively normalise values in-place using normalise_yaml_value().
@@ -142,3 +141,5 @@ def _normalise_inplace(obj):
             obj[i] = normalise_yaml_value(v)
             _normalise_inplace(obj[i])
     return obj
+
+#endregion

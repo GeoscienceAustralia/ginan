@@ -368,24 +368,64 @@ void updateAprioriRecPos(
     KFState*         remote_ptr
 )
 {
+    auto useResolvedMetadataStationPosition = [&](E_Source& foundSource) -> bool
+    {
+        if (rec.metadata.stationPosition.valid == false)
+        {
+            return false;
+        }
+
+        rec.aprioriPos = rec.metadata.stationPosition.value;
+        foundSource    = E_Source::META;
+
+        if (rec.metadata.stationPosition.winningSource == E_ReceiverMetaSource::SINEX &&
+            rec.snx.pos.isZero() == false)
+        {
+            rec.primaryApriori = rec.snx.primary;
+            rec.aprioriTime    = rec.snx.start;
+        }
+
+        return true;
+    };
+
     E_Source foundSource = E_Source::NONE;
     for (auto source : recOpts.posModel.sources)
     {
         switch (source)
         {
+            case E_Source::META:
+            {
+                if (useResolvedMetadataStationPosition(foundSource))
+                {
+                    break;
+                }
+
+                continue;
+            }
             case E_Source::CONFIG:
             {
+                if (useResolvedMetadataStationPosition(foundSource))
+                {
+                    break;
+                }
+
                 if (recOpts.apriori_pos.isZero())
                 {
                     continue;
                 }
 
                 rec.aprioriPos = recOpts.apriori_pos;
+                foundSource    = E_Source::CONFIG;
 
                 break;
             }
             case E_Source::PRECISE:
             {
+                if (useResolvedMetadataStationPosition(foundSource))
+                {
+                    break;
+                }
+
                 if (rec.snx.pos.isZero())
                 {
                     continue;
@@ -393,10 +433,8 @@ void updateAprioriRecPos(
 
                 rec.aprioriPos     = rec.snx.pos;
                 rec.primaryApriori = rec.snx.primary;
-                for (int i = 0; i < 3; i++)
-                {
-                    rec.aprioriTime[i] = rec.snx.start[i];
-                }
+                rec.aprioriTime    = rec.snx.start;
+                foundSource        = E_Source::PRECISE;
 
                 break;
             }
@@ -424,6 +462,7 @@ void updateAprioriRecPos(
                     continue;
                 }
 
+                foundSource = E_Source::REMOTE;
                 break;
             }
             case E_Source::SPP:
@@ -436,7 +475,8 @@ void updateAprioriRecPos(
                 rec.aprioriTime = rec.sol.sppTime;
                 rec.aprioriPos  = rec.sol.sppPos;
 
-                sppUsed = true;
+                sppUsed     = true;
+                foundSource = E_Source::SPP;
 
                 break;
             }
@@ -459,8 +499,10 @@ void updateAprioriRecPos(
             }
         }
 
-        foundSource = source;
-        break;
+        if (foundSource != E_Source::NONE)
+        {
+            break;
+        }
     }
 
     if (foundSource == E_Source::NONE)
@@ -476,6 +518,30 @@ void updateAprioriRecPos(
         rec.aprioriPos.x(),
         rec.aprioriPos.y(),
         rec.aprioriPos.z()
+    );
+
+    string receiverType =
+        rec.metadata.receiverType.valid ? rec.metadata.receiverType.value : "";
+    string antennaType = rec.metadata.antennaDescriptor.valid ? rec.metadata.antennaDescriptor.value
+                                                              : "";
+    Vector3d antennaEccentricity =
+        rec.metadata.antennaDelta.valid ? rec.metadata.antennaDelta.value : Vector3d::Zero();
+
+    tracepdeex(
+        4,
+        trace,
+        "\nReceiver metadata:"
+        " receiver_type[%s]='%s'"
+        " antenna_type[%s]='%s'"
+        " antenna_eccentricity[%s]=%f %f %f",
+        enum_to_string(rec.metadata.receiverType.winningSource),
+        receiverType.c_str(),
+        enum_to_string(rec.metadata.antennaDescriptor.winningSource),
+        antennaType.c_str(),
+        enum_to_string(rec.metadata.antennaDelta.winningSource),
+        antennaEccentricity.x(),
+        antennaEccentricity.y(),
+        antennaEccentricity.z()
     );
 }
 
@@ -555,7 +621,7 @@ void updateAprioriRecClk(
                 }
 
                 rec.aprioriClk    = rec.sol.sppClk;
-                rec.aprioriClkVar = SQR(30);  // todo Eugene: use estimated var
+                rec.aprioriClkVar = SQR(30);  // todo? use estimated var
 
                 break;
             }
@@ -626,7 +692,7 @@ void selectAprioriSource(
 
         Matrix3d varianceXYZ = E.transpose() * enuNoise * E;
 
-        rec.aprioriPosVar = varianceXYZ;  // todo Eugene: use estimated var for SPP
+        rec.aprioriPosVar = varianceXYZ;  // todo? use estimated var for SPP
     }
     else
     {
@@ -667,7 +733,7 @@ void addRejectDetails(
     tracepdeex(
         0,
         trace,
-        "\n%s\t%-24s\t- %7s\t%s",
+        "\n%s\t%-24s\t- %-7s\t%s",
         time.to_string().c_str(),
         action.c_str(),
         reason.c_str(),
@@ -680,7 +746,7 @@ void addRejectDetails(
 
         if (detail.isBool() == false)
         {
-            tracepdeex(0, trace, ": %s", detail.value().c_str());
+            tracepdeex(0, trace, ": %12s", detail.value().c_str());
         }
     };
 
@@ -824,7 +890,7 @@ void removeBadAmbiguities(
                 E_FType ft = (E_FType)key.num;
 
                 preprocSigName =
-                    ft2string(ft);  // todo aaron, is this redundant now that network is gone?
+                    ft2string(ft);  // todo? is this redundant now that network is gone?
                 sigName = preprocSigName;
             }
 
@@ -857,8 +923,8 @@ void removeBadAmbiguities(
             if (preprocSigStat.savedSlip.any &&
                 ((acsConfig.ambErrors.resetOnSlip.LLI && preprocSigStat.savedSlip.LLI) ||
                  (acsConfig.ambErrors.resetOnSlip.retrack && preprocSigStat.savedSlip.retrack) ||
-                 (acsConfig.ambErrors.resetOnSlip.single_freq && preprocSigStat.savedSlip.singleFreq
-                 ) ||
+                 (acsConfig.ambErrors.resetOnSlip.single_freq &&
+                  preprocSigStat.savedSlip.singleFreq) ||
                  (acsConfig.ambErrors.resetOnSlip.GF && preprocSigStat.savedSlip.GF) ||
                  (acsConfig.ambErrors.resetOnSlip.MW && preprocSigStat.savedSlip.MW) ||
                  (acsConfig.ambErrors.resetOnSlip.SCDIA && preprocSigStat.savedSlip.SCDIA)))
@@ -1201,8 +1267,7 @@ void outputPppNmea(Trace& trace, KFState& kfState, string id)
         // 						sqrt(phase_biasVar));
         // 		}
 
-        if (key.type == KF::TROP  // todo aaron needs iteration
-            && key.str == id)
+        if (key.type == KF::TROP && key.str == id)  // todo? needs iteration
         {
             string grad;
             double trop    = 0;

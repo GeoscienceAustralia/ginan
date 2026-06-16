@@ -18,11 +18,11 @@ constexpr double PI  = 3.1415926535897932384626433832795028841971693993751058209
 constexpr double D2R = (PI / 180.0); /* deg to rad */
 constexpr double R2D = (180.0 / PI); /* rad to deg */
 void             calcDistanceBearing(
-                float*  lat1,
-                float*  lon1,
-                float*  lat2,
-                float*  lon2,
-                double* dist,
-                double* brng
-            );
+    float*  lat1,
+    float*  lon1,
+    float*  lat2,
+    float*  lon2,
+    double* dist,
+    double* brng
+);
 void ecef2pos(const double* r, double* pos);

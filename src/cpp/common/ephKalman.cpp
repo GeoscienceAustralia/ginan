@@ -65,7 +65,7 @@ bool satClkKalman(Trace& trace, GTime time, SatPos& satPos, const KFState* kfSta
 
     satPos.satClkVel = vel;
 
-    satPos.satClkVar = 0;  // todo Eugene: get actual variances from filter
+    satPos.satClkVar = 0;  // todo? get actual variances from filter
 
     return anyFound;
 }
@@ -137,7 +137,7 @@ bool satPosKalman(Trace& trace, GTime time, SatPos& satPos, const KFState* kfSta
         }
     }
 
-    satPos.posVar = 0;  // todo Eugene: get actual variances from filter
+    satPos.posVar = 0;  // todo? get actual variances from filter
 
     return true;
 }

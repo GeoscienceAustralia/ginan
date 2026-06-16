@@ -66,14 +66,18 @@ void SpaceWeather::read(std::string filepath)  ///< File path to Space Weather f
             std::string        ignore;
             iss >> ignore >> numMonthlyPredictedPoints;
         }
-        else if (line == "BEGIN OBSERVED" || line == "BEGIN DAILY_PREDICTED" ||
-                 line == "BEGIN MONTHLY_PREDICTED")
+        else if (
+            line == "BEGIN OBSERVED" || line == "BEGIN DAILY_PREDICTED" ||
+            line == "BEGIN MONTHLY_PREDICTED"
+        )
         {
             // Skip section headers
             continue;
         }
-        else if (line == "END OBSERVED" || line == "END DAILY_PREDICTED" ||
-                 line == "END MONTHLY_PREDICTED")
+        else if (
+            line == "END OBSERVED" || line == "END DAILY_PREDICTED" ||
+            line == "END MONTHLY_PREDICTED"
+        )
         {
             // Skip section endings
             continue;

@@ -1,4 +1,12 @@
-"""Base time conversion functions"""
+"""
+GNSS utility functions for time conversion, file handling, and downloading.
+
+Provides GPS week/day conversions, the GPSDate helper class, file decompression
+(gz, tar, Z, Hatanaka), and URL-based download utilities with retry logic.
+
+These have been ripped from the base Ginan code and minimally adapted
+later on this file should be removed as these functions are migrated into the gnssanalysis pip package
+"""
 
 from datetime import datetime as _datetime
 import logging
@@ -7,12 +15,10 @@ import os as _os
 import time as _time
 import gzip as _gzip
 import tarfile as _tarfile
-
 from pathlib import Path as _Path
 from typing import Optional as _Optional, Union as _Union
 from urllib import request as _request
 from urllib.error import HTTPError as _HTTPError
-
 import numpy as _np
 import hatanaka as _hatanaka
 

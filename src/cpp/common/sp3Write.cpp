@@ -282,7 +282,7 @@ void updateSp3Body(
     {
         writeSp3Header(sp3Stream, entryList, time, outSys, sp3FileData);
     }
-    else  // todo Eugene: update accuracy sigmas as well
+    else  // todo? update accuracy sigmas as well
     {
         sp3FileData.numEpoch++;
 

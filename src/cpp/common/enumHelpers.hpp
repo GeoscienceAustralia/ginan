@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -15,6 +16,13 @@ template <typename E>
 inline std::string enum_to_string(E value)
 {
     return std::string(magic_enum::enum_name(value));
+}
+
+// Enum to string conversion (replaces ._to_string())
+template <typename E>
+inline std::string enum_to_lowerstring(E value)
+{
+    return boost::algorithm::to_lower_copy(std::string(magic_enum::enum_name(value)));
 }
 
 // String to enum conversion with default fallback (replaces ::_from_string())

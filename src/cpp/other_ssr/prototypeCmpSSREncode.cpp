@@ -823,12 +823,12 @@ vector<uint8_t> encodecompactBIA(
 
 map<int, map<int, double>> stecPolyCommonMode;
 vector<uint8_t>            encodecompactTEC(
-               SSRMeta&      ssrMeta,
-               int           regId,
-               SSRAtmRegion& ssrAtmReg,
-               int           updateIntIndex,
-               bool          last
-           )
+    SSRMeta&      ssrMeta,
+    int           regId,
+    SSRAtmRegion& ssrAtmReg,
+    int           updateIntIndex,
+    bool          last
+)
 {
     vector<uint8_t> buffer;
 
@@ -1497,11 +1497,11 @@ vector<uint8_t> encodeGridInfo(SSRAtm& ssrAtm)
                 double thisLatDeg = regData.gridLatDeg[0];
                 double thisLonDeg = regData.gridLonDeg[0];
                 tmp               = (int)round(regData.gridLatDeg[0] * 16284 / PI * D2R);
-                i   = setbitsInc(buf, i, 15, tmp);  // todo aaron, check scaling facotr
-                tmp = (int)round(regData.gridLonDeg[0] * 16284 / PI * D2R);
-                i   = setbitsInc(buf, i, 16, tmp);
-                tmp = regData.gridLatDeg.size();
-                i   = setbituInc(buf, i, 6, tmp);
+                i                 = setbitsInc(buf, i, 15, tmp);  // todo? check scaling facotr
+                tmp               = (int)round(regData.gridLonDeg[0] * 16284 / PI * D2R);
+                i                 = setbitsInc(buf, i, 16, tmp);
+                tmp               = regData.gridLatDeg.size();
+                i                 = setbituInc(buf, i, 6, tmp);
 
                 for (auto& [ind, lat] : regData.gridLatDeg)
                 {

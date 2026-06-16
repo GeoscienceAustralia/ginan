@@ -403,9 +403,9 @@ def download_most_recent_cddis_file(
             long_filename=long_filename,
             file_type="SNX",
             analysis_center=analysis_center,
-            timespan=timedelta(days=1),
+            timespan=timedelta(days=7),
             solution_type="SNX",
-            sampling_rate="01D",
+            sampling_rate="07D",
             content_type="CRD",
         )
     # Download recent file:

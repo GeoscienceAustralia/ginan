@@ -10,6 +10,7 @@
     "boost-thread",
     "boost-program-options",
     "boost-serialization",
+    "boost-test",
     "boost-timer",
     "boost-bimap",
     "boost-format",
@@ -38,7 +39,9 @@
       "name": "mongo-cxx-driver",
       "$comment": "Optional: MongoDB support - can be disabled with ENABLE_MONGODB=OFF",
       "platform": "!windows"
-    }
+    },
+    "netcdf-c",
+    "netcdf-cxx4"
   ],
   "builtin-baseline": "4c5ae6b55f3e3e39d291679f89822f496cf190ee"
 }

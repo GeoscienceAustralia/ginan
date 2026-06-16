@@ -219,85 +219,119 @@ void obs2lc(
     S_LC& lc15 = getLC(obs, lcBase, frq1, frq3);
     S_LC& lc25 = getLC(obs, lcBase, frq2, frq3);
 
+    string frq1Str  = enum_to_string(frq1);
+    string frq2Str  = enum_to_string(frq2);
+    string frq3Str  = enum_to_string(frq3);
+    string frq12Str = frq1Str + frq2Str;
+    string frq13Str = frq1Str + frq3Str;
+    string frq23Str = frq2Str + frq3Str;
+
     tracepdeex(
         3,
         trace,
-        "%s zd L -- L1  =%14.4f L2  =%14.4f L5  =%14.4f\n",
+        "%s zd L -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
         strprefix,
+        frq1Str.c_str(),
         lcBase.L_m[frq1],
+        frq2Str.c_str(),
         lcBase.L_m[frq2],
+        frq3Str.c_str(),
         lcBase.L_m[frq3]
     );
     tracepdeex(
         3,
         trace,
-        "%s zd P -- P1  =%14.4f P2  =%14.4f P5  =%14.4f\n",
+        "%s zd P -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
         strprefix,
+        frq1Str.c_str(),
         lcBase.P[frq1],
+        frq2Str.c_str(),
         lcBase.P[frq2],
+        frq3Str.c_str(),
         lcBase.P[frq3]
     );
     tracepdeex(
         3,
         trace,
-        "%s mp P -- mp1 =%14.4f mp2 =%14.4f mp5 =%14.4f\n",
+        "%s mp P -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
         strprefix,
+        frq1Str.c_str(),
         lcBase.mp[frq1],
+        frq2Str.c_str(),
         lcBase.mp[frq2],
+        frq3Str.c_str(),
         lcBase.mp[frq3]
     );
     tracepdeex(
         3,
         trace,
-        "%s gf L -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n",
+        "%s gf L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
         strprefix,
+        frq12Str.c_str(),
         lc12.GF_Phas_m,
+        frq13Str.c_str(),
         lc15.GF_Phas_m,
+        frq23Str.c_str(),
         lc25.GF_Phas_m
     );
     tracepdeex(
         3,
         trace,
-        "%s gf P -- gf12=%14.4f gf15=%14.4f gf25=%14.4f\n",
+        "%s gf P -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
         strprefix,
+        frq12Str.c_str(),
         lc12.GF_Code_m,
+        frq13Str.c_str(),
         lc15.GF_Code_m,
+        frq23Str.c_str(),
         lc25.GF_Code_m
     );
     tracepdeex(
         3,
         trace,
-        "%s mw L -- mw12=%14.4f mw15=%14.4f mw25=%14.4f\n",
+        "%s mw L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
         strprefix,
+        frq12Str.c_str(),
         lc12.MW_c,
+        frq13Str.c_str(),
         lc15.MW_c,
+        frq23Str.c_str(),
         lc25.MW_c
     );
     tracepdeex(
         3,
         trace,
-        "%s wl L -- wl12=%14.4f wl15=%14.4f wl25=%14.4f\n",
+        "%s wl L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
         strprefix,
+        frq12Str.c_str(),
         lc12.WL_Phas_m,
+        frq13Str.c_str(),
         lc15.WL_Phas_m,
+        frq23Str.c_str(),
         lc25.WL_Phas_m
     );
     tracepdeex(
         3,
         trace,
-        "%s if L -- if12=%14.4f if15=%14.4f if25=%14.4f\n",
+        "%s if L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
         strprefix,
+        frq12Str.c_str(),
         lc12.IF_Phas_m,
+        frq13Str.c_str(),
         lc15.IF_Phas_m,
+        frq23Str.c_str(),
         lc25.IF_Phas_m
     );
     tracepdeex(
         3,
         trace,
-        "%s if P -- if12=%14.4f if15=%14.4f if25=%14.4f\n",
+        "%s if P -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
         strprefix,
+        frq12Str.c_str(),
         lc12.IF_Code_m,
+        frq13Str.c_str(),
         lc15.IF_Code_m,
+        frq23Str.c_str(),
         lc25.IF_Code_m
     );
 
@@ -306,7 +340,7 @@ void obs2lc(
         trace,
         obs.time,
         {{"data", "linearCombos"}, {"Sat", obs.Sat.id()}},
-        {{"L1", lcBase.L_m[frq1]}, {"L2", lcBase.L_m[frq2]}}
+        {{frq1Str, lcBase.L_m[frq1]}, {frq2Str, lcBase.L_m[frq2]}}
     );
 }
 

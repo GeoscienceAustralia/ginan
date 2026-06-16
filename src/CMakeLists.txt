@@ -11,9 +11,9 @@ include(CheckPIESupported)
 check_pie_supported()
 
 # Use absolute paths for output directories to support nested build directories
-set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
 
 set(CMAKE_MODULE_PATH					"${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_VISIBILITY_PRESET     	hidden)
@@ -54,7 +54,9 @@ endif ()
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-misleading-indentation")
 #	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -fno-var-tracking-assignments")
 #	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option")
-	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		set(CMAKE_CXX_FLAGS					"${CMAKE_CXX_FLAGS} -Wno-extern-c-compat")
+	endif()
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-format-zero-length")
 	set(CMAKE_CXX_FLAGS						"${CMAKE_CXX_FLAGS} -Wno-array-bounds")
 
@@ -210,19 +212,34 @@ if(USE_STATIC_BOOST)
 	message(STATUS "Using static Boost libraries")
 else()
 	set(Boost_USE_STATIC_LIBS OFF)
-	# Dynamic Boost requires additional compile definitions
-	add_compile_definitions(BOOST_LOG_DYN_LINK)
 	message(STATUS "Using dynamic Boost libraries")
 endif()
 
 #set(Boost_NO_SYSTEM_PATHS ON)
 # Note: Boost system is header-only since 1.67, no longer needed as a component
-find_package(Boost 1.75.0 REQUIRED COMPONENTS log log_setup date_time thread program_options serialization timer json)
+find_package(Boost 1.75.0 REQUIRED COMPONENTS log log_setup date_time thread program_options serialization timer json unit_test_framework)
 
-# Try CONFIG mode first (for vcpkg), fall back to module mode (for brew/system)
-find_package(Eigen3 3.3.0 CONFIG QUIET)
+if(TARGET Boost::log)
+	get_target_property(BOOST_LOG_LIBRARY_TYPE Boost::log TYPE)
+	if(BOOST_LOG_LIBRARY_TYPE STREQUAL "SHARED_LIBRARY")
+		add_compile_definitions(BOOST_LOG_DYN_LINK)
+	elseif(NOT USE_STATIC_BOOST)
+		message(STATUS "Shared Boost requested, but the available Boost::log target is ${BOOST_LOG_LIBRARY_TYPE}")
+	endif()
+elseif(NOT USE_STATIC_BOOST)
+	# Legacy FindBoost variables do not expose the selected library type.
+	add_compile_definitions(BOOST_LOG_DYN_LINK)
+endif()
+
+find_package(Eigen3 CONFIG QUIET)
 if(NOT Eigen3_FOUND)
-    find_package(Eigen3 3.3.0)
+    find_package(Eigen3 REQUIRED)
+endif()
+if(Eigen3_VERSION VERSION_LESS 3.3 OR Eigen3_VERSION VERSION_GREATER_EQUAL 6)
+	message(FATAL_ERROR "Found unsupported Eigen version ${Eigen3_VERSION}; expected Eigen >= 3.3 and < 6")
+endif()
+if(TARGET Eigen3::Eigen AND NOT EIGEN3_INCLUDE_DIRS)
+	get_target_property(EIGEN3_INCLUDE_DIRS Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
 endif()
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
@@ -257,34 +274,67 @@ endif()
 
 # Using local magic_enum header in 3rdparty directory
 
+# Pre-find dependencies for netCDF to ensure proper propagation of vcpkg variables
+find_package(ZLIB REQUIRED)
+find_package(CURL CONFIG)
+
+# Find NetCDF libraries using vcpkg's modern CMake config
 set(NETCDF_CXX "YES")
-find_package(NetCDF)
-if (NOT NetCDF_FOUND)
-	message(STATUS "NetCDF library not found, skip compiling loading packages.")
+find_package(netCDF CONFIG)
+find_package(netCDFCxx CONFIG)
+
+if (netCDF_FOUND AND netCDFCxx_FOUND)
+    set(NetCDF_FOUND TRUE)
+    message(STATUS "Found NetCDF C library via vcpkg")
+    message(STATUS "Found NetCDF C++ library via vcpkg")
+else()
+    # Fallback to legacy FindNetCDF.cmake for system installations
+    find_package(NetCDF)
+    if (NOT NetCDF_FOUND)
+        message(STATUS "NetCDF library not found, skip compiling loading packages.")
+    endif()
 endif()
 
 
-# message(STATUS "...NETCDF     >>>>>>   ${NETCDF_LIBRARIES}     ${NETCDF_INCLUDES}" )
-# message(STATUS "...NETCDF_C++ >>>>>>   ${NETCDF_LIBRARIES_CXX} ${NETCDF_INCLUDES_CXX}" )
-# find_package(netCDFCxx REQUIRED)
+if(BLA_VENDOR STREQUAL "OpenBLAS")
+    find_package(OpenBLAS CONFIG REQUIRED)
+    if(TARGET OpenBLAS::OpenBLAS)
+        set(BLAS_LIBRARIES OpenBLAS::OpenBLAS)
+    else()
+        set(BLAS_LIBRARIES ${OpenBLAS_LIBRARIES})
+    endif()
+    set(BLAS_INCLUDE_DIRS ${OpenBLAS_INCLUDE_DIRS})
 
-# set(OPENBLAS_USE_STATIC_LIBS ON)
-# set(BLA_VENDOR open)
+    set(_GINAN_OPENBLAS_LIBRARIES ${BLAS_LIBRARIES})
+    set(_GINAN_OPENBLAS_INCLUDE_DIRS ${BLAS_INCLUDE_DIRS})
+    find_package(LAPACK REQUIRED)
+    if(APPLE)
+        find_library(ACCELERATE_FRAMEWORK Accelerate REQUIRED)
+        set(LAPACK_LIBRARIES ${ACCELERATE_FRAMEWORK})
+    elseif(TARGET LAPACK::LAPACK)
+        set(LAPACK_LIBRARIES LAPACK::LAPACK)
+    elseif(NOT LAPACK_LIBRARIES)
+        # Some OpenBLAS installs include LAPACK symbols directly.
+        set(LAPACK_LIBRARIES ${_GINAN_OPENBLAS_LIBRARIES})
+    endif()
+    set(BLAS_LIBRARIES ${_GINAN_OPENBLAS_LIBRARIES})
+    set(BLAS_INCLUDE_DIRS ${_GINAN_OPENBLAS_INCLUDE_DIRS})
 
-find_package(BLAS REQUIRED)
-
-# Try to find LAPACK - OpenBLAS includes LAPACK so it may be found there
-find_package(LAPACK QUIET)
-
-if(LAPACK_FOUND)
-    message(STATUS "Found BLAS library:       ${BLAS_LIBRARIES}")
-    message(STATUS "Found LAPACK library:     ${LAPACK_LIBRARIES}")
+    message(STATUS "Using OpenBLAS for BLAS:       ${BLAS_LIBRARIES}")
+    message(STATUS "Using LAPACK library:         ${LAPACK_LIBRARIES}")
 else()
-    # OpenBLAS includes LAPACK but FindLAPACK might not detect it
-    # Use BLAS libraries which include LAPACK functionality
-    message(STATUS "Found BLAS library:       ${BLAS_LIBRARIES}")
-    message(STATUS "LAPACK not found separately - assuming BLAS includes LAPACK (OpenBLAS)")
-    set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
+    find_package(BLAS REQUIRED)
+    find_package(LAPACK QUIET)
+
+    if(LAPACK_FOUND)
+        message(STATUS "Found BLAS library:       ${BLAS_LIBRARIES}")
+        message(STATUS "Found LAPACK library:     ${LAPACK_LIBRARIES}")
+    else()
+        # OpenBLAS includes LAPACK but FindLAPACK might not detect it.
+        message(STATUS "Found BLAS library:       ${BLAS_LIBRARIES}")
+        message(STATUS "LAPACK not found separately - assuming BLAS includes LAPACK")
+        set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
+    endif()
 endif()
 
 if (YAML_CPP_LIB)
@@ -339,6 +389,8 @@ link_directories(/usr/lib64 ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 
 add_subdirectory(cpp)
+enable_testing()
+add_subdirectory(tests)
 
 
 message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")

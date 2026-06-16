@@ -534,7 +534,7 @@ void NtripUploader::messageTimeoutHandler(const boost::system::error_code& err)
                         case CompactSSRSubtype::CMB:
                         case CompactSSRSubtype::URA:
                             for (auto [sys, proc] :
-                                 acsConfig.process_sys)  // todo aaron, this is all just copying
+                                 acsConfig.process_sys)  // todo? this is all just copying
                                                          // stuff from one map to another
                                 if (proc)
                                 {

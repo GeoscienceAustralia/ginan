@@ -234,8 +234,7 @@ void getSatClksFromEph(
             ephType,
             E_OffsetType::COM,
             nav
-        );  // use both for now to get ssr
-            // clocks if required
+        );  // use both for now to get ssr clocks if required
         if (pass == false)
         {
             BOOST_LOG_TRIVIAL(warning)
@@ -466,7 +465,7 @@ void outputClocksSet(
     ClockEntry referenceRec;
     referenceRec.isRec = false;
 
-    switch (clkDataSatSrcs.front())  // todo aaron, remove this function
+    switch (clkDataSatSrcs.front())  // todo? remove this function
     {
         case E_Source::NONE:
             break;

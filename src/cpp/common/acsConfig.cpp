@@ -25,6 +25,7 @@
 #include "common/compare.hpp"
 #include "common/constants.hpp"
 #include "common/debug.hpp"
+#include "common/sanityCheckers/ConfigSanityManager.hpp"
 #include "configurator/htmlFooterTemplate.hpp"
 #include "configurator/htmlHeaderTemplate.hpp"
 #include "pea/inputsOutputs.hpp"
@@ -843,13 +844,15 @@ void outputDefaultSiblings(
                         while ((pos_end = enums.find(',', pos_start)) != string::npos)
                         {
                             string token = enums.substr(pos_start, pos_end - pos_start);
-                            pos_start    = pos_end + 1;
+                            boost::algorithm::trim(token);
+                            pos_start = pos_end + 1;
                             html << "\n"
                                  << htmlIndentor << "<option value='" << token << "'>" << token
                                  << "</option>";
                         }
                         // get last one
                         string token = enums.substr(pos_start);
+                        boost::algorithm::trim(token);
                         html << "\n"
                              << htmlIndentor << "<option value='" << token << "'>" << token
                              << "</option>";
@@ -1856,30 +1859,6 @@ bool tryGetEnumVec(
     return true;
 }
 
-/** Use pointer arithmetic to keep track of variables that have been initialised
- */
-template <typename BASE, typename COMP>
-void setInited(BASE& base, COMP& comp, bool init = true)
-{
-    if (init == false)
-    {
-        return;
-    }
-
-    int offset = (char*)(&comp) - (char*)(&base);
-
-    base.initialisedMap[offset] = true;
-}
-
-/** Set an option manually
- */
-template <typename BASE, typename COMP, typename VALUE>
-void setOption(BASE& base, COMP& comp, VALUE value)
-{
-    comp = value;
-    setInited(base, comp);
-}
-
 /** Set the variables associated with kalman filter states from yaml
  */
 void tryGetKalmanFromYaml(
@@ -2068,7 +2047,11 @@ bool tryGetMappedList(
     }
 
     vector<string> optsList;
-    found |= tryGetFromOpts(optsList, commandOpts, {key});
+    if (tryGetFromOpts(optsList, commandOpts, {key}))
+    {
+        found = true;
+        mappedList.clear();
+    }
 
     for (auto& value : optsList)
     {
@@ -2173,34 +2156,6 @@ void tryGetStreamFromYaml(
 const string estimation_parameters_str = "4! estimation_parameters";
 const string processing_options_str    = "2! processing_options";
 
-/** Copy one parameter to another, if it has been initialised.
- *
- * Use pointer arithmetic to determine the offset of another parameter within its parent structure,
- * assuming it has the same layout as this parameter in its parent.
- */
-template <typename CONTAINER, typename ELEMENT>
-bool initIfNeeded(CONTAINER& thisContainer, const CONTAINER& thatContainer, ELEMENT& thisElement)
-{
-    CONTAINER*       thisContainer_ptr = &thisContainer;
-    const CONTAINER* thatContainer_ptr = &thatContainer;
-    ELEMENT*         thisElement_ptr   = &thisElement;
-    ELEMENT*         thatElement_ptr   = (ELEMENT*)(((char*)thisElement_ptr) +
-                                          ((char*)thatContainer_ptr - (char*)thisContainer_ptr));
-
-    auto& thatElement = *thatElement_ptr;
-
-    if (isInited(thatContainer, thatElement))
-    {
-        thisElement = thatElement;
-
-        setInited(thisContainer, thisElement);
-
-        return true;
-    }
-
-    return false;
-}
-
 CommonOptions& CommonOptions::operator+=(const CommonOptions& rhs)
 {
     initIfNeeded(*this, rhs, exclude);
@@ -2287,9 +2242,9 @@ KalmanModel& KalmanModel::operator+=(const KalmanModel& rhs)
 
 SatelliteOptions& SatelliteOptions::operator+=(const SatelliteOptions& rhs)
 {
-    SatelliteKalmans ::operator+=(rhs);
-    CommonOptions ::   operator+=(rhs);
-    OrbitOptions ::    operator+=(rhs);
+    SatelliteKalmans::operator+=(rhs);
+    CommonOptions::operator+=(rhs);
+    OrbitOptions::operator+=(rhs);
 
     initIfNeeded(*this, rhs, error_model);
     initIfNeeded(*this, rhs, code_sigma);
@@ -2302,8 +2257,8 @@ SatelliteOptions& SatelliteOptions::operator+=(const SatelliteOptions& rhs)
 
 ReceiverOptions& ReceiverOptions::operator+=(const ReceiverOptions& rhs)
 {
-    ReceiverKalmans ::operator+=(rhs);
-    CommonOptions ::  operator+=(rhs);
+    ReceiverKalmans::operator+=(rhs);
+    CommonOptions::operator+=(rhs);
 
     rinex23Conv += rhs.rinex23Conv;
 
@@ -2312,6 +2267,7 @@ ReceiverOptions& ReceiverOptions::operator+=(const ReceiverOptions& rhs)
     initIfNeeded(*this, rhs, apriori_pos);
     initIfNeeded(*this, rhs, antenna_type);
     initIfNeeded(*this, rhs, receiver_type);
+    initIfNeeded(*this, rhs, meta_priority);
     initIfNeeded(*this, rhs, domes_number);
     initIfNeeded(*this, rhs, site_description);
 
@@ -3482,6 +3438,16 @@ void getOptionsFromYaml(
         );
     }
     {
+        auto& thing = recOpts.meta_priority;
+        bool  found = tryGetEnumVec(
+            thing,
+            recNode,
+            {"4@ meta_priority"},
+            "Priority order for resolving receiver metadata across config, sinex, rinex, and rtcm"
+        );
+        setInited(recOpts, thing, found);
+    }
+    {
         auto& thing = recOpts.domes_number;
         setInited(
             recOpts,
@@ -4346,10 +4312,8 @@ bool configure(
         ("yaml-defaults,Y", boost::program_options::value<int>(), "Print set of parsed parameters and their default values according to their priority level (1-3), and generate configurator.html for visual editing of yaml files")
         ("config_description,d", boost::program_options::value<string>(), "Configuration description")
         ("level,l", boost::program_options::value<int>(), "Trace level")
-        ("fatal_message_level,L", boost::program_options::value<int>(), "Fatal error level")
-        ("elevation_mask,e", boost::program_options::value<float>(), "Elevation Mask")
         ("max_epochs,n", boost::program_options::value<int>(), "Maximum Epochs")
-        ("epoch_interval,i", boost::program_options::value<float>(), "Epoch Interval")
+        ("epoch_interval,i", boost::program_options::value<double>(), "Epoch Interval")
         ("user,u", boost::program_options::value<string>(), "Username for RTCM streams")
         ("pass,p", boost::program_options::value<string>(), "Password for RTCM streams")
         ("config,y", boost::program_options::value<vector<string>>()->multitoken(), "Configuration file")
@@ -4364,34 +4328,30 @@ bool configure(
         ("dcb_files", boost::program_options::value<vector<string>>()->multitoken(), "Code Bias (DCB) files")
         ("bsx_files", boost::program_options::value<vector<string>>()->multitoken(), "Bias Sinex (BSX) files")
         ("ion_files", boost::program_options::value<vector<string>>()->multitoken(), "Ionosphere (IONEX) files")
-        ("igrf_files", boost::program_options::value<vector<string>>()->multitoken(), "Geomagnetic field coefficients (IGRF) file")
-        ("ocean_tide_loading_blq_files", boost::program_options::value<vector<string>>()->multitoken(), "BLQ (Ocean tidal loading) files")
-        ("atmos_tide_loading_blq_files", boost::program_options::value<vector<string>>()->multitoken(), "BLQ (Atmospheric tidal loading) files")
         ("erp_files", boost::program_options::value<vector<string>>()->multitoken(), "ERP files")
         ("rnx_inputs,r", boost::program_options::value<vector<string>>()->multitoken(), "RINEX receiver inputs")
         ("ubx_inputs", boost::program_options::value<vector<string>>()->multitoken(), "UBX receiver inputs")
         ("sbf_inputs", boost::program_options::value<vector<string>>()->multitoken(), "SBF receiver inputs")
         ("rtcm_inputs", boost::program_options::value<vector<string>>()->multitoken(), "RTCM receiver inputs")
-        ("egm_files", boost::program_options::value<vector<string>>()->multitoken(), "Earth gravity model coefficients file")
         ("crd_files", boost::program_options::value<vector<string>>()->multitoken(), "SLR CRD file")
-        ("slr_inputs", boost::program_options::value<vector<string>>()->multitoken(), "Tabular SLR OBS receiver file")
-        ("planetary_ephemeris_files", boost::program_options::value<vector<string>>()->multitoken(), "JPL planetary and lunar ephemerides file")
         ("inputs_root", boost::program_options::value<string>(), "Root to apply to non-absolute input locations")
         ("outputs_root", boost::program_options::value<string>(), "Root to apply to non-absolute output locations")
         ("start_epoch", boost::program_options::value<string>(), "Start date/time")
         ("end_epoch", boost::program_options::value<string>(), "Stop date/time")
+        ("dry-run", "Parse config, perform sanity checks, and exit")
         // 	("run_rts_only",					boost::program_options::value<string>(),						"RTS filename (without _xxxxx suffix)")
         ("dump-config-only", "Dump the configuration and exit")
         ("compare_clocks", "Compare clock files")
         ("compare_orbits", "Compare sp3 files")
-        ("compare_attitudes", "Compare orbex files")
-        ;
+        ("compare_attitudes", "Compare orbex files");
 
     boost::program_options::variables_map vm;
 
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
 
     boost::program_options::notify(vm);
+
+    acsConfig.dry_run = vm.count("dry-run");
 
     if (vm.count("help") || argc == 1)
     {
@@ -4548,195 +4508,8 @@ bool configure(
 
 void ACSConfig::sanityChecks()
 {
-    if (ionErrors.outage_reset_limit < epoch_interval)
-        BOOST_LOG_TRIVIAL(warning) << "ionospheric_components:outage_reset_limit < "
-                                      "epoch_interval, but it probably shouldnt be";
-
-    if (simulate_real_time == false)
-    {
-        for (E_Sys sys : magic_enum::enum_values<E_Sys>())
-        {
-            eph_time_delay[sys] = default_eph_time_delay[sys];
-        }
-    }
-
-    if (pppOpts.ionoOpts.use_if_combo)
-    {
-        for (auto& [id, recOpts] : recOptsMap)
-        {
-            if (recOpts.ionospheric_component2)
-            {
-                setOption(recOpts, recOpts.ionospheric_component2, false);
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Higher-order ionospheric corrections are not supported when "
-                       "use_if_combo is enabled, "
-                       "setting ionospheric_components:use_2nd_order to false";
-            }
-            if (recOpts.ionospheric_component3)
-            {
-                setOption(recOpts, recOpts.ionospheric_component3, false);
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Higher-order ionospheric corrections are not supported when "
-                       "use_if_combo is enabled, "
-                       "setting ionospheric_components:use_3rd_order to false";
-            }
-        }
-    }
-
-    if (process_sbas)
-    {
-        process_preprocessor = true;
-        process_spp          = true;
-
-        used_nav_types = sbsOpts.sbas_nav_types;
-
-        for (auto& [id, satOpts] : satOptsMap)
-        {
-            vector<E_Source> sources = {E_Source::SBAS};
-            setOption((CommonOptions&)satOpts, satOpts.posModel.enable, true);
-            setOption((CommonOptions&)satOpts, satOpts.posModel.sources, sources);
-            setOption((CommonOptions&)satOpts, satOpts.clockModel.enable, true);
-            setOption((CommonOptions&)satOpts, satOpts.clockModel.sources, sources);
-        }
-
-        switch (sbsOpts.mode)
-        {
-            case E_SbasMode::L1:
-            {
-                BOOST_LOG_TRIVIAL(info)
-                    << "L1 SBAS processing mode is selected, make sure that:\n"
-                       "   - You have inputs containing SBAS messages (sisnet, ems, sbf, etc.)\n"
-                       "   - Parameter `sbas_inputs: prec_approach` is set appropriately";
-
-                sbsInOpts.freq = 1;
-
-                for (auto& [sys, process] : process_sys)
-                {
-                    if (sys != E_Sys::GPS && sys != E_Sys::GLO && sys != E_Sys::SBS)
-                    {
-                        process = false;
-                    }
-                    else
-                    {
-                        code_priorities[sys] = {E_ObsCode::L1C};
-                    }
-                }
-
-                sppOpts.trop_models = {E_TropModel::SBAS};
-                sppOpts.iono_mode   = E_IonoMode::SBAS;
-
-                if (sppOpts.smooth_window != 100)
-                {
-                    sppOpts.smooth_window = 100;
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "It is recommended that a 100 second smoothing window be used for L1 "
-                           "SBAS. Changing configuration";
-                }
-                if (sppOpts.use_smooth_only == false)
-                {
-                    sppOpts.use_smooth_only = true;
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "It is NOT recommended that measurements be used for SBAS before "
-                           "smoothing. Changing configuration";
-                }
-
-                if (sbsOpts.use_sbas_rec_var == false)
-                {
-                    sbsOpts.use_sbas_rec_var = true;
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "It is recommended that measurement variance specific for SBAS are "
-                           "used. Changing configuration";
-                }
-
-                break;
-            }
-
-            case E_SbasMode::DFMC:
-            {
-                BOOST_LOG_TRIVIAL(info)
-                    << "DFMC processing mode is selected, make sure that:\n"
-                       "   - You have inputs containing SBAS messages (sisnet, ems, sbf, etc.)\n"
-                       "   - If using a service follwing DO-259 (instead of DO-259A), set "
-                       "`sbas_inputs: use_do259: true`\n"
-                       "   - If using measurements from GLO or BDS, set the `code_priorities` and "
-                       "`used_nav_type` properly\n";
-
-                sbsInOpts.freq        = 5;
-                sbsInOpts.pvs_on_dfmc = false;
-
-                for (auto& [sys, process] : process_sys)
-                {
-                    if (sys == E_Sys::GLO || sys == E_Sys::LEO)
-                    {
-                        process = false;
-                    }
-                    else if (sys != E_Sys::BDS)
-                    {
-                        code_priorities[sys] = sbsOpts.sbas_code_priorities_map[sys];
-                    }
-                }
-
-                sppOpts.trop_models = {E_TropModel::SBAS};
-                sppOpts.iono_mode   = E_IonoMode::SBAS;
-
-                if (sppOpts.smooth_window <
-                    0)  // Ken to update once the smooth window requirement is clear
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "It is recommended that a 100 second smoothing window be used for DFMC. "
-                           "Please check your configuration";
-
-                break;
-            }
-
-            case E_SbasMode::PVS:
-            {
-                BOOST_LOG_TRIVIAL(info)
-                    << "PVS-via-DFMC processing mode is selected, make sure that:\n"
-                       "   - You have inputs containing SBAS messages (sisnet, ems, sbf, etc.)\n"
-                       "   - The SBAS messages come from SouthPAN's DFMC services\n";
-
-                process_ppp = true;
-
-                sbsInOpts.freq        = 5;
-                sbsInOpts.pvs_on_dfmc = true;
-
-                for (auto& [sys, process] : process_sys)
-                {
-                    if (sys == E_Sys::GPS || sys == E_Sys::GAL)
-                    {
-                        process              = true;
-                        code_priorities[sys] = sbsOpts.sbas_code_priorities_map[sys];
-                    }
-                    else
-                    {
-                        process = false;
-                    }
-                }
-
-                for (auto& [id, recOpts] : recOptsMap)
-                {
-                    vector<E_TropModel> tropModels = {E_TropModel::GPT2};
-                    setOption(recOpts, recOpts.receiver_reference_system, E_Sys::GPS);
-                    setOption(recOpts, recOpts.tropModel.enable, true);
-                    setOption(recOpts, recOpts.tropModel.models, tropModels);
-                    setOption(recOpts, recOpts.tideModels.otl, false);
-                    setOption(recOpts, recOpts.tideModels.atl, false);
-                    setOption(recOpts, recOpts.tideModels.spole, false);
-                    setOption(recOpts, recOpts.tideModels.opole, false);
-                }
-
-                sppOpts.always_reinitialise = true;
-                pppOpts.use_primary_signals = true;
-                // pppOpts.receiver_chunking = true;  // Currently chunking may not work properly
-                errorAccumulation.enable      = true;
-                ambErrors.phase_reject_limit  = 2;
-                ambErrors.resetOnSlip.LLI     = true;
-                ambErrors.resetOnSlip.retrack = true;
-
-                break;
-            }
-        }
-    }
+    auto sanityManager = ConfigSanityManager::defaultManager();
+    sanityManager.runAllChecks(*this);
 }
 
 bool ACSConfig::parse()
@@ -4789,6 +4562,19 @@ bool ACSConfig::parse(
     satOptsMap.clear();
     recOptsMap.clear();
     defaultOutputOptions();
+    exclude_sinex_blocks.clear();
+
+    // Clear input stream definitions so a live config reload reflects removals as well as adds.
+    sisnet_inputs.clear();
+    nav_rtcm_inputs.clear();
+    qzs_rtcm_inputs.clear();
+    rnx_inputs.clear();
+    ubx_inputs.clear();
+    sbf_inputs.clear();
+    custom_inputs.clear();
+    obs_rtcm_inputs.clear();
+    pseudo_sp3_inputs.clear();
+    pseudo_snx_inputs.clear();
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
@@ -6271,6 +6057,13 @@ bool ACSConfig::parse(
                 "Allow adding inpuut files which do not (yet) exist"
             );
 
+            tryGetFromYaml(
+                exclude_sinex_blocks,
+                inputs,
+                {"@ exclude_sinex_blocks"},
+                "List of SINEX blocks to skip while parsing"
+            );
+
             auto getAppendFiles = [&](vector<string>& output,
                                       NodeStack&      nodeStack,
                                       const string&   descriptor,
@@ -6278,11 +6071,22 @@ bool ACSConfig::parse(
             {
                 vector<string> vec;
 
-                tryGetFromAny(vec, commandOpts, nodeStack, {descriptor}, comment);
+                bool foundOpts = tryGetFromOpts(vec, commandOpts, {descriptor});
+                if (foundOpts == false)
+                {
+                    tryGetFromYaml(vec, nodeStack, {descriptor}, comment);
+                }
 
                 conditionalPrefix("<INPUTS_ROOT>", vec);
 
-                output.insert(output.end(), vec.begin(), vec.end());
+                if (foundOpts)
+                {
+                    output = vec;
+                }
+                else
+                {
+                    output.insert(output.end(), vec.begin(), vec.end());
+                }
             };
 
             getAppendFiles(atx_files, inputs, {"4! atx_files"}, "List of atx files to use");
@@ -7701,15 +7505,6 @@ bool ACSConfig::parse(
                 }
 
                 {
-                    tryGetEnumOpt(
-                        filterOpts.inverter,
-                        nodeStack,
-                        {"@ inverter"},
-                        "Inverter to be used within the Kalman filter update stage, which may "
-                        "provide different "
-                        "performance outcomes in terms of processing time and accuracy and "
-                        "stability."
-                    );
                     tryGetFromYaml(
                         filterOpts.joseph_stabilisation,
                         nodeStack,

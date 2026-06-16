@@ -173,7 +173,7 @@ VectorPos ecef2pos(const VectorEcef& r)
 void pos2enu(
     const VectorPos& pos,
     double*          E
-)  // todo aaron, convert to return Matrix3d, check orientation
+)  // todo? convert to return Matrix3d, check orientation
 {
     double sinp = sin(pos.lat());
     double cosp = cos(pos.lat());

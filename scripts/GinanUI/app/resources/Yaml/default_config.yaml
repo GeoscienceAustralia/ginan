@@ -10,8 +10,12 @@ inputs:
         gpt2grid_files: [tables/gpt_25.grd] #AUTO
 
     tides:
-        ocean_tide_loading_blq_files: [tables/OLOAD_GO.BLQ] #AUTO # Required if ocean loading is applied
-        atmos_tide_loading_blq_files: [tables/ALOAD_GO.BLQ] #AUTO # Required if atmospheric tide loading is applied
+        ocean_tide_loading_blq_files: #AUTO # Required if ocean loading is applied
+            - tables/OLOAD_GO.BLQ
+            - "*_ocean.BLQ"
+        atmos_tide_loading_blq_files: #AUTO # Required if atmospheric tide loading is applied
+            - tables/ALOAD_GO.BLQ
+            - "*_atmos.BLQ"
         ocean_pole_tide_loading_files: [tables/opoleloadcoefcmcor.txt] #AUTO # Required if ocean pole tide loading is applied
 
     snx_files:
@@ -57,12 +61,15 @@ outputs:
     trace:
       level: 2
       output_receivers: false
-      output_network: true #USER_SET
+      output_network: false #USER_SET
       receiver_filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
       network_filename: <CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE
       output_residuals: true
       output_residual_chain: true
       output_config: true
+    sinex:
+        output: false #USER_SET
+        filename: <RECEIVER>_<CONFIG>_<YYYY><DDD><HH>.SNX
 
 
 
@@ -226,7 +233,6 @@ processing_options:
             enable: true
             lag: -1
             # interval:               86400
-            inverter: LDLT # Inverter to be used within the rts processor, which may provide different performance outcomes in terms of processing time and accuracy and stability
             filename: <CONFIG>_<RECEIVER>.rts
         periodic_reset:
             # enable:                 true

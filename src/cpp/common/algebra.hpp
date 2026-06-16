@@ -513,9 +513,9 @@ struct KFState : KFState_
     KFState()
     {
         // initialise all filter state objects with a ONE element for later use.
-        x  = VectorXd ::Ones(1);
-        P  = MatrixXd ::Zero(1, 1);
-        dx = VectorXd ::Zero(1);
+        x  = VectorXd::Ones(1);
+        P  = MatrixXd::Zero(1, 1);
+        dx = VectorXd::Zero(1);
 
         kfIndexMap[oneKey] = 0;
 
@@ -688,10 +688,11 @@ struct KFState : KFState_
         VectorXd& dx,
         MatrixXd& Qinv,
         MatrixXd& QinvH,
-        int       begX = 0,
-        int       numX = -1,
-        int       begH = 0,
-        int       numH = -1
+        int       begX           = 0,
+        int       numX           = -1,
+        int       begH           = 0,
+        int       numH           = -1,
+        bool      resetOnFailure = true
     );
 
     bool leastSquare(Trace& trace, KFMeas& kfMeas, VectorXd& xp, MatrixXd& Pp);
@@ -901,15 +902,15 @@ double  dot(const double* a, const double* b, int n);
 double  norm(const double* a, int n);
 void    matcpy(double* A, const double* B, int n, int m);
 void    matmul(
-       const char*   tr,
-       int           n,
-       int           k,
-       int           m,
-       double        alpha,
-       const double* A,
-       const double* B,
-       double        beta,
-       double*       C
-   );
+    const char*   tr,
+    int           n,
+    int           k,
+    int           m,
+    double        alpha,
+    const double* A,
+    const double* B,
+    double        beta,
+    double*       C
+);
 int matinv(double* A, int n);
 int solve(const char* tr, const double* A, const double* Y, int n, int m, double* X);

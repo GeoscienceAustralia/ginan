@@ -2,7 +2,7 @@
 
 # Ginan: GNSS Analysis Software Toolkit
 
-[![Version](https://img.shields.io/badge/version-v4.1.1-blue.svg)](https://github.com/GeoscienceAustralia/ginan/releases)
+[![Version](https://img.shields.io/badge/version-v4.1.2-blue.svg)](https://github.com/GeoscienceAustralia/ginan/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](#supported-platforms)
 [![Docker](https://img.shields.io/badge/docker-available-blue.svg)](https://hub.docker.com/r/gnssanalysis/ginan)
@@ -29,8 +29,7 @@ McClusky, Simon; Hammond, Aaron; Maj, Ronald; Allgeyer, Sébastien; Harima, Ken;
    - [Precompiled binaries](#precompiled-binaries)
    - [Installation from Source](#installation-from-source)
       - [Tested Platforms](#tested-platforms)
-      - [Prerequisites](#prerequisites)
-      - [Build Process using `vcpkg` + CMake presets (Recommanded)](#build-process-using-vcpkg--cmake-presets-recommanded)
+      - [Recommended Source Build: `vcpkg` + CMake Presets](#recommended-source-build-vcpkg--cmake-presets)
       - [Legacy: manual `cmake` + `make` instructions](#legacy-manual-cmake---make-instructions)
    - [Python Environment Setup](#python-environment-setup)
 - [Getting Started with the examples](#getting-started-with-the-examples)
@@ -57,7 +56,7 @@ The fastest way to get started with Ginan is using Docker:
 
 ```bash
 # Pull and run the latest Ginan container
-docker run -it -v $(pwd):/data gnssanalysis/ginan:v4.1.1 bash
+docker run -it -v "$(pwd):/data" gnssanalysis/ginan:v4.1.2 bash
 
 # Verify installation
 pea --help
@@ -112,26 +111,33 @@ The software consists of three main components:
 
 ## Installation
 
-Choose the installation method that best fits your needs:
+Choose one of the paths below:
+
+| Method | Best for | Notes |
+|--------|----------|-------|
+| Docker | Most users, tutorials, reproducible runs | Includes Ginan and its runtime dependencies. |
+| Precompiled binaries | Users who want a native executable without building | Available from GitHub Releases for Linux, macOS, and Windows. |
+| Source build with `vcpkg` | Developers and users who need a custom build | Recommended source-build path. |
+| Legacy/manual source build | Sites with system-managed dependencies | Best-effort support; use only when `vcpkg` is not suitable. |
 
 ### Using Ginan with Docker
 
-**Recommended for most users** - Get started quickly with a pre-configured environment:
+**Recommended for most users.** Docker is the fastest way to run Ginan with a known-good environment.
+
+Prerequisite: install [Docker](https://docs.docker.com/get-docker/).
 
 ```bash
-# Run Ginan container with data volume mounting
-docker run -it -v ${pwd}:/data gnssanalysis/ginan:v4.1.1 bash
+# Run Ginan container with data volume mounting on Linux/macOS
+docker run -it -v "$(pwd):/data" gnssanalysis/ginan:v4.1.2 bash
+
+# PowerShell equivalent on Windows
+docker run -it -v "${PWD}:/data" gnssanalysis/ginan:v4.1.2 bash
 ```
 
-This command:
-
-- Mounts your current directory (`${pwd}`) to `/data` in the container
-- Provides access to all Ginan tools and dependencies
-- Opens an interactive bash shell
-
-**Prerequisites:** [Docker](https://docs.docker.com/get-docker/) must be installed on your system.
+The command mounts your current directory to `/data` in the container and opens an interactive shell with Ginan available.
 
 **Verify installation:**
+
 ```bash
 pea --help
 ```
@@ -146,7 +152,7 @@ We publish builds for the following platforms:
 - macOS (arm64 and x86_64)
 - Windows (x86_64)
 
-These artifacts are provided for convenience and have been tested on our CI runners and a subset of target systems. They may not work on every configuration — if you encounter problems please try the Docker image or build from source (see the Build Process section) and open an issue on GitHub with your OS and steps to reproduce.
+These artifacts are provided for convenience and have been tested on our CI runners and a subset of target systems. They may not work on every configuration — if you encounter problems please try the Docker image or build from source, and open an issue on GitHub with your OS and steps to reproduce.
 
 Note about Windows binaries: We have observed an output file-size limitation on Windows builds where RTS/output files appear limited at about 2.1 GB (roughly equivalent to a PPP processing of two stations over one day at 30 s resolution). If you require larger RTS outputs, run the processing on Linux/macOS (or in the Docker image) or build from source on a platform without this limitation. We plan to implement a permanent solution in a future release.
 
@@ -162,80 +168,84 @@ Note about Windows binaries: We have observed an output file-size limitation on 
 | **macOS** | 10.15+ (x86) | Limited testing |
 | **Windows** | 10+ |  Limited testing|
 
-#### Prerequisites
+#### Recommended Source Build: `vcpkg` + CMake Presets
 
-##### System Dependencies
+The recommended source build uses the repository's CMake presets and `vcpkg` manifest. This keeps dependency versions close to the CI/release builds.
 
-**Compilers:**
+Prerequisites:
 
-- GCC/G++ (recommended, tested and supported) or equivalent C/C++ compiler
+- CMake 3.22 or newer
+- A C/C++ compiler for your platform
+- Git
+- `vcpkg`, installed or cloned as shown below
 
-**Required Dependencies:**  
-
-- **CMake** ≥ 3.0  
-
-- **YAML** ≥ 0.6  
-
-- **Boost** ≥ 1.75 
- 
-
-- **Eigen3** ≥ 3.4  
-
-- **OpenBLAS** (provides BLAS and LAPACK)  
-
-**Optional Dependencies:**
-
-- **Mongo C Driver** ≥ 1.17.1  
-
-- **Mongo C++ Driver** ≥ 3.6.0 (= 3.7.0 for GCC 11+) 
-
-- **MongoDB** (for database features)  
-
-- **netCDF4**  (for tidal loading computation)
-
-- **Python** ≥ 3.9  
-
-#### Build Process using `vcpkg` + CMake presets (Recommanded)
-
-We recommend using `vcpkg` for dependency management together with the repository CMake presets.
-
-1. Bootstrap and install `vcpkg` (from repository root):
+From the repository root:
 
 ```bash
-# Clone/bootstrap vcpkg (if not present)
-./vcpkg/bootstrap-vcpkg.sh 
+export VCPKG_ROOT="$PWD/vcpkg"
+export VCPKG_COMMIT="4c5ae6b55f3e3e39d291679f89822f496cf190ee"
 
-# Install packages for your target triplet (example: Linux x86_64)
-./vcpkg/vcpkg install --triplet x64-linux --x-install-root=./vcpkg_installed
-# For macOS: use `arm64-osx` or `x64-osx`. For Windows cross builds (on linux) use `x64-mingw-static`.
+git clone https://github.com/Microsoft/vcpkg.git "$VCPKG_ROOT"
+git -C "$VCPKG_ROOT" fetch --depth 1 origin "$VCPKG_COMMIT"
+git -C "$VCPKG_ROOT" checkout --detach "$VCPKG_COMMIT"
+"$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 ```
 
-2. Configure and build with a CMake preset (run from `src`):
+If you already have `vcpkg` installed elsewhere, set `VCPKG_ROOT` to that directory and skip the clone commands.
+
+On Windows PowerShell:
+
+```powershell
+$env:VCPKG_ROOT = "$PWD\vcpkg"
+$env:VCPKG_COMMIT = "4c5ae6b55f3e3e39d291679f89822f496cf190ee"
+
+git clone https://github.com/Microsoft/vcpkg.git $env:VCPKG_ROOT
+git -C $env:VCPKG_ROOT fetch --depth 1 origin $env:VCPKG_COMMIT
+git -C $env:VCPKG_ROOT checkout --detach $env:VCPKG_COMMIT
+& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+```
+
+Then configure and build from `src` using the preset for your platform:
 
 ```bash
 cd src
-# Choose the preset that matches your platform (examples: `release`, `macos-arm64-release`, `macos-x64-release`, `windows-cross-release`)
 cmake --preset release
 cmake --build --preset release
-
-# Or build the preset directory directly (example for Linux):
-cmake --build build/linux-Release --parallel $(nproc)
 ```
 
-Note on loading / netCDF: the ocean-tide loading components currently have known problems when built from the `vcpkg` dependency set due to issues with the `netcdf` package in some vcpkg triplets. If you rely on tidal-loading features (the `make_otl_blq` target and related tools), either:
+Common release presets:
 
-- Build those components from source using your system `netcdf` (install `netcdf`/`netcdf-c` via the OS package manager and use the legacy `cmake`/`make` flow), or
-- Track the vcpkg `netcdf` fixes and retry when upstream provides a compatible package for your target triplet.
+| Platform | Configure/build preset |
+|----------|------------------------|
+| Linux x86_64 | `release` |
+| macOS Apple silicon | `macos-arm64-release` |
+| macOS Intel | `macos-x64-release` |
+| Windows native | `windows-release` |
+| Windows cross-compile from Linux | `windows-cross-release` |
 
-If you need help reproducing or a suggested workaround for your platform, open an issue with your OS/triplet and vcpkg versions.
+For example, on Apple silicon:
 
-Notes:
-- The CI uses `--x-install-root=./vcpkg_installed` to install packages locally for reproducible builds.
-- If you prefer not to use `vcpkg`, the legacy manual flow below remains supported.
+```bash
+cd src
+cmake --preset macos-arm64-release
+cmake --build --preset macos-arm64-release
+```
+
+Build outputs are written to the repository-level `bin/` and `lib/` directories.
+
+Verify the build:
+
+```bash
+../bin/pea --help
+```
+
+The CMake presets use platform-specific dependency install roots under `./vcpkg_installed/`. If a configure step fails after changing triplets or branches, remove the relevant preset build directory under `src/build/` and configure again.
+
+**OpenBLAS threading:** Ginan can use OpenMP while OpenBLAS may also use worker threads. If you see warnings such as `OpenBLAS Warning : Detect OpenMP Loop and this application may hang`, set `OPENBLAS_NUM_THREADS=1` so BLAS/LAPACK calls run single-threaded inside Ginan's OpenMP regions.
 
 #### Legacy: manual `cmake` + `make` instructions
 
-##### Quick Installation Scripts (legacy)
+Use this path only if you need system-managed dependencies instead of `vcpkg`.
 
 Pre-written installation scripts are available in `scripts/installation/` for systems where you prefer distro-specific package installation instead of `vcpkg`:
 
@@ -256,7 +266,7 @@ Pre-written installation scripts are available in `scripts/installation/` for sy
 cat scripts/installation/generic.md
 ```
 
-**Note:** These scripts are maintained as best-effort and may require adjustments for your environment. If you are using the `vcpkg` + CMake presets workflow, follow the `vcpkg` steps in the Build Process section instead.
+These scripts are maintained as best-effort and may require adjustments for your environment.
 
 The older manual flow is still available for users who prefer it:
 
@@ -294,7 +304,7 @@ cd ../../exampleConfigs
 
 Expected output:
 ```
-PEA starting... (main ginan-v4.1.1 from ...)
+PEA starting... (main ginan-v4.1.2 from ...)
 Options:
   -h [ --help ]     Help
   -q [ --quiet ]    Less output
@@ -330,9 +340,10 @@ Congratulations! Ginan is now ready to use. The examples in `exampleConfigs/` pr
 
 - **Working directory:** All examples must be run from the `exampleConfigs/` directory due to relative paths
 - **MongoDB:** If MongoDB is not installed, set `mongo: enable: None` in configuration files
-- **Performance tip:** For single-station PPP, limit cores to improve performance:
+- **Threading:** Ginan can use OpenMP while OpenBLAS may also use its own worker threads. If you see warnings such as `OpenBLAS Warning : Detect OpenMP Loop and this application may hang`, set `OPENBLAS_NUM_THREADS=1` so BLAS/LAPACK calls run single-threaded inside Ginan's OpenMP regions. `GOTO_NUM_THREADS=1` is also recognised by OpenBLAS-compatible builds.
+- **Performance tip:** For single-station PPP, limit OpenMP cores to improve performance:
   ```bash
-  OMP_NUM_THREADS=1 ../bin/pea --config ppp_example.yaml
+  OPENBLAS_NUM_THREADS=1 GOTO_NUM_THREADS=1 OMP_NUM_THREADS=1 ../bin/pea --config ppp_example.yaml
   ```
 
 
@@ -462,4 +473,4 @@ All incorporated code has been preserved with appropriate modifications in the `
 
 ---
 
-**Developed by [Geoscience Australia](https://www.ga.gov.au/)** | **Version 4.1.1** | **[GitHub Repository](https://github.com/GeoscienceAustralia/ginan)**
+**Developed by [Geoscience Australia](https://www.ga.gov.au/)** | **Version 4.1.2** | **[GitHub Repository](https://github.com/GeoscienceAustralia/ginan)**

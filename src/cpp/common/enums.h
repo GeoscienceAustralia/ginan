@@ -51,6 +51,28 @@ typedef enum
     SVH_UNHEALTHY = -1  // implicitly used in rtcm
 } E_Svh;
 
+typedef enum
+{
+    P_ANT,  // P: antenna //todo: check the meaning of 'P'
+    L_LRA   // L: laser retroreflector array
+} E_EccType;
+
+typedef enum
+{
+    ESTIMATE,
+    APRIORI,
+    NORMAL_EQN,
+    MAX_MATRIX_TYPE
+} matrix_type;
+
+typedef enum
+{
+    CORRELATION,
+    COVARIANCE,
+    INFORMATION,
+    MAX_MATRIX_VALUE
+} matrix_value;
+
 /**
  * Warning: do not change the order, used by RAIM
  * The larger is the number better the solution is.
@@ -799,14 +821,16 @@ enum class E_SbasId : short int
 enum class RtcmMessageType : uint16_t
 {
     NONE = 0,
-
-    GPS_EPHEMERIS = 1,
+    STATIONARY_RTK_REF_ARP,         // 1005
+    STATIONARY_RTK_REF_ARP_HEIGHT,  // 1006
+    ANTENNA_DESCRIPTOR,             // 1007
+    ANTENNA_DESCRIPTOR_SN,          // 1008 (with serial number)
+    GPS_EPHEMERIS,
     GLO_EPHEMERIS,
     BDS_EPHEMERIS,
     QZS_EPHEMERIS,
     GAL_FNAV_EPHEMERIS,
     GAL_INAV_EPHEMERIS,
-
     GPS_SSR_ORB_CORR,
     GPS_SSR_CLK_CORR,
     GPS_SSR_CODE_BIAS,
@@ -814,7 +838,6 @@ enum class RtcmMessageType : uint16_t
     GPS_SSR_URA,
     GPS_SSR_HR_CLK_CORR,
     GPS_SSR_PHASE_BIAS,
-
     GLO_SSR_ORB_CORR,
     GLO_SSR_CLK_CORR,
     GLO_SSR_CODE_BIAS,
@@ -822,32 +845,28 @@ enum class RtcmMessageType : uint16_t
     GLO_SSR_URA,
     GLO_SSR_HR_CLK_CORR,
     GLO_SSR_PHASE_BIAS,
-
     MSM4_GPS,
     MSM5_GPS,
     MSM6_GPS,
     MSM7_GPS,
-
     MSM4_GLONASS,
     MSM5_GLONASS,
     MSM6_GLONASS,
     MSM7_GLONASS,
-
     MSM4_GALILEO,
     MSM5_GALILEO,
     MSM6_GALILEO,
     MSM7_GALILEO,
-
     MSM4_QZSS,
     MSM5_QZSS,
     MSM6_QZSS,
     MSM7_QZSS,
-
     MSM4_BEIDOU,
     MSM5_BEIDOU,
     MSM6_BEIDOU,
     MSM7_BEIDOU,
-
+    PHYSICAL_REF_STATION_POSITION,  // 1032
+    ANTENNA_RECEIVER_DESCRIPTOR,    // 1033
     GAL_SSR_ORB_CORR,
     GAL_SSR_CLK_CORR,
     GAL_SSR_CODE_BIAS,
@@ -855,7 +874,6 @@ enum class RtcmMessageType : uint16_t
     GAL_SSR_URA,
     GAL_SSR_HR_CLK_CORR,
     GAL_SSR_PHASE_BIAS,
-
     QZS_SSR_ORB_CORR,
     QZS_SSR_CLK_CORR,
     QZS_SSR_CODE_BIAS,
@@ -863,7 +881,6 @@ enum class RtcmMessageType : uint16_t
     QZS_SSR_URA,
     QZS_SSR_HR_CLK_CORR,
     QZS_SSR_PHASE_BIAS,
-
     SBS_SSR_ORB_CORR,
     SBS_SSR_CLK_CORR,
     SBS_SSR_CODE_BIAS,
@@ -871,7 +888,6 @@ enum class RtcmMessageType : uint16_t
     SBS_SSR_URA,
     SBS_SSR_HR_CLK_CORR,
     SBS_SSR_PHASE_BIAS,
-
     BDS_SSR_ORB_CORR,
     BDS_SSR_CLK_CORR,
     BDS_SSR_CODE_BIAS,
@@ -879,7 +895,6 @@ enum class RtcmMessageType : uint16_t
     BDS_SSR_URA,
     BDS_SSR_HR_CLK_CORR,
     BDS_SSR_PHASE_BIAS,
-
     COMPACT_SSR,
     IGS_SSR,
     CUSTOM
@@ -892,10 +907,22 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
     {
         case RtcmMessageType::NONE:
             return 0;
+        case RtcmMessageType::STATIONARY_RTK_REF_ARP:
+            return 1005;
+        case RtcmMessageType::STATIONARY_RTK_REF_ARP_HEIGHT:
+            return 1006;
+        case RtcmMessageType::ANTENNA_DESCRIPTOR:
+            return 1007;
+        case RtcmMessageType::ANTENNA_DESCRIPTOR_SN:
+            return 1008;
         case RtcmMessageType::GPS_EPHEMERIS:
             return 1019;
         case RtcmMessageType::GLO_EPHEMERIS:
             return 1020;
+        case RtcmMessageType::PHYSICAL_REF_STATION_POSITION:
+            return 1032;
+        case RtcmMessageType::ANTENNA_RECEIVER_DESCRIPTOR:
+            return 1033;
         case RtcmMessageType::BDS_EPHEMERIS:
             return 1042;
         case RtcmMessageType::QZS_EPHEMERIS:
@@ -904,7 +931,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1045;
         case RtcmMessageType::GAL_INAV_EPHEMERIS:
             return 1046;
-
         case RtcmMessageType::GPS_SSR_ORB_CORR:
             return 1057;
         case RtcmMessageType::GPS_SSR_CLK_CORR:
@@ -919,7 +945,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1062;
         case RtcmMessageType::GPS_SSR_PHASE_BIAS:
             return 1265;
-
         case RtcmMessageType::GLO_SSR_ORB_CORR:
             return 1063;
         case RtcmMessageType::GLO_SSR_CLK_CORR:
@@ -934,7 +959,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1068;
         case RtcmMessageType::GLO_SSR_PHASE_BIAS:
             return 1266;
-
         case RtcmMessageType::MSM4_GPS:
             return 1074;
         case RtcmMessageType::MSM5_GPS:
@@ -943,7 +967,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1076;
         case RtcmMessageType::MSM7_GPS:
             return 1077;
-
         case RtcmMessageType::MSM4_GLONASS:
             return 1084;
         case RtcmMessageType::MSM5_GLONASS:
@@ -952,7 +975,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1086;
         case RtcmMessageType::MSM7_GLONASS:
             return 1087;
-
         case RtcmMessageType::MSM4_GALILEO:
             return 1094;
         case RtcmMessageType::MSM5_GALILEO:
@@ -961,7 +983,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1096;
         case RtcmMessageType::MSM7_GALILEO:
             return 1097;
-
         case RtcmMessageType::MSM4_QZSS:
             return 1114;
         case RtcmMessageType::MSM5_QZSS:
@@ -970,7 +991,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1116;
         case RtcmMessageType::MSM7_QZSS:
             return 1117;
-
         case RtcmMessageType::MSM4_BEIDOU:
             return 1124;
         case RtcmMessageType::MSM5_BEIDOU:
@@ -979,7 +999,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1126;
         case RtcmMessageType::MSM7_BEIDOU:
             return 1127;
-
         case RtcmMessageType::GAL_SSR_ORB_CORR:
             return 1240;
         case RtcmMessageType::GAL_SSR_CLK_CORR:
@@ -994,7 +1013,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1245;
         case RtcmMessageType::GAL_SSR_PHASE_BIAS:
             return 1267;
-
         case RtcmMessageType::QZS_SSR_ORB_CORR:
             return 1246;
         case RtcmMessageType::QZS_SSR_CLK_CORR:
@@ -1009,7 +1027,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1251;
         case RtcmMessageType::QZS_SSR_PHASE_BIAS:
             return 1268;
-
         case RtcmMessageType::SBS_SSR_ORB_CORR:
             return 1252;
         case RtcmMessageType::SBS_SSR_CLK_CORR:
@@ -1024,7 +1041,6 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1257;
         case RtcmMessageType::SBS_SSR_PHASE_BIAS:
             return 1269;
-
         case RtcmMessageType::BDS_SSR_ORB_CORR:
             return 1258;
         case RtcmMessageType::BDS_SSR_CLK_CORR:
@@ -1039,14 +1055,12 @@ inline constexpr uint16_t rtcmTypeToMessageNumber(RtcmMessageType type)
             return 1263;
         case RtcmMessageType::BDS_SSR_PHASE_BIAS:
             return 1270;
-
         case RtcmMessageType::COMPACT_SSR:
             return 4073;
         case RtcmMessageType::IGS_SSR:
             return 4076;
         case RtcmMessageType::CUSTOM:
             return 4082;
-
         default:
             return 0;
     }
@@ -1059,10 +1073,22 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
     {
         case 0:
             return RtcmMessageType::NONE;
+        case 1005:
+            return RtcmMessageType::STATIONARY_RTK_REF_ARP;
+        case 1006:
+            return RtcmMessageType::STATIONARY_RTK_REF_ARP_HEIGHT;
+        case 1007:
+            return RtcmMessageType::ANTENNA_DESCRIPTOR;
+        case 1008:
+            return RtcmMessageType::ANTENNA_DESCRIPTOR_SN;
         case 1019:
             return RtcmMessageType::GPS_EPHEMERIS;
         case 1020:
             return RtcmMessageType::GLO_EPHEMERIS;
+        case 1032:
+            return RtcmMessageType::PHYSICAL_REF_STATION_POSITION;
+        case 1033:
+            return RtcmMessageType::ANTENNA_RECEIVER_DESCRIPTOR;
         case 1042:
             return RtcmMessageType::BDS_EPHEMERIS;
         case 1044:
@@ -1071,7 +1097,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::GAL_FNAV_EPHEMERIS;
         case 1046:
             return RtcmMessageType::GAL_INAV_EPHEMERIS;
-
         case 1057:
             return RtcmMessageType::GPS_SSR_ORB_CORR;
         case 1058:
@@ -1086,7 +1111,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::GPS_SSR_HR_CLK_CORR;
         case 1265:
             return RtcmMessageType::GPS_SSR_PHASE_BIAS;
-
         case 1063:
             return RtcmMessageType::GLO_SSR_ORB_CORR;
         case 1064:
@@ -1101,7 +1125,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::GLO_SSR_HR_CLK_CORR;
         case 1266:
             return RtcmMessageType::GLO_SSR_PHASE_BIAS;
-
         case 1074:
             return RtcmMessageType::MSM4_GPS;
         case 1075:
@@ -1110,7 +1133,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::MSM6_GPS;
         case 1077:
             return RtcmMessageType::MSM7_GPS;
-
         case 1084:
             return RtcmMessageType::MSM4_GLONASS;
         case 1085:
@@ -1119,7 +1141,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::MSM6_GLONASS;
         case 1087:
             return RtcmMessageType::MSM7_GLONASS;
-
         case 1094:
             return RtcmMessageType::MSM4_GALILEO;
         case 1095:
@@ -1128,7 +1149,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::MSM6_GALILEO;
         case 1097:
             return RtcmMessageType::MSM7_GALILEO;
-
         case 1114:
             return RtcmMessageType::MSM4_QZSS;
         case 1115:
@@ -1137,7 +1157,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::MSM6_QZSS;
         case 1117:
             return RtcmMessageType::MSM7_QZSS;
-
         case 1124:
             return RtcmMessageType::MSM4_BEIDOU;
         case 1125:
@@ -1146,7 +1165,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::MSM6_BEIDOU;
         case 1127:
             return RtcmMessageType::MSM7_BEIDOU;
-
         case 1240:
             return RtcmMessageType::GAL_SSR_ORB_CORR;
         case 1241:
@@ -1161,7 +1179,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::GAL_SSR_HR_CLK_CORR;
         case 1267:
             return RtcmMessageType::GAL_SSR_PHASE_BIAS;
-
         case 1246:
             return RtcmMessageType::QZS_SSR_ORB_CORR;
         case 1247:
@@ -1176,7 +1193,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::QZS_SSR_HR_CLK_CORR;
         case 1268:
             return RtcmMessageType::QZS_SSR_PHASE_BIAS;
-
         case 1252:
             return RtcmMessageType::SBS_SSR_ORB_CORR;
         case 1253:
@@ -1191,7 +1207,6 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::SBS_SSR_HR_CLK_CORR;
         case 1269:
             return RtcmMessageType::SBS_SSR_PHASE_BIAS;
-
         case 1258:
             return RtcmMessageType::BDS_SSR_ORB_CORR;
         case 1259:
@@ -1206,14 +1221,12 @@ inline constexpr RtcmMessageType messageNumberToRtcmType(uint16_t msgNum)
             return RtcmMessageType::BDS_SSR_HR_CLK_CORR;
         case 1270:
             return RtcmMessageType::BDS_SSR_PHASE_BIAS;
-
         case 4073:
             return RtcmMessageType::COMPACT_SSR;
         case 4076:
             return RtcmMessageType::IGS_SSR;
         case 4082:
             return RtcmMessageType::CUSTOM;
-
         default:
             return RtcmMessageType::NONE;
     }
@@ -1311,6 +1324,7 @@ enum class E_Source : short int
 {
     NONE,
     SPP,
+    META,
     CONFIG,
     PRECISE,
     SSR,
@@ -1321,6 +1335,15 @@ enum class E_Source : short int
     MODEL,
     PSEUDO,
     REMOTE
+};
+
+enum class E_ReceiverMetaSource : short int
+{
+    NONE,
+    CONFIG,
+    SINEX,
+    RINEX,
+    RTCM
 };
 
 enum class E_OrbexRecord : short int
@@ -1355,7 +1378,7 @@ enum class E_CrdEpochEvent : int
 
 enum class E_ObsAgeCode : short int
 {
-    OK,
+    UNKNOWN,
     NO_OBS,
     PAST_OBS,
     CURRENT_OBS,

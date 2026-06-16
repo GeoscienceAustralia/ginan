@@ -22,8 +22,7 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
 
     if (acsConfig.measErrors.enable == false)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Bad measurement detected but `meas_deweighting` not enabled";
+        BOOST_LOG_TRIVIAL(warning) << "Bad measurement detected but `meas_deweighting` not enabled";
 
         return true;
     }
@@ -38,7 +37,7 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
     string description;
     if (stage == E_FilterStage::LSQ)
     {
-        description = "Least Squares";
+        description = "LeastSquares";
         residual    = kfMeas.VV(measIndex);
     }
     else if (stage == E_FilterStage::PREFIT)
@@ -77,7 +76,7 @@ bool deweightMeas(RejectCallbackDetails rejectDetails)
     {
         GObs& obs = *obs_ptr;
 
-        obs.excludeOutlier = true;  // todo Eugene: exclude signal instead of obs
+        obs.excludeOutlier = true;  // todo? exclude signal instead of obs
 
         trace << "\n" << obs.Sat.id() << " will be excluded next SPP iteration";
     }
@@ -136,7 +135,31 @@ bool deweightStationMeas(RejectCallbackDetails rejectDetails)
     auto& measIndex = rejectDetails.measIndex;
     auto& stage     = rejectDetails.stage;
 
+    if (acsConfig.measErrors.enable == false)
+    {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Bad station measurement detected but `meas_deweighting` not enabled";
+
+        return true;
+    }
+
+    double deweightFactor = acsConfig.measErrors.deweight_factor;
+
     string id = kfMeas.obsKeys[measIndex].str;
+
+    string description;
+    if (stage == E_FilterStage::LSQ)
+    {
+        description = "LeastSquares";
+    }
+    else if (stage == E_FilterStage::PREFIT)
+    {
+        description = "Prefit";
+    }
+    else if (stage == E_FilterStage::POSTFIT)
+    {
+        description = "Postfit";
+    }
 
     for (int i = 0; i < kfMeas.obsKeys.size(); i++)
     {
@@ -145,22 +168,6 @@ bool deweightStationMeas(RejectCallbackDetails rejectDetails)
         if (key.str != id)
         {
             continue;
-        }
-
-        double deweightFactor = acsConfig.measErrors.deweight_factor;
-
-        string description;
-        if (stage == E_FilterStage::LSQ)
-        {
-            description = "Least Squares";
-        }
-        else if (stage == E_FilterStage::PREFIT)
-        {
-            description = "Prefit";
-        }
-        else if (stage == E_FilterStage::POSTFIT)
-        {
-            description = "Postfit";
         }
 
         addRejectDetails(kfState.time, trace, kfState, key, "Station Meas Deweighted", description);
@@ -450,7 +457,7 @@ bool rejectAllMeasByState(RejectCallbackDetails rejectDetails)
     auto& stateIndex = rejectDetails.stateIndex;
 
     trace << "\n"
-          << "Bad state detected " << kfKey << " - rejecting all referencing measurements" << "\n";
+          << "Bad state detected: " << kfKey << " - rejecting all referencing measurements" << "\n";
 
     for (int measIndex = 0; measIndex < kfMeas.H.rows(); measIndex++)
     {
@@ -596,26 +603,28 @@ bool relaxState(RejectCallbackDetails rejectDetails)
 
     if (acsConfig.stateErrors.enable == false)
     {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Warning: Bad state detected but `state_deweighting` not enabled";
+        BOOST_LOG_TRIVIAL(warning) << "Bad state detected but `state_deweighting` not enabled";
 
         return true;
     }
 
+    string description;
     double deweightFactor = 1;
     if (stage == E_FilterStage::PREFIT)
     {
+        description    = "Prefit";
         deweightFactor = abs(kfState.prefitRatios(stateIndex));
     }
     else if (stage == E_FilterStage::POSTFIT)
     {
+        description    = "Postfit";
         deweightFactor = abs(kfState.postfitRatios(stateIndex));
     }
     // deweightFactor = std::min(abs(deweightFactor), 5000.0);  // To avoid breaking
     // filter, maximum process noise allowed is 5000 times of prefit sigma
 
     trace << "\n"
-          << "Bad state detected " << kfKey << " - relaxing state";
+          << "Bad state detected: " << kfKey << " - relaxing state";
 
     kfState.statisticsMap["State rejection"]++;
 
@@ -636,11 +645,21 @@ bool relaxState(RejectCallbackDetails rejectDetails)
             continue;
         }
 
-        double procNoise = deweightFactor * sqrt(kfState.P(index, index));
+        double preSigma  = sqrt(kfState.P(index, index));
+        Q(index, index)  = SQR(deweightFactor * preSigma);
+        double postSigma = sqrt(kfState.P(index, index) + Q(index, index));
 
-        trace << "\n - Adding " << procNoise << " to sigma of " << key;
-
-        Q(index, index) = SQR(procNoise);
+        addRejectDetails(
+            kfState.time,
+            trace,
+            kfState,
+            key,
+            "State Relaxed",
+            description,
+            {{"Adjustment", kfState.dx(index)},
+             {"preTransitionSigma", preSigma},
+             {"postTransitionSigma", postSigma}}
+        );
 
         if (key.type == KF::ORBIT && key.num >= 3 && acsConfig.satelliteErrors.enable &&
             acsConfig.satelliteErrors.vel_proc_noise_trail &&
@@ -658,13 +677,7 @@ bool relaxState(RejectCallbackDetails rejectDetails)
 
     if (transitionRequired)
     {
-        trace << "\n - Pre-transition  state sigma for " << kfKey << ": "
-              << sqrt(kfState.P(stateIndex, stateIndex));
-
         kfState.manualStateTransition(trace, kfState.time, F, Q);
-
-        trace << "\n - Post-transition state sigma for " << kfKey << ": "
-              << sqrt(kfState.P(stateIndex, stateIndex));
 
         return false;
     }

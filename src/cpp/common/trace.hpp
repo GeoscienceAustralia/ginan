@@ -9,7 +9,11 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "common/eigenIncluder.hpp"
 
@@ -21,7 +25,7 @@ using Trace = std::ostream;
 
 struct GTime;
 
-extern boost::iostreams::stream<boost::iostreams::null_sink> nullStream;
+extern thread_local boost::iostreams::stream<boost::iostreams::null_sink> nullStream;
 
 struct ConsoleLog : public sinks::basic_formatted_sink_backend<char, sinks::synchronized_feeding>
 {
@@ -65,8 +69,157 @@ void traceTrivialTrace_(string const& fmt, Args&&... args)
     BOOST_LOG_TRIVIAL(trace) << boost::str(f);
 }
 
+struct PooledTraceFile
+{
+    Trace*                         trace = &nullStream;
+    std::shared_ptr<std::ofstream> file;
+
+    PooledTraceFile() = default;
+    explicit PooledTraceFile(std::shared_ptr<std::ofstream> fileStream)
+        : file{std::move(fileStream)}
+    {
+        if (file && *file)
+        {
+            trace = file.get();
+        }
+    }
+
+    operator Trace&() { return *trace; }
+    operator const Trace&() const { return *trace; }
+
+    template <typename T>
+    PooledTraceFile& operator<<(T&& value)
+    {
+        (*trace) << std::forward<T>(value);
+        return *this;
+    }
+
+    PooledTraceFile& operator<<(std::ostream& (*manip)(std::ostream&))
+    {
+        (*trace) << manip;
+        return *this;
+    }
+
+    PooledTraceFile& operator<<(std::ios& (*manip)(std::ios&))
+    {
+        (*trace) << manip;
+        return *this;
+    }
+
+    PooledTraceFile& operator<<(std::ios_base& (*manip)(std::ios_base&))
+    {
+        (*trace) << manip;
+        return *this;
+    }
+
+    void flush() { trace->flush(); }
+};
+
+inline std::unordered_map<string, std::shared_ptr<std::ofstream>>& traceFileCache()
+{
+    thread_local std::unordered_map<string, std::shared_ptr<std::ofstream>> cache;
+    return cache;
+}
+
+inline std::mutex& retainedTraceFilesMutex()
+{
+    static std::mutex mutex;
+    return mutex;
+}
+
+inline std::unordered_set<string>& retainedTraceFileNames()
+{
+    static std::unordered_set<string> activeFilenames;
+    return activeFilenames;
+}
+
+inline size_t& retainedTraceFilesGeneration()
+{
+    static size_t generation = 0;
+    return generation;
+}
+
+inline void pruneTraceFileCache(const std::unordered_set<string>& activeFilenames)
+{
+    auto& cache = traceFileCache();
+    for (auto it = cache.begin(); it != cache.end();)
+    {
+        if (activeFilenames.find(it->first) != activeFilenames.end())
+        {
+            it++;
+            continue;
+        }
+
+        if (it->second)
+        {
+            it->second->flush();
+        }
+        it = cache.erase(it);
+    }
+}
+
+inline void pruneTraceFileCacheIfNeeded()
+{
+    thread_local size_t localGeneration = 0;
+
+    std::unordered_set<string> activeFilenames;
+
+    {
+        std::lock_guard<std::mutex> lock(retainedTraceFilesMutex());
+        if (localGeneration == retainedTraceFilesGeneration())
+        {
+            return;
+        }
+
+        localGeneration = retainedTraceFilesGeneration();
+        activeFilenames = retainedTraceFileNames();
+    }
+
+    pruneTraceFileCache(activeFilenames);
+}
+
+inline void retainTraceFiles(const std::unordered_set<string>& activeFilenames)
+{
+    {
+        std::lock_guard<std::mutex> lock(retainedTraceFilesMutex());
+        retainedTraceFileNames() = activeFilenames;
+        retainedTraceFilesGeneration()++;
+    }
+
+    pruneTraceFileCache(activeFilenames);
+}
+
+inline PooledTraceFile getTraceFile(const string& traceFilename, const string& id)
+{
+    if (traceFilename.empty())
+    {
+        return PooledTraceFile();
+    }
+
+    pruneTraceFileCacheIfNeeded();
+
+    auto& cache = traceFileCache();
+
+    auto it = cache.find(traceFilename);
+    if (it != cache.end())
+    {
+        return PooledTraceFile(it->second);
+    }
+
+    auto traceFile = std::make_shared<std::ofstream>(traceFilename, std::ios::app);
+    if (!*traceFile)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Could not open trace file for " << id << " at "
+                                 << traceFilename;
+        return PooledTraceFile();
+    }
+
+    cache.emplace(traceFilename, traceFile);
+    return PooledTraceFile(std::move(traceFile));
+}
+
 template <typename T>
-std::ofstream getTraceFile(T& thing, bool json = false)
+PooledTraceFile getTraceFile(T& thing, bool json = false)
 {
     string traceFilename;
     if (json)
@@ -74,19 +227,7 @@ std::ofstream getTraceFile(T& thing, bool json = false)
     else
         traceFilename = thing.traceFilename;
 
-    if (traceFilename.empty())
-    {
-        return std::ofstream();
-    }
-
-    std::ofstream trace(traceFilename, std::ios::app);
-    if (!trace)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Could not open trace file for " << thing.id << " at "
-                                 << traceFilename;
-    }
-
-    return trace;
+    return getTraceFile(traceFilename, thing.id);
 }
 
 void printHex(Trace& trace, vector<unsigned char>& chunk);
@@ -97,11 +238,15 @@ struct Block
 {
     Trace& trace;
     string blockName;
+    string separator;
 
-    Block(Trace& trace, string blockName) : trace{trace}, blockName{blockName}
+    Block(Trace& trace, string blockName, string separator = "")
+        : trace{trace}, blockName{blockName}, separator{separator}
     {
-        trace << "\n"
-              << "+" << blockName << "\n";
+        trace << "\n";
+        if (separator.empty() == false)
+            trace << separator << "\n";
+        trace << "+" << blockName << "\n";
     }
 
     ~Block() { trace << "-" << blockName << "\n"; }

@@ -6,7 +6,7 @@ If instead you wish to build Ginan from source, there are several software depen
 
 * C/C++ and Fortran compiler. We use and recommend [gcc, g++, and gfortran](https://gcc.gnu.org)
 * BLAS and LAPACK linear algebra libraries. We use and recommend [OpenBlas](https://www.openblas.net/) as this contains both libraries required
-* CMAKE     > 3.0
+* CMAKE     >= 3.22
 * YAML      > 0.6
 * Boost     >= 1.74
 * MongoDB
@@ -14,7 +14,7 @@ If instead you wish to build Ginan from source, there are several software depen
 * Mongo_cxx >= 3.9.0
 * Eigen3    > 3.4
 * netCDF4
-* Python >= 3.7
+* Python >= 3.9
 
 
 ***
@@ -29,9 +29,9 @@ sudo apt update
 
 sudo apt upgrade -y
 
-sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools libncurses5-dev openssh-server cmake make libssl1.0-dev wget sudo python3 software-properties-common
+sudo apt install -y git gobjc gobjc++ gfortran libopenblas-dev openssl curl net-tools libncurses5-dev openssh-server cmake make libssl-dev wget sudo python3 software-properties-common
 
-sudo -H pip3 install wheel pandas boto3 unlzw tdqm scipy gnssanalysis
+sudo -H pip3 install wheel pandas boto3 unlzw tqdm scipy gnssanalysis
 ```
 
 

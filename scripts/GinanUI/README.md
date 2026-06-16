@@ -4,6 +4,8 @@ An intelligent and user-friendly interface for using the Geoscience Australia GN
 
 [User manual available here](./docs/USER_MANUAL.md)
 
+[Application architecture document available here](./docs/APPLICATION_ARCHITECTURE.md)
+
 ## Installation
 
 Please read the user manual above for installation instructions.

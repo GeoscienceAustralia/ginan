@@ -88,6 +88,7 @@ satellite_options: # Required if write out SP3 files with SSRA streams
 
 receiver_options: # Receiver and antenna information to write to Rinex file headers (can use valid Sinex files instead)
   ALIC:
+    meta_priority: [CONFIG, RTCM, SINEX, RINEX] # Highest priority first within META
     receiver_type: "SEPT POLARX5"
     antenna_type: "TWIVC6050       NONE"
     apriori_position: [-4052052.7352, 4212835.9833, -2545104.5853]

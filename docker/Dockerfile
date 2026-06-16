@@ -45,6 +45,7 @@ RUN \
     mkdir -p src/build \
     && cd src/build \
     && cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DOC=TRUE .. \
+    && make -j$BUILD_THREADS unit_tests \
     && make -j$BUILD_THREADS $TARGET \
     && cd - \
     && rm -rf src/build

@@ -41,6 +41,7 @@ struct NtripUploader : NtripResponder, RtcmEncoder
         if (acsConfig.output_encoded_rtcm_json)
         {
             rtcmTraceFilename = acsConfig.encoded_rtcm_json_filename;
+            setTraceFilename(rtcmTraceFilename);
         }
 
         std::stringstream requestStream;

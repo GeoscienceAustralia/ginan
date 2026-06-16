@@ -618,6 +618,9 @@ bool satYawGpsIIF(
         return satYawGpsIIR(Sat, attStatus, time, satGeom, -0.7 * D2R);
 
     // Midnight turning - Shadow constant yaw steering
+    double maxYawRate      = 0;
+    bool   maxYawRateFound = getSnxSatMaxYawRate(Sat.svn(), time, maxYawRate);
+
     if (startTime == GTime::noTime())  // Start of eclipse
     {
         startTime = findEclipseBoundaries(time, satGeom, false);
@@ -629,7 +632,9 @@ bool satYawGpsIIF(
         double dYaw = endYaw - startYaw;
         wrapPlusMinusPi(dYaw);
         startYawRate = abs(dYaw) / (endTime - startTime).to_double();
-        startSign    = SGN(dYaw);
+        if (maxYawRateFound)
+            startYawRate = std::min(startYawRate, maxYawRate);
+        startSign = SGN(dYaw);
     }
     attStatus.modelYaw = startYaw + startSign * startYawRate * (time - startTime).to_double();
     wrapPlusMinusPi(attStatus.modelYaw);
@@ -779,8 +784,8 @@ bool satYawGalFoc(
             GTime  currTime = time;
             double currMu   = mu;
             double dt       = -1;
-            while (colinearAngle(currMu) < colAngThresh
-            )  // Ignore beta when finding start of modified-steering period
+            while (colinearAngle(currMu) <
+                   colAngThresh)  // Ignore beta when finding start of modified-steering period
             {
                 currTime += dt;
                 currMu = mu + muRate * (currTime - time).to_double();
@@ -877,6 +882,7 @@ bool satYawGlo(
             << "Max yaw rate not found for " << Sat.svn() << " in " << __FUNCTION__
             << ", check sinex files for '+SATELLITE/YAW_BIAS_RATE' block";
 
+        modelYaw = nominalYaw;
         return false;
     }
 
@@ -1360,15 +1366,15 @@ void updateSatYaw(
             modelYawValid = satYawBds2(Sat, attStatus, time, satGeom, 5740);
             break;
         }
-        case E_Block::BDS_3SI_SECM:  // Unmodelled
-        case E_Block::BDS_3SM_CAST:  // Unmodelled
-        case E_Block::BDS_3SI_CAST:  // Unmodelled
-        case E_Block::BDS_3SM_SECM:  // Unmodelled
+        case E_Block::BDS_3SI_SECM:  // Unmodelled - use BDS-3I/IGSO model
+        case E_Block::BDS_3SI_CAST:  // Unmodelled - use BDS-3I/IGSO model
         case E_Block::BDS_3I:
         {
             modelYawValid = satYawBds3(attStatus, time, satGeom, 5740);
             break;
         }
+        case E_Block::BDS_3SM_CAST:  // Unmodelled - use BDS-3M/MEO model
+        case E_Block::BDS_3SM_SECM:  // Unmodelled - use BDS-3M/MEO model
         case E_Block::BDS_3M_CAST:
         {
             modelYawValid = satYawBds3(attStatus, time, satGeom, 3090);
@@ -1414,7 +1420,9 @@ void updateSatYaw(
             satYawGpsIIR(Sat, attStatus, time, satGeom);
             BOOST_LOG_TRIVIAL(warning)
                 << "Attitude model not implemented for " << Sat.blockType() << " in "
-                << __FUNCTION__ << "; using GPS-IIR model instead.";
+                << __FUNCTION__ << "; using GPS-IIR model instead. Check satellite metadata "
+                << "SINEX block types, for example that inputs.snx_files includes "
+                << "igs_satellite_metadata.snx and that it contains this satellite.";
         }
     }
 
@@ -1817,7 +1825,7 @@ void recAtt(
 
     updateAntAtt(rec.antBoresight, rec.antAzimuth, attStatus);
 
-    // 	SatSys Sat(rec.id.c_str());			//todo aaron, this should be the recSatId thing instead
+    // 	SatSys Sat(rec.id.c_str());			//todo? this should be the recSatId thing instead
     // 	if (Sat.prn)
     // 	{
     // 		nav.satNavMap[Sat].attStatus = attStatus;

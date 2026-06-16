@@ -121,8 +121,9 @@ double checkDisc(SatSys Sat, E_ObsCode code, double bias, int disc, int regionID
         newBias = true;
     else if (compactSsrPhaseDisc[regionID].find(Sat) == compactSsrPhaseDisc[regionID].end())
         newBias = true;
-    else if (compactSsrPhaseDisc[regionID][Sat].find(code) ==
-             compactSsrPhaseDisc[regionID][Sat].end())
+    else if (
+        compactSsrPhaseDisc[regionID][Sat].find(code) == compactSsrPhaseDisc[regionID][Sat].end()
+    )
         newBias = true;
 
     auto& storedDisc = compactSsrPhaseDisc[regionID][Sat][code];
@@ -791,7 +792,7 @@ int decodeSSR_clock(vector<unsigned char>& data, GTime now)
 
     if (ssrMeta.receivedTime > compactSsrLastTime)
         compactSsrLastTime =
-            ssrMeta.receivedTime;  // todo aaron, this is all copy-paste in every function
+            ssrMeta.receivedTime;  // todo? this is all copy-paste in every function
 
     if (now < compactSsrLastTime)
         return E_ReturnType::WAIT;

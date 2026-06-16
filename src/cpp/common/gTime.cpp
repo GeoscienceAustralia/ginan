@@ -42,7 +42,7 @@ const GTime GAL_t0 = GEpoch{
     0,
     0
 };  // galileo system time reference as gps time -> 13 seconds before 0:00:00
-    // UTC on Sunday, 22 August 1999 (midnight between 21 and 22 August)
+// UTC on Sunday, 22 August 1999 (midnight between 21 and 22 August)
 const GTime BDS_t0 = GEpoch{
     2006,
     static_cast<int>(E_Month::JAN),
@@ -51,7 +51,7 @@ const GTime BDS_t0 = GEpoch{
     0,
     0 + GPS_SUB_UTC_2006
 };  // beidou time reference as gps time
-    // - defined in utc 11:58:55.816
+// - defined in utc 11:58:55.816
 
 const int    GPS_t0_sub_POSIX_t0 = 315964800;
 const double MJD_j2000           = 51544.5;
@@ -496,11 +496,16 @@ double GTime::to_decYear() const
     double sod  = yds.sod;
 
     // Determine if the year is a leap year
-    bool isLeapYear = (static_cast<int>(year) % 4 == 0 && static_cast<int>(year) % 100 != 0) ||
-                      (static_cast<int>(year) % 400 == 0);
-    int totalDaysInYear = isLeapYear ? 366 : 365;
+    bool isLeapYear      = (static_cast<int>(year) % 4 == 0 && static_cast<int>(year) % 100 != 0) ||
+                           (static_cast<int>(year) % 400 == 0);
+    int  totalDaysInYear = isLeapYear ? 366 : 365;
 
     return year + (doy + sod / secondsInDay) / totalDaysInYear;
+}
+
+boost::posix_time::ptime GTime::to_posixTime() const
+{
+    return POSIX_GPS_t0 + boost::posix_time::microseconds((long int)(round(this->bigTime * 1e6)));
 }
 
 GTime::operator GEpoch() const
@@ -601,6 +606,11 @@ GTime::operator MjDateTT() const
     return mjd;
 }
 
+GTime::GTime(boost::posix_time::ptime posixTime)
+{
+    bigTime = (posixTime - POSIX_GPS_t0).total_microseconds() / 1e6;
+}
+
 GTime::GTime(MjDateTT mjdTT)
 {
     long double deltaDays = mjdTT.val - MJD_j2000;
@@ -648,15 +658,15 @@ GTime::GTime(BWeek bdsWeek, BTow tow)
     *this = BDS_t0 + bdsWeek * secondsInWeek + tow;
 }
 
-GEpoch ::operator GTime() const
+GEpoch::operator GTime() const
 {
     return epoch2time(this->data());
 }
-UtcTime ::operator GTime() const
+UtcTime::operator GTime() const
 {
     return utc2gpst(*this);
 }
-GTime ::operator UtcTime() const
+GTime::operator UtcTime() const
 {
     return gpst2utc(*this);
 }

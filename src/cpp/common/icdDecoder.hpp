@@ -149,7 +149,7 @@ struct IcdDecoder
         decodeGpsTlmWord(words, eph);
         decodeGpsHowWord(words, eph);
 
-        eph.weekRollOver = gpsBitUFromWord(words, 3, 61, 10);  // todo aaron, these all need scaling
+        eph.weekRollOver = gpsBitUFromWord(words, 3, 61, 10);  // todo? these all need scaling
         eph.code         = gpsBitUFromWord(words, 3, 71, 2);
         eph.sva          = gpsBitUFromWord(words, 3, 73, 4);
         eph.ura[0]       = svaToUra(eph.sva);
@@ -172,7 +172,7 @@ struct IcdDecoder
         eph.tgd[0] = tgd == -128 ? 0 : tgd * P2_31; /* ref [4] */
         eph.iodc   = iodc_1 | iodc_2;
 
-        GTime nearTime = timeGet();  // todo aaron rtcmTime()
+        GTime nearTime = timeGet();  // todo? rtcmTime()
 
         // adjgpsweek()
         {
@@ -212,10 +212,9 @@ struct IcdDecoder
 
         unsigned int sqrtA_2 = gpsBitUFromWord(words, 9, 241, 24);
 
-        eph.toes = gpsBitUFromWord(words, 10, 271, 16) * (1 << 4);
-        eph.fit  = gpsBitUFromWord(words, 10, 287, 1) ? 0 : 4; /* 0:4hr,1:>4hr */
-        int aodo = gpsBitUFromWord(words, 10, 288, 5);         // todo aaron
-
+        eph.toes  = gpsBitUFromWord(words, 10, 271, 16) * (1 << 4);
+        eph.fit   = gpsBitUFromWord(words, 10, 287, 1) ? 0 : 4; /* 0:4hr,1:>4hr */
+        int aodo  = gpsBitUFromWord(words, 10, 288, 5);         // todo?
         eph.sqrtA = (sqrtA_1 | sqrtA_2) * P2_19;
         eph.M0    = (M0_1 | M0_2) * P2_31 * SC2RAD;
         eph.e     = (e_1 | e_2) * P2_33;

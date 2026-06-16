@@ -8,3 +8,4 @@ void preprocessor(
     KFState*  remote_ptr  = nullptr
 );
 void obsVariances(ObsList& obsList);
+void cleanSignals(ObsList& obsList);

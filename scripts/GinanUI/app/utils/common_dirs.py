@@ -1,3 +1,11 @@
+"""
+Defines common directory and file path constants used throughout Ginan-UI.
+
+Resolves paths correctly for both development mode and PyInstaller-bundled
+distributions, exposing constants for the template YAML, generated YAML,
+input products directory, and user manual
+"""
+
 import sys
 from pathlib import Path
 
@@ -20,8 +28,12 @@ def get_user_manual_path():
         # Running in development mode - __file__ is in app/utils/
         return Path(__file__).parent.parent.parent / "docs" / "USER_MANUAL.md"
 
+# Project filepath constants
+# Used to build relative file paths on the user's system
 BASE_PATH = get_base_path()
 TEMPLATE_PATH = BASE_PATH / "resources" / "Yaml" / "default_config.yaml"
 GENERATED_YAML = BASE_PATH / "resources" / "ppp_generated.yaml"
 INPUT_PRODUCTS_PATH = BASE_PATH / "resources" / "inputData" / "products"
+TABLES_PRODUCTS_PATH = INPUT_PRODUCTS_PATH / "tables"
 USER_MANUAL_PATH = get_user_manual_path()
+INSPECTOR_HTML_PATH = BASE_PATH / "resources" / "Yaml" / "GinanYAMLInspector.html"

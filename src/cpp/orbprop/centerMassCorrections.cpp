@@ -67,11 +67,7 @@ Vector3d CenterMassCorrections::estimate(Array6d& dood)
         double theta = (dood * doodsonNumbers[wave]).sum();
         for (int i = 0; i < 3; i++)
         {
-            cmcEstimate(i) +=
-                coeff[i * 2] * cos(theta) +
-                coeff[i * 2 + 1] *
-                    sin(theta
-                    );  // todo aaron this would be better with 2 arrays or a matrix for cos/si
+            cmcEstimate(i) += coeff[i * 2] * cos(theta) + coeff[i * 2 + 1] * sin(theta);
         }
     }
     return cmcEstimate;

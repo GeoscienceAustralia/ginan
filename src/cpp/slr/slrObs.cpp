@@ -50,9 +50,9 @@ void readSatId(string filepath)  ///< Filepath to sat ID file
         newSat.satName = satName;
         string satId   = line.substr(25, 9);
         boost::algorithm::trim(satId);
-        newSat.satId       = satId;
-        newSat.ilrsId      = std::stoi(line.substr(34, 9)
-        );  // todo: check input strings are compatible with stoi() and stod(), e.g. white spaces
+        newSat.satId = satId;
+        // todo: check input strings are compatible with stoi() and stod(), e.g. white spaces
+        newSat.ilrsId      = std::stoi(line.substr(34, 9));
         newSat.noradId     = std::stoi(line.substr(43, 9));
         newSat.altitude[0] = std::stod(line.substr(52, 9));
         newSat.altitude[1] = std::stod(line.substr(61, 9));

@@ -214,10 +214,10 @@ bool prange(
     bias    = bias_A;
     biasVar = varBias_A;
 
-    bool dualFreq = (ionoMode == E_IonoMode::IONO_FREE_LINEAR_COMBO) ||
-                    (ionoMode == E_IonoMode::SBAS && acsConfig.sbsInOpts.freq == 5);
-    double c1 = 1;
-    double c2 = 0;
+    bool   dualFreq = (ionoMode == E_IonoMode::IONO_FREE_LINEAR_COMBO) ||
+                      (ionoMode == E_IonoMode::SBAS && acsConfig.sbsInOpts.freq == 5);
+    double c1       = 1;
+    double c2       = 0;
 
     if (dualFreq)
     {
@@ -688,7 +688,7 @@ E_Solution estpos(
             double dtSat     = -obs.satClk * CLIGHT;
             double varSatClk = obs.satClkVar * SQR(CLIGHT);
             auto&  satOpts   = acsConfig.getSatOpts(obs.Sat);
-            if (satOpts.posModel.sources[0] == E_Source::SBAS)
+            if (satOpts.posModel.sources[0] == E_Source::SBAS && !acsConfig.sbsInOpts.pvs_on_dfmc)
             {
                 double sbasVar =
                     checkSBASVar(trace, obs.time, obs.Sat, rRec, rSat, obs.satNav_ptr->currentSBAS);
@@ -810,7 +810,7 @@ E_Solution estpos(
             codeMeas.obsKey.Sat     = obs.Sat;
             codeMeas.obsKey.str     = id;
             codeMeas.obsKey.num     = ft2 ? (static_cast<int>(obs.sigs[ft1].code) * 100 +
-                                         static_cast<int>(obs.sigs[ft2].code))
+                                             static_cast<int>(obs.sigs[ft2].code))
                                           : static_cast<int>(obs.sigs[ft1].code);
             codeMeas.obsKey.type    = KF::CODE_MEAS;
             codeMeas.obsKey.comment = "";
@@ -822,7 +822,7 @@ E_Solution estpos(
 
             kfMeasEntryList.push_back(codeMeas);
 
-            obs.sppValid = true;  // todo aaron, this is messy, lots of excludes dont work if spp
+            obs.sppValid = true;  // todo? this is messy, lots of excludes dont work if spp
                                   // not run, harmonise the spp/ppp exclusion methods.
             obs.sppCodeResidual = res;
         }
@@ -906,7 +906,7 @@ E_Solution estpos(
                 kfState.outputStates(trace, suffix);
             }
 
-            if (kfState.chiSquareTest.enable)  // todo Eugene: use meas chi-square test in algebra
+            if (kfState.chiSquareTest.enable)  // todo? use meas chi-square test in algebra
             {
                 double a =
                     sqrt(kfState.P(1, 1) + kfState.P(2, 2) + kfState.P(3, 3)) * kfState.chi2PerDof;
@@ -1258,8 +1258,8 @@ void spp(
     );
 
     // Estimate receiver position with pseudorange
-    sol.status = estpos(trace, obsList, sol, id, kfState_ptr, (string) "SPP/" + id);  // todo aaron,
-                                                                                      // remote too?
+    sol.status =
+        estpos(trace, obsList, sol, id, kfState_ptr, (string) "SPP/" + id);  // todo? // remote too?
 
     auto& sppState = sol.sppState;
 

@@ -47,8 +47,8 @@ void writeGPXHeader(Trace& output, string name, GTime time)
     }
 
     output << gpxHeader;
-    output << "<time>" << boost::posix_time::from_time_t((time_t)((PTime)time).bigTime)
-           << "</time>";  // todo aaron, check format, different to below
+    output << "<time>" << time.to_posixTime()
+           << "</time>";  // todo? check format, different to below
     output << "  </metadata>\n";
     output << "<trk>" << "<name>" << name << "</name>\n"
            << "  <trkseg>\n";

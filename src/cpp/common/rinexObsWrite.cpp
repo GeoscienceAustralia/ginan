@@ -225,13 +225,22 @@ void writeRinexObsHeader(
         "OBSERVER / AGENCY"
     );
 
+    string receiverType =
+        rec.metadata.receiverType.valid ? rec.metadata.receiverType.value : rec.receiverType;
+    string antennaType = rec.metadata.antennaDescriptor.valid ? rec.metadata.antennaDescriptor.value
+                                                              : rec.antennaType;
+    VectorEnu antennaDelta =
+        rec.metadata.antennaDelta.valid ? rec.metadata.antennaDelta.value : rec.antDelta;
+
     tracepdeex(
         0,
         rinexStream,
         "%-20.20s%-20.20s%-20.20s%-20s\n",
-        snx.rec_ptr->sn,
-        rec.receiverType.c_str(),
-        snx.rec_ptr->firm,
+        rec.metadata.receiverSerial.valid ? rec.metadata.receiverSerial.value.c_str()
+                                          : snx.rec_ptr->sn,
+        receiverType.c_str(),
+        rec.metadata.receiverFirmware.valid ? rec.metadata.receiverFirmware.value.c_str()
+                                            : snx.rec_ptr->firm,
         "REC # / TYPE / VERS"
     );
 
@@ -239,8 +248,9 @@ void writeRinexObsHeader(
         0,
         rinexStream,
         "%-20.20s%-20.20s%-20.20s%-20s\n",
-        snx.ant_ptr->sn,
-        rec.antennaType.c_str(),
+        rec.metadata.antennaSerial.valid ? rec.metadata.antennaSerial.value.c_str()
+                                         : snx.ant_ptr->sn,
+        antennaType.c_str(),
         "",
         "ANT # / TYPE"
     );
@@ -260,9 +270,9 @@ void writeRinexObsHeader(
         0,
         rinexStream,
         "%14.4f%14.4f%14.4f%-18s%-20s\n",
-        rec.antDelta[2],
-        rec.antDelta[0],
-        rec.antDelta[1],
+        antennaDelta[2],
+        antennaDelta[0],
+        antennaDelta[1],
         "",
         "ANTENNA: DELTA H/E/N"
     );

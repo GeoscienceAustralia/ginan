@@ -110,7 +110,7 @@ struct IonoObs
     double stecVar;
     int    stecCodeCombo;
 
-    SatSys ionoSat;  // todo aaron, remove when possible
+    SatSys ionoSat;  // todo? remove when possible
 
     map<int, IonoPP> ippMap;
 

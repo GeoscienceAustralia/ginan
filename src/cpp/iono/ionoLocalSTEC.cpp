@@ -265,8 +265,7 @@ double ionCoefLocal(
             );
 
             return (1 - dlatDeg / atmReg.intLatDeg) *
-                   (1 - dlonDeg / atmReg.intLonDeg
-                   );  // todo aaron use bilinear interpolation function?
+                   (1 - dlonDeg / atmReg.intLonDeg);  // todo? use bilinear interpolation function?
         }
         default:
         {

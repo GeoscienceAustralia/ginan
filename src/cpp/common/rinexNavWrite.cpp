@@ -257,7 +257,7 @@ void outputNavRinexGeph(Geph& geph, Trace& trace, const double rnxver)
 
     if (rnxver >= 3.05)
     {
-        // todo Eugene: additional records from version 3.05 and on
+        // todo? additional records from version 3.05 and on
     }
 }
 

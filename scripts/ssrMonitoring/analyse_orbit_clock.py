@@ -577,7 +577,7 @@ def plot_orb_rms(
         rms[sat] = {dim: stats_df.loc[(sat, "rms"), dim] for dim in ["Radial", "Along-track", "Cross-track"]}
     rms_all = {
         dim: round(stats_df.loc[("All", "rms"), dim], 3) for dim in ["Radial", "Along-track", "Cross-track"]
-    }  # TODO Eugene: RMS/statistics by constellation
+    }  # TODO? RMS/statistics by constellation
 
     # Plot Radial, Along-track, and Cross-track RMS of each satellite
     fig, ax = plt.subplots(dpi=300.0, figsize=(12, 3))
@@ -629,7 +629,7 @@ def plot_clk_rms(
     rms = {}
     for sat in svs:
         rms[sat] = {"Clock": stats_df.loc[(sat, "rms"), "Clock"]}
-    rms_all = {"Clock": round(stats_df.loc[("All", "rms"), "Clock"], 3)}  # TODO Eugene: RMS/statistics by constellation
+    rms_all = {"Clock": round(stats_df.loc[("All", "rms"), "Clock"], 3)}  # TODO? RMS/statistics by constellation
 
     # Plot Clock RMS of each satellite
     fig, ax = plt.subplots(dpi=300.0, figsize=(12, 3))

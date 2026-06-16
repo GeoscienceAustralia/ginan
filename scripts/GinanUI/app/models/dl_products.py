@@ -1,29 +1,45 @@
-import gzip, hashlib, os, shutil, unlzw3, requests
-import pandas as pd
+"""
+GNSS product downloading and validation for Ginan-UI.
+
+Handles all interaction with the CDDIS archive to fetch PPP products (SP3, CLK,
+BIA, ION, TRO), broadcast ephemeris (BRDC), static metadata, and IGS CRD SINEX
+files. Also provides functions to enumerate valid analysis centres for a given
+date range, retrieve constellation support from SP3 headers, parse BIA code
+priorities, and validate downloaded files against SHA512 checksums.
+"""
+
+import gzip
+import hashlib
+import os
+import shutil
 import numpy as np
+import pandas as pd
+import requests
+import unlzw3
 from bs4 import BeautifulSoup, SoupStrainer
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Callable, Dict, Generator, List
-
-from scripts.GinanUI.app.utils.cddis_email import get_netrc_auth
-from scripts.GinanUI.app.utils.common_dirs import INPUT_PRODUCTS_PATH
+from typing import Callable, Dict, Generator, List, Optional
+from scripts.GinanUI.app.utils.cddis_connection import get_netrc_auth
+from scripts.GinanUI.app.utils.common_dirs import INPUT_PRODUCTS_PATH, TABLES_PRODUCTS_PATH
 from scripts.GinanUI.app.utils.gn_functions import GPSDate
 from scripts.GinanUI.app.utils.logger import Logger
 from scripts.GinanUI.app.models.archive_manager import restore_from_archive
 
+# Constants
 BASE_URL = "https://cddis.nasa.gov/archive"
 GPS_ORIGIN = np.datetime64("1980-01-06 00:00:00")  # Magic date from gn_functions
 MAX_RETRIES = 3  # download attempts
 CHUNK_SIZE = 8192  # 8 KiB
 COMPRESSED_FILETYPE = (".gz", ".gzip", ".Z")  # ignore any others (maybe add crx2rnx using hatanaka package)
 
-# repro3 fallback constants
+# repro3/ fallback constants
 REPRO3_PROJECT = "R03"  # Project code for reproduction products
 REPRO3_4TH_CHAR_RANGE = range(10)  # 4th character can be 0-9, prioritise lower numbers
 REPRO3_PRIORITY_GPS_WEEK_START = 730  # Start of GPS week range where repro3 products are better quality
 REPRO3_PRIORITY_GPS_WEEK_END = 2138  # End of GPS week range where repro3 products are better quality
 
+# The five valid constellations used within Ginan-UI
 CONSTELLATION_MAP = {
     'G': 'GPS',
     'R': 'GLO',
@@ -32,6 +48,13 @@ CONSTELLATION_MAP = {
     'J': 'QZS',
 }
 
+# Loading grid netCDF files for computing ocean and atmospheric tide loading BLQ files
+LOADING_GRID_URLS = [
+    "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/loading/oceantide.nc",
+    "https://peanpod.s3.ap-southeast-2.amazonaws.com/aux/loading/atmtide.nc",
+]
+
+# Static metadata product files that are always required
 METADATA = [
     "https://files.igs.org/pub/station/general/igs_satellite_metadata.snx",
     "https://files.igs.org/pub/station/general/igs20.atx",
@@ -48,15 +71,14 @@ METADATA = [
     "https://datacenter.iers.org/data/latestVersion/finals.data.iau2000.txt"
 ]
 
-
+# Checksum constants
 CHECKSUM_FILENAME = "SHA512SUMS"
-# File types that should be validated against SHA512SUMS
-CHECKSUM_VALIDATED_FORMATS = {"SP3", "BIA", "CLK", "SNX"}
+CHECKSUM_VALIDATED_FORMATS = {"SP3", "BIA", "CLK", "SNX"} # File types that should be validated against SHA512SUMS
 
+#region Helper Functions
 
 def date_to_gpswk(date: datetime) -> int:
     return int(GPSDate(np.datetime64(date)).gpswk)
-
 
 def gpswk_to_date(gps_week: int, gps_day: int = 0) -> datetime:
     return GPSDate(GPS_ORIGIN + np.timedelta64(gps_week, "W") + np.timedelta64(gps_day, "D")).as_datetime
@@ -97,6 +119,66 @@ def _is_in_repro3_priority_range(start_time: datetime, end_time: datetime) -> bo
     return (REPRO3_PRIORITY_GPS_WEEK_START <= start_week <= REPRO3_PRIORITY_GPS_WEEK_END and
             REPRO3_PRIORITY_GPS_WEEK_START <= end_week <= REPRO3_PRIORITY_GPS_WEEK_END)
 
+def filter_minimum_covering_products(products: pd.DataFrame, start_time: datetime, end_time: datetime) -> pd.DataFrame:
+    """
+    For each (analysis_center, solution_type, project, format) group, retain only the
+    minimum set of non-overlapping files needed to cover [start_time, end_time].
+
+    This is particularly important for NRT products which are published
+    hourly, this causes the broad overlap filter in get_product_dataframe()
+    to return far more files than are actually required.
+
+    Strategy: starting from the latest file whose start time is at or before start_time,
+    greedily pick the file that extends coverage the furthest forward, repeating until
+    end_time is covered.
+
+    :param products: products dataframe from get_product_dataframe()
+    :param start_time: the start of the required time window
+    :param end_time: the end of the required time window
+    :returns: filtered dataframe containing only the minimum required files
+    """
+    if products.empty:
+        return products
+
+    kept_indices = []
+
+    for _keys, group in products.groupby(["analysis_center", "solution_type", "project", "format"]):
+        group = group.sort_values("date").reset_index()
+
+        coverage_reached = start_time
+
+        while coverage_reached < end_time:
+            # Candidates: files whose nominal coverage window overlaps the remaining uncovered range
+            candidates = group[
+                (group["date"] <= coverage_reached) &
+                (group["date"] + group["period"] > coverage_reached)
+            ]
+
+            if candidates.empty:
+                # No file starts at or before coverage_reached - fall back to the earliest file
+                # that starts after it (gap in available products)
+                candidates = group[group["date"] > coverage_reached]
+                if candidates.empty:
+                    break  # No more files available at all
+
+            # Among candidates, pick the one whose end extends furthest forward
+            candidates = candidates.copy()
+            candidates["_product_end"] = candidates["date"] + candidates["period"]
+            best = candidates.loc[candidates["_product_end"].idxmax()]
+
+            new_coverage = best["_product_end"]
+            if new_coverage <= coverage_reached:
+                # No forward progress possible - avoid infinite loop
+                break
+
+            kept_indices.append(best["index"])
+            coverage_reached = new_coverage
+
+    if not kept_indices:
+        # Fallback: return original if something went wrong (e.g. no overlap at all found)
+        return products
+
+    return products.loc[products.index.isin(kept_indices)].reset_index(drop=True)
 
 def get_repro3_product_dataframe(start_time: datetime, end_time: datetime, target_files: List[str] = None) -> pd.DataFrame:
     """
@@ -193,8 +275,10 @@ def get_repro3_product_dataframe(start_time: datetime, end_time: datetime, targe
     products = products.drop(columns=["_4th_char"])
     products = products.reset_index(drop=True)
 
-    return products
+    # Reduce to the minimum set of files that cover the requested time window
+    products = filter_minimum_covering_products(products, start_time, end_time)
 
+    return products
 
 def str_to_datetime(date_time_str):
     """
@@ -206,7 +290,6 @@ def str_to_datetime(date_time_str):
         return datetime.strptime(date_time_str, "%Y-%m-%d_%H:%M:%S")
     except ValueError:
         raise ValueError("Invalid datetime format. Use YYYY-MM-DDTHH:MM (e.g. 2025-05-01_00:00:00)")
-
 
 def get_product_dataframe(start_time: datetime, end_time: datetime, target_files: List[str] = None) -> pd.DataFrame:
     """
@@ -309,8 +392,14 @@ def get_product_dataframe(start_time: datetime, end_time: datetime, target_files
     products = products.drop_duplicates(subset=["analysis_center", "project", "date", "solution_type", "format"], keep="first")
     products = products.reset_index(drop=True)
 
+    # Reduce to the minimum set of files that cover the requested time window
+    products = filter_minimum_covering_products(products, start_time, end_time)
+
     return products
 
+#endregion
+
+#region Retrieve Valid Product Information
 
 def get_valid_analysis_centers(data: pd.DataFrame) -> set[str]:
     """
@@ -385,7 +474,6 @@ def get_valid_analysis_centers(data: pd.DataFrame) -> set[str]:
 
     return centers
 
-
 def get_valid_series_for_provider(data: pd.DataFrame, provider: str) -> List[str]:
     """
     Get list of valid series (with all required files) for a specific provider.
@@ -446,7 +534,6 @@ def get_product_dataframe_with_repro3_fallback(start_time: datetime, end_time: d
         # Outside priority range: use main directory first, fallback to repro3 if needed
         return _try_main_first(start_time, end_time, target_files)
 
-
 def _try_main_first(start_time: datetime, end_time: datetime, target_files: List[str] = None) -> pd.DataFrame:
     """
     Try main directory first, fallback to repro3 if no valid PPP providers found.
@@ -461,7 +548,7 @@ def _try_main_first(start_time: datetime, end_time: datetime, target_files: List
     products = get_product_dataframe(start_time, end_time, target_files)
 
     if products.empty:
-        Logger.terminal("📦 No products found in main directory, checking /repro3/...")
+        Logger.workflow("📦 No products found in main directory, checking /repro3/...")
         return _try_repro3_fallback(start_time, end_time, target_files)
 
     # Check if we have valid PPP providers
@@ -472,9 +559,8 @@ def _try_main_first(start_time: datetime, end_time: datetime, target_files: List
         return products
 
     # No valid PPP providers found, try repro3 fallback
-    Logger.terminal("📦 No valid PPP providers in main directory, checking /repro3/...")
+    Logger.workflow("📦 No valid PPP providers in main directory, checking /repro3/...")
     return _try_repro3_fallback(start_time, end_time, target_files, main_products=products)
-
 
 def _try_repro3_first(start_time: datetime, end_time: datetime, target_files: List[str] = None) -> pd.DataFrame:
     """
@@ -500,14 +586,14 @@ def _try_repro3_first(start_time: datetime, end_time: datetime, target_files: Li
             break
 
     if not repro3_exists_for_any_week:
-        Logger.terminal("📦 /repro3/ directory does not exist, falling back to main directory...")
+        Logger.workflow("📦 /repro3/ directory does not exist, falling back to main directory...")
         return _try_main_directory_fallback(start_time, end_time, target_files)
 
     # Fetch products from repro3
     repro3_products = get_repro3_product_dataframe(start_time, end_time, target_files)
 
     if repro3_products.empty:
-        Logger.terminal("📦 No products found in /repro3/ directory, falling back to main directory...")
+        Logger.workflow("📦 No products found in /repro3/ directory, falling back to main directory...")
         return _try_main_directory_fallback(start_time, end_time, target_files)
 
     # Check if repro3 has valid PPP providers
@@ -517,9 +603,8 @@ def _try_repro3_first(start_time: datetime, end_time: datetime, target_files: Li
         return repro3_products
 
     # No valid providers in repro3, try main directory as fallback
-    Logger.terminal("📦 No valid PPP providers in /repro3/, falling back to main directory...")
+    Logger.workflow("📦 No valid PPP providers in /repro3/, falling back to main directory...")
     return _try_main_directory_fallback(start_time, end_time, target_files, repro3_products=repro3_products)
-
 
 def _try_main_directory_fallback(start_time: datetime, end_time: datetime, target_files: List[str] = None, repro3_products: pd.DataFrame = None) -> pd.DataFrame:
     """
@@ -536,24 +621,23 @@ def _try_main_directory_fallback(start_time: datetime, end_time: datetime, targe
 
     if products.empty:
         if repro3_products is not None and not repro3_products.empty:
-            Logger.terminal("⚠️ No valid PPP providers found")
+            Logger.workflow("⚠️ No valid PPP providers found")
             return repro3_products
-        Logger.terminal("⚠️ No valid PPP providers found")
+        Logger.workflow("⚠️ No valid PPP providers found")
         return pd.DataFrame()
 
     # Check if main directory has valid PPP providers
     valid_centers = get_valid_analysis_centers(products)
 
     if valid_centers:
-        Logger.terminal(f"✅ Found valid PPP providers in main directory: {', '.join(sorted(valid_centers))}")
+        Logger.workflow(f"✅ Found valid PPP providers in main directory: {', '.join(sorted(valid_centers))}")
         return products
 
     # No valid providers in main either
-    Logger.terminal("⚠️ No valid PPP providers found")
+    Logger.workflow("⚠️ No valid PPP providers found")
     if repro3_products is not None and not repro3_products.empty:
         return repro3_products
     return products
-
 
 def _try_repro3_fallback(start_time: datetime, end_time: datetime, target_files: List[str] = None, main_products: pd.DataFrame = None) -> pd.DataFrame:
     """
@@ -579,9 +663,9 @@ def _try_repro3_fallback(start_time: datetime, end_time: datetime, target_files:
             break
 
     if not repro3_exists_for_any_week:
-        Logger.terminal("📦 repro3 directory does not exist for this time range")
+        Logger.workflow("📦 repro3 directory does not exist for this time range")
         if main_products is not None and not main_products.empty:
-            Logger.terminal("⚠️ No valid PPP providers found")
+            Logger.workflow("⚠️ No valid PPP providers found")
             return main_products
         return pd.DataFrame()
 
@@ -589,9 +673,9 @@ def _try_repro3_fallback(start_time: datetime, end_time: datetime, target_files:
     repro3_products = get_repro3_product_dataframe(start_time, end_time, target_files)
 
     if repro3_products.empty:
-        Logger.terminal("📦 No products found in repro3 directory")
+        Logger.workflow("📦 No products found in repro3 directory")
         if main_products is not None and not main_products.empty:
-            Logger.terminal("⚠️ No valid PPP providers found")
+            Logger.workflow("⚠️ No valid PPP providers found")
             return main_products
         return pd.DataFrame()
 
@@ -601,35 +685,17 @@ def _try_repro3_fallback(start_time: datetime, end_time: datetime, target_files:
     if repro3_valid_centers:
         return repro3_products
     else:
-        Logger.terminal("⚠️ No valid PPP providers found")
+        Logger.workflow("⚠️ No valid PPP providers found")
         if main_products is not None and not main_products.empty:
             return main_products
         return repro3_products
 
-def extract_file(filepath: Path, keep_compressed: bool = True) -> Path:
-    """
-    Extracts [".gz", ".gzip", ".Z"] files with gzip and unlzw3 respectively.
-    By default, the compressed file is retained alongside the extracted version
-    so that it can be archived and later validated against SHA-512 checksums.
+#endregion
 
-    :param filepath: compressed file path
-    :param keep_compressed: if True, retain the compressed file after extraction
-    :return: path to extracted file
-    """
-    finalpath = ".".join(str(filepath).split(".")[:-1])
-    if str(filepath.name).endswith((".gz", ".gzip")):
-        with gzip.open(filepath, "rb") as f_in, open(finalpath, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
-    elif str(filepath.name).endswith(".Z"):
-        decompressed_data = unlzw3.unlzw(filepath)
-        with open(finalpath, "wb") as f_out:
-            f_out.write(decompressed_data)
-    if not keep_compressed:
-        filepath.unlink()
-    return Path(finalpath)
+#region SHA-512 Checksum Validation
 
-
-# region SHA-512 Checksum Validation
+# Cache of downloaded checksum files: (gps_week, use_repro3) -> parsed checksums dict
+_checksum_cache: Dict[tuple, dict] = {}
 
 def get_checksum_url(gps_week: int, use_repro3: bool = False) -> str:
     """
@@ -673,7 +739,7 @@ def download_checksum_file(gps_week: int, session: requests.Session, download_di
         return restored
 
     url = get_checksum_url(gps_week, use_repro3)
-    Logger.terminal(f"📥 Downloading checksum file {CHECKSUM_FILENAME} for GPS week {gps_week}{' (repro3)' if use_repro3 else ''}...")
+    Logger.workflow(f"📥 Downloading checksum file {CHECKSUM_FILENAME} for GPS week {gps_week}{' (repro3)' if use_repro3 else ''}...")
 
     for attempt in range(MAX_RETRIES):
         if stop_requested and stop_requested():
@@ -702,14 +768,14 @@ def download_checksum_file(gps_week: int, session: requests.Session, download_di
                             progress_callback(local_filename, percent)
 
             os.rename(partial_path, local_path)
-            Logger.terminal(f"✅ Downloaded checksum file {local_filename}")
+            Logger.workflow(f"✅ Downloaded checksum file {local_filename}")
             return local_path
 
         except requests.RequestException as e:
             if attempt < MAX_RETRIES - 1:
-                Logger.terminal(f"⚠️ Checksum download attempt {attempt + 1}/{MAX_RETRIES} failed: {e}")
+                Logger.workflow(f"⚠️ Checksum download attempt {attempt + 1}/{MAX_RETRIES} failed: {e}")
             else:
-                Logger.terminal(f"⚠️ Failed to download {CHECKSUM_FILENAME} for GPS week {gps_week} after {MAX_RETRIES} attempts: {e}")
+                Logger.workflow(f"⚠️ Failed to download {CHECKSUM_FILENAME} for GPS week {gps_week} after {MAX_RETRIES} attempts: {e}")
 
     return None
 
@@ -737,13 +803,13 @@ def parse_checksum_file(checksum_path: Path) -> dict:
                     try:
                         int(hex_hash, 16)
                     except ValueError:
-                        Logger.terminal(f"⚠️ Invalid hex hash in SHA512SUMS for {parts[1].strip()}, skipping entry")
+                        Logger.workflow(f"⚠️ Invalid hex hash in SHA512SUMS for {parts[1].strip()}, skipping entry")
                         continue
                     checksums[parts[1].strip()] = hex_hash
     except Exception as e:
-        Logger.terminal(f"⚠️ Failed to parse checksum file {checksum_path}: {e}")
+        Logger.workflow(f"⚠️ Failed to parse checksum file {checksum_path}: {e}")
     if not checksums:
-        Logger.terminal(f"⚠️ No valid checksum entries found in {checksum_path.name}")
+        Logger.workflow(f"⚠️ No valid checksum entries found in {checksum_path.name}")
     return checksums
 
 def compute_sha512(filepath: Path) -> str:
@@ -771,14 +837,14 @@ def validate_checksum(filepath: Path, checksums: dict) -> Optional[bool]:
     expected_hash = checksums.get(filename)
 
     if expected_hash is None:
-        Logger.terminal(f"⚠️ No checksum entry found for {filename} in SHA512SUMS (file may be corrupted or incomplete)")
+        Logger.workflow(f"⚠️ No checksum entry found for {filename} in SHA512SUMS (file may be corrupted or incomplete)")
         return None
 
     # Verify the expected hash is valid hex before comparing
     try:
         int(expected_hash, 16)
     except ValueError:
-        Logger.terminal(f"⚠️ Invalid checksum hash in SHA512SUMS for {filename}, skipping validation")
+        Logger.workflow(f"⚠️ Invalid checksum hash in SHA512SUMS for {filename}, skipping validation")
         return None
 
     actual_hash = compute_sha512(filepath)
@@ -789,9 +855,6 @@ def validate_checksum(filepath: Path, checksums: dict) -> Optional[bool]:
     else:
         Logger.console(f"❌ Checksum mismatch: {filename} | Expected: {expected_hash[:16]}... Got: {actual_hash[:16]}...")
         return False
-
-# Cache of downloaded checksum files: (gps_week, use_repro3) -> parsed checksums dict
-_checksum_cache: Dict[tuple, dict] = {}
 
 def get_checksums_for_week(gps_week: int, session: requests.Session, download_dir: Path = INPUT_PRODUCTS_PATH,
                            use_repro3: bool = False, progress_callback: Optional[Callable] = None,
@@ -824,10 +887,11 @@ def get_checksums_for_week(gps_week: int, session: requests.Session, download_di
 
 # endregion
 
+#region Product Downloading from CDDIS Archives
+
 def download_file(url: str, session: requests.Session, download_dir: Path = INPUT_PRODUCTS_PATH,
-                  progress_callback: Optional[Callable] = None,
-                  stop_requested: Callable = None, checksums: Optional[dict] = None,
-                  keep_compressed: bool = True) -> Path:
+                  progress_callback: Optional[Callable] = None, stop_requested: Callable = None,
+                  checksums: Optional[dict] = None, keep_compressed: bool = True) -> Path:
     """
     Checks if file already exists (additionally in compressed or .part forms).
     Uses provided session for CDDIS files (session made during startup).
@@ -854,7 +918,7 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
         if checksums is not None:
             result = validate_checksum(filepath, checksums)
             if result is False:
-                Logger.terminal(f"⚠️ Existing file {filepath.name} failed checksum, re-downloading...")
+                Logger.workflow(f"⚠️ Existing file {filepath.name} failed checksum, re-downloading...")
                 filepath.unlink(missing_ok=True)
                 # Fall through to download below
             else:
@@ -877,14 +941,14 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
                 if filepath.exists():
                     result = validate_checksum(filepath, checksums)
                     if result is False:
-                        Logger.terminal(f"⚠️ Compressed file {filepath.name} failed checksum, re-downloading...")
+                        Logger.workflow(f"⚠️ Compressed file {filepath.name} failed checksum, re-downloading...")
                         filepath.unlink(missing_ok=True)
                         potential_decompressed.unlink(missing_ok=True)
                         # Fall through to download below
                     else:
                         return potential_decompressed
                 else:
-                    Logger.terminal(f"⚠️ Cannot verify checksum for {filepath.name} (compressed file missing), re-downloading to validate...")
+                    Logger.workflow(f"⚠️ Cannot verify checksum for {filepath.name} (compressed file missing), re-downloading to validate...")
                     potential_decompressed.unlink(missing_ok=True)
                     # Fall through to download below
             else:
@@ -897,7 +961,7 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
         if checksums is not None and filepath.name in checksums:
             result = validate_checksum(restored, checksums)
             if result is False:
-                Logger.terminal(f"⚠️ Archived file {restored.name} failed checksum validation, re-downloading...")
+                Logger.workflow(f"⚠️ Archived file {restored.name} failed checksum validation, re-downloading...")
                 restored.unlink(missing_ok=True)
                 # Fall through to download below
             else:
@@ -915,11 +979,11 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
         if _partial.exists():
             # Resume partial downloads
             headers = {"Range": f"bytes={_partial.stat().st_size}-"}
-            Logger.terminal(f"Resuming download of {filepath.name} from byte {_partial.stat().st_size}")
+            Logger.workflow(f"Resuming download of {filepath.name} from byte {_partial.stat().st_size}")
         else:
             # Download whole file
             headers = {"Range": "bytes=0-"}
-            Logger.terminal(f"Starting new download of {filepath.name}")
+            Logger.workflow(f"Starting new download of {filepath.name}")
             os.makedirs(_partial.parent, exist_ok=True)
 
             # Hack?! for windows error when open(_partial, "wb") not creating new files
@@ -963,7 +1027,7 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
             if checksums is not None:
                 result = validate_checksum(filepath, checksums)
                 if result is False:
-                    Logger.terminal(f"⚠️ Deleting corrupted file {filepath.name} and retrying...")
+                    Logger.workflow(f"⚠️ Deleting corrupted file {filepath.name} and retrying...")
                     filepath.unlink(missing_ok=True)
                     continue
 
@@ -972,29 +1036,31 @@ def download_file(url: str, session: requests.Session, download_dir: Path = INPU
             else:
                 return filepath
         except requests.RequestException as e:
-            Logger.terminal(f"Failed attempt {i} to download {filepath.name}: {e}")
+            Logger.workflow(f"Failed attempt {i} to download {filepath.name}: {e}")
 
     raise (Exception(f"Failed to download {filepath.name} after {MAX_RETRIES} attempts"))
 
-
-def get_brdc_urls(start_time: datetime, end_time: datetime) -> list[str]:
+def extract_file(filepath: Path, keep_compressed: bool = True) -> Path:
     """
-    Generates a list of BRDC file URLs for the specified date range.
+    Extracts [".gz", ".gzip", ".Z"] files with gzip and unlzw3 respectively.
+    By default, the compressed file is retained alongside the extracted version
+    so that it can be archived and later validated against SHA-512 checksums.
 
-    :param start_time: Start of the date range
-    :param end_time: End of the date range
-    :returns: List URLs to download BRDC files
+    :param filepath: compressed file path
+    :param keep_compressed: if True, retain the compressed file after extraction
+    :return: path to extracted file
     """
-    urls = []
-    reference_dt = start_time
-    while int((end_time - reference_dt).total_seconds()) > 0:
-        day = reference_dt.strftime("%j")
-        filename = f"BRDC00IGS_R_{reference_dt.year}{day}0000_01D_MN.rnx.gz"
-        url = f"{BASE_URL}/gnss/data/daily/{reference_dt.year}/brdc/{filename}"
-        urls.append(url)
-        reference_dt += timedelta(days=1)
-    return urls
-
+    finalpath = ".".join(str(filepath).split(".")[:-1])
+    if str(filepath.name).endswith((".gz", ".gzip")):
+        with gzip.open(filepath, "rb") as f_in, open(finalpath, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    elif str(filepath.name).endswith(".Z"):
+        decompressed_data = unlzw3.unlzw(filepath)
+        with open(finalpath, "wb") as f_out:
+            f_out.write(decompressed_data)
+    if not keep_compressed:
+        filepath.unlink()
+    return Path(finalpath)
 
 def download_metadata(download_dir: Path = INPUT_PRODUCTS_PATH,
                       progress_callback: Optional[Callable] = None, atx_callback: Optional[Callable] = None):
@@ -1012,6 +1078,35 @@ def download_metadata(download_dir: Path = INPUT_PRODUCTS_PATH,
         if atx_callback and download.name == "igs20.atx":
             atx_callback(download.name)
 
+def download_loading_grids(download_dir: Path = TABLES_PRODUCTS_PATH,
+                           progress_callback: Optional[Callable] = None,
+                           stop_requested: Optional[Callable] = None):
+    """
+    Download ocean and atmospheric tide loading grid netCDF files if not already present.
+
+    :param download_dir: Directory to save the loading grid files
+    :param progress_callback: Reports (description, percent) for progress updates
+    :param stop_requested: Bool callback. Returns early if stop is requested
+    """
+    download_dir.mkdir(parents=True, exist_ok=True)
+
+    _sesh = requests.Session()
+
+    for url in LOADING_GRID_URLS:
+        if stop_requested and stop_requested():
+            return
+
+        filename = url.split("/")[-1]
+        filepath = download_dir / filename
+
+        if filepath.exists():
+            Logger.workflow(f"📁 Loading grid already exists: {filename}")
+            continue
+
+        Logger.workflow(f"📥 Downloading loading grid: {filename}")
+        download_file(url, _sesh, download_dir=download_dir,
+                      progress_callback=progress_callback,
+                      stop_requested=stop_requested)
 
 def download_products(products: pd.DataFrame, download_dir: Path = INPUT_PRODUCTS_PATH,
                       dl_urls: list = None, progress_callback: Optional[Callable] = None,
@@ -1076,7 +1171,7 @@ def download_products(products: pd.DataFrame, download_dir: Path = INPUT_PRODUCT
     if dl_urls:
         downloads.extend(dl_urls)
 
-    Logger.terminal(f"📦 {len(downloads)} files to check or download")
+    Logger.workflow(f"📦 {len(downloads)} files to check or download")
     download_dir.mkdir(parents=True, exist_ok=True)
     (download_dir / "tables").mkdir(parents=True, exist_ok=True)
     for url in downloads:
@@ -1096,6 +1191,25 @@ def download_products(products: pd.DataFrame, download_dir: Path = INPUT_PRODUCT
         # Don't keep compressed files for tables/metadata - only for CDDIS product files
         is_tables = (fin_dir != download_dir)
         yield download_file(url, _sesh, fin_dir, progress_callback, stop_requested, checksums, keep_compressed=not is_tables)
+
+
+def get_brdc_urls(start_time: datetime, end_time: datetime) -> list[str]:
+    """
+    Generates a list of BRDC file URLs for the specified date range.
+
+    :param start_time: Start of the date range
+    :param end_time: End of the date range
+    :returns: List URLs to download BRDC files
+    """
+    urls = []
+    reference_dt = start_time
+    while int((end_time - reference_dt).total_seconds()) > 0:
+        day = reference_dt.strftime("%j")
+        filename = f"BRDC00IGS_R_{reference_dt.year}{day}0000_01D_MN.rnx.gz"
+        url = f"{BASE_URL}/gnss/data/daily/{reference_dt.year}/brdc/{filename}"
+        urls.append(url)
+        reference_dt += timedelta(days=1)
+    return urls
 
 def _get_repro3_filename_and_url(row: pd.Series, gps_week: int, session: requests.Session = None) -> tuple:
     """
@@ -1128,6 +1242,7 @@ def _get_repro3_filename_and_url(row: pd.Series, gps_week: int, session: request
     url = f"{BASE_URL}/gnss/products/{gps_week}/repro3/{filename}"
     return filename, url
 
+#endregion
 
 #region SP3 Product Validation
 
@@ -1594,7 +1709,6 @@ def download_bia_satellite_section(url: str, session: requests.Session, progress
 
     return None
 
-
 def _check_bia_termination(content: str, force_return: bool = False) -> tuple[bool, Optional[str]]:
     """
     Check if we should stop downloading and extract the satellite bias section.
@@ -1793,10 +1907,8 @@ def parse_bia_code_priorities(bia_content: str) -> dict:
 
     return code_priorities
 
-def get_bia_code_priorities_for_selection(products_df: pd.DataFrame,
-                                          provider: str, series: str, project: str,
-                                          progress_callback: Optional[Callable] = None,
-                                          stop_requested: Optional[Callable] = None) -> Optional[dict]:
+def get_bia_code_priorities_for_selection(products_df: pd.DataFrame, provider: str, series: str, project: str,
+                                          progress_callback: Optional[Callable] = None, stop_requested: Optional[Callable] = None) -> Optional[dict]:
     """
     Download and parse BIA file for a specific provider/series/project combination
     to extract available code priorities per constellation.
@@ -1847,7 +1959,7 @@ def get_bia_code_priorities_for_selection(products_df: pd.DataFrame,
         _log_bia_code_priorities(code_priorities, provider, series, project)
         return code_priorities
 
-    Logger.terminal(f"📥 Validating constellation signal frequencies against BIA file for {provider}/{series}/{project}...")
+    Logger.workflow(f"📥 Validating constellation signal frequencies against BIA file for {provider}/{series}/{project}...")
 
     # Download satellite bias section
     bia_content = download_bia_satellite_section(url, session, progress_callback=progress_callback, stop_requested=stop_requested)
@@ -1860,7 +1972,6 @@ def get_bia_code_priorities_for_selection(products_df: pd.DataFrame,
     code_priorities = parse_bia_code_priorities(bia_content)
     _log_bia_code_priorities(code_priorities, provider, series, project)
     return code_priorities
-
 
 def _try_read_local_bia(local_uncompressed: Path, local_compressed: Path,
                         compressed_filename: str, provider: str, series: str, project: str) -> Optional[str]:
@@ -1918,7 +2029,6 @@ def _try_read_local_bia(local_uncompressed: Path, local_compressed: Path,
 
     return None
 
-
 def _read_compressed_bia(filepath: Path) -> Optional[str]:
     """
     Read and decompress a .gz or .Z compressed BIA file.
@@ -1936,7 +2046,6 @@ def _read_compressed_bia(filepath: Path) -> Optional[str]:
     except Exception as e:
         Logger.console(f"Failed to decompress {filepath.name}: {e}")
     return None
-
 
 def _log_bia_code_priorities(code_priorities: dict, provider: str, series: str, project: str):
     """Log extracted BIA code priorities."""
@@ -1999,23 +2108,36 @@ def download_sinex_file(target_date: datetime, download_dir: Path = INPUT_PRODUC
 
     url = get_sinex_url(target_date, use_repro3=use_repro3)
 
+    # Check the file actually exists on the server before attempting any downloads.
+    # The IGS CRD SINEX is often missing for recent dates (e.g. ultra-rapid / rapid
+    # products), so a quick HEAD request avoids a long, noisy retry storm of 404s.
+    try:
+        head = session.head(url, timeout=10, allow_redirects=True)
+        if head.status_code == 404:
+            Logger.workflow(f"ℹ️ SINEX file not available on server: {url.split('/')[-1]}")
+            return None
+    except requests.RequestException as e:
+        # Network hiccup on the existence check - fall through and let the
+        # download (with its own retries) decide whether the file is reachable.
+        Logger.console(f"SINEX existence check failed ({e}), proceeding to download attempt")
+
     # Fetch checksums for the SINEX file's GPS week
     checksums = get_checksums_for_week(gps_week, session, download_dir, use_repro3, progress_callback, stop_requested)
 
     for attempt in range(max_retries):
         if stop_requested and stop_requested():
-            Logger.terminal("🛑 SINEX download cancelled")
+            Logger.workflow("🛑 SINEX download cancelled")
             return None
 
         try:
             filepath = download_file(url, session, download_dir, progress_callback, stop_requested, checksums)
-            Logger.terminal(f"✅ SINEX file downloaded: {filepath.name}")
+            Logger.workflow(f"✅ SINEX file downloaded: {filepath.name}")
             return filepath
         except Exception as e:
             if attempt < max_retries - 1:
-                Logger.terminal(f"⚠️ SINEX download attempt {attempt + 1}/{max_retries} failed: {e}")
+                Logger.workflow(f"⚠️ SINEX download attempt {attempt + 1}/{max_retries} failed: {e}")
             else:
-                Logger.terminal(f"❌ Failed to download SINEX file after {max_retries} attempts: {e}")
+                Logger.workflow(f"❌ Failed to download SINEX file after {max_retries} attempts: {e}")
 
     return None
 
@@ -2335,53 +2457,54 @@ def download_and_validate_sinex(target_date: datetime, marker_name: str, receive
         return sinex_path, results
 
     except Exception as e:
-        Logger.terminal(f"❌ Error reading SINEX file: {e}")
+        Logger.workflow(f"❌ Error reading SINEX file: {e}")
         return sinex_path, {'error': f'Failed to read SINEX file: {e}'}
 
 def log_sinex_validation_results(results: dict, marker_name: str):
     """
-    Log SINEX validation results to the terminal.
+    Log SINEX validation results to the workflow terminal.
 
     :param results: Validation results dictionary from validate_sinex_values()
     :param marker_name: Marker name for logging context
     """
     if 'error' in results:
-        Logger.terminal(f"❌ SINEX validation error: {results['error']}")
+        Logger.workflow(f"❌ SINEX validation error: {results['error']}")
         return
 
     if not results['marker_found']:
-        Logger.terminal(f"⚠️ Marker '{marker_name}' not found in SINEX file - validation skipped")
+        Logger.workflow(f"⚠️ Marker '{marker_name}' not found in SINEX file - validation skipped")
         return
 
     all_valid = True
     has_validations = False
-    Logger.terminal(f"📋 SINEX validation results for marker '{marker_name}':")
+    Logger.workflow(f"📋 SINEX validation results for marker '{marker_name}':")
 
     for field in ['receiver_type', 'antenna_type', 'antenna_offset', 'apriori_position']:
         field_result = results.get(field, {})
         message = field_result.get('message', '')
 
         if field_result.get('valid') is True:
-            Logger.terminal(f"   ✅ {field.replace('_', ' ').title()}: {message}")
+            Logger.workflow(f"   ✅ {field.replace('_', ' ').title()}: {message}")
             has_validations = True
         elif field_result.get('valid') is False:
-            Logger.terminal(f"   ⚠️ {field.replace('_', ' ').title()}: {message}")
+            Logger.workflow(f"   ⚠️ {field.replace('_', ' ').title()}: {message}")
             all_valid = False
             has_validations = True
         elif message:
             # valid is None but there's a message (info only, no comparison made)
-            Logger.terminal(f"   ℹ️ {field.replace('_', ' ').title()}: {message}")
+            Logger.workflow(f"   ℹ️ {field.replace('_', ' ').title()}: {message}")
 
     if has_validations:
         if all_valid:
-            Logger.terminal(f"✅ All SINEX validations passed for marker '{marker_name}'")
+            Logger.workflow(f"✅ All SINEX validations passed for marker '{marker_name}'")
         else:
-            Logger.terminal(f"⚠️ Some SINEX validations failed for marker '{marker_name}' - please review the above warnings")
+            Logger.workflow(f"⚠️ Some SINEX validations failed for marker '{marker_name}' - please review the above warnings")
     else:
-        Logger.terminal(f"ℹ️ SINEX data found for marker '{marker_name}' but no comparisons were made (RINEX values may be missing)")
+        Logger.workflow(f"ℹ️ SINEX data found for marker '{marker_name}' but no comparisons were made (RINEX values may be missing)")
 
 # endregion
 
+# Test
 if __name__ == "__main__":
     # Test whole file download
     sesh = requests.Session()

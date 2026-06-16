@@ -71,7 +71,7 @@ double tropCSSR(
                     break;
                 case 3:
                     dryZTD += val * dLat * dLon;
-                    break;  // todo aaron magic numbers
+                    break;  // todo? magic numbers
             }
             tracepdeex(2, trace, ", %.4f\n", val);
         }

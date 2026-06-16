@@ -93,7 +93,7 @@ inline void slrRelativity2(COMMON_PPP_ARGS)
 inline void slrSagnac(COMMON_PPP_ARGS)
 {
     double dSagnacOut = sagnac(rSat, rRec);
-    double dSagnacIn  = sagnac(rRec, rSat);  // todo aaron, is it that simple? look at area
+    double dSagnacIn  = sagnac(rRec, rSat);  // todo? is it that simple? look at area
 
     measEntry.componentsMap[E_Component::SAGNAC] = {dSagnacOut + dSagnacIn, "+ sag", 0};
 }
@@ -132,7 +132,9 @@ inline void slrTrop(COMMON_PPP_ARGS)
 
 inline void slrRecAntDelta(COMMON_PPP_ARGS)
 {
-    Vector3d recAntVector = body2ecef(rec.attStatus, rec.antDelta);
+    Vector3d antennaDelta =
+        rec.metadata.antennaDelta.valid ? rec.metadata.antennaDelta.value : rec.antDelta;
+    Vector3d recAntVector = body2ecef(rec.attStatus, antennaDelta);
 
     double recAntDelta = -recAntVector.dot(satStat.e);
 
@@ -144,7 +146,7 @@ inline void slrRecAntDelta(COMMON_PPP_ARGS)
 inline void slrRecRangeBias(COMMON_PPP_ARGS)
 {
     double recRangeBias    = obs.rangeBias;
-    double recRangeBiasVar = DEFAULT_RANG_BIAS_VAR;  // todo Eugene: use actual var?
+    double recRangeBiasVar = DEFAULT_RANG_BIAS_VAR;  // todo? use actual var?
 
     InitialState init = initialStateFromConfig(recOpts.slr_range_bias);
 
@@ -183,7 +185,7 @@ inline void slrRecTimeBias(COMMON_PPP_ARGS)
 {
     //			VectorXd recTimeBiasPartial = slrObs.satVel.transpose() * slrObs.e * 0.001; //ms
     double recTimeBias        = obs.timeBias * CLIGHT;
-    double recTimeBiasVar     = DEFAULT_TIME_BIAS_VAR;  // todo Eugene: use actual var?
+    double recTimeBiasVar     = DEFAULT_TIME_BIAS_VAR;  // todo? use actual var?
     double recTimeBiasPartial = -obs.satVel.dot(satStat.e) / CLIGHT;
 
     InitialState init = initialStateFromConfig(recOpts.slr_time_bias);
@@ -427,12 +429,7 @@ void receiverSlr(
                     )
                     {
                         measEntry.addDsgnEntry(posKey, +eSatInertial[i] * 2, posInit);
-                        measEntry.addDsgnEntry(
-                            velKey,
-                            +eSatInertial[i] * tgap * 2,
-                            velInit
-                        );  // todo aaron, eugene copied this from ppp_obs, but i think it is not
-                            // necessary (bad?)
+                        measEntry.addDsgnEntry(velKey, +eSatInertial[i] * tgap * 2, velInit);
                     }
                 );
 
@@ -448,8 +445,7 @@ void receiverSlr(
             obsKey.Sat  = obs.Sat;
             // 			obsKey.num	= i;
 
-            measEntry
-                .addNoiseEntry(obsKey, 1, obs.ephVar);  // todo aaron, need many more noise entries
+            measEntry.addNoiseEntry(obsKey, 1, obs.ephVar);  // todo? need many more noise entries
         }
 
         // Range and geometry

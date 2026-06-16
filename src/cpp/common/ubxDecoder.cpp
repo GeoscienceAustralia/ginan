@@ -52,6 +52,9 @@ void UbxDecoder::decodeRAWX(vector<unsigned char>& payload)
 
     // 	std::cout << "\n" << "Recieved RAWX message has " << numMeas << " measurements" << "\n";
 
+    lastTimeTag = 0;
+    lastTime    = gpst2time(week, rcvTow);
+
     map<SatSys, GObs> obsMap;
 
     for (int i = 0; i < numMeas; i++)
@@ -85,7 +88,7 @@ void UbxDecoder::decodeRAWX(vector<unsigned char>& payload)
         SatSys Sat(sys, satId);
         auto&  obs = obsMap[Sat];
         obs.Sat    = Sat;
-        obs.time   = gpst2time(week, rcvTow);
+        obs.time   = lastTime;
 
         printf(
             "meas %s %s %s %14.3lf %14.3lf\n",
@@ -106,10 +109,15 @@ void UbxDecoder::decodeRAWX(vector<unsigned char>& payload)
         obsList.push_back((shared_ptr<GObs>)obs);
     }
 
-    obsListList.push_back(obsList);
-
-    lastTimeTag = 0;
-    lastTime    = gpst2time(week, rcvTow);
+    if (obsList.empty() == false)
+    {
+        obsListList.push_back(obsList);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << "UBX decoder produced empty ObsList at epoch flush"
+                                << ", week=" << week << ", rcvTow=" << rcvTow;
+    }
 }
 
 void UbxDecoder::decodeMEAS(vector<unsigned char>& payload)
@@ -309,10 +317,10 @@ void UbxDecoder::decodeSFRBX(vector<unsigned char>& payload)
 
     // 	printf("\n preamble : %02x - subFrameId : %02x  - ", preamble, subFrameId);
 
-    if (subFrameId <= 0 && subFrameId >= 4)
-    {
-        return;
-    }
+    // if (subFrameId <= 0 && subFrameId >= 4)
+    // {
+    //     return;
+    // }
 
     // 	vector<unsigned char> subFrame;
     // 	int byteBits = 0;

@@ -88,13 +88,19 @@ void outputCost(
             locationName.c_str()
         );                                     // Site name with country
 
+        string receiverType =
+            rec.metadata.receiverType.valid ? rec.metadata.receiverType.value : rec.receiverType;
+        string antennaType = rec.metadata.antennaDescriptor.valid
+                                 ? rec.metadata.antennaDescriptor.value
+                                 : rec.antennaType;
+
         tracepdeex(
             0,
             fout,
             "%-20s     %-20s\n",
-            rec.receiverType.c_str(),  // Receiver type
-            rec.antennaType.c_str()
-        );                             // Antenna type
+            receiverType.c_str(),  // Receiver type
+            antennaType.c_str()
+        );                         // Antenna type
     }
 
     if (firstWrite)
@@ -114,7 +120,9 @@ void outputCost(
         recPosEcef = rec.aprioriPos;
     }
 
-    VectorEcef eccEcef = body2ecef(rec.attStatus, rec.snx.ecc_ptr->ecc);
+    VectorEnu eccEnu =
+        rec.metadata.antennaDelta.valid ? rec.metadata.antennaDelta.value : rec.snx.ecc_ptr->ecc;
+    VectorEcef eccEcef = body2ecef(rec.attStatus, eccEnu);
     VectorPos  recPos  = ecef2pos(recPosEcef + eccEcef);
 
     if (recPos[1] < 0)
@@ -130,7 +138,7 @@ void outputCost(
         recPos.lonDeg(),
         recPos.hgt(),                // ARP height above ellipsoid
         recPos.hgt() - geoidOffset,  // ARP height above geoid
-        rec.snx.ecc_ptr->ecc.u()
+        eccEnu.u()
     );                               // ARP height above benchmark
 
     if (firstWrite)
@@ -184,8 +192,8 @@ void outputCost(
             unsigned otl : 1;           ///< Ocean tide loading correction applied
             unsigned atc : 1;           ///< Atmospheric loading correction applied
             unsigned localMetData : 1;  ///< Local surface met. sensor data available
-            unsigned
-                centredTime : 1;  ///< Timestamps are at the centre of period [false: end of period]
+            unsigned centredTime
+                : 1;  ///< Timestamps are at the centre of period [false: end of period]
             unsigned gpsUsed : 1;    ///< GPS satellite(s) used
             unsigned gloUsed : 1;    ///< GLONASS satellite(s) used
             unsigned galUsed : 1;    ///< Galileo satellite(s) used

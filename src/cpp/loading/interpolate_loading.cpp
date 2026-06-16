@@ -28,7 +28,9 @@
 #include "loading/loading.h"
 #include "loading/tide.h"
 #include "loading/utils.h"
+#if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
 #include "omp.h"
+#endif
 
 namespace po = boost::program_options;
 
@@ -45,18 +47,7 @@ void program_options(int argc, char* argv[], otl_input& input)
     po::options_description desc{"interpolate_loading <options>"};
 
     // Do not set default values here, as this will overide the configuration file opitions!!!
-    desc.add_options()
-			("help", 			"This help message")
-			("quiet", 			"Less output")
-			("verbose", 		"More output")
-			("type",		po::value<std::string>(),	"loading type: (o) ocean loading, or (a) atmospheric loading")
-			("grid", 	 	po::value<std::string>(),	"Loading grid netCDF file")
-			("location", 	po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")
-			("xyz",         po::bool_switch()->default_value(false),  "set if the coordinates are in XYZ format")
-			("code",     	po::value<std::string>(), 	"Station Code with or without DOMES number (ALIC 50137M0014)")
-			("input",		po::value<std::string>(),	"input file containing list of stations CSV format name, lon, lat")
-			("output",		po::value<std::string>(),	"Output BLQ file")
-			;
+    desc.add_options()("help", "This help message")("quiet", "Less output")("verbose", "More output")("type", po::value<std::string>(), "loading type: (o) ocean loading, or (a) atmospheric loading")("grid", po::value<std::string>(), "Loading grid netCDF file")("location", po::value<std::vector<float>>()->multitoken(), "location: lon (decimal degrees) lat (decimal degrees)")("xyz", po::bool_switch()->default_value(false), "set if the coordinates are in XYZ format")("code", po::value<std::string>(), "Station Code with or without DOMES number (ALIC 50137M0014)")("input", po::value<std::string>(), "input file containing list of stations CSV format name, lon, lat")("output", po::value<std::string>(), "Output BLQ file");
 
     po::variables_map vm;
     // This is to be able to parse negative numbers with boost.
@@ -225,8 +216,8 @@ void program_options(int argc, char* argv[], otl_input& input)
             ecef[1] = input.xyz_coords[i][1];
             ecef[2] = input.xyz_coords[i][2];
             ecef2pos(ecef, tmp);
-            input.lon.push_back(tmp[1] * 180.0 / M_PI);
-            input.lat.push_back(tmp[0] * 180.0 / M_PI);
+            input.lon.push_back(tmp[1] * 180.0 / PI);
+            input.lat.push_back(tmp[0] * 180.0 / PI);
         }
     }
 };
@@ -271,7 +262,14 @@ int main(int argc, char* argv[])
             input.out_disp.data() + input.out_disp.num_elements(),
             std::complex<float>(0, 0)
         );
-
+        // Normalize longitudes before parallel processing
+        for (auto& lon : input.lon)
+        {
+            if (lon < 0)
+            {
+                lon += 360.0;
+            }
+        }
         for (int i_sta = 0; i_sta < input.lat.size(); i_sta++)
             for (int i_wave = 0; i_wave < tideinfo.get_nwave(); i_wave++)
                 for (int i_dir = 0; i_dir < 3; i_dir++)

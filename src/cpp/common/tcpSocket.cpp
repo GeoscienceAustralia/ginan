@@ -3,6 +3,7 @@
 // #define BSONCXX_POLY_USE_SYSTEM_MNMLSTC
 
 #include "common/tcpSocket.hpp"
+#include <algorithm>
 #include <boost/json.hpp>
 #include <boost/system/error_code.hpp>
 #include <chrono>
@@ -31,8 +32,7 @@ void TcpSocket::logChunkError()
     std::cout << message.str() << "\n";
     messageChunkLog(message.str());
 
-    // todo aaron
-    // 		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
+    // todo?     // 		std::ofstream outStream(rtcmTraceFilename, std::ios::app);
     // 		if (!outStream)
     // 		{
     // 			std::cout << "Error opening " << rtcmTraceFilename << " in " << __FUNCTION__ <<
@@ -294,9 +294,13 @@ void TcpSocket::delayedReconnect()
 
     // Delay and attempt reconnect, this prevents server abuse.
     timer.expires_from_now(boost::posix_time::seconds((int)reconnectDelay));
+    nextReconnectAttemptUnixTime.store(
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) +
+        (long long)reconnectDelay
+    );
 
     // wait a little longer next time;
-    reconnectDelay *= 2;
+    reconnectDelay = std::min(reconnectDelay * 2, maxReconnectDelay);
 
     timer.async_wait(boost::bind(&TcpSocket::reconnectTimerHandler, this, bp::error));
 }
@@ -375,6 +379,7 @@ void NtripResponder::requestResponseHandler(const boost::system::error_code& err
 
     // conneccted, turn the delay back down.
     reconnectDelay = 1;
+    nextReconnectAttemptUnixTime.store(0);
 
     isConnected = true;
 
@@ -532,6 +537,7 @@ void TcpSocket::connect()
     _resolver  = std::make_shared<tcp::resolver>(ioContext);
 
     BOOST_LOG_TRIVIAL(debug) << "(Re)connecting " << url.sanitised();
+    nextReconnectAttemptUnixTime.store(0);
 
     // The socket_ptr reduces some code, although the async_read and async_right
     // must be called using _sslsocket in order to work correctly.
@@ -568,6 +574,33 @@ void TcpSocket::disconnect()
     // Clear the buffers except receivedBuffer that could possibly retain valid RTCM messages.
     request.consume(request.size());
     downloadBuf.consume(downloadBuf.size());
+}
+
+void TcpSocket::shutdown()
+{
+    nextReconnectAttemptUnixTime.store(0);
+    isConnected = false;
+
+    try
+    {
+        timer.cancel();
+    }
+    catch (...)
+    {
+    }
+
+    try
+    {
+        if (_resolver)
+        {
+            _resolver->cancel();
+        }
+    }
+    catch (...)
+    {
+    }
+
+    disconnect();
 }
 
 void TcpSocket::connectionError(const boost::system::error_code& err, string operation)

@@ -9,36 +9,30 @@ map<string, bool>                 streamDOAMap;
 long int streamPos(std::istream& stream)
 {
     // 			std::cout << "Closed" << "\n";
-    if (stream)
+
+    if (stream.bad())
     {
-        long int filePos = stream.tellg();
-
-        if (!stream)
-        {
-            BOOST_LOG_TRIVIAL(error) << "Error telling in file at " << filePos << "\n"
-                                     << " - " << strerror(errno);
-
-            return -1;
-        }
-
-        if (filePos < 0)
-        {
-            BOOST_LOG_TRIVIAL(error) << "Negative file pos in file at " << filePos << "\n"
-                                     << " - " << strerror(errno);
-
-            return -1;
-        }
-
-        return filePos;
-    }
-    else
-    {
-        // 		BOOST_LOG_TRIVIAL(error) << "InputStream is dead before destruction ";
-
-        if (stream.eof())
-        {
-            // 			BOOST_LOG_TRIVIAL(error) << "InputStream has end of file ";
-        }
+        BOOST_LOG_TRIVIAL(debug) << "Bad input stream";
         return -1;
     }
+    if (stream.eof())
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Input stream has reached the end of file";
+        return -1;
+    }
+    if (stream.fail())
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Failed to read input stream";
+        return -1;
+    }
+
+    long int streamPos = stream.tellg();
+
+    if (streamPos < 0)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Error telling in stream";
+        return -1;
+    }
+
+    return streamPos;
 }

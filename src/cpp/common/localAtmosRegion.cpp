@@ -173,7 +173,7 @@ bool configAtmosRegion_File()
                     tmp[10] = '\0';
                     latInt  = atof(tmp);
 
-                    if (gridType == 1)  // todo aaron magic numbers
+                    if (gridType == 1)  // todo? magic numbers
                     {
                         regMaps[regID].minLatDeg = lat0 - latNgrid * latInt;
                         regMaps[regID].maxLatDeg = lat0;
@@ -360,15 +360,19 @@ bool configAtmosRegions(Trace& trace, ReceiverMap& receiverMap)
     {
         for (auto& [id, rec] : receiverMap)
         {
-            VectorEcef& snxPos = rec.snx.pos;
-
             auto& recOpts = acsConfig.getRecOpts(id);
 
-            if (recOpts.apriori_pos.isZero() == false)
-                snxPos = recOpts.apriori_pos;
+            rec.metadata.setPriority(recOpts.meta_priority);
+            rec.metadata.ingestConfig(recOpts);
+            rec.metadata.ingestSinex(rec.snx);
+
+            if (rec.metadata.stationPosition.valid == false)
+            {
+                continue;
+            }
 
             auto& pos = rec.pos;
-            pos       = ecef2pos(snxPos);
+            pos       = ecef2pos(rec.metadata.stationPosition.value);
 
             if (atmRegion.gridLatDeg.empty())
             {
@@ -399,6 +403,12 @@ bool configAtmosRegions(Trace& trace, ReceiverMap& receiverMap)
             atmRegion.gridLonDeg[ngrid] = pos.lonDeg();
             ngrid++;
         }
+
+        if (ngrid == 0)
+        {
+            return false;
+        }
+
         atmRegion.minLonDeg -= 0.001;
         atmRegion.minLatDeg -= 0.001;
         atmRegion.maxLatDeg += 0.001;

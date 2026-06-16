@@ -86,11 +86,11 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
     posVar = 0.0;
     if (acsConfig.sbsInOpts.pvs_on_dfmc)
     {
-        clkVar = 2.5E-6;
+        clkVar = 2.5E-4 / SQR(CLIGHT);
     }
     else
     {
-        clkVar                    = 1E4;
+        clkVar                    = 1E4 / SQR(CLIGHT);
         usedSBASIODMap[Sat].tUsed = time;
         usedSBASIODMap[Sat].iodp  = selIODP;
         usedSBASIODMap[Sat].iodf  = selIODF;

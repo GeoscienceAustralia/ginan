@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/buffer.hpp>
@@ -14,6 +15,7 @@
 #include <boost/regex.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread.hpp>
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -248,9 +250,11 @@ struct TcpSocket : NetworkStatistics, SerialStream
    public:
     URL url;
 
-    double reconnectDelay     = 1;
-    int    disconnectionCount = 0;
-    bool   isConnected        = false;
+    double                 reconnectDelay               = 1;
+    double                 maxReconnectDelay            = 900;
+    int                    disconnectionCount           = 0;
+    bool                   isConnected                  = false;
+    std::atomic<long long> nextReconnectAttemptUnixTime = 0;
 
     int  numberErroredChunks = 0;
     bool logHttpSentReceived = false;
@@ -272,6 +276,7 @@ struct TcpSocket : NetworkStatistics, SerialStream
 
     void connect();
     void disconnect();
+    void shutdown();
 
     void startRead(bool chunked);
 
@@ -308,6 +313,14 @@ struct TcpSocket : NetworkStatistics, SerialStream
     void logChunkError();
 
     void dataChunkDownloaded(vector<char>& dataChunk);
+
+    bool reconnectDueAfter(const std::chrono::system_clock::time_point& timePoint) const
+    {
+        long long nextReconnectUnixTime = nextReconnectAttemptUnixTime.load();
+        return nextReconnectUnixTime > std::chrono::system_clock::to_time_t(timePoint);
+    }
+
+    long long nextReconnectUnixTime() const { return nextReconnectAttemptUnixTime.load(); }
 
     // content from a one-shot request has been received
     virtual void readContentDownloaded(vector<char> content) {}

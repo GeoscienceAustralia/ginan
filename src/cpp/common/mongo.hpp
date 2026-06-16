@@ -159,7 +159,7 @@ struct Mongo
 
 #define MONGO_AVAILABLE "Available"
 
-// @todo seb put all define as const char* in a namespace
+// @todo? put all define as const char* in a namespace
 
 b_date bDate(const GTime& time);
 

@@ -76,7 +76,7 @@ void addDefaultBias()
         // 		entry.cod2		= acsConfig.clock_codesL2[bias.Sat.sys];
         entry.source = "def1";
 
-        // 		pushBiasEntry(id, entry);	//todo aaron, disabled
+        // 		pushBiasEntry(id, entry);	//todo? disabled
     }
 
     for (auto& Sat : getSysSats(E_Sys::GPS))
@@ -92,7 +92,7 @@ void addDefaultBias()
     }
 }
 
-void loadStateBiases(  // todo aaron this probably needs to be called to write biases from filter to
+void loadStateBiases(  // todo? this probably needs to be called to write biases from filter to
                        // files
     KFState& kfState
 )
@@ -311,7 +311,7 @@ bool decomposeBGDBias(
     pushBiasEntry(
         id,
         entry
-    );  // todo aaron, check which of these match the clock_codes and only create those.
+    );  // todo? check which of these match the clock_codes and only create those.
 
     // covert BGD E5a/E1 to C5Q-IF OSB
     entry.cod1 = cod2;

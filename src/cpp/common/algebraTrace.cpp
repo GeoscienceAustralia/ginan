@@ -39,8 +39,8 @@ Architecture Binary_Archive__() {}
 /** Returns the type of object that is located at the specified position in a file
  */
 E_SerialObject getFilterTypeFromFile(
-    long int& startPos,  ///< Position of object
-    string    filename   ///< Path to archive file
+    std::streamoff& startPos,  ///< Position of object
+    string          filename   ///< Path to archive file
 )
 {
     std::fstream fileStream(filename, std::ios::binary | std::ios::in);

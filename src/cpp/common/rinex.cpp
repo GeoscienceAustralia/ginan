@@ -822,7 +822,6 @@ int decodeObsEpoch(
     int   n    = 0;
     char* buff = &line[0];
 
-
     if (ver <= 2.99)
     {
         // ver.2
@@ -879,7 +878,7 @@ int decodeObsEpoch(
         if (flag >= 3 && flag <= 5)
             return n;
 
-        if (buff[0] != '>' || str2time(buff, 1, 28, time, tsys))
+        if (buff[0] != '>' || str2time(buff, 2, 29, time, tsys))
         {
             BOOST_LOG_TRIVIAL(debug) << "rinex obs invalid epoch: epoch=" << buff;
             return 0;
@@ -1510,7 +1509,7 @@ int decodeGeph(
 
     if (ver >= 3.05)
     {
-        // todo Eugene: additional records from version 3.05 and on
+        // todo? additional records from version 3.05 and on
     }
 
     // some receiver output >128 for minus frequency number
@@ -2040,7 +2039,7 @@ int readRnxNavB(
                             return decodeGeph(ver, Sat, toc, data, geph);
                         }
                         break;
-                    }  // todo Eugene: additional records from version 3.05 and on
+                    }  // todo? additional records from version 3.05 and on
                     case E_NavMsgType::SBAS:
                     {
                         if (data.size() >= 15)

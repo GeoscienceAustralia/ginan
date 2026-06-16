@@ -835,7 +835,7 @@ void ambgPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryL
         }
 }
 
-void ionoPseudoObs(  // todo aaron, move to model section
+void ionoPseudoObs(  // todo? move to model section
     Trace&           pppTrace,
     ReceiverMap&     receiverMap,
     KFState&         kfState,
@@ -863,7 +863,7 @@ void ionoPseudoObs(  // todo aaron, move to model section
                 satStat,
                 extvar,
                 obs.Sat
-            );  // todo aaron get from other sources too
+            );  // todo? get from other sources too
 
             if (extvar <= 0)
                 continue;
@@ -946,7 +946,7 @@ void tropPseudoObs(
             wetZTD,
             wetMap,
             extVar
-        );  // todo aaron, take this from other places optionally
+        );  // todo? take this from other places optionally
 
         if (extVar <= 0)
             continue;

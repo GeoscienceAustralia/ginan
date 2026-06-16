@@ -120,7 +120,7 @@ void Tide::setBeta(GTime time, double ut1_utc)
 {
     FundamentalArgs fundArgs(time, ut1_utc);
 
-    beta(0) = fundArgs.gmst - fundArgs.f - fundArgs.omega;  // todo aaron, swap with doodson?
+    beta(0) = fundArgs.gmst - fundArgs.f - fundArgs.omega;  // todo? swap with doodson?
     beta(1) = fundArgs.f + fundArgs.omega;
     beta(2) = beta(1) - fundArgs.d;
     beta(3) = beta(1) - fundArgs.l;

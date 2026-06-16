@@ -16,6 +16,12 @@ set(CMAKE_RANLIB x86_64-w64-mingw32-ranlib)
 # Where to search for target environment
 set(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32)
 
+# Add vcpkg installed directory to find root path if available
+if(DEFINED _VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+    list(APPEND CMAKE_FIND_ROOT_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    message(STATUS "Added vcpkg install dir to CMAKE_FIND_ROOT_PATH: ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+endif()
+
 # Adjust the default behavior of the FIND_XXX() commands:
 # search programs in the host environment
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
@@ -41,17 +47,20 @@ add_definitions(-D_LARGEFILE64_SOURCE)
 
 # Help FindOpenSSL locate libraries in vcpkg for cross-compilation
 # The vcpkg wrapper uses different variable names for WIN32
-if(DEFINED ENV{VCPKG_ROOT} AND DEFINED VCPKG_TARGET_TRIPLET)
-    set(OPENSSL_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
-    set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include" CACHE PATH "OpenSSL include directory")
-    set(LIB_EAY "${OPENSSL_ROOT_DIR}/lib/libcrypto.a" CACHE FILEPATH "OpenSSL crypto library")
-    set(SSL_EAY "${OPENSSL_ROOT_DIR}/lib/libssl.a" CACHE FILEPATH "OpenSSL SSL library")
+if(DEFINED _VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+    set(OPENSSL_ROOT_DIR "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}" CACHE PATH "OpenSSL root directory" FORCE)
+    set(OPENSSL_INCLUDE_DIR "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include" CACHE PATH "OpenSSL include directory" FORCE)
+    set(OPENSSL_CRYPTO_LIBRARY "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libcrypto.a" CACHE FILEPATH "OpenSSL crypto library" FORCE)
+    set(OPENSSL_SSL_LIBRARY "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libssl.a" CACHE FILEPATH "OpenSSL SSL library" FORCE)
+    set(LIB_EAY "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libcrypto.a" CACHE FILEPATH "OpenSSL crypto library (legacy)" FORCE)
+    set(SSL_EAY "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libssl.a" CACHE FILEPATH "OpenSSL SSL library (legacy)" FORCE)
+    message(STATUS "Set OpenSSL paths for cross-compilation: ${OPENSSL_ROOT_DIR}")
     
     # Help FindBLAS/FindLAPACK locate libraries
-    set(BLAS_LIBRARIES "${OPENSSL_ROOT_DIR}/lib/libopenblas.a" CACHE FILEPATH "BLAS library")
-    set(LAPACK_LIBRARIES "${OPENSSL_ROOT_DIR}/lib/liblapack.a;${OPENSSL_ROOT_DIR}/lib/libf2c.a;${OPENSSL_ROOT_DIR}/lib/libopenblas.a" CACHE FILEPATH "LAPACK library")
+    set(BLAS_LIBRARIES "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libopenblas.a" CACHE FILEPATH "BLAS library" FORCE)
+    set(LAPACK_LIBRARIES "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/liblapack.a;${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libf2c.a;${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libopenblas.a" CACHE FILEPATH "LAPACK library" FORCE)
     
     # Help FindYAML_CPP locate libraries
-    set(YAML_CPP_LIBRARIES "${OPENSSL_ROOT_DIR}/lib/libyaml-cpp.a" CACHE FILEPATH "YAML-CPP library")
-    set(YAML_CPP_LIB "${OPENSSL_ROOT_DIR}/lib/libyaml-cpp.a" CACHE FILEPATH "YAML-CPP library (alternate variable)")
+    set(YAML_CPP_LIBRARIES "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libyaml-cpp.a" CACHE FILEPATH "YAML-CPP library" FORCE)
+    set(YAML_CPP_LIB "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/libyaml-cpp.a" CACHE FILEPATH "YAML-CPP library (alternate variable)" FORCE)
 endif()

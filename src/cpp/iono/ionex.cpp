@@ -38,7 +38,7 @@ int nitem(const double* range)
 /* data index (i:lat,j:lon,k:hgt)
  */
 int dataindex(int i, int j, int k,
-              const int* ndata)  // todo aaron, convert to maps
+              const int* ndata)  // todo? convert to maps
 {
     if (i < 0 || ndata[0] <= i || j < 0 || ndata[1] <= j || k < 0 || ndata[2] <= k)
     {
@@ -285,8 +285,9 @@ double readionexh(
         {
             nexp = str2num(buff, 0, 6);
         }
-        else if (strstr(label, "START OF AUX DATA") == label &&
-                 strstr(buff, "DIFFERENTIAL CODE BIASES"))
+        else if (
+            strstr(label, "START OF AUX DATA") == label && strstr(buff, "DIFFERENTIAL CODE BIASES")
+        )
         {
             readionexdcb(in, navi);
         }

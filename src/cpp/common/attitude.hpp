@@ -9,11 +9,11 @@
  */
 struct AttStatus
 {
-    GTime startTime = GTime::noTime(
-    );  ///< Time of switchover to modified yaw steering (due to noon/midnight turn)
-    double startSign    = 0;   ///< Sign of yaw rate at switchover
-    double startYaw     = 0;   ///< Yaw at switchover
-    double startYawRate = 0;   ///< Yaw rate at switchover
+    GTime startTime = GTime::noTime();  ///< Time of switchover to modified yaw steering (due to
+                                        ///< noon/midnight turn)
+    double startSign    = 0;            ///< Sign of yaw rate at switchover
+    double startYaw     = 0;            ///< Yaw at switchover
+    double startYawRate = 0;            ///< Yaw rate at switchover
     GTime  excludeTime =
         GTime::noTime();       ///< Time to skip yaw modelling until, due to unknown yaw behaviour
 

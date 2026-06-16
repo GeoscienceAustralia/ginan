@@ -1,17 +1,22 @@
 // #pragma GCC optimize ("O0")
 
 #include <algorithm>
+#include <boost/chrono/chrono_io.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/system/error_code.hpp>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <set>
 #include <signal.h>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <vector>
 #include "architectureDocs.hpp"
 #include "common/algebraTrace.hpp"
 #include "common/api.hpp"
@@ -36,13 +41,16 @@
 #include "common/testUtils.hpp"
 #include "inertial/posProp.hpp"
 #include "iono/ionoModel.hpp"
+#if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
 #include "omp.h"
+#endif
 #include "orbprop/coordinates.hpp"
 #include "orbprop/orbitProp.hpp"
 #include "pea/inputsOutputs.hpp"
 #include "pea/minimumConstraints.hpp"
 #include "pea/peaCommitStrings.hpp"
 #include "pea/preprocessor.hpp"
+#include "slr/slr.hpp"
 
 using namespace std::literals::chrono_literals;
 using std::make_shared;
@@ -85,6 +93,90 @@ Navigation            nav    = {};
 int                   epoch  = 0;
 GTime                 tsync  = GTime::noTime();
 map<int, SatIdentity> satIdMap;
+map<string, string>   latestMissingObsStatusByReceiver;
+
+struct ConfiguredStreamState
+{
+    std::set<string> configuredSources;
+    std::set<string> configuredReceivers;
+};
+
+std::vector<StreamParserPtr> retiredStreamParsers;
+
+string streamDisplayName(const string& sourceString)
+{
+    URL url(sourceString);
+
+    if (url.host.empty() == false && url.path.empty() == false)
+    {
+        if (url.path.front() == '/')
+        {
+            return url.path.substr(1);
+        }
+
+        return url.path;
+    }
+
+    return sourceString;
+}
+
+void retireStreamParser(StreamParserPtr streamParser_ptr)
+{
+    if (streamParser_ptr == nullptr)
+    {
+        return;
+    }
+
+    try
+    {
+        if (auto* tcpSocket = dynamic_cast<TcpSocket*>(&streamParser_ptr->stream))
+        {
+            tcpSocket->shutdown();
+        }
+    }
+    catch (...)
+    {
+    }
+
+    retiredStreamParsers.push_back(std::move(streamParser_ptr));
+}
+
+ConfiguredStreamState getConfiguredStreamState()
+{
+    ConfiguredStreamState state;
+
+    auto addSources = [&](const vector<string>& inputNames)
+    { state.configuredSources.insert(inputNames.begin(), inputNames.end()); };
+
+    auto addReceiverSources = [&](const auto& inputMap)
+    {
+        for (const auto& [id, inputNames] : inputMap)
+        {
+            state.configuredReceivers.insert(id);
+            addSources(inputNames);
+        }
+    };
+
+    for (const auto& [id, slrInputs] : slrObsFiles)
+    {
+        state.configuredReceivers.insert(id);
+        addSources(slrInputs);
+    }
+
+    addReceiverSources(acsConfig.ubx_inputs);
+    addReceiverSources(acsConfig.sbf_inputs);
+    addReceiverSources(acsConfig.custom_inputs);
+    addReceiverSources(acsConfig.rnx_inputs);
+    addReceiverSources(acsConfig.obs_rtcm_inputs);
+    addReceiverSources(acsConfig.pseudo_sp3_inputs);
+    addReceiverSources(acsConfig.pseudo_snx_inputs);
+
+    addSources(acsConfig.nav_rtcm_inputs);
+    addSources(acsConfig.qzs_rtcm_inputs);
+    addSources(acsConfig.sisnet_inputs);
+
+    return state;
+}
 
 void avoidCollisions(ReceiverMap& receiverMap)
 {
@@ -126,9 +218,22 @@ void mainOncePerEpochPerStation(Receiver& rec, Network& net, bool& emptyEpoch, K
 
     if (rec.ready == false)
     {
+        string missingStatus;
+        if (auto it = latestMissingObsStatusByReceiver.find(rec.id);
+            it != latestMissingObsStatusByReceiver.end())
+        {
+            missingStatus = it->second;
+        }
+
         trace << "\n"
               << "Receiver " << rec.id << " has no data for this epoch";
-        BOOST_LOG_TRIVIAL(info) << "Receiver " << rec.id << " has no data for this epoch";
+        if (missingStatus.empty() == false)
+        {
+            trace << " (" << missingStatus << ")";
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Receiver " << rec.id << " has no data for this epoch"
+                                << (missingStatus.empty() ? "" : " (" + missingStatus + ")");
         return;
     }
 
@@ -179,10 +284,30 @@ void mainOncePerEpochPerStation(Receiver& rec, Network& net, bool& emptyEpoch, K
     bool sppUsed;
     selectAprioriSource(trace, rec, tsync, sppUsed, net.kfState, &remoteState);
 
-    if (missingWarnInvalidate("Apriori position1", sppUsed, acsConfig.require_apriori_positions))
-        return;
+    if (sppUsed)
+    {
+        string message =
+            "fixed receiver apriori position not found for " + rec.id
+            + "; using SPP fallback. Check receiver_options." + rec.id
+            + ".apriori_position, receiver_options." + rec.id
+            + ".models.pos.sources, and loaded SINEX station coordinates.";
+
+        if (acsConfig.require_apriori_positions)
+        {
+            trace << "\n"
+                  << "Warning: Receiver " << rec.id << " rejected because " << message;
+            BOOST_LOG_TRIVIAL(warning) << "Receiver " << rec.id << " rejected because " << message;
+
+            rec.invalid = true;
+
+            return;
+        }
+
+        BOOST_LOG_TRIVIAL(warning) << message;
+    }
+
     if (missingWarnInvalidate(
-            "Apriori position2",
+            "Receiver metadata apriori position",
             rec.failureAprioriPos,
             acsConfig.require_apriori_positions
         ))
@@ -208,6 +333,7 @@ void mainOncePerEpochPerStation(Receiver& rec, Network& net, bool& emptyEpoch, K
                              << rec.id;
 
     // calculate statistics
+    if (rec.obsList.empty() == false)
     {
         if ((GTime)rec.firstEpoch == GTime::noTime())
         {
@@ -302,7 +428,7 @@ void mainOncePerEpochPerSatellite(
 
         // reinitialise the options with the updated values
         satOpts._initialised =
-            false;  // todo aaron, this is insufficient since the opts are inherited from the other
+            false;  // todo? this is insufficient since the opts are inherited from the other
                     // initialised ones per file which are not reset
     }
 
@@ -601,10 +727,26 @@ int main(int argc, char** argv)
     bool pass = configure(argc, argv);
     if (pass == false)
     {
-        BOOST_LOG_TRIVIAL(error) << "Incorrect configuration";
+        if (acsConfig.dry_run)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Dry-run failed: configuration is invalid";
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(error) << "Incorrect configuration";
+        }
+
         BOOST_LOG_TRIVIAL(info) << "PEA finished";
         TcpSocket::ioContext.stop();
         return EXIT_FAILURE;
+    }
+
+    if (acsConfig.dry_run)
+    {
+        BOOST_LOG_TRIVIAL(info) << "Dry-run successful: configuration and sanity checks passed";
+        BOOST_LOG_TRIVIAL(info) << "PEA finished";
+        TcpSocket::ioContext.stop();
+        return EXIT_SUCCESS;
     }
 
     if (acsConfig.output_log)
@@ -678,7 +820,7 @@ int main(int argc, char** argv)
         pppNet.kfState.stateRejectCallbacks.push_back(
             rejectWorstMeasByState
         );  // Assume the state error is caused by a single measurement error and try removing it
-            // first
+        // first
         pppNet.kfState.stateRejectCallbacks.push_back(relaxState);
         pppNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
     }
@@ -695,12 +837,12 @@ int main(int argc, char** argv)
 
         ionNet.kfState.measRejectCallbacks.push_back(deweightMeas);
 
-        pppNet.kfState.stateRejectCallbacks.push_back(incrementStateErrors);
+        ionNet.kfState.stateRejectCallbacks.push_back(incrementStateErrors);
         ionNet.kfState.stateRejectCallbacks.push_back(
             rejectWorstMeasByState
         );  // Assume the state error is caused by a single measurement error and try removing it
-            // first
-        pppNet.kfState.stateRejectCallbacks.push_back(relaxState);
+        // first
+        ionNet.kfState.stateRejectCallbacks.push_back(relaxState);
         ionNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
     }
 
@@ -725,16 +867,29 @@ int main(int argc, char** argv)
 
     reloadInputFiles();
 
+    auto hasRealtimeObservationInput = []()
+    {
+        for (auto& [id, streamParser_ptr] : streamParserMultimap)
+        {
+            auto* obsStream = dynamic_cast<ObsStream*>(streamParser_ptr.get());
+            if (obsStream != nullptr && dynamic_cast<TcpSocket*>(&obsStream->stream) != nullptr)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    bool hasRealtimeObsInput = hasRealtimeObservationInput();
+
     addDefaultBias();
 
     TcpSocket::startClients();
 
     if (acsConfig.start_epoch.is_not_a_date_time() == false)
     {
-        PTime startTime;
-        startTime.bigTime = boost::posix_time::to_time_t(acsConfig.start_epoch);
-
-        GTime startGTime = startTime;
+        GTime startGTime = GTime(acsConfig.start_epoch);
         tsync            = startGTime.floorTime(acsConfig.epoch_interval);
 
         if (tsync != startGTime)
@@ -744,7 +899,7 @@ int main(int argc, char** argv)
                 << acsConfig.epoch_interval << ", rounding down to " << tsync;
         }
 
-        acsConfig.start_epoch = boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime);
+        acsConfig.start_epoch = tsync.to_posixTime();
     }
 
     createTracefiles(receiverMap, pppNet, ionNet);
@@ -778,6 +933,7 @@ int main(int argc, char** argv)
     //============================================================================
 
     GTime lastEpochStartTime;
+    GTime lastProcStartTime;
     GTime lastEpochStopTime;
 
     auto atLastEpoch = [&](bool processed = false) -> bool
@@ -797,25 +953,25 @@ int main(int argc, char** argv)
             return false;
         }
 
-        int  fractionalMilliseconds = (tsync.bigTime - (long int)tsync.bigTime) * 1000;
-        auto boostTime = boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime) +
-                         boost::posix_time::millisec(fractionalMilliseconds);
-
         GWeek week = tsync;
         GTow  tow  = tsync;
 
         if (processed)
         {
-            BOOST_LOG_TRIVIAL(info) << "Processed epoch #" << epoch << " - " << "GPS time: " << week
-                                    << " " << std::setw(6) << tow << " - " << boostTime << " (took "
-                                    << (lastEpochStopTime - lastEpochStartTime) << ")";
+            BOOST_LOG_TRIVIAL(info)
+                << "Processed epoch #" << epoch << " - " << "GPS time: " << week << " "
+                << std::setw(6) << tow << " - " << tsync << " (data handling took "
+                << (lastProcStartTime - lastEpochStartTime) << ", processing took "
+                << (lastEpochStopTime - lastProcStartTime) << ", epoch took "
+                << (lastEpochStopTime - lastEpochStartTime) << ")";
         }
 
         // Check end epoch
-        if (acsConfig.end_epoch.is_not_a_date_time() == false && boostTime >= acsConfig.end_epoch)
+        if (acsConfig.end_epoch.is_not_a_date_time() == false &&
+            tsync.to_posixTime() >= acsConfig.end_epoch)
         {
             BOOST_LOG_TRIVIAL(info)
-                << "Exiting at epoch " << epoch << " (" << boostTime << ") as end epoch "
+                << "Exiting at epoch " << epoch << " (" << tsync << ") as end epoch "
                 << acsConfig.end_epoch << " has been reached";
 
             return true;
@@ -835,8 +991,15 @@ int main(int argc, char** argv)
     auto nominalLoopStartTime =
         system_clock::now();  // The time the next loop is expected to start - if it doesnt start
                               // until after this, it may be skipped
+    GTime firstObsTime              = GTime::noTime();
+    bool  holdingReconnectOutage    = false;
+    bool  hasProcessedRealtimeEpoch = false;
+    auto  reconnectOutageStart      = system_clock::time_point{};
+    auto  lastOutageStatusLog       = system_clock::time_point{};
+
     while (complete == false)
     {
+        // Increment epoch and tsync
         if (nextEpoch)
         {
             nextEpoch = false;
@@ -847,6 +1010,8 @@ int main(int argc, char** argv)
             nominalLoopStartTime +=
                 std::chrono::milliseconds((int)(acsConfig.wait_next_epoch * 1000));
 
+            lastEpochStartTime = timeGet();
+
             if (tsync != GTime::noTime())
             {
                 // dont obliterate the freshly configured tsync before the first epoch
@@ -855,10 +1020,12 @@ int main(int argc, char** argv)
                     tsync.bigTime += acsConfig.epoch_interval;
                 }
 
-                if (fabs(tsync.bigTime - round(tsync.bigTime)) < acsConfig.epoch_tolerance)
-                {
-                    tsync.bigTime = round(tsync.bigTime);
-                }
+                // Eugene: This will try forcing align tsync to integeral epochs, which can make
+                // processing epochs something like: 0.0, 0.3, 0.6, 1.0, ...
+                // if (fabs(tsync.bigTime - round(tsync.bigTime)) < acsConfig.epoch_tolerance)
+                // {
+                //     tsync.bigTime = round(tsync.bigTime);
+                // }
             }
 
             for (auto& [id, rec] : receiverMap)
@@ -893,7 +1060,7 @@ int main(int argc, char** argv)
         auto breakTime = nominalLoopStartTime +
                          std::chrono::milliseconds((int)(acsConfig.max_rec_latency * 1000));
 
-        if (loopEpochs)
+        if (loopEpochs)  // Eugene: This doesn't do anything at all?
         {
             BOOST_LOG_TRIVIAL(info) << "Starting epoch #" << epoch;
 
@@ -918,37 +1085,45 @@ int main(int argc, char** argv)
 
         // get observations from streams (allow some delay between stations, and retry, to ensure
         // all messages for the epoch have arrived)
-        map<string, bool> dataAvailableMap;
-        bool              repeat = true;
+        map<string, bool>   dataAvailableMap;
+        map<string, string> missingObsReasons;
+        map<string, string> missingObsSources;
+        map<string, string> missingObsStates;
+        vector<double>      readyLatencySeconds;
+        bool                repeat  = true;
+        int                 attempt = 0;
         while (repeat && system_clock::now() < breakTime)
         {
+            attempt++;
+
             repeat = false;
 
             // load any changes from the config
             bool newConfig = acsConfig.parse();
 
             // make any changes to streams.
+            ConfiguredStreamState configuredStreamState;
             if (newConfig)
             {
+                reloadInputFiles();
                 configureUploadingStreams();
+                configuredStreamState = getConfiguredStreamState();
             }
 
             // remove any dead streams
             for (auto iter = streamParserMultimap.begin(); iter != streamParserMultimap.end();)
             {
                 auto& [id, streamParser_ptr] = *iter;
-                auto& stream                 = streamParser_ptr->stream;
+                auto&  stream                = streamParser_ptr->stream;
+                string recId                 = id;
 
                 auto& recOpts = acsConfig.getRecOpts(id);
 
-                if (recOpts.kill)
+                auto removeReceiver = [&]()
                 {
-                    BOOST_LOG_TRIVIAL(info)
-                        << "Removing " << stream.sourceString << " due to kill config" << "\n";
-
                     for (auto& [key, index] : pppNet.kfState.kfIndexMap)
                     {
-                        if (key.str == id)
+                        if (key.str == recId)
                         {
                             pppNet.kfState.removeState(key);
 
@@ -958,9 +1133,42 @@ int main(int argc, char** argv)
                         }
                     }
 
-                    receiverMap.erase(id);
+                    receiverMap.erase(recId);
+                };
+
+                if (newConfig &&
+                    configuredStreamState.configuredSources.find(stream.sourceString) ==
+                        configuredStreamState.configuredSources.end())
+                {
+                    auto retiredStreamParser = streamParser_ptr;
+
+                    BOOST_LOG_TRIVIAL(info) << "Removing " << stream.sourceString
+                                            << " because it is no longer configured";
+
+                    streamDOAMap.erase(stream.sourceString);
+
+                    if (configuredStreamState.configuredReceivers.find(recId) ==
+                        configuredStreamState.configuredReceivers.end())
+                    {
+                        removeReceiver();
+                    }
 
                     iter = streamParserMultimap.erase(iter);
+                    retireStreamParser(std::move(retiredStreamParser));
+
+                    continue;
+                }
+
+                if (recOpts.kill)
+                {
+                    BOOST_LOG_TRIVIAL(info)
+                        << "Removing " << stream.sourceString << " due to kill config";
+                    auto retiredStreamParser = streamParser_ptr;
+
+                    removeReceiver();
+
+                    iter = streamParserMultimap.erase(iter);
+                    retireStreamParser(std::move(retiredStreamParser));
 
                     continue;
                 }
@@ -981,8 +1189,7 @@ int main(int argc, char** argv)
 
                 if (stream.isAvailable() && stream.isDead())
                 {
-                    BOOST_LOG_TRIVIAL(info)
-                        << "No more data available on " << stream.sourceString << "\n";
+                    BOOST_LOG_TRIVIAL(info) << "No more data available on " << stream.sourceString;
 
                     // record as dead and erase
                     streamDOAMap[stream.sourceString] = true;
@@ -995,6 +1202,12 @@ int main(int argc, char** argv)
                 iter++;
             }
 
+            if (newConfig)
+            {
+                hasRealtimeObsInput = hasRealtimeObservationInput();
+            }
+
+            // Check if all streams are dead
             if (streamParserMultimap.empty())
             {
                 static bool once = true;
@@ -1012,6 +1225,10 @@ int main(int argc, char** argv)
                 break;
             }
 
+            BOOST_LOG_TRIVIAL(debug) << "\n";
+            BOOST_LOG_TRIVIAL(debug) << "tsync: " << tsync.to_string(6) << " - attempt " << attempt;
+            BOOST_LOG_TRIVIAL(debug) << "Parsing non-observation streams ...";
+
             // parse all non-observation streams
             for (auto& [id, streamParser_ptr] : streamParserMultimap)
                 try
@@ -1023,26 +1240,11 @@ int main(int argc, char** argv)
                     streamParser_ptr->parse();
                 }
 
-            for (auto& [id, streamParser_ptr] : streamParserMultimap)
+            BOOST_LOG_TRIVIAL(debug) << "Parsing observation streams ...";
+
+            // Parse observation streams (including pseudo observations) for all receivers
+            for (auto& [id, rec] : receiverMap)
             {
-                ObsStream* obsStream_ptr;
-
-                try
-                {
-                    obsStream_ptr = &dynamic_cast<ObsStream&>(*streamParser_ptr);
-                }
-                catch (std::bad_cast& e)
-                {
-                    continue;
-                }
-
-                auto& obsStream = *obsStream_ptr;
-
-                if (obsStream.stream.isAvailable() == false)
-                {
-                    continue;
-                }
-
                 auto& recOpts = acsConfig.getRecOpts(id);
 
                 if (recOpts.exclude)
@@ -1050,138 +1252,314 @@ int main(int argc, char** argv)
                     continue;
                 }
 
-                auto& rec = receiverMap[id];
+                if (rec.ready)
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Receiver " << id << " is ready, skipping ...";
+                    continue;
+                }
+
+                missingObsReasons[id] = "no_obs_stream";
 
                 auto trace = getTraceFile(rec);
 
-                if (obsStream.isPseudoRec)
+                // Search suitable data from all files from this receiver (for real-time data, there
+                // should be only one unique stream per receiver)
+                auto [begin, end] = streamParserMultimap.equal_range(id);
+                for (auto it = begin; it != end; it++)
                 {
-                    rec.isPseudoRec = true;
-                }
+                    auto& streamParser_ptr = it->second;
 
-                // try to get some data (again)
-                if (rec.ready)
-                {
-                    continue;
-                }
+                    ObsStream* obsStream_ptr;
 
-                bool moreData = true;
-                while (moreData)
-                {
-                    if (acsConfig.assign_closest_epoch)
-                        rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_interval / 2);
-                    else
-                        rec.obsList = obsStream.getObs(tsync, acsConfig.epoch_tolerance);
-
-                    switch (obsStream.obsAgeCode)
+                    try
                     {
-                        case E_ObsAgeCode::NO_OBS:
-                            moreData = false;
-                            break;
-                        case E_ObsAgeCode::PAST_OBS:
-                            preprocessor(trace, rec);
-                            break;
-                        case E_ObsAgeCode::CURRENT_OBS:
-                            moreData = false;
-                            preprocessor(trace, rec);
-                            break;
-                        case E_ObsAgeCode::FUTURE_OBS:
-                            moreData = false;
-                            break;
+                        obsStream_ptr = &dynamic_cast<ObsStream&>(*streamParser_ptr);
                     }
-                }
-
-                if (rec.obsList.empty())
-                {
-                    // failed to get observations
-                    if (obsStream.obsAgeCode == E_ObsAgeCode::NO_OBS)
+                    catch (std::bad_cast& e)
                     {
-                        // try again later
-                        repeat = true;
-                        sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));
-                    }
-
-                    continue;
-                }
-
-                if (tsync == GTime::noTime())
-                {
-                    tsync = rec.obsList.front()->time.floorTime(acsConfig.epoch_interval);
-
-                    acsConfig.start_epoch =
-                        boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime);
-
-                    if (tsync + acsConfig.epoch_tolerance < rec.obsList.front()->time)
-                    {
-                        repeat = true;
                         continue;
                     }
-                }
 
-                dataAvailableMap[rec.id] = true;
-                rec.ready                = true;
-                rec.source               = obsStream.stream.sourceString;
+                    auto& obsStream = *obsStream_ptr;
 
-                extractTrackedSignals(rec, obsStream.parser, &rec.obsList);
+                    missingObsSources[id] = streamDisplayName(obsStream.stream.sourceString);
 
-                auto now = system_clock::now();
-
-                if (now >= nominalLoopStartTime)
-                {
-                    auto nominalLatency = now - nominalLoopStartTime;
-
-                    trace << "\n"
-                          << std::chrono::duration_cast<std::chrono::milliseconds>(
-                                 nominalLoopStartTime - peaStartTimeChrono
-                             )
-                                 .count()
-                          << "ms" << " "
-                          << std::chrono::duration_cast<std::chrono::milliseconds>(
-                                 now - peaStartTimeChrono
-                             )
-                                 .count()
-                          << "ms" << " " << rec.id << " nominal latency :  "
-                          << std::chrono::duration_cast<std::chrono::milliseconds>(nominalLatency)
-                                 .count()
-                          << "ms";
-                }
-                else
-                {
-                    // this observation is earlier than expected
-                    // only shorten waiting periods, never extend
-
-                    auto nominalLatency = nominalLoopStartTime - now;
-
-                    trace << "\n"
-                          << std::chrono::duration_cast<std::chrono::milliseconds>(
-                                 nominalLoopStartTime - peaStartTimeChrono
-                             )
-                                 .count()
-                          << "ms" << " "
-                          << std::chrono::duration_cast<std::chrono::milliseconds>(
-                                 now - peaStartTimeChrono
-                             )
-                                 .count()
-                          << "ms" << " " << rec.id << " nominal latency : -"
-                          << std::chrono::duration_cast<std::chrono::milliseconds>(nominalLatency)
-                                 .count()
-                          << "ms" << " Advancing start time";
-
-                    auto alternateBreakTime =
-                        now + std::chrono::milliseconds((int)(acsConfig.max_rec_latency * 1000));
-                    auto alternateStartTime = now;
-
-                    if (alternateBreakTime < breakTime)
+                    auto describeStreamState = [&](const string& reason)
                     {
-                        breakTime = alternateBreakTime;
-                    }
-                    if (alternateStartTime < nominalLoopStartTime)
+                        std::ostringstream state;
+                        state << "reason=" << reason
+                              << ", source=" << streamDisplayName(obsStream.stream.sourceString)
+                              << ", available=" << (obsStream.stream.isAvailable() ? "yes" : "no")
+                              << ", dead=" << (obsStream.stream.isDead() ? "yes" : "no");
+
+                        if (auto* tcpSocket = dynamic_cast<TcpSocket*>(&obsStream.stream))
+                        {
+                            long long nextReconnectUnixTime = tcpSocket->nextReconnectUnixTime();
+                            if (nextReconnectUnixTime > 0)
+                            {
+                                auto nowUnixTime =
+                                    std::chrono::system_clock::to_time_t(system_clock::now());
+                                long long reconnectInSeconds =
+                                    std::max(0LL, nextReconnectUnixTime - (long long)nowUnixTime);
+                                state << ", reconnect_in_s=" << reconnectInSeconds;
+                            }
+                            else
+                            {
+                                state << ", reconnect_in_s=0";
+                            }
+                        }
+                        else
+                        {
+                            state << ", reconnect_in_s=n/a";
+                        }
+
+                        if (obsStream.obsAgeCode != E_ObsAgeCode::UNKNOWN)
+                        {
+                            state << ", obs_age=" << obsStream.obsAgeCode;
+                        }
+
+                        return state.str();
+                    };
+
+                    BOOST_LOG_TRIVIAL(debug) << "Reading stream '" << obsStream.stream.sourceString
+                                             << "', isAvailable=" << obsStream.stream.isAvailable()
+                                             << ", isDead=" << obsStream.stream.isDead();
+
+                    if (obsStream.stream.isAvailable() == false)
                     {
-                        nominalLoopStartTime = alternateStartTime;
+                        missingObsReasons[id] = "stream_unavailable";
+                        missingObsStates[id]  = describeStreamState("stream_unavailable");
+                        BOOST_LOG_TRIVIAL(debug) << "Skipping unavailable stream '"
+                                                 << obsStream.stream.sourceString << "'";
+                        continue;
                     }
+
+                    if (auto* tcpSocket = dynamic_cast<TcpSocket*>(&obsStream.stream))
+                    {
+                        if (tcpSocket->reconnectDueAfter(breakTime))
+                        {
+                            missingObsReasons[id] = "reconnect_after_breaktime";
+                            missingObsStates[id] = describeStreamState("reconnect_after_breaktime");
+                            BOOST_LOG_TRIVIAL(
+                                debug
+                            ) << "Skipping stream '"
+                              << obsStream.stream.sourceString
+                              << "' for this epoch because reconnect is scheduled after breakTime";
+                            continue;
+                        }
+                    }
+
+                    double epochTolerance =
+                        DTTOL;  // Use a very small tolerance if data interval is unknown (0) yet,
+                                // otherwise can take in multiple-epoch data
+
+                    // try to get some data (again)
+                    bool moreData = true;
+                    while (moreData)
+                    {
+                        if (acsConfig.assign_closest_epoch)
+                        {
+                            BOOST_LOG_TRIVIAL(warning)
+                                << "'assign_closest_epoch' is on, observations that fall between "
+                                   "processing epochs will be grouped to nearest epochs despite "
+                                   "'epoch_tolerance'";
+
+                            epochTolerance = acsConfig.epoch_interval / 2;
+                        }
+                        else if (obsStream.interval > 0)
+                        {
+                            epochTolerance =
+                                std::min(obsStream.interval / 2, acsConfig.epoch_tolerance);
+                        }
+
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Getting obs, id=" << id << ", targetTime=" << tsync.to_string(6)
+                            << ", epochTolerance=" << epochTolerance;
+
+                        GTime obsTime = tsync;
+                        rec.obsList   = obsStream.getObs(obsTime, epochTolerance);
+
+                        cleanSignals(rec.obsList);
+
+                        switch (obsStream.obsAgeCode)
+                        {
+                            case E_ObsAgeCode::UNKNOWN:
+                                moreData = false;
+                                if (firstObsTime == GTime::noTime() || obsTime < firstObsTime)
+                                {
+                                    firstObsTime = obsTime;
+                                }
+                                break;
+                            case E_ObsAgeCode::NO_OBS:
+                                moreData = false;
+                                break;
+                            case E_ObsAgeCode::PAST_OBS:
+                                preprocessor(trace, rec);
+                                break;
+                            case E_ObsAgeCode::CURRENT_OBS:
+                                moreData = false;  // Eugene to fix: May have more current obs from
+                                                   // next file
+                                preprocessor(trace, rec);
+                                break;
+                            case E_ObsAgeCode::FUTURE_OBS:
+                                moreData = false;
+                                break;
+                        }
+
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Checking obs age and preprocessing data if needed"
+                            << ", obsAgeCode=" << obsStream.obsAgeCode
+                            << ", moreData=" << (moreData ? "true" : "false");
+                    }
+
+                    if (rec.obsList.empty())
+                    {
+                        // Can only be NO_OBS or FUTURE_OBS
+                        if (obsStream.obsAgeCode == E_ObsAgeCode::NO_OBS)
+                        {
+                            missingObsReasons[id] = "no_obs";
+                            missingObsStates[id]  = describeStreamState("no_obs");
+                            // Failed to get observations, try again later
+                            repeat = true;  // Only need to retry on NO_OBS, for FUTURE_OBS, just
+                                            // move to next receiver
+
+                            BOOST_LOG_TRIVIAL(debug)
+                                << "Failed to get observations, try again later ...";
+                        }
+                        else if (obsStream.obsAgeCode == E_ObsAgeCode::FUTURE_OBS)
+                        {
+                            missingObsReasons[id] = "future_obs";
+                            missingObsStates[id]  = describeStreamState("future_obs");
+                        }
+                        else if (obsStream.obsAgeCode == E_ObsAgeCode::UNKNOWN)
+                        {
+                            missingObsReasons[id] = "unknown_obs_age";
+                            missingObsStates[id]  = describeStreamState("unknown_obs_age");
+                        }
+
+                        break;
+                    }
+
+                    dataAvailableMap[rec.id] = true;
+                    missingObsReasons.erase(rec.id);
+                    missingObsSources.erase(rec.id);
+                    missingObsStates.erase(rec.id);
+                    rec.ready  = true;
+                    rec.source = obsStream.stream.sourceString;
+
+                    extractReceiverMetadata(rec, obsStream.parser, &rec.obsList);
+                    extractTrackedSignals(rec, obsStream.parser, &rec.obsList);
+
+                    GTime readyTime = timeGet();
+                    if (tsync != GTime::noTime())
+                    {
+                        double readyLatencySecondsValue = (readyTime - tsync).to_double();
+                        readyLatencySeconds.push_back(readyLatencySecondsValue);
+
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Receiver " << rec.id << " ready diagnostic: attempt=" << attempt
+                            << ", ready_time=" << readyTime << ", ready_latency_s=" << std::fixed
+                            << std::setprecision(2) << readyLatencySecondsValue
+                            << ", obs_count=" << rec.obsList.size()
+                            << ", source=" << streamDisplayName(rec.source);
+                    }
+                    else
+                    {
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Receiver " << rec.id << " ready diagnostic: attempt=" << attempt
+                            << ", ready_time=" << readyTime
+                            << ", ready_latency_s=startup_pending_tsync"
+                            << ", obs_count=" << rec.obsList.size()
+                            << ", source=" << streamDisplayName(rec.source);
+                    }
+
+                    auto now = system_clock::now();
+
+                    if (now >= nominalLoopStartTime)
+                    {
+                        auto nominalLatency = now - nominalLoopStartTime;
+
+                        trace << "\n"
+                              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     nominalLoopStartTime - peaStartTimeChrono
+                                 )
+                                     .count()
+                              << "ms" << " "
+                              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     now - peaStartTimeChrono
+                                 )
+                                     .count()
+                              << "ms" << " " << rec.id << " nominal latency :  "
+                              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     nominalLatency
+                                 )
+                                     .count()
+                              << "ms";
+                    }
+                    else
+                    {
+                        // this observation is earlier than expected
+                        // only shorten waiting periods, never extend
+
+                        auto nominalLatency = nominalLoopStartTime - now;
+
+                        trace << "\n"
+                              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     nominalLoopStartTime - peaStartTimeChrono
+                                 )
+                                     .count()
+                              << "ms" << " "
+                              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     now - peaStartTimeChrono
+                                 )
+                                     .count()
+                              << "ms" << " " << rec.id << " nominal latency : -"
+                              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     nominalLatency
+                                 )
+                                     .count()
+                              << "ms" << " Advancing start time";
+
+                        auto alternateBreakTime =
+                            now +
+                            std::chrono::milliseconds((int)(acsConfig.max_rec_latency * 1000));
+                        auto alternateStartTime = now;
+
+                        if (alternateBreakTime < breakTime)
+                        {
+                            breakTime = alternateBreakTime;
+                        }
+                        if (alternateStartTime < nominalLoopStartTime)
+                        {
+                            nominalLoopStartTime = alternateStartTime;
+                        }
+                    }
+
+                    break;
                 }
             }
+            // Determine start time by earliest obs time and try getting obs again
+            if (tsync == GTime::noTime())
+            {
+                tsync = firstObsTime.floorTime(acsConfig.epoch_interval);
+
+                acsConfig.start_epoch = tsync.to_posixTime();
+
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Start epoch not configured, rounding down first obs time " << firstObsTime
+                    << ", epoch_interval=" << acsConfig.epoch_interval
+                    << ", start_epoch=" << tsync.to_string(6);
+
+                repeat = true;
+            }
+
+            if (repeat)
+            {
+                sleep_for(std::chrono::milliseconds(acsConfig.sleep_milliseconds));
+            }
         }
+
+        BOOST_LOG_TRIVIAL(debug) << "Epoch data handling done with " << attempt << " attempt(s)\n";
 
         if (complete)
         {
@@ -1200,6 +1578,107 @@ int main(int argc, char** argv)
             continue;
         }
 
+        if (dataAvailableMap.empty() && acsConfig.require_obs && hasProcessedRealtimeEpoch &&
+            epoch > 1)
+        {
+            bool      sawRealtimeObsStream      = false;
+            long long earliestReconnectUnixTime = 0;
+
+            for (auto& [id, streamParser_ptr] : streamParserMultimap)
+            {
+                ObsStream* obsStream_ptr = nullptr;
+
+                try
+                {
+                    obsStream_ptr = &dynamic_cast<ObsStream&>(*streamParser_ptr);
+                }
+                catch (std::bad_cast&)
+                {
+                    continue;
+                }
+
+                auto& obsStream = *obsStream_ptr;
+
+                if (obsStream.isPseudoRec)
+                {
+                    continue;
+                }
+
+                auto* tcpSocket = dynamic_cast<TcpSocket*>(&obsStream.stream);
+                if (tcpSocket == nullptr)
+                {
+                    continue;
+                }
+
+                sawRealtimeObsStream = true;
+
+                long long nextReconnectUnixTime = tcpSocket->nextReconnectUnixTime();
+                if (nextReconnectUnixTime > 0 &&
+                    (earliestReconnectUnixTime == 0 ||
+                     nextReconnectUnixTime < earliestReconnectUnixTime))
+                {
+                    earliestReconnectUnixTime = nextReconnectUnixTime;
+                }
+            }
+
+            if (sawRealtimeObsStream)
+            {
+                if (holdingReconnectOutage == false)
+                {
+                    holdingReconnectOutage = true;
+                    reconnectOutageStart   = system_clock::now();
+                    lastOutageStatusLog    = reconnectOutageStart - 1s;
+                    BOOST_LOG_TRIVIAL(info) << "Realtime outage hold active, keeping tsync at "
+                                            << tsync << " until realtime observations resume";
+                }
+
+                auto now = system_clock::now();
+
+                if (now - lastOutageStatusLog >= 1s)
+                {
+                    auto outageElapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                        now - reconnectOutageStart
+                    );
+                    BOOST_LOG_TRIVIAL(info) << "Realtime outage hold ongoing, tsync=" << tsync
+                                            << ", outage_elapsed=" << outageElapsed.count() << "s";
+                    lastOutageStatusLog = now;
+                }
+
+                auto holdSleep = std::chrono::milliseconds(acsConfig.sleep_milliseconds);
+
+                if (earliestReconnectUnixTime > 0)
+                {
+                    auto earliestReconnectTime =
+                        system_clock::from_time_t((time_t)earliestReconnectUnixTime);
+
+                    if (earliestReconnectTime > now)
+                    {
+                        holdSleep = std::min(
+                            std::chrono::duration_cast<std::chrono::milliseconds>(
+                                earliestReconnectTime - now
+                            ),
+                            std::chrono::milliseconds(1000)
+                        );
+                    }
+                }
+
+                sleep_for(holdSleep);
+                nominalLoopStartTime = system_clock::now();
+                lastEpochStartTime   = timeGet();
+
+                continue;
+            }
+        }
+        else if (holdingReconnectOutage)
+        {
+            holdingReconnectOutage = false;
+            auto outageElapsed     = std::chrono::duration_cast<std::chrono::seconds>(
+                system_clock::now() - reconnectOutageStart
+            );
+            BOOST_LOG_TRIVIAL(info) << "Realtime outage hold released at tsync " << tsync
+                                    << " after " << outageElapsed.count() << "s";
+        }
+
         if (tsync == GTime::noTime())
         {
             if (acsConfig.require_obs)
@@ -1207,15 +1686,97 @@ int main(int argc, char** argv)
 
             tsync = timeGet().floorTime(acsConfig.epoch_interval);
 
-            acsConfig.start_epoch = boost::posix_time::from_time_t((time_t)((PTime)tsync).bigTime);
+            acsConfig.start_epoch = tsync.to_posixTime();
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Synced " << dataAvailableMap.size() << " receivers...";
+        lastProcStartTime = timeGet();
 
-        lastEpochStartTime = timeGet();
+        bool realtimeProcessing = acsConfig.simulate_real_time || hasRealtimeObsInput;
+
+        std::ostringstream syncSummary;
+        syncSummary << "Synced " << dataAvailableMap.size() << "/" << receiverMap.size()
+                    << " receivers after " << attempt << " attempt(s)";
+
+        if (realtimeProcessing)
+        {
+            syncSummary << ", sync_now=" << lastProcStartTime
+                        << ", sync_latency=" << (lastProcStartTime - tsync);
+
+            if (readyLatencySeconds.empty() == false)
+            {
+                std::sort(readyLatencySeconds.begin(), readyLatencySeconds.end());
+
+                auto percentile = [&](double p)
+                {
+                    size_t index = (size_t)std::floor(p * (readyLatencySeconds.size() - 1));
+                    return readyLatencySeconds[index];
+                };
+
+                syncSummary << ", ready_latency_s[min/p25/p50/p75/max]=" << std::fixed
+                            << std::setprecision(2) << readyLatencySeconds.front() << "/"
+                            << percentile(0.25) << "/" << percentile(0.50) << "/"
+                            << percentile(0.75) << "/" << readyLatencySeconds.back();
+            }
+
+            BOOST_LOG_TRIVIAL(info) << syncSummary.str();
+        }
+        else if (attempt > 1 || dataAvailableMap.size() < receiverMap.size())
+        {
+            BOOST_LOG_TRIVIAL(info) << syncSummary.str();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(debug) << syncSummary.str();
+        }
+
+        for (auto& [id, rec] : receiverMap)
+        {
+            if (dataAvailableMap.find(id) != dataAvailableMap.end())
+            {
+                latestMissingObsStatusByReceiver.erase(id);
+                continue;
+            }
+
+            auto it = missingObsReasons.find(id);
+            if (it == missingObsReasons.end())
+            {
+                latestMissingObsStatusByReceiver.erase(id);
+                continue;
+            }
+
+            std::ostringstream missingDiagnostic;
+            missingDiagnostic << "Receiver " << id << " not-ready diagnostic: attempts=" << attempt
+                              << ", sync_reason=" << it->second
+                              << ", sync_latency=" << (lastProcStartTime - tsync);
+
+            auto sourceIt = missingObsSources.find(id);
+            if (sourceIt != missingObsSources.end() && sourceIt->second.empty() == false)
+            {
+                missingDiagnostic << ", source=" << sourceIt->second;
+            }
+
+            auto stateIt = missingObsStates.find(id);
+            if (stateIt != missingObsStates.end() && stateIt->second.empty() == false)
+            {
+                latestMissingObsStatusByReceiver[id] = stateIt->second;
+                missingDiagnostic << ", state={" << stateIt->second << "}";
+            }
+            else
+            {
+                latestMissingObsStatusByReceiver.erase(id);
+            }
+
+            BOOST_LOG_TRIVIAL(debug) << missingDiagnostic.str();
+        }
+
         if (acsConfig.require_obs == false || dataAvailableMap.empty() == false)
         {
             mainOncePerEpoch(pppNet, ionNet, receiverMap, tsync);
+
+            if (acsConfig.require_obs && dataAvailableMap.empty() == false)
+            {
+                hasProcessedRealtimeEpoch = true;
+            }
         }
         lastEpochStopTime = timeGet();
 

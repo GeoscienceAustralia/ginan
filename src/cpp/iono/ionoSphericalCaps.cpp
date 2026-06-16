@@ -45,7 +45,7 @@ double legendre_function(int m, double n, double x)
         double e2 = (1 + 3 / pow(p, 2) + 4 / pow(p, 3)) / (360 * pow(m, 3));
         Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2.0) * exp(e1 + e2) /
               sqrt(m * PI);
-        A = Kmn * pow(sin(x), m);
+        A   = Kmn * pow(sin(x), m);
     }
 
     P = A;
@@ -87,7 +87,7 @@ double legendre_derivatv(int m, double n, double x)
         e2  = (1 + 3 / pow(p, 2) + 4 / pow(p, 3)) / (360 * pow(m, 3));
         Kmn = pow(2, -m) * pow((n + m) / (n - m), (n + 2) / 4) * pow(p, m / 2.0) * exp(e1 + e2) /
               sqrt(m * PI);
-        A = Kmn * pow(sin(x), m);
+        A   = Kmn * pow(sin(x), m);
     }
 
     P = A;
@@ -227,7 +227,7 @@ double ionCoefSphcap(Trace& trace, int ind, IonoObs& obs, bool slant)
     double out;
 
     if (basis.parity)
-        out = legr * sin(basis.order * obs.ippMap[basis.ind].lonDeg * D2R);  // todo aaron use enum
+        out = legr * sin(basis.order * obs.ippMap[basis.ind].lonDeg * D2R);  // todo? use enum
     else
         out = legr * cos(basis.order * obs.ippMap[basis.ind].lonDeg * D2R);
 

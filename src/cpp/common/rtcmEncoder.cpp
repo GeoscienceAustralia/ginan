@@ -85,8 +85,7 @@ void calculateSsrComb(
             uras[i]           = ephVarToUra(ssrEphInput.vals[i].ephVar);
         }
 
-        if (acsConfig.ssrOpts
-                .extrapolate_corrections)  // todo Eugene: check if ura can be interpolated
+        if (acsConfig.ssrOpts.extrapolate_corrections)  // todo? check if ura can be interpolated
         {
             Vector3d diffRAC[2];
             double   diffClock[2];
@@ -139,8 +138,8 @@ void calculateSsrComb(
         }
         else
         {
-            ssrEph.deph = ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) *
-                          posCorrections[1];
+            ssrEph.deph    = ecef2rac(ssrEphInput.vals[1].brdcPos, ssrEphInput.vals[1].brdcVel) *
+                             posCorrections[1];
             ssrClk.dclk[0] = -clkCorrections[1];
             ssrUra.ura     = uras[1];
             tracepdeex(
@@ -753,7 +752,7 @@ vector<uint8_t> RtcmEncoder::encodeSsrPhase(
             if (Sat.sys == E_Sys::GPS)
             {
                 rtcmCode = mCodes_gps.left.at(obsCode);
-            }  // todo aaron, crash heaven, needs else, try
+            }  // todo? crash heaven, needs else, try
             else if (Sat.sys == E_Sys::GLO)
             {
                 rtcmCode = mCodes_glo.left.at(obsCode);

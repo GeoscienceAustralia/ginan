@@ -120,7 +120,7 @@ double sagnac(
         vel = omega.cross(rDest);
     }
 
-    // todo aaron, check which vel is required for slr things, still dest on outward journey?
+    // todo? check which vel is required for slr things, still dest on outward journey?
     return (rDest - rSource).dot(vel) / CLIGHT;
 }
 

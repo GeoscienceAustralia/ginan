@@ -12,5 +12,11 @@
     <file>checkbox_unselected_hover.png</file>
     <file>checkbox_unselected_pressed.png</file>
     <file>checkbox_disabled.png</file>
+    <file>enlarge.png</file>
+    <file>enlarge_hover.png</file>
+    <file>enlarge_selected.png</file>
+    <file>open_in_browser.png</file>
+    <file>open_in_browser_hover.png</file>
+    <file>open_in_browser_selected.png</file>
   </qresource>
 </RCC>

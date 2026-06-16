@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <netcdf>
+#include "loading/utils.h"
 
 using namespace std;
 using namespace netCDF;
@@ -34,10 +35,10 @@ void tide::set_name(std::string name)
 
 void tide::fill_ReIm()
 {
-    double scale = (double)1030. / 100.0 * (double)6371e3 * (double)6371e3 * (0.0625 * M_PI / 180) *
-                   (0.0625 * M_PI / 180);
-    auto  phase_ptr = phase.origin();
-    auto& ma_shape =
+    double scale = (double)1030. / 100.0 * (double)6371e3 * (double)6371e3 * (0.0625 * PI / 180) *
+                   (0.0625 * PI / 180);
+    auto   phase_ptr = phase.origin();
+    auto&  ma_shape =
         reinterpret_cast<boost::array<size_t, MA2f::dimensionality> const&>(*amplitude.shape());
 
     in_phase.resize(ma_shape);
@@ -55,11 +56,11 @@ void tide::fill_ReIm()
     {
         if (*amp_ptr != fillNan)
         {
-            *in_phase_ptr  = static_cast<double>(*amp_ptr * cos(*phase_ptr * M_PI / 180.0) * scale);
-            *out_phase_ptr = static_cast<double>(*amp_ptr * sin(*phase_ptr * M_PI / 180.0) * scale);
+            *in_phase_ptr  = static_cast<double>(*amp_ptr * cos(*phase_ptr * PI / 180.0) * scale);
+            *out_phase_ptr = static_cast<double>(*amp_ptr * sin(*phase_ptr * PI / 180.0) * scale);
             // cout << Re[ilat][ilon] << "\n";
-            *in_phase_ptr *= sin(M_PI / 2 - *lat_ptr * M_PI / 180);
-            *out_phase_ptr *= sin(M_PI / 2 - *lat_ptr * M_PI / 180);
+            *in_phase_ptr *= sin(PI / 2 - *lat_ptr * PI / 180);
+            *out_phase_ptr *= sin(PI / 2 - *lat_ptr * PI / 180);
         }
         else
         {

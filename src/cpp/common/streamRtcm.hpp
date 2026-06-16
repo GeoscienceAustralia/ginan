@@ -7,13 +7,27 @@
 #include "common/streamParser.hpp"
 #include "other_ssr/otherSSR.hpp"
 
-#define CLEAN_UP_AND_RETURN_ON_FAILURE \
-                                       \
-    if (inputStream.fail())            \
-    {                                  \
-        inputStream.clear();           \
-        inputStream.seekg(pos);        \
-        return;                        \
+#define CLEAN_UP_AND_RETURN_ON_FAILURE                                          \
+                                                                                \
+    {                                                                           \
+        if (inputStream.bad())                                                  \
+        {                                                                       \
+            /* Unrecoverable */                                                 \
+            return;                                                             \
+        }                                                                       \
+        if (inputStream.eof())                                                  \
+        {                                                                       \
+            /* End of file, keep eofbit and reset other bits of error state */  \
+            inputStream.clear(inputStream.rdstate() & ~std::ios::failbit);      \
+            return;                                                             \
+        }                                                                       \
+        if (inputStream.fail())                                                 \
+        {                                                                       \
+            /* Logical read failure, clear error state to allow future reads */ \
+            inputStream.clear();                                                \
+            inputStream.seekg(pos); /* Eugene: seekg(pos) may be harmful? */    \
+            return;                                                             \
+        }                                                                       \
     }
 
 struct RtcmParser : Parser, RtcmDecoder
@@ -26,7 +40,10 @@ struct RtcmParser : Parser, RtcmDecoder
     {
         // 		std::cout << "Parsing rtcm" << "\n";
 
-        if (qzssL6)  // todo aaron move to own decoder type
+        // Eugene: Should clear here?
+        // inputStream.clear();
+
+        if (qzssL6)  // todo? move to own decoder type
         {
             int pos;
 
@@ -42,7 +59,7 @@ struct RtcmParser : Parser, RtcmDecoder
                 if (mess_state == 0)
                     pos = inputStream.tellg();
 
-                if (mess_state < 4)  // todo aaron, change to fifo for preamble
+                if (mess_state < 4)  // todo? change to fifo for preamble
                 {
                     unsigned char c;
                     inputStream.read((char*)&c, 1);
@@ -88,7 +105,7 @@ struct RtcmParser : Parser, RtcmDecoder
                     int i        = 0;
                     int messType = getbituInc(buf, i, 12);
 
-                    if (messType == 4073)  // todo aaron enum
+                    if (messType == 4073)  // todo? enum
                     {
                         frameBits = decodecompactSSR(qzsL6buff, rtcmTime());
                     }
@@ -105,7 +122,7 @@ struct RtcmParser : Parser, RtcmDecoder
                                 frameBits++;
                                 int j    = frameBits;
                                 messType = getbituInc(buf, j, 12);
-                                if (messType == 4073)  // todo aaron enum
+                                if (messType == 4073)  // todo? enum
                                 {
                                     int subtype = getbituInc(buf, j, 4);
                                     if (subtype != 6 && subtype != 12)
@@ -247,6 +264,8 @@ struct RtcmParser : Parser, RtcmDecoder
                 message.erase(message.begin(), message.begin() + 3);
 
                 auto rtcmReturnType = decode(message);
+
+                BOOST_LOG_TRIVIAL(debug) << "rtcmReturnType=" << enum_to_string(rtcmReturnType);
 
                 if (rtcmReturnType == E_ReturnType::GOT_OBS)
                 {

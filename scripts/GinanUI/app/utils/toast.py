@@ -1,14 +1,15 @@
+"""
+Non-blocking toast notification widget for Ginan-UI.
+
+Provides the Toast widget (a QLabel that fades in/out at the bottom of the window)
+and the show_toast() convenience function for displaying short user-feedback messages.
+"""
+
 from PySide6.QtWidgets import QLabel, QGraphicsOpacityEffect, QPushButton
 from PySide6.QtCore import QTimer, QPropertyAnimation, QEasingCurve, Qt, QEvent
 from PySide6.QtGui import QFont
 
-
 class Toast(QLabel):
-    """
-    A non-blocking toast notification that appears at the bottom of the window,
-    fades in, stays visible, then fades out automatically.
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
 
