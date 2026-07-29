@@ -242,3 +242,179 @@ BOOST_AUTO_TEST_CASE(reference_change_preserves_code_and_phase_observables)
 
     BOOST_CHECK_SMALL((datumA - datumB).norm(), 1e-12);
 }
+
+BOOST_AUTO_TEST_CASE(reference_change_transforms_full_covariance_without_information_loss)
+{
+    constexpr int receiverCount = 3;
+    constexpr int satelliteCount = 3;
+    constexpr double wavelength = 0.190293672798365;
+
+    // Per datum: two receiver clocks, three satellite clocks, two receiver phase states,
+    // three satellite phase states, and four DD ambiguities.
+    constexpr int stateCount =
+        (receiverCount - 1) + satelliteCount +
+        (receiverCount - 1) + satelliteCount +
+        (receiverCount - 1) * (satelliteCount - 1);
+
+    auto transform = [&](int oldReceiver, int oldSatellite, int newReceiver, int newSatellite)
+    {
+        MatrixXd T = MatrixXd::Zero(stateCount, stateCount);
+
+        auto recClockIndex = [&](int receiver, int reference)
+        {
+            int index = 0;
+            for (int r = 0; r < receiverCount; r++)
+            {
+                if (r == reference)
+                    continue;
+                if (r == receiver)
+                    return index;
+                index++;
+            }
+            return -1;
+        };
+        auto satClockIndex = [&](int satellite)
+        {
+            return receiverCount - 1 + satellite;
+        };
+        auto recPhaseIndex = [&](int receiver, int reference)
+        {
+            int offset = receiverCount - 1 + satelliteCount;
+            int index = 0;
+            for (int r = 0; r < receiverCount; r++)
+            {
+                if (r == reference)
+                    continue;
+                if (r == receiver)
+                    return offset + index;
+                index++;
+            }
+            return -1;
+        };
+        auto satPhaseIndex = [&](int satellite)
+        {
+            return 2 * (receiverCount - 1) + satelliteCount + satellite;
+        };
+        auto ambiguityIndex = [&](int receiver, int satellite, int referenceReceiver, int referenceSatellite)
+        {
+            if (receiver == referenceReceiver || satellite == referenceSatellite)
+                return -1;
+
+            int offset = 2 * (receiverCount - 1) + 2 * satelliteCount;
+            int index = 0;
+            for (int r = 0; r < receiverCount; r++)
+                for (int s = 0; s < satelliteCount; s++)
+                {
+                    if (r == referenceReceiver || s == referenceSatellite)
+                        continue;
+                    if (r == receiver && s == satellite)
+                        return offset + index;
+                    index++;
+                }
+            return -1;
+        };
+        auto add = [&](int row, int column, double value)
+        {
+            if (column >= 0)
+                T(row, column) += value;
+        };
+
+        for (int receiver = 0; receiver < receiverCount; receiver++)
+        {
+            if (receiver == newReceiver)
+                continue;
+
+            int row = recClockIndex(receiver, newReceiver);
+            add(row, recClockIndex(receiver, oldReceiver), +1);
+            add(row, recClockIndex(newReceiver, oldReceiver), -1);
+        }
+
+        for (int satellite = 0; satellite < satelliteCount; satellite++)
+        {
+            int row = satClockIndex(satellite);
+            add(row, satClockIndex(satellite), +1);
+            add(row, recClockIndex(newReceiver, oldReceiver), -1);
+        }
+
+        for (int receiver = 0; receiver < receiverCount; receiver++)
+        {
+            if (receiver == newReceiver)
+                continue;
+
+            int row = recPhaseIndex(receiver, newReceiver);
+            add(row, recPhaseIndex(receiver, oldReceiver), +1);
+            add(row, recPhaseIndex(newReceiver, oldReceiver), -1);
+            add(
+                row,
+                ambiguityIndex(receiver, newSatellite, oldReceiver, oldSatellite),
+                +wavelength
+            );
+            add(
+                row,
+                ambiguityIndex(newReceiver, newSatellite, oldReceiver, oldSatellite),
+                -wavelength
+            );
+        }
+
+        for (int satellite = 0; satellite < satelliteCount; satellite++)
+        {
+            int row = satPhaseIndex(satellite);
+            add(row, satPhaseIndex(satellite), +1);
+            add(row, recPhaseIndex(newReceiver, oldReceiver), +1);
+            add(
+                row,
+                ambiguityIndex(newReceiver, satellite, oldReceiver, oldSatellite),
+                +wavelength
+            );
+        }
+
+        for (int receiver = 0; receiver < receiverCount; receiver++)
+            for (int satellite = 0; satellite < satelliteCount; satellite++)
+            {
+                if (receiver == newReceiver || satellite == newSatellite)
+                    continue;
+
+                int row = ambiguityIndex(receiver, satellite, newReceiver, newSatellite);
+                add(
+                    row,
+                    ambiguityIndex(receiver, satellite, oldReceiver, oldSatellite),
+                    +1
+                );
+                add(
+                    row,
+                    ambiguityIndex(newReceiver, satellite, oldReceiver, oldSatellite),
+                    -1
+                );
+                add(
+                    row,
+                    ambiguityIndex(receiver, newSatellite, oldReceiver, oldSatellite),
+                    -1
+                );
+                add(
+                    row,
+                    ambiguityIndex(newReceiver, newSatellite, oldReceiver, oldSatellite),
+                    +1
+                );
+            }
+
+        return T;
+    };
+
+    MatrixXd forward = transform(0, 0, 1, 2);
+    MatrixXd reverse = transform(1, 2, 0, 0);
+
+    BOOST_CHECK_SMALL((reverse * forward - MatrixXd::Identity(stateCount, stateCount)).norm(), 1e-12);
+
+    MatrixXd generator = MatrixXd::Random(stateCount, stateCount);
+    MatrixXd oldCovariance =
+        generator * generator.transpose() + 0.1 * MatrixXd::Identity(stateCount, stateCount);
+    MatrixXd newCovariance = forward * oldCovariance * forward.transpose();
+    MatrixXd recoveredCovariance = reverse * newCovariance * reverse.transpose();
+
+    BOOST_CHECK_SMALL((newCovariance - newCovariance.transpose()).norm(), 1e-12);
+    BOOST_CHECK_SMALL((recoveredCovariance - oldCovariance).norm(), 1e-10);
+
+    Eigen::SelfAdjointEigenSolver<MatrixXd> eigenSolver(newCovariance);
+    BOOST_REQUIRE_EQUAL(eigenSolver.info(), Eigen::Success);
+    BOOST_CHECK_GT(eigenSolver.eigenvalues().minCoeff(), 0);
+}

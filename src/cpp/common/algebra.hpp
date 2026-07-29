@@ -631,6 +631,19 @@ struct KFState : KFState_
 
     void manualStateTransition(Trace& trace, GTime newTime, MatrixXd& stm, MatrixXd& procNoise);
 
+    /** Apply an exact linear change of state coordinates.
+     *
+     * Each destination state is expressed as a linear combination of states in the current
+     * coordinate system.  The full covariance, including all cross-covariances, is transformed
+     * with P' = T P T^T.  This is intended for datum/S-basis changes where no stochastic
+     * information is added or removed.
+     */
+    bool applyStateTransform(
+        Trace&                                  trace,
+        const map<KFKey, map<KFKey, double>>&   transformMap,
+        const string&                           label = ""
+    );
+
     void leastSquareSigmaChecks(
         RejectCallbackDetails& callbackDetails,
         MatrixXd&              Pp,

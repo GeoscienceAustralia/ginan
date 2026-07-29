@@ -596,6 +596,11 @@ struct ZhangFullRankSystemOptions
     vector<E_ObsCode> baseline_observables;
     string            reference_receiver;
     string            reference_satellite;
+
+    bool           auto_reference_switch = false;
+    int            reference_outage_epochs = 1;
+    vector<string> reference_receiver_candidates;
+    vector<string> reference_satellite_candidates;
 };
 
 /** Opt-in controller for Zhang's full-rank UDUC PPP-RTK network model.

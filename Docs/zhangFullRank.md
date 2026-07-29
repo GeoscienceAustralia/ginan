@@ -29,9 +29,39 @@ pseudo-observations. The following states are absent from the filter:
 4. ambiguities belonging to the reference receiver row;
 5. ambiguities belonging to the reference satellite column.
 
-The first stage requires a fixed reference receiver and satellite over a
-common-view arc. Changing either reference without applying an S-transform
-changes the parameter datum and is outside this first implementation.
+The reference receiver and satellite can either remain fixed over a common-view
+arc or be changed online with an exact S-transform.  For old references
+receiver \(a\), satellite \(A\), and new references receiver \(b\), satellite
+\(B\), the Ginan-sign state transform is:
+
+\[
+\begin{aligned}
+C'_r &= C_r-C_b, &
+S'_s &= S_s-C_b,\\
+U'_{r,j} &= U_{r,j}-U_{b,j}
+ +\lambda_j(D_{rB,j}-D_{bB,j}),\\
+V'_{s,j} &= V_{s,j}+U_{b,j}+\lambda_jD_{bs,j},\\
+D'_{rs,j} &= D_{rs,j}-D_{bs,j}-D_{rB,j}+D_{bB,j}.
+\end{aligned}
+\]
+
+Here \(C\) and \(S\) are receiver and satellite clock states, \(U\) and
+\(V\) are receiver and satellite phase-bias states, and \(D\) is the Zhang
+double-difference ambiguity.  A state on the old reference receiver row or
+old reference satellite column is implicitly zero.  Clock-rate states, when
+present, use the same receiver-datum transformation as the clocks.
+
+The complete filter state and covariance are transformed with
+
+\[
+\mathbf{x}'=\mathbf{T}\mathbf{x},\qquad
+\mathbf{P}'=\mathbf{T}\mathbf{P}\mathbf{T}^{T}.
+\]
+
+Thus all cross-covariances are retained and the switch adds no stochastic
+information.  The implementation rejects a switch if a required source state
+is absent or if active pseudo states make an exact full-state transform
+unsafe.
 
 Example:
 
@@ -51,7 +81,19 @@ processing_options:
           baseline_observables: [L1C, L2W]
           reference_receiver: ZIM2
           reference_satellite: G05
+          auto_reference_switch: true
+          reference_outage_epochs: 2
+          reference_receiver_candidates: [ZIM2, MATE, PADO]
+          reference_satellite_candidates: [G05, G12, G24]
 ```
+
+`reference_outage_epochs` is the number of consecutive unavailable epochs
+before replacement.  Candidate lists are priority ordered.  If no candidate
+is usable, the receiver with the largest baseline-observable satellite count
+and the common satellite with the largest network elevation sum are selected.
+The replacement satellite must be visible with both baseline code and phase
+observables at every active reference station; otherwise the switch is
+deferred rather than applying an incomplete transform.
 
 This controller is mutually exclusive with `phase_clock_osb`. It also requires
 uncombined processing and two known, distinct carrier frequencies.

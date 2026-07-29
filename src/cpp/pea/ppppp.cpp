@@ -1,6 +1,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "pea/ppp.hpp"
+#include "pea/zhangReference.hpp"
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -1788,6 +1789,8 @@ void ppp(
         BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
         kfState.stateTransition(trace, tsync);
+
+        updateZhangFullRankReferences(trace, receiverMap, kfState);
 
         if (acsConfig.output_predicted_states)
         {

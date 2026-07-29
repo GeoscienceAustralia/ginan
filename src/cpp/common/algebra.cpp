@@ -633,6 +633,163 @@ void KFState::manualStateTransition(Trace& trace, GTime newTime, MatrixXd& F, Ma
     initFilterEpoch(trace);
 }
 
+/** Apply a deterministic linear coordinate transform to the complete filter state.
+ *
+ * Unlike manualStateTransition(), this function supports a changed state dimension and replaces
+ * the KFKey index map.  It deliberately adds no process noise: an S-transform changes the datum,
+ * not the information content of the estimate.
+ */
+bool KFState::applyStateTransform(
+    Trace&                                trace,
+    const map<KFKey, map<KFKey, double>>& transformMap,
+    const string&                         label
+)
+{
+    lock_guard guard(kfStateMutex);
+
+    if (transformMap.empty())
+    {
+        BOOST_LOG_TRIVIAL(error) << "Refusing empty KF state transform"
+                                 << (label.empty() ? "" : " for " + label);
+        return false;
+    }
+
+    if (!pseudoStateMap.empty() || !pseudoParentMap.empty())
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "Refusing KF state transform with active pseudo states"
+            << (label.empty() ? "" : " for " + label);
+        return false;
+    }
+
+    const int oldStateCount = x.rows();
+    const int newStateCount = transformMap.size();
+
+    SparseMatrix<double> transform(newStateCount, oldStateCount);
+    map<KFKey, int>      newIndexMap;
+
+    int row = 0;
+    for (auto& [destination, sourceMap] : transformMap)
+    {
+        if (sourceMap.empty())
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "KF state transform destination has no sources: " << destination;
+            return false;
+        }
+
+        newIndexMap[destination] = row;
+
+        for (auto& [source, coefficient] : sourceMap)
+        {
+            if (coefficient == 0)
+            {
+                continue;
+            }
+
+            auto sourceIt = kfIndexMap.find(source);
+            if (sourceIt == kfIndexMap.end())
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "KF state transform source is absent: " << source << " -> " << destination;
+                return false;
+            }
+
+            transform.coeffRef(row, sourceIt->second) += coefficient;
+        }
+
+        row++;
+    }
+
+    transform.makeCompressed();
+
+    if (rts_basename.empty() == false)
+    {
+        TransitionMatrixObject transitionMatrixObject = transform;
+
+        spitFilterToFile(
+            transitionMatrixObject,
+            E_SerialObject::TRANSITION_MATRIX,
+            rts_basename + FORWARD_SUFFIX,
+            acsConfig.pppOpts.queue_rts_outputs
+        );
+    }
+
+    VectorXd transformedX  = transform * x;
+    VectorXd transformedDx = transform * dx;
+    MatrixXd transformedP  = transform * P * transform.transpose();
+
+    // Suppress round-off asymmetry before subsequent LDLT/Cholesky operations.
+    transformedP = (0.5 * (transformedP + transformedP.transpose())).eval();
+
+    if (!transformedX.allFinite() || !transformedDx.allFinite() || !transformedP.allFinite())
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "KF state transform produced non-finite state/covariance values"
+            << (label.empty() ? "" : " for " + label);
+        return false;
+    }
+
+    double covarianceScale = std::max(1.0, transformedP.diagonal().cwiseAbs().maxCoeff());
+    if (transformedP.diagonal().minCoeff() < -1e-12 * covarianceScale)
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "KF state transform produced a negative covariance diagonal"
+            << (label.empty() ? "" : " for " + label);
+        return false;
+    }
+
+    x  = std::move(transformedX);
+    dx = std::move(transformedDx);
+    P  = std::move(transformedP);
+
+    kfIndexMap = std::move(newIndexMap);
+
+    prefitRatios  = VectorXd::Zero(newStateCount);
+    postfitRatios = VectorXd::Zero(newStateCount);
+
+    // Measurement construction later in this epoch refreshes the configured process models.
+    // Retain only identity persistence here so no old datum key survives into the next transition.
+    stateTransitionMap.clear();
+    for (auto& [key, index] : kfIndexMap)
+    {
+        stateTransitionMap[key][key][0] = 1;
+    }
+
+    auto eraseAbsentKeys = [&](auto& keyedMap)
+    {
+        for (auto it = keyedMap.begin(); it != keyedMap.end();)
+        {
+            if (kfIndexMap.find(it->first) == kfIndexMap.end())
+            {
+                it = keyedMap.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    };
+
+    initNoiseMap.clear();
+    eraseAbsentKeys(procNoiseMap);
+    eraseAbsentKeys(gaussMarkovTauMap);
+    eraseAbsentKeys(gaussMarkovMuMap);
+    eraseAbsentKeys(sigmaMaxMap);
+    eraseAbsentKeys(outageLimitMap);
+    eraseAbsentKeys(exponentialNoiseMap);
+    eraseAbsentKeys(errorCountMap);
+
+    trace << "\n"
+          << "Applied state transform"
+          << (label.empty() ? "" : " [" + label + "]")
+          << ": " << oldStateCount << " -> " << newStateCount
+          << " states, covariance symmetry error="
+          << (P - P.transpose()).cwiseAbs().maxCoeff();
+
+    return true;
+}
+
 /** Add process noise and dynamics to filter object according to time gap.
  * This will also sort states according to their kfKey as a result of the way the state transition
  * matrix is generated.

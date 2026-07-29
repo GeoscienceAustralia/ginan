@@ -7043,6 +7043,32 @@ bool ACSConfig::parse(
                             {"@ reference_satellite"},
                             "Satellite defining the ambiguity reference column"
                         );
+                        tryGetFromYaml(
+                            opts.auto_reference_switch,
+                            sys_options,
+                            {"@ auto_reference_switch"},
+                            "Switch the Zhang receiver/satellite S-bases when the active references "
+                            "are unavailable"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_outage_epochs,
+                            sys_options,
+                            {"@ reference_outage_epochs"},
+                            "Number of consecutive unavailable epochs before changing a Zhang "
+                            "reference"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_receiver_candidates,
+                            sys_options,
+                            {"@ reference_receiver_candidates"},
+                            "Preferred receiver S-bases in descending priority"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_satellite_candidates,
+                            sys_options,
+                            {"@ reference_satellite_candidates"},
+                            "Preferred satellite S-bases in descending priority"
+                        );
                     }
                 }
 
@@ -9065,6 +9091,26 @@ bool ACSConfig::parse(
                 valid = false;
             }
 
+            if (opts.reference_outage_epochs < 1)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank reference_outage_epochs must be at least one for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            for (auto& satelliteId : opts.reference_satellite_candidates)
+            {
+                SatSys candidate(satelliteId.c_str());
+                if (candidate.sys != sys || candidate.prn <= 0)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "zhang_full_rank reference satellite candidate '" << satelliteId
+                        << "' is invalid for " << enum_to_string(sys);
+                    valid = false;
+                }
+            }
+
             if (valid && zhangFullRank.output_diagnostics)
             {
                 BOOST_LOG_TRIVIAL(info)
@@ -9072,7 +9118,9 @@ bool ACSConfig::parse(
                     << " baseline=" << enum_to_string(opts.baseline_observables[0]) << ","
                     << enum_to_string(opts.baseline_observables[1])
                     << " reference_receiver=" << opts.reference_receiver
-                    << " reference_satellite=" << opts.reference_satellite;
+                    << " reference_satellite=" << opts.reference_satellite
+                    << " auto_reference_switch=" << opts.auto_reference_switch
+                    << " reference_outage_epochs=" << opts.reference_outage_epochs;
             }
         }
 

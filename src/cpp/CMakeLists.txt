@@ -47,6 +47,7 @@ add_executable(pea
 		pea/ppp.cpp
 		pea/ppppp.cpp
 		pea/ppp_obs.cpp
+		pea/zhangReference.cpp
 		pea/ppp_ambres.cpp
 		pea/ppp_callbacks.cpp
 		pea/ppp_pseudoobs.cpp
