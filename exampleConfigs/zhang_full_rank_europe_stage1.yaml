@@ -1,0 +1,139 @@
+# Stage-one validation of Zhang's code-plus-phase, ionosphere-float,
+# undifferenced/uncombined full-rank CDMA network model.
+#
+# Load after a product/input configuration that supplies the 2019-199
+# observations and precise products. This example uses seven European stations,
+# GPS C1C/L1C + C2W/L2W, ZIM2 as receiver datum and G05 as satellite datum.
+
+outputs:
+  outputs_root: ./outputs/zhang_full_rank_europe_stage1
+
+  metadata:
+    config_description: zhang_full_rank_europe_stage1
+
+  trace:
+    level: 3
+    output_receivers: false
+    output_network: true
+    network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    output_residuals: true
+    output_config: true
+
+  clocks:
+    output: false
+
+  bias_sinex:
+    output: false
+
+satellite_options:
+  global:
+    models:
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+receiver_options:
+  global:
+    exclude: true
+    models:
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+  FFMJ: { exclude: false }
+  GANP: { exclude: false }
+  MARS: { exclude: false }
+  MATE: { exclude: false }
+  NOT1: { exclude: false }
+  PADO: { exclude: false }
+  ZIM2: { exclude: false }
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 00:30:00
+    epoch_interval: 300
+    wait_next_epoch: 3600
+    max_rec_latency: 1
+
+  gnss_general:
+    pivot_receiver: ZIM2
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: false
+        receiver_amb_pivot: false
+        network_amb_pivot: false
+        reject_eclipse: false
+        code_priorities: [L1C, L2W]
+
+    zhang_full_rank:
+      enable: true
+      output_diagnostics: true
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+          reference_receiver: ZIM2
+          reference_satellite: G05
+
+  ppp_filter:
+    ionospheric_components:
+      common_ionosphere: true
+      use_gf_combo: false
+      use_if_combo: false
+      corr_mode: estimate
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [false]
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [10]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [900]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [1]
+        outage_limit: [900]
+      trop:
+        estimated: [true]
+        sigma: [0.3]
+        process_noise: [0.0001]
+      trop_grads:
+        estimated: [false]
+      code_bias:
+        estimated: [true]
+        sigma: [20]
+        process_noise: [0]
+      phase_bias:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+
+  satellites:
+    global:
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [1]
+        tau: [100]
+      code_bias:
+        estimated: [true]
+        sigma: [20]
+        process_noise: [0]
+      phase_bias:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+
+mongo:
+  enable: none

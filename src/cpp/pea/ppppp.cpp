@@ -1767,6 +1767,7 @@ void pppPseudoObs(
     initPseudoObs(trace, kfState, kfMeasEntryList);
     satClockPivotPseudoObs(trace, kfState, kfMeasEntryList);
     filterPseudoObs(trace, kfState, kfMeasEntryList);
+    phaseClockOsbPseudoObs(trace, kfState, kfMeasEntryList);
     phasePseudoObs(trace, kfState, kfMeasEntryList);
 }
 

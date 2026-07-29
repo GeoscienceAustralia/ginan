@@ -56,6 +56,14 @@ add_executable(trace_file_cache_tests
     unit/test_TraceFileCache.cpp
 )
 
+add_executable(phase_clock_osb_tests
+    unit/test_PhaseClockOsb.cpp
+)
+
+add_executable(zhang_full_rank_tests
+    unit/test_ZhangFullRank.cpp
+)
+
 add_sanity_checker_test(config_sanity_manager_tests
     unit/sanityCheckers/test_ConfigSanityManager.cpp
 )
@@ -81,6 +89,8 @@ add_sanity_checker_test(sbas_sanity_checker_tests
 add_custom_target(unit_tests
     DEPENDS receiver_metadata_tests
             trace_file_cache_tests
+            phase_clock_osb_tests
+            zhang_full_rank_tests
             config_sanity_manager_tests
             epoch_tolerance_checker_tests
             ephemeris_time_delay_checker_tests
@@ -99,9 +109,19 @@ target_link_libraries(trace_file_cache_tests PRIVATE
     Boost::unit_test_framework
 )
 
+target_link_libraries(phase_clock_osb_tests PRIVATE
+    Boost::unit_test_framework
+)
+
+target_link_libraries(zhang_full_rank_tests PRIVATE
+    Boost::unit_test_framework
+)
+
 if(WIN32)
     target_link_libraries(receiver_metadata_tests PRIVATE ws2_32 wsock32)
 endif()
 
 configure_unit_test(receiver_metadata_tests)
 configure_unit_test(trace_file_cache_tests)
+configure_unit_test(phase_clock_osb_tests)
+configure_unit_test(zhang_full_rank_tests)

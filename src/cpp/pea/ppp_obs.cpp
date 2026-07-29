@@ -15,6 +15,7 @@
 #include "common/receiver.hpp"
 #include "common/tides.hpp"
 #include "common/trace.hpp"
+#include "common/zhangFullRank.hpp"
 #include "inertial/posProp.hpp"
 #include "iono/geomagField.hpp"
 #include "iono/ionoModel.hpp"
@@ -105,6 +106,30 @@ struct AutoSender
         COMMON_ARG(VectorEcef&) rSat, COMMON_ARG(double&) lambda, COMMON_ARG(SatSys&) sysSat,     \
         COMMON_ARG(AutoSender&) autoSenderTemplate, COMMON_ARG(VectorPos&) pos,                   \
         COMMON_ARG(ERPValues&) erpv, COMMON_ARG(FrameSwapper&) frameSwapper
+
+static const ZhangFullRankSystemOptions* zhangFullRankSystemOptions(
+    E_Sys     sys,
+    E_ObsCode code
+)
+{
+    if (acsConfig.zhangFullRank.enable == false)
+    {
+        return nullptr;
+    }
+
+    auto optionsIt = acsConfig.zhangFullRank.sysOpts.find(sys);
+    if (optionsIt == acsConfig.zhangFullRank.sysOpts.end())
+    {
+        return nullptr;
+    }
+
+    if (!zhangFullRankUsesObservable(code, optionsIt->second.baseline_observables))
+    {
+        return nullptr;
+    }
+
+    return &optionsIt->second;
+}
 
 double relativity2(VectorEcef& rSat, VectorEcef& rRec)
 {
@@ -229,6 +254,18 @@ void eopAdjustment(
 
 inline static void pppRecClocks(COMMON_PPP_ARGS)
 {
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    if (zhangOptions &&
+        zhangFullRankIsReferenceReceiver(rec.id, zhangOptions->reference_receiver))
+    {
+        measEntry.componentsMap[E_Component::REC_CLOCK] = {
+            0,
+            "+ Cdt_r [Zhang reference receiver S-basis]",
+            0
+        };
+        return;
+    }
+
     double recClk_m = rec.aprioriClk;
     double dtRecVar = rec.aprioriClkVar;
 
@@ -1296,6 +1333,25 @@ inline static void pppSatPhaseWindup(COMMON_PPP_ARGS)
 
 inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 {
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    if (zhangOptions &&
+        !zhangFullRankRetainsAmbiguity(
+            rec.id,
+            Sat,
+            sig.code,
+            zhangOptions->baseline_observables,
+            zhangOptions->reference_receiver,
+            zhangOptions->reference_satellite
+        ))
+    {
+        measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {
+            0,
+            "+ lambda.N [Zhang ambiguity S-basis]",
+            0
+        };
+        return;
+    }
+
     double ambiguity   = 0;
     double ambiguity_m = 0;
     double varAmb      = 0;
@@ -1306,9 +1362,9 @@ inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
     kfKey.Sat     = obs.Sat;
     kfKey.num     = static_cast<int>(sig.code);
     kfKey.rec_ptr = &rec;
-    kfKey.comment = sigName;
+    kfKey.comment = zhangOptions ? "Zhang DD " + sigName : sigName;
 
-    if (sig.P)
+    if (sig.P && zhangOptions == nullptr)
     {
         ambiguity = sig.L - sig.P / lambda;
     }
@@ -1349,6 +1405,18 @@ inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 
 inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 {
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    if (zhangOptions &&
+        zhangFullRankIsReferenceReceiver(rec.id, zhangOptions->reference_receiver))
+    {
+        measEntry.componentsMap[E_Component::REC_PHASE_BIAS] = {
+            0,
+            "+ b_r [Zhang reference receiver S-basis]",
+            0
+        };
+        return;
+    }
+
     double recPhasBias    = recOpts.phaseBiasModel.default_bias;
     double recPhasBiasVar = SQR(recOpts.phaseBiasModel.undefined_sigma);
     bool biasFound = getBias(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
@@ -1456,6 +1524,16 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 
 inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 {
+    if (zhangFullRankSystemOptions(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {
+            0,
+            "+ d_r [Zhang IF/GF code S-basis]",
+            0
+        };
+        return;
+    }
+
     double recCodeBias    = recOpts.codeBiasModel.default_bias;
     double recCodeBiasVar = SQR(recOpts.codeBiasModel.undefined_sigma);
     bool biasFound = getBias(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
@@ -1498,7 +1576,13 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
         recCodeBiasVar = -1;
 
-        if (Sat.sys == recOpts.receiver_reference_system)
+        auto& phaseClockSysOpts = acsConfig.phaseClockOsb.sysOpts[Sat.sys];
+        bool  useExplicitCodeDatum =
+            acsConfig.phaseClockOsb.enable &&
+            acsConfig.phaseClockOsb.enforce_code_datum &&
+            phaseClockSysOpts.baseline_code_observables.size() == 2;
+
+        if (Sat.sys == recOpts.receiver_reference_system && useExplicitCodeDatum == false)
         {
             auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sysSat.sysName()});
 
@@ -1562,6 +1646,16 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 {
+    if (zhangFullRankSystemOptions(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {
+            0,
+            "+ d_s [Zhang IF/GF code S-basis]",
+            0
+        };
+        return;
+    }
+
     double satCodeBias    = satOpts.codeBiasModel.default_bias;
     double satCodeBiasVar = SQR(satOpts.codeBiasModel.undefined_sigma);
     bool   biasFound = getBias(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
@@ -1592,42 +1686,51 @@ inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 
         satCodeBiasVar = -1;
 
-        auto& satSysOpts = acsConfig.getSatOpts(obs.Sat);
+        auto& phaseClockSysOpts = acsConfig.phaseClockOsb.sysOpts[Sat.sys];
+        bool  useExplicitCodeDatum =
+            acsConfig.phaseClockOsb.enable &&
+            acsConfig.phaseClockOsb.enforce_code_datum &&
+            phaseClockSysOpts.baseline_code_observables.size() == 2;
 
-        auto thisIt =
-            std::find(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), sig.code);
-        auto autoIt = std::find(
-            satSysOpts.clock_codes.begin(),
-            satSysOpts.clock_codes.end(),
-            E_ObsCode::AUTO
-        );
-        auto freqIt = std::find_if(
-            satSysOpts.clock_codes.begin(),
-            satSysOpts.clock_codes.end(),
-            [&](E_ObsCode code)
-            { return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code]; }
-        );
-
-        bool foundCode = thisIt != satSysOpts.clock_codes.end();
-        bool foundAuto = autoIt != satSysOpts.clock_codes.end();
-        bool foundFreq = freqIt != satSysOpts.clock_codes.end();
-
-        if (foundAuto && foundFreq)
+        if (useExplicitCodeDatum == false)
         {
-            // this frequency is already used in the clock codes, dont use again
-            foundAuto = false;
-        }
+            auto& satSysOpts = acsConfig.getSatOpts(obs.Sat);
 
-        if (foundCode || foundAuto)
-        {
-            // set the bias to zero, and dont let it change
-            init.x = 0;
-            init.P = 0;
-            init.Q = 0;
+            auto thisIt =
+                std::find(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), sig.code);
+            auto autoIt = std::find(
+                satSysOpts.clock_codes.begin(),
+                satSysOpts.clock_codes.end(),
+                E_ObsCode::AUTO
+            );
+            auto freqIt = std::find_if(
+                satSysOpts.clock_codes.begin(),
+                satSysOpts.clock_codes.end(),
+                [&](E_ObsCode code)
+                { return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code]; }
+            );
 
-            if (foundCode == false)
+            bool foundCode = thisIt != satSysOpts.clock_codes.end();
+            bool foundAuto = autoIt != satSysOpts.clock_codes.end();
+            bool foundFreq = freqIt != satSysOpts.clock_codes.end();
+
+            if (foundAuto && foundFreq)
             {
-                *autoIt = sig.code;
+                // this frequency is already used in the clock codes, dont use again
+                foundAuto = false;
+            }
+
+            if (foundCode || foundAuto)
+            {
+                // set the bias to zero, and dont let it change
+                init.x = 0;
+                init.P = 0;
+                init.Q = 0;
+
+                if (foundCode == false)
+                {
+                    *autoIt = sig.code;
+                }
             }
         }
 

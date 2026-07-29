@@ -135,6 +135,54 @@ void writeBSINEXHeader(
     tracepdeex(0, trace, " INPUT             %s\n", acsConfig.rinex_comment.c_str());
     tracepdeex(0, trace, "-FILE/REFERENCE\n");
 
+    if (acsConfig.phaseClockOsb.enable)
+    {
+        tracepdeex(0, trace, "+FILE/COMMENT\n");
+        tracepdeex(
+            0,
+            trace,
+            "* PHASE_CLOCK_OSB_DATUM_IDENTIFIER %s\n",
+            acsConfig.phaseClockOsb.datum_identifier.c_str()
+        );
+        tracepdeex(
+            0,
+            trace,
+            "* PHASE_CLOCK_OSB_SOLUTION_ID %s\n",
+            acsConfig.phaseClockOsb.solution_id.c_str()
+        );
+        tracepdeex(
+            0,
+            trace,
+            "* PHASE_BIAS_DISCONTINUITY_COUNTER %d\n",
+            acsConfig.phaseClockOsb.discontinuity_counter
+        );
+        for (auto& [sys, opts] : acsConfig.phaseClockOsb.sysOpts)
+        {
+            if (opts.baseline_phase_observables.size() != 2)
+            {
+                continue;
+            }
+
+            SatSys sysSat(sys);
+            tracepdeex(
+                0,
+                trace,
+                "* PHASE_BIAS_REFERENCE_RECEIVER %c %s\n",
+                sysSat.sysChar(),
+                opts.phase_reference_receiver.c_str()
+            );
+            tracepdeex(
+                0,
+                trace,
+                "* BASELINE_PHASE_OBSERVABLES %c %s %s\n",
+                sysSat.sysChar(),
+                code2str(opts.baseline_phase_observables[0], PHAS).c_str(),
+                code2str(opts.baseline_phase_observables[1], PHAS).c_str()
+            );
+        }
+        tracepdeex(0, trace, "-FILE/COMMENT\n");
+    }
+
     tracepdeex(
         0,
         trace,
@@ -166,37 +214,25 @@ void writeBSINEXHeader(
         enum_to_string(refConst)[0]
     );
 
-    for (auto& [sys, solve] : acsConfig.solve_amb_for)
+    if (acsConfig.phaseClockOsb.enable)
     {
-        if (solve == false)
-            continue;
-
-        char sysChar;
-        switch (sys)
+        for (auto& [sys, opts] : acsConfig.phaseClockOsb.sysOpts)
         {
-            case E_Sys::GPS:
-                sysChar = 'G';
-                break;
-            case E_Sys::GLO:
-                sysChar = 'R';
-                break;
-            case E_Sys::GAL:
-                sysChar = 'E';
-                break;
-            case E_Sys::QZS:
-                sysChar = 'J';
-                break;
-            case E_Sys::BDS:
-                sysChar = 'C';
-                break;
-            default:
+            if (opts.baseline_code_observables.size() != 2)
+            {
                 continue;
-        }
+            }
 
-        // 		E_ObsCode code1= acsConfig.clock_codesL1[sys];
-        // 		E_ObsCode code2= acsConfig.clock_codesL2[sys];
-        // 		tracepdeex(0, trace, " SATELLITE_CLOCK_REFERENCE_OBSERVABLES   %c  %s  %s\n",
-        // sysChar,enum_to_string(code1),enum_to_string(code2));
+            SatSys sysSat(sys);
+            tracepdeex(
+                0,
+                trace,
+                " SATELLITE_CLOCK_REFERENCE_OBSERVABLES   %c  %s  %s\n",
+                sysSat.sysChar(),
+                code2str(opts.baseline_code_observables[0], CODE).c_str(),
+                code2str(opts.baseline_code_observables[1], CODE).c_str()
+            );
+        }
     }
     tracepdeex(0, trace, "-BIAS/DESCRIPTION\n");
 

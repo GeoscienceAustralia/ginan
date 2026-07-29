@@ -1,6 +1,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "common/acsConfig.hpp"
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
@@ -25,7 +26,9 @@
 #include "common/compare.hpp"
 #include "common/constants.hpp"
 #include "common/debug.hpp"
+#include "common/phaseClockOsb.hpp"
 #include "common/sanityCheckers/ConfigSanityManager.hpp"
+#include "common/zhangFullRank.hpp"
 #include "configurator/htmlFooterTemplate.hpp"
 #include "configurator/htmlHeaderTemplate.hpp"
 #include "pea/inputsOutputs.hpp"
@@ -4575,6 +4578,8 @@ bool ACSConfig::parse(
     obs_rtcm_inputs.clear();
     pseudo_sp3_inputs.clear();
     pseudo_snx_inputs.clear();
+    phaseClockOsb = {};
+    zhangFullRank = {};
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
@@ -6893,6 +6898,154 @@ bool ACSConfig::parse(
                     "Maximum satellite clock offset (meters) used in broadcast alignment"
                 );
 
+                {
+                    auto phase_clock_osb = stringsToYamlObject(
+                        general,
+                        {"2@ phase_clock_osb"},
+                        "Datum-consistent staged phase-clock and observable-specific bias estimation"
+                    );
+
+                    tryGetFromYaml(
+                        phaseClockOsb.enable,
+                        phase_clock_osb,
+                        {"0@ enable"},
+                        "Enable staged phase-clock/OSB datum control"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.enforce_code_datum,
+                        phase_clock_osb,
+                        {"@ enforce_code_datum"},
+                        "Constrain the baseline code OSB ionosphere-free combination to zero"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.constrain_reference_receiver_phase,
+                        phase_clock_osb,
+                        {"@ constrain_reference_receiver_phase"},
+                        "Constrain the configured reference receiver phase OSBs to zero"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.baseline_only_ambiguity_resolution,
+                        phase_clock_osb,
+                        {"@ baseline_only_ambiguity_resolution"},
+                        "Use only baseline-frequency ambiguities to generate ambiguity-fixed clocks"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.output_diagnostics,
+                        phase_clock_osb,
+                        {"@ output_diagnostics"},
+                        "Output code datum, clock-bias, ambiguity and frequency closure diagnostics"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.code_datum_sigma,
+                        phase_clock_osb,
+                        {"@ code_datum_sigma"},
+                        "Standard deviation in metres for baseline code OSB datum constraints"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.phase_datum_sigma,
+                        phase_clock_osb,
+                        {"@ phase_datum_sigma"},
+                        "Standard deviation in metres for reference receiver phase OSB constraints"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.datum_identifier,
+                        phase_clock_osb,
+                        {"@ datum_identifier"},
+                        "Identifier written with the clock/code/phase bias datum"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.solution_id,
+                        phase_clock_osb,
+                        {"@ solution_id"},
+                        "Identifier for the generated phase-clock/OSB solution"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.discontinuity_counter,
+                        phase_clock_osb,
+                        {"@ discontinuity_counter"},
+                        "Initial phase-bias discontinuity counter for offline products"
+                    );
+
+                    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+                    {
+                        auto sys_options = stringsToYamlObject(
+                            phase_clock_osb,
+                            {"1@ sys_options", enum_to_string(sys)},
+                            (string) "Phase-clock/OSB datum options for " + enum_to_string(sys)
+                        );
+
+                        auto& opts = phaseClockOsb.sysOpts[sys];
+                        tryGetEnumVec(
+                            opts.baseline_code_observables,
+                            sys_options,
+                            {"@ baseline_code_observables"},
+                            "Two code observables defining the ionosphere-free satellite-clock datum"
+                        );
+                        tryGetEnumVec(
+                            opts.baseline_phase_observables,
+                            sys_options,
+                            {"@ baseline_phase_observables"},
+                            "Two phase observables used for baseline ambiguity resolution"
+                        );
+                        tryGetFromYaml(
+                            opts.phase_reference_receiver,
+                            sys_options,
+                            {"@ phase_reference_receiver"},
+                            "Receiver whose baseline phase OSBs define the phase-bias S-basis"
+                        );
+                    }
+                }
+
+                {
+                    auto zhang_full_rank = stringsToYamlObject(
+                        general,
+                        {"2@ zhang_full_rank"},
+                        "Zhang code-plus-phase ionosphere-float full-rank network model"
+                    );
+
+                    tryGetFromYaml(
+                        zhangFullRank.enable,
+                        zhang_full_rank,
+                        {"0@ enable"},
+                        "Enable the Zhang full-rank UDUC network S-basis"
+                    );
+                    tryGetFromYaml(
+                        zhangFullRank.output_diagnostics,
+                        zhang_full_rank,
+                        {"@ output_diagnostics"},
+                        "Output the configured Zhang S-basis and retained-state diagnostics"
+                    );
+
+                    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+                    {
+                        auto sys_options = stringsToYamlObject(
+                            zhang_full_rank,
+                            {"1@ sys_options", enum_to_string(sys)},
+                            (string) "Zhang full-rank S-basis options for " + enum_to_string(sys)
+                        );
+
+                        auto& opts = zhangFullRank.sysOpts[sys];
+                        tryGetEnumVec(
+                            opts.baseline_observables,
+                            sys_options,
+                            {"@ baseline_observables"},
+                            "Two code/phase observables defining the baseline-frequency S-bases"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_receiver,
+                            sys_options,
+                            {"@ reference_receiver"},
+                            "Receiver defining the clock and receiver phase-bias S-bases"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_satellite,
+                            sys_options,
+                            {"@ reference_satellite"},
+                            "Satellite defining the ambiguity reference column"
+                        );
+                    }
+                }
+
                 for (E_Sys sys : magic_enum::enum_values<E_Sys>())
                 {
                     auto sys_options = stringsToYamlObject(
@@ -8728,6 +8881,207 @@ bool ACSConfig::parse(
     {
         int level = commandOpts["yaml-defaults"].as<int>();
         outputDefaultConfiguration(level);
+    }
+
+    if (phaseClockOsb.enable)
+    {
+        bool valid = true;
+
+        if (phaseClockOsb.code_datum_sigma <= 0 || phaseClockOsb.phase_datum_sigma <= 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "phase_clock_osb datum sigmas must be positive (metres)";
+            valid = false;
+        }
+
+        if (pppOpts.ionoOpts.use_if_combo || pppOpts.use_primary_signals)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "phase_clock_osb requires uncombined processing with both baseline signals";
+            valid = false;
+        }
+
+        for (auto& [sys, process] : process_sys)
+        {
+            if (process == false)
+            {
+                continue;
+            }
+
+            auto& opts = phaseClockOsb.sysOpts[sys];
+            if (opts.baseline_code_observables.size() != 2 ||
+                opts.baseline_phase_observables.size() != 2)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb requires exactly two baseline code and phase observables for "
+                    << enum_to_string(sys);
+                valid = false;
+                continue;
+            }
+
+            if (!phaseClockOsbCoefficients(
+                    sys,
+                    opts.baseline_code_observables[0],
+                    opts.baseline_code_observables[1]
+                ))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb baseline code observables must use two distinct, known "
+                       "frequencies for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            if (!phaseClockOsbCoefficients(
+                    sys,
+                    opts.baseline_phase_observables[0],
+                    opts.baseline_phase_observables[1]
+                ))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb baseline phase observables must use two distinct, known "
+                       "frequencies for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            for (E_ObsCode code : opts.baseline_code_observables)
+            {
+                if (std::find(code_priorities[sys].begin(), code_priorities[sys].end(), code) ==
+                    code_priorities[sys].end())
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "phase_clock_osb baseline observable " << enum_to_string(code)
+                        << " is absent from code_priorities for " << enum_to_string(sys);
+                    valid = false;
+                }
+            }
+
+            if (phaseClockOsb.constrain_reference_receiver_phase &&
+                opts.phase_reference_receiver.empty())
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb requires phase_reference_receiver for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            if (phaseClockOsb.baseline_only_ambiguity_resolution && solve_amb_for[sys] == false)
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "phase_clock_osb is enabled for " << enum_to_string(sys)
+                    << " but constellation ambiguity_resolution is false; output will remain float";
+            }
+        }
+
+        if (process_orbits)
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "phase_clock_osb first-stage processing should use fixed external precise orbits";
+        }
+
+        if (valid == false)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Disabling phase_clock_osb because its datum definition is incomplete";
+            phaseClockOsb.enable = false;
+        }
+    }
+
+    if (zhangFullRank.enable)
+    {
+        bool valid = true;
+
+        if (phaseClockOsb.enable)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_full_rank and phase_clock_osb are alternative datum controllers";
+            valid = false;
+        }
+
+        if (pppOpts.ionoOpts.use_if_combo || pppOpts.use_primary_signals)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_full_rank requires uncombined processing with both baseline signals";
+            valid = false;
+        }
+
+        for (auto& [sys, process] : process_sys)
+        {
+            if (process == false)
+            {
+                continue;
+            }
+
+            auto& opts = zhangFullRank.sysOpts[sys];
+            if (opts.baseline_observables.size() != 2)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank requires exactly two baseline observables for "
+                    << enum_to_string(sys);
+                valid = false;
+                continue;
+            }
+
+            if (!phaseClockOsbCoefficients(
+                    sys,
+                    opts.baseline_observables[0],
+                    opts.baseline_observables[1]
+                ))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank baseline observables must use two distinct, known "
+                       "frequencies for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            for (E_ObsCode code : opts.baseline_observables)
+            {
+                if (std::find(code_priorities[sys].begin(), code_priorities[sys].end(), code) ==
+                    code_priorities[sys].end())
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "zhang_full_rank baseline observable " << enum_to_string(code)
+                        << " is absent from code_priorities for " << enum_to_string(sys);
+                    valid = false;
+                }
+            }
+
+            if (opts.reference_receiver.empty())
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank requires reference_receiver for " << enum_to_string(sys);
+                valid = false;
+            }
+
+            SatSys referenceSatellite(opts.reference_satellite.c_str());
+            if (opts.reference_satellite.empty() || referenceSatellite.sys != sys ||
+                referenceSatellite.prn <= 0)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank requires a valid reference_satellite in "
+                    << enum_to_string(sys) << " (configured '" << opts.reference_satellite << "')";
+                valid = false;
+            }
+
+            if (valid && zhangFullRank.output_diagnostics)
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "ZHANG_FULL_RANK_CONFIG sys=" << enum_to_string(sys)
+                    << " baseline=" << enum_to_string(opts.baseline_observables[0]) << ","
+                    << enum_to_string(opts.baseline_observables[1])
+                    << " reference_receiver=" << opts.reference_receiver
+                    << " reference_satellite=" << opts.reference_satellite;
+            }
+        }
+
+        if (valid == false)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Disabling zhang_full_rank because its S-basis definition is incomplete";
+            zhangFullRank.enable = false;
+        }
     }
 
     sanityChecks();

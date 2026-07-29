@@ -545,6 +545,76 @@ struct ErrorAccumulationHandler
     int  state_error_count_threshold      = 4;
 };
 
+/** Per-constellation datum definition for staged phase-clock/OSB estimation.
+ *
+ * Observation codes use Ginan's internal convention (for example L1W for
+ * RINEX C1W/L1W).  The code pair defines the ionosphere-free satellite-clock
+ * datum; the phase pair limits ambiguity resolution to the baseline
+ * frequencies used to generate the ambiguity-fixed clock.
+ */
+struct PhaseClockOsbSystemOptions
+{
+    vector<E_ObsCode> baseline_code_observables;
+    vector<E_ObsCode> baseline_phase_observables;
+    string            phase_reference_receiver;
+};
+
+/** Controller options for datum-consistent phase-clock/OSB product generation.
+ *
+ * The controller is opt-in so existing configurations retain their historic
+ * clock_codes behaviour.  When enabled, baseline code biases are constrained
+ * by their ionosphere-free combination instead of being individually fixed to
+ * zero, and only baseline phase ambiguities participate in ambiguity fixing.
+ */
+struct PhaseClockOsbOptions
+{
+    bool enable                             = false;
+    bool enforce_code_datum                 = true;
+    bool constrain_reference_receiver_phase = true;
+    bool baseline_only_ambiguity_resolution = true;
+    bool output_diagnostics                 = true;
+
+    double code_datum_sigma  = 1e-6;  ///< metres
+    double phase_datum_sigma = 1e-6;  ///< metres
+
+    string datum_identifier = "UNSPECIFIED";
+    string solution_id      = "UNSPECIFIED";
+    int    discontinuity_counter = 0;
+
+    map<E_Sys, PhaseClockOsbSystemOptions> sysOpts;
+};
+
+/** Per-constellation S-basis for the Zhang code-plus-phase, ionosphere-float model.
+ *
+ * The two baseline observables define the code IF/GF S-bases.  The configured
+ * receiver and satellite define the clock and phase/ambiguity S-bases.  The
+ * first implementation is intended for a fixed-reference GPS L1/L2 validation
+ * arc; datum changes must be applied as an explicit S-transform.
+ */
+struct ZhangFullRankSystemOptions
+{
+    vector<E_ObsCode> baseline_observables;
+    string            reference_receiver;
+    string            reference_satellite;
+};
+
+/** Opt-in controller for Zhang's full-rank UDUC PPP-RTK network model.
+ *
+ * When enabled for a baseline signal:
+ * - receiver/satellite code-bias states are omitted (the IF/GF code S-bases);
+ * - the reference receiver clock and phase-bias states are omitted;
+ * - ambiguities in the reference receiver row and reference satellite column
+ *   are omitted;
+ * - remaining ambiguity states are the integer double-difference parameters.
+ */
+struct ZhangFullRankOptions
+{
+    bool enable             = false;
+    bool output_diagnostics = true;
+
+    map<E_Sys, ZhangFullRankSystemOptions> sysOpts;
+};
+
 /** Options for the general operation of the software
  */
 struct GlobalOptions
@@ -667,6 +737,9 @@ struct GlobalOptions
         {E_Sys::LEO, 0.0},
         {E_Sys::SBS, 0.0}
     };
+
+    PhaseClockOsbOptions phaseClockOsb;
+    ZhangFullRankOptions zhangFullRank;
 
     bool common_sat_pco       = false;
     bool common_rec_pco       = false;

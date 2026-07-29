@@ -1,0 +1,18 @@
+# Load after zhang_full_rank_europe_stage1.yaml to repeat the same observations
+# with a different receiver/satellite datum.
+
+outputs:
+  outputs_root: ./outputs/zhang_full_rank_europe_stage1_refcheck
+
+  metadata:
+    config_description: zhang_full_rank_europe_stage1_refcheck
+
+processing_options:
+  gnss_general:
+    pivot_receiver: GANP
+
+    zhang_full_rank:
+      sys_options:
+        gps:
+          reference_receiver: GANP
+          reference_satellite: G07

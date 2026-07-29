@@ -2,6 +2,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <algorithm>
+#include <set>
 #include "architectureDocs.hpp"
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
@@ -10,6 +12,7 @@
 #include "common/eigenIncluder.hpp"
 #include "common/gTime.hpp"
 #include "common/navigation.hpp"
+#include "common/phaseClockOsb.hpp"
 #include "common/receiver.hpp"
 #include "common/sinex.hpp"
 #include "common/trace.hpp"
@@ -714,6 +717,15 @@ void receiverPseudoObs(
  */
 void phasePseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
 {
+    if (acsConfig.phaseClockOsb.enable &&
+        acsConfig.phaseClockOsb.constrain_reference_receiver_phase)
+    {
+        // The staged controller supplies an explicit receiver-side S-basis.
+        // Applying the legacy satellite pivot as well would over-constrain the
+        // receiver/satellite phase-bias split.
+        return;
+    }
+
     for (auto& [key, index] : kfState.kfIndexMap)
     {
         if (key.type != KF::PHASE_BIAS)
@@ -755,6 +767,288 @@ void phasePseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntry
         kfMeasEntry.addNoiseEntry(key, +1, PIVOT_MEAS_VARIANCE);
 
         kfMeasEntryList.push_back(kfMeasEntry);
+    }
+}
+
+/** Select a deterministic ambiguity spanning tree for one system/signal.
+ *
+ * The configured receiver phase bias is the root.  Integer ambiguity
+ * pseudo-observations then propagate the phase-bias datum from known receivers
+ * to satellites and from known satellites to receivers.  This is the network
+ * ambiguity pivot described in Docs/ambiguities.md; without it, satellite
+ * phase biases can still exchange arbitrary real offsets with all ambiguities
+ * connected to that satellite.
+ */
+static void phaseClockOsbNetworkPivots(
+    Trace&           trace,
+    KFState&         kfState,
+    KFMeasEntryList& kfMeasEntryList,
+    E_Sys            sys,
+    E_ObsCode        code,
+    const string&    referenceReceiver,
+    double           phaseDatumSigma,
+    double           wavelength
+)
+{
+    bool referenceBiasPresent = false;
+    for (auto& [key, index] : kfState.kfIndexMap)
+    {
+        if (key.type == KF::PHASE_BIAS && key.Sat.sys == sys && key.Sat.prn == 0 &&
+            key.str == referenceReceiver && key.num == static_cast<int>(code))
+        {
+            referenceBiasPresent = true;
+            break;
+        }
+    }
+
+    if (referenceBiasPresent == false)
+    {
+        tracepdeex(
+            2,
+            trace,
+            "\nPHASE_CLOCK_OSB NETWORK_PIVOT code=%s reference=%s status=NO_REFERENCE_STATE",
+            enum_to_string(code).c_str(),
+            referenceReceiver.c_str()
+        );
+        return;
+    }
+
+    struct PivotEdge
+    {
+        KFKey  key;
+        string receiver;
+        SatSys satellite;
+        double ambiguity = 0;
+        bool   selected  = false;
+    };
+
+    vector<PivotEdge> edges;
+    set<string>       allReceivers;
+    set<SatSys>       allSatellites;
+
+    for (auto& [key, index] : kfState.kfIndexMap)
+    {
+        if (key.type != KF::AMBIGUITY || key.Sat.sys != sys || key.Sat.prn == 0 ||
+            key.str.empty() || key.num != static_cast<int>(code))
+        {
+            continue;
+        }
+
+        double ambiguity = 0;
+        kfState.getKFValue(key, ambiguity);
+
+        edges.push_back({key, key.str, key.Sat, ambiguity, false});
+        allReceivers.insert(key.str);
+        allSatellites.insert(key.Sat);
+    }
+
+    set<string> knownReceivers = {referenceReceiver};
+    set<SatSys> knownSatellites;
+
+    bool progress = true;
+    while (progress)
+    {
+        progress = false;
+
+        for (auto& edge : edges)
+        {
+            if (edge.selected || knownReceivers.count(edge.receiver) == 0 ||
+                knownSatellites.count(edge.satellite))
+            {
+                continue;
+            }
+
+            edge.selected = true;
+            knownSatellites.insert(edge.satellite);
+            progress = true;
+        }
+
+        for (auto& edge : edges)
+        {
+            if (edge.selected || knownSatellites.count(edge.satellite) == 0 ||
+                knownReceivers.count(edge.receiver))
+            {
+                continue;
+            }
+
+            edge.selected = true;
+            knownReceivers.insert(edge.receiver);
+            progress = true;
+        }
+    }
+
+    int    pivotCount       = 0;
+    double sigmaCycles      = phaseDatumSigma / wavelength;
+    double pivotVariance    = SQR(sigmaCycles);
+
+    for (auto& edge : edges)
+    {
+        if (edge.selected == false)
+        {
+            continue;
+        }
+
+        KFMeasEntry measEntry(&kfState);
+        measEntry.obsKey         = edge.key;
+        measEntry.obsKey.comment = "Phase-clock OSB network ambiguity pivot";
+        measEntry.metaDataMap["pseudoObs"] = (void*)true;
+
+        measEntry.addDsgnEntry(edge.key, +1);
+        measEntry.setInnov(std::round(edge.ambiguity) - edge.ambiguity);
+        measEntry.addNoiseEntry(measEntry.obsKey, 1, pivotVariance);
+        kfMeasEntryList.push_back(measEntry);
+        pivotCount++;
+    }
+
+    int unresolvedReceivers =
+        static_cast<int>(allReceivers.size()) - static_cast<int>(knownReceivers.size());
+    int unresolvedSatellites =
+        static_cast<int>(allSatellites.size()) - static_cast<int>(knownSatellites.size());
+    tracepdeex(
+        2,
+        trace,
+        "\nPHASE_CLOCK_OSB NETWORK_PIVOT code=%s reference=%s pivots=%d "
+        "unresolved_receivers=%d unresolved_satellites=%d",
+        enum_to_string(code).c_str(),
+        referenceReceiver.c_str(),
+        pivotCount,
+        std::max(0, unresolvedReceivers),
+        std::max(0, unresolvedSatellites)
+    );
+}
+
+/** Apply the explicit code and phase S-basis constraints required by the staged
+ * phase-clock/OSB controller.
+ *
+ * Baseline code OSBs are constrained as alpha*D1-beta*D2=0.  This preserves
+ * D1-D2 (the observable DCB), unlike fixing both OSBs independently to zero.
+ * Receiver phase OSBs for the configured reference station are fixed to zero
+ * on the two baseline signals to define the receiver/satellite phase datum.
+ */
+void phaseClockOsbPseudoObs(
+    Trace&           trace,
+    KFState&         kfState,
+    KFMeasEntryList& kfMeasEntryList
+)
+{
+    auto& controller = acsConfig.phaseClockOsb;
+    if (controller.enable == false)
+    {
+        return;
+    }
+
+    for (auto& [sys, opts] : controller.sysOpts)
+    {
+        if (opts.baseline_code_observables.size() == 2 && controller.enforce_code_datum)
+        {
+            E_ObsCode code1 = opts.baseline_code_observables[0];
+            E_ObsCode code2 = opts.baseline_code_observables[1];
+
+            auto coefficients = phaseClockOsbCoefficients(sys, code1, code2);
+            if (coefficients)
+            {
+                for (auto& [key1, index1] : kfState.kfIndexMap)
+                {
+                    if (key1.type != KF::CODE_BIAS || key1.Sat.sys != sys ||
+                        key1.num != static_cast<int>(code1))
+                    {
+                        continue;
+                    }
+
+                    KFKey key2 = key1;
+                    key2.num   = static_cast<int>(code2);
+
+                    if (kfState.kfIndexMap.find(key2) == kfState.kfIndexMap.end())
+                    {
+                        continue;
+                    }
+
+                    double bias1 = 0;
+                    double bias2 = 0;
+                    kfState.getKFValue(key1, bias1);
+                    kfState.getKFValue(key2, bias2);
+
+                    double closure =
+                        coefficients->alpha * bias1 - coefficients->beta * bias2;
+
+                    KFMeasEntry measEntry(&kfState);
+                    measEntry.obsKey         = key1;
+                    measEntry.obsKey.comment = "Phase-clock OSB code datum";
+                    measEntry.metaDataMap["pseudoObs"] = (void*)true;
+
+                    measEntry.addDsgnEntry(key1, +coefficients->alpha);
+                    measEntry.addDsgnEntry(key2, -coefficients->beta);
+                    measEntry.setInnov(-closure);
+                    measEntry.addNoiseEntry(
+                        measEntry.obsKey,
+                        1,
+                        SQR(controller.code_datum_sigma)
+                    );
+
+                    kfMeasEntryList.push_back(measEntry);
+                }
+            }
+        }
+
+        if (opts.baseline_phase_observables.size() != 2 ||
+            controller.constrain_reference_receiver_phase == false ||
+            opts.phase_reference_receiver.empty())
+        {
+            continue;
+        }
+
+        for (E_ObsCode code : opts.baseline_phase_observables)
+        {
+            for (auto& [key, index] : kfState.kfIndexMap)
+            {
+                if (key.type != KF::PHASE_BIAS || key.Sat.sys != sys ||
+                    key.str != opts.phase_reference_receiver ||
+                    key.num != static_cast<int>(code))
+                {
+                    continue;
+                }
+
+                double phaseBias = 0;
+                kfState.getKFValue(key, phaseBias);
+
+                KFMeasEntry measEntry(&kfState);
+                measEntry.obsKey         = key;
+                measEntry.obsKey.comment = "Phase-clock OSB receiver phase datum";
+                measEntry.metaDataMap["pseudoObs"] = (void*)true;
+
+                measEntry.addDsgnEntry(key, +1);
+                measEntry.setInnov(-phaseBias);
+                measEntry.addNoiseEntry(
+                    measEntry.obsKey,
+                    1,
+                    SQR(controller.phase_datum_sigma)
+                );
+
+                kfMeasEntryList.push_back(measEntry);
+            }
+
+            auto coefficients = phaseClockOsbCoefficients(
+                sys,
+                opts.baseline_phase_observables[0],
+                opts.baseline_phase_observables[1]
+            );
+            if (coefficients)
+            {
+                double wavelength = code == opts.baseline_phase_observables[0]
+                                        ? coefficients->lambda1
+                                        : coefficients->lambda2;
+                phaseClockOsbNetworkPivots(
+                    trace,
+                    kfState,
+                    kfMeasEntryList,
+                    sys,
+                    code,
+                    opts.phase_reference_receiver,
+                    controller.phase_datum_sigma,
+                    wavelength
+                );
+            }
+        }
     }
 }
 

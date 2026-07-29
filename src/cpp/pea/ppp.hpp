@@ -181,6 +181,8 @@ void ambgPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryL
 
 void phasePseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList);
 
+void phaseClockOsbPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList);
+
 void ionoPseudoObs(
     Trace&           trace,
     ReceiverMap&     receiverMap,

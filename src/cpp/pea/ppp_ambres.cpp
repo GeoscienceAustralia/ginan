@@ -8,6 +8,7 @@
  *         integer least-squares estimation, J.Geodesy, Vol.79, 552-565, 2005
  *-----------------------------------------------------------------------------*/
 
+#include <algorithm>
 #include <iostream>
 #include <math.h>
 #include "ambres/GNSSambres.hpp"
@@ -16,9 +17,279 @@
 #include "common/biases.hpp"
 #include "common/common.hpp"
 #include "common/eigenIncluder.hpp"
+#include "common/phaseClockOsb.hpp"
 #include "common/trace.hpp"
 
 static bool filterError = false;
+
+static bool useAmbiguityForPhaseClockOsb(const KFKey& key)
+{
+    auto& controller = acsConfig.phaseClockOsb;
+    if (controller.enable == false || controller.baseline_only_ambiguity_resolution == false)
+    {
+        return true;
+    }
+
+    auto sysIt = controller.sysOpts.find(key.Sat.sys);
+    if (sysIt == controller.sysOpts.end() ||
+        sysIt->second.baseline_phase_observables.size() != 2)
+    {
+        return false;
+    }
+
+    E_ObsCode code = int_to_enum<E_ObsCode>(key.num);
+    for (E_ObsCode baselineCode : sysIt->second.baseline_phase_observables)
+    {
+        if (code == baselineCode)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void tracePhaseClockOsbAmbiguityClosure(
+    Trace&               trace,
+    const vector<double>& ambiguities
+)
+{
+    if (acsConfig.phaseClockOsb.output_diagnostics == false || ambiguities.empty())
+    {
+        return;
+    }
+
+    double sumSquares = 0;
+    int    within015  = 0;
+    int    within025  = 0;
+
+    for (double ambiguity : ambiguities)
+    {
+        double residual = phaseClockOsbFractionalCycle(ambiguity);
+        sumSquares += SQR(residual);
+        within015 += std::abs(residual) < 0.15;
+        within025 += std::abs(residual) < 0.25;
+    }
+
+    tracepdeex(
+        2,
+        trace,
+        "\nPHASE_CLOCK_OSB AMBIGUITY_CLOSURE scope=NETWORK_FLOAT count=%d "
+        "rms_cycle=%.6f p015=%.6f p025=%.6f",
+        (int)ambiguities.size(),
+        std::sqrt(sumSquares / ambiguities.size()),
+        (double)within015 / ambiguities.size(),
+        (double)within025 / ambiguities.size()
+    );
+}
+
+static map<SatSys, double> phaseClockOsbClockBiasInvariants(KFState& kfState)
+{
+    map<SatSys, double> invariants;
+
+    for (auto& [sys, opts] : acsConfig.phaseClockOsb.sysOpts)
+    {
+        if (opts.baseline_code_observables.size() != 2)
+        {
+            continue;
+        }
+
+        E_ObsCode code1 = opts.baseline_code_observables[0];
+        E_ObsCode code2 = opts.baseline_code_observables[1];
+        auto coefficients = phaseClockOsbCoefficients(sys, code1, code2);
+        if (!coefficients)
+        {
+            continue;
+        }
+
+        for (auto& [key1, index1] : kfState.kfIndexMap)
+        {
+            if (key1.type != KF::CODE_BIAS || key1.Sat.sys != sys || key1.Sat.prn == 0 ||
+                key1.str.empty() == false || key1.num != static_cast<int>(code1))
+            {
+                continue;
+            }
+
+            KFKey key2 = key1;
+            key2.num   = static_cast<int>(code2);
+            if (kfState.kfIndexMap.find(key2) == kfState.kfIndexMap.end())
+            {
+                continue;
+            }
+
+            KFKey clockKey;
+            clockKey.type = KF::SAT_CLOCK;
+            clockKey.Sat  = key1.Sat;
+
+            double bias1   = 0;
+            double bias2   = 0;
+            double satClock = 0;
+            kfState.getKFValue(key1, bias1);
+            kfState.getKFValue(key2, bias2);
+            if (kfState.getKFValue(clockKey, satClock) == E_Source::NONE)
+            {
+                continue;
+            }
+
+            // Ginan applies the satellite-clock state with coefficient -1 and
+            // satellite code biases with coefficient +1 in ppp_obs.cpp.
+            invariants[key1.Sat] =
+                -satClock + coefficients->alpha * bias1 - coefficients->beta * bias2;
+        }
+    }
+
+    return invariants;
+}
+
+static void tracePhaseClockOsbProductClosures(
+    Trace&                     trace,
+    KFState&                   kfState,
+    const map<SatSys, double>* beforeAmbiguityFix = nullptr
+)
+{
+    auto& controller = acsConfig.phaseClockOsb;
+    if (controller.enable == false || controller.output_diagnostics == false)
+    {
+        return;
+    }
+
+    for (auto& [sys, opts] : controller.sysOpts)
+    {
+        if (opts.baseline_code_observables.size() == 2)
+        {
+            E_ObsCode code1 = opts.baseline_code_observables[0];
+            E_ObsCode code2 = opts.baseline_code_observables[1];
+            auto coefficients = phaseClockOsbCoefficients(sys, code1, code2);
+
+            if (coefficients)
+                for (auto& [key1, index1] : kfState.kfIndexMap)
+                {
+                    if (key1.type != KF::CODE_BIAS || key1.Sat.sys != sys ||
+                        key1.Sat.prn == 0 || key1.str.empty() == false ||
+                        key1.num != static_cast<int>(code1))
+                    {
+                        continue;
+                    }
+
+                    KFKey key2 = key1;
+                    key2.num   = static_cast<int>(code2);
+                    if (kfState.kfIndexMap.find(key2) == kfState.kfIndexMap.end())
+                    {
+                        continue;
+                    }
+
+                    double bias1 = 0;
+                    double bias2 = 0;
+                    kfState.getKFValue(key1, bias1);
+                    kfState.getKFValue(key2, bias2);
+
+                    double codeClosure =
+                        coefficients->alpha * bias1 - coefficients->beta * bias2;
+
+                    tracepdeex(
+                        2,
+                        trace,
+                        "\nPHASE_CLOCK_OSB CODE_DATUM_CLOSURE sat=%s value_m=%.12e",
+                        key1.Sat.id().c_str(),
+                        codeClosure
+                    );
+
+                    KFKey clockKey;
+                    clockKey.type = KF::SAT_CLOCK;
+                    clockKey.Sat  = key1.Sat;
+
+                    double satClock = 0;
+                    if (kfState.getKFValue(clockKey, satClock) != E_Source::NONE)
+                    {
+                        double invariant = -satClock + codeClosure;
+                        double delta     = 0;
+                        bool   hasBefore = false;
+                        if (beforeAmbiguityFix)
+                        {
+                            auto before = beforeAmbiguityFix->find(key1.Sat);
+                            if (before != beforeAmbiguityFix->end())
+                            {
+                                delta     = invariant - before->second;
+                                hasBefore = true;
+                            }
+                        }
+
+                        tracepdeex(
+                            2,
+                            trace,
+                            "\nPHASE_CLOCK_OSB CLOCK_BIAS_CLOSURE sat=%s invariant_m=%.12e "
+                            "ar_delta_m=%.12e compared=%d",
+                            key1.Sat.id().c_str(),
+                            invariant,
+                            delta,
+                            hasBefore
+                        );
+                    }
+                }
+        }
+
+        if (opts.baseline_phase_observables.size() != 2)
+        {
+            continue;
+        }
+
+        E_ObsCode code1 = opts.baseline_phase_observables[0];
+        E_ObsCode code2 = opts.baseline_phase_observables[1];
+        auto coefficients = phaseClockOsbCoefficients(sys, code1, code2);
+        if (!coefficients)
+        {
+            continue;
+        }
+
+        for (auto& [key1, index1] : kfState.kfIndexMap)
+        {
+            if (key1.type != KF::PHASE_BIAS || key1.Sat.sys != sys ||
+                key1.Sat.prn == 0 || key1.str.empty() == false ||
+                key1.num != static_cast<int>(code1))
+            {
+                continue;
+            }
+
+            KFKey key2 = key1;
+            key2.num   = static_cast<int>(code2);
+            if (kfState.kfIndexMap.find(key2) == kfState.kfIndexMap.end())
+            {
+                continue;
+            }
+
+            double phase1 = 0;
+            double phase2 = 0;
+            kfState.getKFValue(key1, phase1);
+            kfState.getKFValue(key2, phase2);
+
+            double wide = coefficients->frequencyRatio /
+                              (coefficients->frequencyRatio - 1) *
+                              phase1 -
+                          1 / (coefficients->frequencyRatio - 1) * phase2;
+            double narrow = coefficients->alpha * phase1 - coefficients->beta * phase2;
+
+            double reconstructed1 =
+                (coefficients->frequencyRatio + 1) / coefficients->frequencyRatio * narrow -
+                wide / coefficients->frequencyRatio;
+            double reconstructed2 =
+                (coefficients->frequencyRatio + 1) * narrow -
+                coefficients->frequencyRatio * wide;
+            double frequencyClosure =
+                std::max(std::abs(reconstructed1 - phase1), std::abs(reconstructed2 - phase2));
+
+            tracepdeex(
+                2,
+                trace,
+                "\nPHASE_CLOCK_OSB FREQUENCY_CLOSURE sat=%s wide_m=%.12e narrow_m=%.12e "
+                "reconstruction_m=%.12e",
+                key1.Sat.id().c_str(),
+                wide,
+                narrow,
+                frequencyClosure
+            );
+        }
+    }
+}
 
 bool recordFilterError(RejectCallbackDetails rejectDetails)
 {
@@ -206,6 +477,11 @@ void fixAndHoldAmbiguities(
             continue;
         }
 
+        if (useAmbiguityForPhaseClockOsb(key) == false)
+        {
+            continue;
+        }
+
         indices.push_back(index);
 
         ARmtx.ambmap[ind] = key;
@@ -213,10 +489,18 @@ void fixAndHoldAmbiguities(
     }
 
     if (ind == 0)
+    {
+        auto floatInvariants = phaseClockOsbClockBiasInvariants(kfState);
+        tracePhaseClockOsbProductClosures(trace, kfState, &floatInvariants);
         return;
+    }
 
     ARmtx.aflt  = kfState.x(indices);
     ARmtx.Paflt = kfState.P(indices, indices);
+
+    vector<double> floatAmbiguities(ARmtx.aflt.data(), ARmtx.aflt.data() + ARmtx.aflt.size());
+    tracePhaseClockOsbAmbiguityClosure(trace, floatAmbiguities);
+    auto floatInvariants = phaseClockOsbClockBiasInvariants(kfState);
 
     GinAR_opt ARopt;
     ARopt.mode   = acsConfig.ambrOpts.mode;
@@ -234,6 +518,8 @@ void fixAndHoldAmbiguities(
     {
         applyUCAmbiguities(trace, kfState, ARmtx);
     }
+
+    tracePhaseClockOsbProductClosures(trace, kfState, &floatInvariants);
 
     while (0)
     {
