@@ -1,6 +1,9 @@
 #pragma once
 
 #include <iosfwd>
+#include <string>
+#include "common/enums.h"
+#include "common/satSys.hpp"
 
 struct KFState;
 struct ReceiverMap;
@@ -15,4 +18,24 @@ void updateZhangFullRankReferences(
     Trace&       trace,
     ReceiverMap& receiverMap,
     KFState&     kfState
+);
+
+/** Whether the active general-tree controller models this baseline edge.
+ *
+ * Fixed-star mode always returns true.  General-tree mode returns false for
+ * edges outside the root receiver's active connected component.
+ */
+bool zhangGraphModelsObservation(
+    const KFState&    kfState,
+    const std::string& receiver,
+    const SatSys&      satellite,
+    E_ObsCode          code
+);
+
+/** Whether this edge owns an integer fundamental-cycle ambiguity state. */
+bool zhangGraphRetainsAmbiguity(
+    const KFState&    kfState,
+    const std::string& receiver,
+    const SatSys&      satellite,
+    E_ObsCode          code
 );

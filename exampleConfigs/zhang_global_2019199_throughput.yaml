@@ -1,0 +1,18 @@
+# Two-epoch throughput probe.  This is not a substitute for the strict
+# full-rank smoke run; it measures the cost after disabling the dense SVD rank
+# diagnostic that is already exercised by zhang_global_2019199_smoke.yaml.
+processing_options:
+  epoch_control:
+    end_epoch: 2019-07-18 00:05:00
+  gnss_general:
+    zhang_full_rank:
+      output_diagnostics: false
+    zhang_pppar:
+      product_filename: ./outputs/zhang_global_2019199_throughput/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_throughput/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_throughput
+
+  metadata:
+    config_description: zhang_global_2019199_throughput

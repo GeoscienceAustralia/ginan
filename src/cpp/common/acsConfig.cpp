@@ -4580,6 +4580,7 @@ bool ACSConfig::parse(
     pseudo_snx_inputs.clear();
     phaseClockOsb = {};
     zhangFullRank = {};
+    zhangPppAr    = {};
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
@@ -7044,6 +7045,13 @@ bool ACSConfig::parse(
                             "Satellite defining the ambiguity reference column"
                         );
                         tryGetFromYaml(
+                            opts.use_spanning_tree,
+                            sys_options,
+                            {"@ use_spanning_tree"},
+                            "Use a stable general spanning-tree ambiguity S-basis for the sparse "
+                            "baseline-observable graph"
+                        );
+                        tryGetFromYaml(
                             opts.auto_reference_switch,
                             sys_options,
                             {"@ auto_reference_switch"},
@@ -7068,6 +7076,79 @@ bool ACSConfig::parse(
                             sys_options,
                             {"@ reference_satellite_candidates"},
                             "Preferred satellite S-bases in descending priority"
+                        );
+                    }
+                }
+
+                {
+                    auto zhang_pppar = stringsToYamlObject(
+                        general,
+                        {"2@ zhang_pppar"},
+                        "Internal Zhang-product bridge for independent held-out PPP-AR validation"
+                    );
+
+                    tryGetFromYaml(
+                        zhangPppAr.output_products,
+                        zhang_pppar,
+                        {"0@ output_products"},
+                        "Write internal float/fixed Zhang clock-phase products"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_adapter,
+                        zhang_pppar,
+                        {"0@ user_adapter"},
+                        "Read internal Zhang products in an independent PPP user process"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.output_diagnostics,
+                        zhang_pppar,
+                        {"@ output_diagnostics"},
+                        "Output held-out user ambiguity and continuity diagnostics"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_filename,
+                        zhang_pppar,
+                        {"@ product_filename"},
+                        "Internal product CSV filename shared by the network writer and user reader"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_covariance_filename,
+                        zhang_pppar,
+                        {"@ product_covariance_filename"},
+                        "Optional upper-triangular covariance CSV for the complete clock/phase product vector"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_solution,
+                        zhang_pppar,
+                        {"@ product_solution"},
+                        "Product solution read by the user adapter: FLOAT or FIXED"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.stabilization_epochs,
+                        zhang_pppar,
+                        {"@ stabilization_epochs"},
+                        "Epochs after a phase-datum reset before integer-valid products may resume"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.initial_discontinuity_counter,
+                        zhang_pppar,
+                        {"@ initial_discontinuity_counter"},
+                        "Initial counter for the internal phase-continuity manager"
+                    );
+
+                    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+                    {
+                        auto sys_options = stringsToYamlObject(
+                            zhang_pppar,
+                            {"1@ sys_options", enum_to_string(sys)},
+                            (string) "Held-out PPP-AR observables for " + enum_to_string(sys)
+                        );
+
+                        tryGetEnumVec(
+                            zhangPppAr.baseline_observables[sys],
+                            sys_options,
+                            {"@ baseline_observables"},
+                            "Baseline phase observables carried by the internal product"
                         );
                     }
                 }
@@ -9082,8 +9163,9 @@ bool ACSConfig::parse(
             }
 
             SatSys referenceSatellite(opts.reference_satellite.c_str());
-            if (opts.reference_satellite.empty() || referenceSatellite.sys != sys ||
-                referenceSatellite.prn <= 0)
+            if (!opts.use_spanning_tree &&
+                (opts.reference_satellite.empty() || referenceSatellite.sys != sys ||
+                 referenceSatellite.prn <= 0))
             {
                 BOOST_LOG_TRIVIAL(error)
                     << "zhang_full_rank requires a valid reference_satellite in "
@@ -9119,6 +9201,7 @@ bool ACSConfig::parse(
                     << enum_to_string(opts.baseline_observables[1])
                     << " reference_receiver=" << opts.reference_receiver
                     << " reference_satellite=" << opts.reference_satellite
+                    << " use_spanning_tree=" << opts.use_spanning_tree
                     << " auto_reference_switch=" << opts.auto_reference_switch
                     << " reference_outage_epochs=" << opts.reference_outage_epochs;
             }
@@ -9129,6 +9212,79 @@ bool ACSConfig::parse(
             BOOST_LOG_TRIVIAL(error)
                 << "Disabling zhang_full_rank because its S-basis definition is incomplete";
             zhangFullRank.enable = false;
+        }
+    }
+
+    if (zhangPppAr.output_products || zhangPppAr.user_adapter)
+    {
+        bool valid = true;
+
+        if (zhangPppAr.product_filename.empty())
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar requires product_filename in writer and user-adapter modes";
+            valid = false;
+        }
+
+        if (zhangPppAr.output_products && zhangFullRank.enable == false)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar output_products requires zhang_full_rank network processing";
+            valid = false;
+        }
+
+        if (zhangPppAr.user_adapter && zhangFullRank.enable)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar user_adapter must run independently of zhang_full_rank";
+            valid = false;
+        }
+
+        if (zhangPppAr.stabilization_epochs < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar stabilization_epochs must be non-negative";
+            valid = false;
+        }
+
+        string solution = zhangPppAr.product_solution;
+        boost::to_upper(solution);
+        if (solution != "FLOAT" && solution != "FIXED")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product_solution must be FLOAT or FIXED";
+            valid = false;
+        }
+        zhangPppAr.product_solution = solution;
+
+        for (auto& [sys, process] : process_sys)
+        {
+            if (!process)
+            {
+                continue;
+            }
+
+            auto& codes = zhangPppAr.baseline_observables[sys];
+            if (codes.empty() && zhangFullRank.enable)
+            {
+                codes = zhangFullRank.sysOpts[sys].baseline_observables;
+            }
+
+            if (codes.size() != 2)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_pppar requires exactly two baseline_observables for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+        }
+
+        if (!valid)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Disabling zhang_pppar because its internal product definition is incomplete";
+            zhangPppAr.output_products = false;
+            zhangPppAr.user_adapter    = false;
         }
     }
 

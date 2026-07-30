@@ -1,30 +1,22 @@
-# Stage-one validation of Zhang's code-plus-phase, ionosphere-float,
-# undifferenced/uncombined full-rank CDMA network model.
+# Global engineering prototype for the Zhang GPS L1C/L2W internal product.
 #
-# Load after a product/input configuration that supplies the 2019-199
-# observations and precise products. This example uses seven European stations,
-# GPS C1C/L1C + C2W/L2W, ZIM2 as receiver datum and G05 as satellite datum.
-
-inputs:
-  gnss_observations:
-    gnss_observations_root: ../data/
-    rnx_inputs:
-      - FFMJ00DEU_R_20191990000_01D_30S_MO.rnx
-      - GANP00SVK_R_20191990000_01D_30S_MO.rnx
-      - MARS00FRA_R_20191990000_01D_30S_MO.rnx
-      - MATE00ITA_R_20191990000_01D_30S_MO.rnx
-      - NOT100ITA_R_20191990000_01D_30S_MO.rnx
-      - PADO00ITA_R_20191990000_01D_30S_MO.rnx
-      - ZIM200CHE_R_20191990000_01D_30S_MO.rnx
+# Load in this order:
+#   1. osb_wum_fixed_orbit.yaml
+#   2. zhang_global_2019199/zhang_global_2019199_inputs.yaml
+#   3. this file
+#
+# The input overlay contains 74 estimation stations.  Twenty stations in
+# network_validation.txt are excluded before estimation and two additional
+# stations are retained in network_backup.txt.
 
 outputs:
-  outputs_root: ./outputs/zhang_full_rank_europe_stage1
+  outputs_root: ./outputs/zhang_global_2019199
 
   metadata:
-    config_description: zhang_full_rank_europe_stage1
+    config_description: zhang_global_2019199_product
 
   trace:
-    level: 3
+    level: 2
     output_receivers: false
     output_network: true
     network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
@@ -35,6 +27,9 @@ outputs:
     output: false
 
   bias_sinex:
+    output: false
+
+  sinex:
     output: false
 
 satellite_options:
@@ -54,28 +49,20 @@ receiver_options:
       code_bias:
         enable: true
 
-  FFMJ: { exclude: false }
-  GANP: { exclude: false }
-  MARS: { exclude: false }
-  MATE: { exclude: false }
-  NOT1: { exclude: false }
-  PADO: { exclude: false }
-  ZIM2: { exclude: false }
-
 processing_options:
   epoch_control:
     start_epoch: 2019-07-18 00:00:00
-    end_epoch: 2019-07-18 00:30:00
+    end_epoch: 2019-07-18 06:00:00
     epoch_interval: 300
     wait_next_epoch: 3600
     max_rec_latency: 1
 
   gnss_general:
-    pivot_receiver: ZIM2
+    pivot_receiver: USN7
     sys_options:
       gps:
         process: true
-        ambiguity_resolution: false
+        ambiguity_resolution: true
         receiver_amb_pivot: false
         network_amb_pivot: false
         reject_eclipse: false
@@ -83,12 +70,36 @@ processing_options:
 
     zhang_full_rank:
       enable: true
-      output_diagnostics: true
+      # The strict smoke overlay enables the dense SVD gate.  Keeping it off
+      # for the six-hour run avoids an O(n^3) diagnostic at every epoch.
+      output_diagnostics: false
       sys_options:
         gps:
           baseline_observables: [L1C, L2W]
-          reference_receiver: ZIM2
-          reference_satellite: G05
+          reference_receiver: USN7
+          use_spanning_tree: true
+          auto_reference_switch: false
+
+    zhang_pppar:
+      output_products: true
+      user_adapter: false
+      output_diagnostics: true
+      product_filename: ./outputs/zhang_global_2019199_products/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_products/zhang_internal_product_covariance.csv
+      product_solution: FIXED
+      stabilization_epochs: 2
+      initial_discontinuity_counter: 0
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.999
+    solution_ratio_threshold: 3
+    lambda_set_size: 200
+    once_per_epoch: true
+    fix_and_hold: true
 
   ppp_filter:
     ionospheric_components:
@@ -96,6 +107,9 @@ processing_options:
       use_gf_combo: false
       use_if_combo: false
       corr_mode: estimate
+
+    rts:
+      enable: false
 
 estimation_parameters:
   receivers:

@@ -1,0 +1,15 @@
+# Load after the European Zhang stage-one configuration to run the
+# pure-observation numerical-rank acceptance test without overwriting the
+# original stage-one outputs.
+outputs:
+  outputs_root: ./outputs/zhang_full_rank_europe_formal_rank
+
+  metadata:
+    config_description: zhang_full_rank_europe_formal_rank
+
+# The fixed ZIM2/G05 star datum is a spanning tree only for satellites observed
+# by ZIM2. G08 and G09 are present only on non-reference receivers in this
+# 30-minute arc, so they are outside the stage-one common-view experiment.
+satellite_options:
+  G08: { exclude: true }
+  G09: { exclude: true }

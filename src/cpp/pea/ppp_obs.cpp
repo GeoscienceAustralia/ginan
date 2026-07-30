@@ -21,6 +21,8 @@
 #include "iono/ionoModel.hpp"
 #include "orbprop/coordinates.hpp"
 #include "orbprop/orbitProp.hpp"
+#include "pea/zhangReference.hpp"
+#include "pea/zhangPppAr.hpp"
 #include "trop/tropModels.hpp"
 
 using std::function;
@@ -325,6 +327,35 @@ inline static void pppRecClocks(COMMON_PPP_ARGS)
 
 inline static void pppSatClocks(COMMON_PPP_ARGS)
 {
+    ZhangInternalProduct internalProduct;
+    if (acsConfig.zhangPppAr.user_adapter &&
+        queryZhangInternalProduct(tsync, Sat, sig.code, internalProduct))
+    {
+        KFKey productKey;
+        productKey.type = KF::SAT_CLOCK;
+        productKey.Sat  = Sat;
+
+        bool phaseMeasurement = measEntry.obsKey.type == KF::PHAS_MEAS;
+        double value = phaseMeasurement
+                           ? internalProduct.correction_m
+                           : internalProduct.clock_m;
+        double variance = SQR(
+            phaseMeasurement
+                ? internalProduct.correction_sigma_m
+                : internalProduct.clock_sigma_m
+        );
+
+        measEntry.addNoiseEntry(productKey, 1, variance);
+        measEntry.componentsMap[E_Component::SAT_CLOCK] = {
+            -value,
+            phaseMeasurement
+                ? "- (Cdt_s-b_s) [Zhang internal product]"
+                : "- Cdt_s [Zhang internal product]",
+            variance
+        };
+        return;
+    }
+
     // Don't obliterate obs.satClk in satclk below, we still need the old one for next signal/phase
     SatPos satPos0 = obs;
 
@@ -1333,16 +1364,39 @@ inline static void pppSatPhaseWindup(COMMON_PPP_ARGS)
 
 inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 {
-    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
-    if (zhangOptions &&
-        !zhangFullRankRetainsAmbiguity(
+    if (zhangPppArUserReferenceAmbiguity(
+            kfState,
             rec.id,
             Sat,
-            sig.code,
-            zhangOptions->baseline_observables,
-            zhangOptions->reference_receiver,
-            zhangOptions->reference_satellite
+            sig.code
         ))
+    {
+        measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {
+            0,
+            "+ lambda.N [Zhang user ambiguity S-basis]",
+            0
+        };
+        return;
+    }
+
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    bool retainZhangAmbiguity = true;
+    if (zhangOptions)
+    {
+        retainZhangAmbiguity =
+            zhangOptions->use_spanning_tree
+                ? zhangGraphRetainsAmbiguity(kfState, rec.id, Sat, sig.code)
+                : zhangFullRankRetainsAmbiguity(
+                      rec.id,
+                      Sat,
+                      sig.code,
+                      zhangOptions->baseline_observables,
+                      zhangOptions->reference_receiver,
+                      zhangOptions->reference_satellite
+                  );
+    }
+
+    if (zhangOptions && !retainZhangAmbiguity)
     {
         measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {
             0,
@@ -1362,7 +1416,13 @@ inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
     kfKey.Sat     = obs.Sat;
     kfKey.num     = static_cast<int>(sig.code);
     kfKey.rec_ptr = &rec;
-    kfKey.comment = zhangOptions ? "Zhang DD " + sigName : sigName;
+    kfKey.comment =
+        zhangOptions
+            ? (zhangOptions->use_spanning_tree ? "Zhang cycle " : "Zhang DD ") + sigName
+            : (acsConfig.zhangPppAr.user_adapter &&
+                       zhangPppArUsesObservable(Sat.sys, sig.code)
+                   ? "Zhang user SD " + sigName
+                   : sigName);
 
     if (sig.P && zhangOptions == nullptr)
     {
@@ -1471,6 +1531,19 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 
 inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 {
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        // The phase measurement already received the full correlated
+        // clock-minus-phase correction in pppSatClocks().
+        measEntry.componentsMap[E_Component::SAT_PHASE_BIAS] = {
+            0,
+            "+ b_s [included in Zhang internal phase correction]",
+            0
+        };
+        return;
+    }
+
     double satPhasBias    = satOpts.phaseBiasModel.default_bias;
     double satPhasBiasVar = SQR(satOpts.phaseBiasModel.undefined_sigma);
     bool   biasFound = getBias(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
@@ -1524,6 +1597,17 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 
 inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 {
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {
+            0,
+            "+ d_r [Zhang held-out user IF/GF S-basis]",
+            0
+        };
+        return;
+    }
+
     if (zhangFullRankSystemOptions(Sat.sys, sig.code))
     {
         measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {
@@ -1646,6 +1730,17 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 {
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {
+            0,
+            "- d_s [absorbed by Zhang internal satellite clock]",
+            0
+        };
+        return;
+    }
+
     if (zhangFullRankSystemOptions(Sat.sys, sig.code))
     {
         measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {
@@ -2024,6 +2119,20 @@ void receiverUducGnss(
                     auto   sysSat = SatSys(sys);
                     double lambda = obs.satNav_ptr->lamMap[ft];
                     auto   code   = sig.code;
+
+                    auto zhangOptions = zhangFullRankSystemOptions(sys, code);
+                    if (zhangOptions &&
+                        zhangOptions->use_spanning_tree &&
+                        !zhangGraphModelsObservation(kfState, rec.id, Sat, code))
+                    {
+                        tracepdeex(
+                            2,
+                            trace,
+                            "\n%s - outside active Zhang graph component",
+                            measDescription
+                        );
+                        continue;
+                    }
 
                     string recSatId;
                     if (recOpts.sat_id.empty())

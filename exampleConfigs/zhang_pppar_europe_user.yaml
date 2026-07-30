@@ -1,45 +1,35 @@
-# Stage-one validation of Zhang's code-plus-phase, ionosphere-float,
-# undifferenced/uncombined full-rank CDMA network model.
-#
-# Load after a product/input configuration that supplies the 2019-199
-# observations and precise products. This example uses seven European stations,
-# GPS C1C/L1C + C2W/L2W, ZIM2 as receiver datum and G05 as satellite datum.
-
-inputs:
-  gnss_observations:
-    gnss_observations_root: ../data/
-    rnx_inputs:
-      - FFMJ00DEU_R_20191990000_01D_30S_MO.rnx
-      - GANP00SVK_R_20191990000_01D_30S_MO.rnx
-      - MARS00FRA_R_20191990000_01D_30S_MO.rnx
-      - MATE00ITA_R_20191990000_01D_30S_MO.rnx
-      - NOT100ITA_R_20191990000_01D_30S_MO.rnx
-      - PADO00ITA_R_20191990000_01D_30S_MO.rnx
-      - ZIM200CHE_R_20191990000_01D_30S_MO.rnx
+# Independent held-out PPP-AR user.  Load after osb_wum_fixed_orbit.yaml and
+# one station overlay (MATE, DYNG or NICO).  No Zhang network state, ambiguity,
+# covariance or graph object is shared with this process.
 
 outputs:
-  outputs_root: ./outputs/zhang_full_rank_europe_stage1
-
+  outputs_root: ./outputs/zhang_pppar_europe_user
   metadata:
-    config_description: zhang_full_rank_europe_stage1
-
+    config_description: zhang_pppar_europe_user
   trace:
     level: 3
-    output_receivers: false
+    output_receivers: true
     output_network: true
+    receiver_filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.TRACE
     network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
     output_residuals: true
     output_config: true
-
+  pos:
+    output: true
+    filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.POS
+  sinex:
+    output: false
   clocks:
     output: false
-
   bias_sinex:
     output: false
 
 satellite_options:
   global:
     models:
+      clock:
+        enable: true
+        sources: [PRECISE, BROADCAST]
       phase_bias:
         enable: true
       code_bias:
@@ -48,47 +38,44 @@ satellite_options:
 receiver_options:
   global:
     exclude: true
+    clock_codes: [L1C]
     models:
       phase_bias:
         enable: true
       code_bias:
         enable: true
 
-  FFMJ: { exclude: false }
-  GANP: { exclude: false }
-  MARS: { exclude: false }
-  MATE: { exclude: false }
-  NOT1: { exclude: false }
-  PADO: { exclude: false }
-  ZIM2: { exclude: false }
-
 processing_options:
   epoch_control:
     start_epoch: 2019-07-18 00:00:00
-    end_epoch: 2019-07-18 00:30:00
-    epoch_interval: 300
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 30
     wait_next_epoch: 3600
     max_rec_latency: 1
 
   gnss_general:
-    pivot_receiver: ZIM2
     sys_options:
       gps:
         process: true
-        ambiguity_resolution: false
+        ambiguity_resolution: true
         receiver_amb_pivot: false
         network_amb_pivot: false
         reject_eclipse: false
         code_priorities: [L1C, L2W]
 
     zhang_full_rank:
-      enable: true
+      enable: false
+
+    zhang_pppar:
+      output_products: false
+      user_adapter: true
       output_diagnostics: true
+      product_filename: ./outputs/zhang_pppar_products/zhang_internal_products.csv
+      product_solution: FIXED
+      stabilization_epochs: 2
       sys_options:
         gps:
           baseline_observables: [L1C, L2W]
-          reference_receiver: ZIM2
-          reference_satellite: G05
 
   ppp_filter:
     ionospheric_components:
@@ -96,12 +83,24 @@ processing_options:
       use_gf_combo: false
       use_if_combo: false
       corr_mode: estimate
+    rts:
+      enable: false
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.99
+    solution_ratio_threshold: 3
+    lambda_set_size: 200
+    once_per_epoch: true
+    fix_and_hold: true
 
 estimation_parameters:
   receivers:
     global:
       pos:
-        estimated: [false]
+        estimated: [true]
+        sigma: [100]
+        process_noise: [0]
       clock:
         estimated: [true]
         sigma: [1000]
@@ -123,9 +122,7 @@ estimation_parameters:
       trop_grads:
         estimated: [false]
       code_bias:
-        estimated: [true]
-        sigma: [20]
-        process_noise: [0]
+        estimated: [false]
       phase_bias:
         estimated: [true]
         sigma: [1000]
@@ -134,18 +131,10 @@ estimation_parameters:
   satellites:
     global:
       clock:
-        estimated: [true]
-        sigma: [1000]
-        process_noise: [1]
-        tau: [100]
+        estimated: [false]
       code_bias:
-        estimated: [true]
-        sigma: [20]
-        process_noise: [0]
+        estimated: [false]
       phase_bias:
-        estimated: [true]
-        sigma: [1000]
-        process_noise: [0]
-
-mongo:
-  enable: none
+        estimated: [false]
+      orbit:
+        estimated: [false]

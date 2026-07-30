@@ -597,6 +597,7 @@ struct ZhangFullRankSystemOptions
     string            reference_receiver;
     string            reference_satellite;
 
+    bool           use_spanning_tree      = false;
     bool           auto_reference_switch = false;
     int            reference_outage_epochs = 1;
     vector<string> reference_receiver_candidates;
@@ -618,6 +619,27 @@ struct ZhangFullRankOptions
     bool output_diagnostics = true;
 
     map<E_Sys, ZhangFullRankSystemOptions> sysOpts;
+};
+
+/** Internal, non-standard product bridge used to validate a held-out PPP-AR user.
+ *
+ * This deliberately does not write or consume Bias-SINEX/SSR.  Network mode
+ * serialises the ambiguity-fixed Zhang clock/phase combinations; user mode
+ * reads them in a separate PEA process and applies them directly to code and
+ * phase observations.
+ */
+struct ZhangPppArOptions
+{
+    bool   output_products    = false;
+    bool   user_adapter       = false;
+    bool   output_diagnostics = true;
+    string product_filename;
+    string product_covariance_filename;
+    string product_solution = "FIXED";
+    int    stabilization_epochs = 2;
+    int    initial_discontinuity_counter = 0;
+
+    map<E_Sys, vector<E_ObsCode>> baseline_observables;
 };
 
 /** Options for the general operation of the software
@@ -745,6 +767,7 @@ struct GlobalOptions
 
     PhaseClockOsbOptions phaseClockOsb;
     ZhangFullRankOptions zhangFullRank;
+    ZhangPppArOptions    zhangPppAr;
 
     bool common_sat_pco       = false;
     bool common_rec_pco       = false;

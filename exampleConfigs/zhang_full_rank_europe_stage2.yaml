@@ -1,0 +1,41 @@
+# Stage-two overlay for the Zhang full-rank PPP-RTK network controller.
+#
+# Load after zhang_full_rank_europe_stage1.yaml.  Unlike the fixed-star
+# stage-one experiment, all usable L1C/L2W edges in the connected ZIM2
+# component participate.  A stable general spanning tree supplies the
+# ambiguity S-basis; non-tree edges are integer fundamental-cycle states.
+
+outputs:
+  outputs_root: ./outputs/zhang_full_rank_europe_stage2
+
+  metadata:
+    config_description: zhang_full_rank_europe_stage2
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 300
+
+  gnss_general:
+    sys_options:
+      gps:
+        ambiguity_resolution: true
+
+    zhang_full_rank:
+      enable: true
+      output_diagnostics: true
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+          reference_receiver: ZIM2
+          use_spanning_tree: true
+          auto_reference_switch: false
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.99
+    solution_ratio_threshold: 3
+    lambda_set_size: 200
+    once_per_epoch: true
+    fix_and_hold: true

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <math.h>
 #include "ambres/GNSSambres.hpp"
 #include "common/acsConfig.hpp"
@@ -19,6 +20,9 @@
 #include "common/eigenIncluder.hpp"
 #include "common/phaseClockOsb.hpp"
 #include "common/trace.hpp"
+#include "common/zhangFullRank.hpp"
+#include "pea/zhangReference.hpp"
+#include "pea/zhangPppAr.hpp"
 
 static bool filterError = false;
 
@@ -47,6 +51,230 @@ static bool useAmbiguityForPhaseClockOsb(const KFKey& key)
     }
 
     return false;
+}
+
+static bool useAmbiguityForZhang(const KFState& kfState, const KFKey& key)
+{
+    if (acsConfig.zhangPppAr.user_adapter)
+    {
+        return zhangPppArUsesObservable(
+                   key.Sat.sys,
+                   static_cast<E_ObsCode>(key.num)
+               ) &&
+               zhangPppArUserAmbiguityIntegerValid(
+                   kfState,
+                   key.str,
+                   key.Sat,
+                   static_cast<E_ObsCode>(key.num)
+               );
+    }
+
+    if (!acsConfig.zhangFullRank.enable)
+    {
+        return true;
+    }
+
+    auto optionsIt = acsConfig.zhangFullRank.sysOpts.find(key.Sat.sys);
+    if (optionsIt == acsConfig.zhangFullRank.sysOpts.end())
+    {
+        return false;
+    }
+
+    E_ObsCode code = static_cast<E_ObsCode>(key.num);
+    if (!zhangFullRankUsesObservable(code, optionsIt->second.baseline_observables))
+    {
+        return false;
+    }
+
+    if (!optionsIt->second.use_spanning_tree)
+    {
+        return true;
+    }
+
+    return zhangGraphRetainsAmbiguity(kfState, key.str, key.Sat, code);
+}
+
+static pair<int, double> zhangHeldIntegerRank(
+    const KFState&   kfState,
+    const GinAR_mtx& ambiguityResolution
+)
+{
+    int heldIntegerRank = 0;
+    double heldMinEigenvalue = std::numeric_limits<double>::quiet_NaN();
+    if (ambiguityResolution.ambmap.empty())
+    {
+        return {heldIntegerRank, heldMinEigenvalue};
+    }
+
+    vector<int> postIndices;
+    postIndices.reserve(ambiguityResolution.ambmap.size());
+    for (const auto& [ambiguityIndex, key] : ambiguityResolution.ambmap)
+    {
+        auto postIt = kfState.kfIndexMap.find(key);
+        if (postIt != kfState.kfIndexMap.end())
+        {
+            postIndices.push_back(postIt->second);
+        }
+    }
+    if (postIndices.size() != ambiguityResolution.ambmap.size())
+    {
+        return {heldIntegerRank, heldMinEigenvalue};
+    }
+
+    MatrixXd postCovariance = kfState.P(postIndices, postIndices);
+    Eigen::SelfAdjointEigenSolver<MatrixXd> postEigenSolver(postCovariance);
+    if (postEigenSolver.info() != Eigen::Success)
+    {
+        return {heldIntegerRank, heldMinEigenvalue};
+    }
+
+    heldMinEigenvalue = postEigenSolver.eigenvalues().minCoeff();
+    double largest =
+        std::max(1.0, postEigenSolver.eigenvalues().maxCoeff());
+    double heldThreshold =
+        std::max(100 * FIXED_AMB_VAR, 1e-10 * largest);
+    heldIntegerRank =
+        (postEigenSolver.eigenvalues().array() <= heldThreshold).count();
+
+    return {heldIntegerRank, heldMinEigenvalue};
+}
+
+static void traceZhangAmbiguityAndFixedProducts(
+    Trace&           trace,
+    const KFState&   kfState,
+    const GinAR_mtx& ambiguityResolution,
+    int              fixedCount
+)
+{
+    // Product/AR diagnostics must remain available when the expensive pure-
+    // observation SVD is disabled for a long network run.  These two controls
+    // describe different costs and different evidence.
+    bool networkDiagnostics =
+        (acsConfig.zhangFullRank.enable &&
+         acsConfig.zhangFullRank.output_diagnostics) ||
+        (acsConfig.zhangPppAr.output_products &&
+         acsConfig.zhangPppAr.output_diagnostics);
+    bool userDiagnostics =
+        acsConfig.zhangPppAr.user_adapter &&
+        acsConfig.zhangPppAr.output_diagnostics;
+    if (!networkDiagnostics && !userDiagnostics)
+    {
+        return;
+    }
+
+    const int ambiguityCount = ambiguityResolution.aflt.size();
+    if (ambiguityCount)
+    {
+        auto [heldIntegerRank, heldMinEigenvalue] =
+            zhangHeldIntegerRank(kfState, ambiguityResolution);
+
+        std::vector<double> fractionalResiduals;
+        fractionalResiduals.reserve(ambiguityCount);
+        for (double value : ambiguityResolution.aflt)
+        {
+            fractionalResiduals.push_back(std::abs(value - std::round(value)));
+        }
+        std::sort(fractionalResiduals.begin(), fractionalResiduals.end());
+
+        double median = fractionalResiduals[fractionalResiduals.size() / 2];
+        double p90 =
+            fractionalResiduals[
+                static_cast<size_t>(0.9 * (fractionalResiduals.size() - 1))
+            ];
+
+        double adop = std::numeric_limits<double>::quiet_NaN();
+        double minEigenvalue = std::numeric_limits<double>::quiet_NaN();
+        Eigen::SelfAdjointEigenSolver<MatrixXd> eigenSolver(ambiguityResolution.Paflt);
+        if (eigenSolver.info() == Eigen::Success)
+        {
+            minEigenvalue = eigenSolver.eigenvalues().minCoeff();
+
+            // Integer pseudo-observations deliberately make parts of the held ambiguity
+            // covariance numerically semidefinite.  Clamp only round-off-scale eigenvalues;
+            // a materially negative eigenvalue remains visible as a failed ADOP diagnostic.
+            double largestEigenvalue =
+                std::max(1.0, eigenSolver.eigenvalues().maxCoeff());
+            double negativeTolerance =
+                1e-10 * largestEigenvalue;
+            if (minEigenvalue >= -negativeTolerance)
+            {
+                ArrayXd variances =
+                    eigenSolver.eigenvalues().array().max(1e-16 * largestEigenvalue);
+                adop = std::exp(
+                    variances.log().sum() /
+                    (2.0 * ambiguityCount)
+                );
+            }
+        }
+
+        trace << (userDiagnostics
+                      ? "\nZHANG_USER_AR_SUMMARY time="
+                      : "\nZHANG_AR_SUMMARY time=")
+              << kfState.time.to_string(0)
+              << " candidates=" << ambiguityCount
+              << " newly_fixed=" << fixedCount
+              << " held_integer_rank=" << heldIntegerRank
+              << " held_min_covariance_eigenvalue="
+              << heldMinEigenvalue
+              << " adop_cycles=" << adop
+              << " min_covariance_eigenvalue=" << minEigenvalue
+              << " median_fractional_cycle=" << median
+              << " p90_fractional_cycle=" << p90;
+    }
+
+    if (!networkDiagnostics)
+    {
+        return;
+    }
+
+    for (const auto& [phaseKey, phaseIndex] : kfState.kfIndexMap)
+    {
+        if (phaseKey.type != KF::PHASE_BIAS ||
+            phaseKey.Sat.prn <= 0 ||
+            phaseKey.str.empty() == false)
+        {
+            continue;
+        }
+
+        auto optionsIt = acsConfig.zhangFullRank.sysOpts.find(phaseKey.Sat.sys);
+        if (optionsIt == acsConfig.zhangFullRank.sysOpts.end() ||
+            !zhangFullRankUsesObservable(
+                static_cast<E_ObsCode>(phaseKey.num),
+                optionsIt->second.baseline_observables
+            ))
+        {
+            continue;
+        }
+
+        KFKey clockKey;
+        clockKey.type = KF::SAT_CLOCK;
+        clockKey.Sat  = phaseKey.Sat;
+
+        auto clockIt = kfState.kfIndexMap.find(clockKey);
+        if (clockIt == kfState.kfIndexMap.end())
+        {
+            continue;
+        }
+
+        int clockIndex = clockIt->second;
+        double clock   = kfState.x(clockIndex);
+        double phase   = kfState.x(phaseIndex);
+        double correction = clock - phase;
+        double variance =
+            kfState.P(clockIndex, clockIndex) +
+            kfState.P(phaseIndex, phaseIndex) -
+            2 * kfState.P(clockIndex, phaseIndex);
+
+        trace << "\nZHANG_FIXED_PRODUCT time=" << kfState.time.to_string(0)
+              << " fixed_update_applied=" << (fixedCount > 0)
+              << " satellite=" << phaseKey.Sat.id()
+              << " observable="
+              << enum_to_string(static_cast<E_ObsCode>(phaseKey.num))
+              << " ambiguity_fixed_clock_m=" << clock
+              << " internal_satellite_phase_m=" << phase
+              << " phase_observation_correction_m=" << correction
+              << " correction_sigma_m=" << std::sqrt(std::max(0.0, variance));
+    }
 }
 
 static void tracePhaseClockOsbAmbiguityClosure(
@@ -447,6 +675,122 @@ void applyUCAmbiguities(
     kfState.filterKalman(trace, kfMeas, "/AR", true);
 }
 
+/** Build the integer-estimable ambiguity coordinates used by a standalone
+ * PPP-AR receiver.
+ *
+ * Satellite phase OSBs remove the satellite fractional datum, but one
+ * receiver-side phase datum remains for every system/signal.  Consequently,
+ * undifferenced ambiguities must not be passed directly to LAMBDA.  When
+ * receiver_amb_pivot is enabled, this function replaces each receiver/system/
+ * signal group by satellite single differences and leaves one ambiguity as
+ * the datum.  D maps original undifferenced ambiguities to integer-estimable
+ * coordinates.  Systems without receiver_amb_pivot retain identity rows.
+ */
+static MatrixXd receiverAmbiguityIntegerTransform(
+    Trace&           trace,
+    const GinAR_mtx& ambiguityResolution
+)
+{
+    using GroupKey = tuple<string, E_Sys, int>;
+
+    map<GroupKey, vector<int>> groups;
+    for (const auto& [localIndex, key] : ambiguityResolution.ambmap)
+    {
+        groups[{key.str, key.Sat.sys, key.num}].push_back(localIndex);
+    }
+
+    int rowCount = 0;
+    for (const auto& [group, members] : groups)
+    {
+        E_Sys system = get<1>(group);
+        if (acsConfig.receiver_amb_pivot[system])
+        {
+            rowCount += std::max(0, static_cast<int>(members.size()) - 1);
+        }
+        else
+        {
+            rowCount += members.size();
+        }
+    }
+
+    MatrixXd transform = MatrixXd::Zero(
+        rowCount,
+        ambiguityResolution.aflt.size()
+    );
+    int row = 0;
+    for (const auto& [group, members] : groups)
+    {
+        const auto& [receiver, system, observation] = group;
+        if (acsConfig.receiver_amb_pivot[system] == false)
+        {
+            for (int member : members)
+            {
+                transform(row++, member) = 1;
+            }
+            continue;
+        }
+
+        if (members.size() < 2)
+        {
+            tracepdeex(
+                2,
+                trace,
+                "\nPPP_AR RECEIVER_SD receiver=%s system=%s signal=%s "
+                "status=INSUFFICIENT_SATELLITES count=%d",
+                receiver.c_str(),
+                enum_to_string(system).c_str(),
+                enum_to_string(int_to_enum<E_ObsCode>(observation)).c_str(),
+                static_cast<int>(members.size())
+            );
+            continue;
+        }
+
+        int pivot = *std::min_element(
+            members.begin(),
+            members.end(),
+            [&](int left, int right)
+            {
+                double leftVariance =
+                    ambiguityResolution.Paflt(left, left);
+                double rightVariance =
+                    ambiguityResolution.Paflt(right, right);
+                if (leftVariance != rightVariance)
+                {
+                    return leftVariance < rightVariance;
+                }
+                return ambiguityResolution.ambmap.at(left).Sat <
+                       ambiguityResolution.ambmap.at(right).Sat;
+            }
+        );
+
+        const KFKey& pivotKey = ambiguityResolution.ambmap.at(pivot);
+        tracepdeex(
+            2,
+            trace,
+            "\nPPP_AR RECEIVER_SD receiver=%s system=%s signal=%s "
+            "reference=%s integers=%d",
+            receiver.c_str(),
+            enum_to_string(system).c_str(),
+            enum_to_string(int_to_enum<E_ObsCode>(observation)).c_str(),
+            pivotKey.Sat.id().c_str(),
+            static_cast<int>(members.size()) - 1
+        );
+
+        for (int member : members)
+        {
+            if (member == pivot)
+            {
+                continue;
+            }
+            transform(row, member) = +1;
+            transform(row, pivot)  = -1;
+            row++;
+        }
+    }
+
+    return transform;
+}
+
 void fixAndHoldAmbiguities(
     Trace&   trace,   ///< Debug trace
     KFState& kfState  ///< Filter state
@@ -482,6 +826,11 @@ void fixAndHoldAmbiguities(
             continue;
         }
 
+        if (useAmbiguityForZhang(kfState, key) == false)
+        {
+            continue;
+        }
+
         indices.push_back(index);
 
         ARmtx.ambmap[ind] = key;
@@ -492,6 +841,8 @@ void fixAndHoldAmbiguities(
     {
         auto floatInvariants = phaseClockOsbClockBiasInvariants(kfState);
         tracePhaseClockOsbProductClosures(trace, kfState, &floatInvariants);
+        traceZhangAmbiguityAndFixedProducts(trace, kfState, ARmtx, 0);
+        writeZhangInternalProducts(trace, kfState, kfState, 0, false);
         return;
     }
 
@@ -501,6 +852,7 @@ void fixAndHoldAmbiguities(
     vector<double> floatAmbiguities(ARmtx.aflt.data(), ARmtx.aflt.data() + ARmtx.aflt.size());
     tracePhaseClockOsbAmbiguityClosure(trace, floatAmbiguities);
     auto floatInvariants = phaseClockOsbClockBiasInvariants(kfState);
+    KFState floatState = kfState;
 
     GinAR_opt ARopt;
     ARopt.mode   = acsConfig.ambrOpts.mode;
@@ -512,14 +864,49 @@ void fixAndHoldAmbiguities(
     if (traceLevel > 4)
         AR_VERBO = true;
 
-    // Resolve and apply ambiguities
-    int nfix = GNSS_AR(trace, ARmtx, ARopt);
+    // Resolve only integer-estimable ambiguity coordinates.  For standalone
+    // PPP-AR this removes one receiver phase datum per system/signal.
+    MatrixXd integerTransform =
+        receiverAmbiguityIntegerTransform(trace, ARmtx);
+
+    GinAR_mtx integerResolution;
+    integerResolution.aflt =
+        integerTransform * ARmtx.aflt;
+    integerResolution.Paflt =
+        integerTransform * ARmtx.Paflt * integerTransform.transpose();
+
+    int nfix = GNSS_AR(trace, integerResolution, ARopt);
+    if (nfix > 0)
+    {
+        ARmtx.Ztrs =
+            integerResolution.Ztrs * integerTransform;
+        ARmtx.zfix = integerResolution.zfix;
+    }
+    else
+    {
+        ARmtx.Ztrs.resize(0, ARmtx.aflt.size());
+        ARmtx.zfix.resize(0);
+    }
+
     if (nfix > 0)
     {
         applyUCAmbiguities(trace, kfState, ARmtx);
     }
 
     tracePhaseClockOsbProductClosures(trace, kfState, &floatInvariants);
+    traceZhangAmbiguityAndFixedProducts(trace, kfState, ARmtx, nfix);
+    auto [heldIntegerRank, heldMinEigenvalue] =
+        zhangHeldIntegerRank(kfState, ARmtx);
+    bool integerDatumComplete =
+        ARmtx.aflt.size() > 0 &&
+        heldIntegerRank == ARmtx.aflt.size();
+    writeZhangInternalProducts(
+        trace,
+        floatState,
+        kfState,
+        nfix,
+        integerDatumComplete
+    );
 
     while (0)
     {

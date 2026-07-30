@@ -35,6 +35,7 @@
 #include "orbprop/orbitProp.hpp"
 #include "pea/inputsOutputs.hpp"
 #include "pea/minimumConstraints.hpp"
+#include "pea/zhangPppAr.hpp"
 #include "sbas/sbas.hpp"
 
 using boost::date_time::not_a_date_time;
@@ -1146,6 +1147,8 @@ void perEpochPostProcessingAndOutputs(
             // once_per_epoch mode
             nav.erp.filterValues = getErpFromFilter(arState);
         }
+
+        traceZhangPppArUserDiagnostics(pppTrace, receiverMap, kfState);
 
         for (auto& [id, rec] : receiverMap)
         {
