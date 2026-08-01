@@ -146,8 +146,8 @@ inline std::set<ZhangGraphEdge> zhangRootComponentEdges(
 /** Construct a deterministic maximum-quality spanning tree.
  *
  * Existing tree edges are preferred first so a stable valid basis does not
- * churn between epochs.  The configured root-receiver incident edges are the
- * second preference, followed by the supplied quality score and lexical
+ * churn between epochs.  Represented historical edges and longer continuous
+ * arcs are preferred next, followed by root incidence, quality and lexical
  * ordering.  If the input graph is disconnected, the returned tree is a
  * spanning forest and connected is false.
  */
@@ -155,7 +155,9 @@ inline ZhangGraphBasis zhangBuildSpanningTree(
     const std::set<ZhangGraphEdge>&         edges,
     const std::string&                     rootReceiver,
     const std::set<ZhangGraphEdge>&         preferredEdges = {},
-    const std::map<ZhangGraphEdge, double>& quality         = {}
+    const std::map<ZhangGraphEdge, double>& quality         = {},
+    const std::set<ZhangGraphEdge>&         representedEdges = {},
+    const std::map<ZhangGraphEdge, int>&    persistence      = {}
 )
 {
     using namespace zhang_graph_detail;
@@ -181,6 +183,26 @@ inline ZhangGraphBasis zhangBuildSpanningTree(
             if (leftPreferred != rightPreferred)
             {
                 return leftPreferred > rightPreferred;
+            }
+
+            bool leftRepresented =
+                representedEdges.find(left) != representedEdges.end();
+            bool rightRepresented =
+                representedEdges.find(right) != representedEdges.end();
+            if (leftRepresented != rightRepresented)
+            {
+                return leftRepresented > rightRepresented;
+            }
+
+            auto leftPersistence  = persistence.find(left);
+            auto rightPersistence = persistence.find(right);
+            int leftArc =
+                leftPersistence == persistence.end() ? 0 : leftPersistence->second;
+            int rightArc =
+                rightPersistence == persistence.end() ? 0 : rightPersistence->second;
+            if (leftArc != rightArc)
+            {
+                return leftArc > rightArc;
             }
 
             bool leftRoot  = left.receiver == rootReceiver;

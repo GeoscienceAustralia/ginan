@@ -1275,6 +1275,58 @@ BOOST_AUTO_TEST_CASE(tree_edge_failure_exchanges_basis_without_losing_rank)
     BOOST_CHECK_EQUAL(decomposition.rank(), design.cols());
 }
 
+BOOST_AUTO_TEST_CASE(represented_edges_are_preferred_for_replacement_tree)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    std::set<ZhangGraphEdge> represented = {
+        {"R1", g01}, {"R1", g02}
+    };
+
+    ZhangGraphBasis basis = zhangBuildSpanningTree(
+        edges,
+        "R0",
+        {},
+        {},
+        represented
+    );
+
+    BOOST_REQUIRE(basis.connected);
+    BOOST_CHECK(basis.treeEdges.find({"R1", g01}) != basis.treeEdges.end());
+    BOOST_CHECK(basis.treeEdges.find({"R1", g02}) != basis.treeEdges.end());
+}
+
+BOOST_AUTO_TEST_CASE(longer_continuous_arc_breaks_historical_edge_ties)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    std::map<ZhangGraphEdge, int> persistence = {
+        {{"R0", g01}, 5},
+        {{"R0", g02}, 4},
+        {{"R1", g01}, 100},
+        {{"R1", g02}, 90}
+    };
+
+    ZhangGraphBasis basis = zhangBuildSpanningTree(
+        edges,
+        "R0",
+        {},
+        {},
+        edges,
+        persistence
+    );
+
+    BOOST_REQUIRE(basis.connected);
+    BOOST_CHECK(basis.treeEdges.find({"R1", g01}) != basis.treeEdges.end());
+    BOOST_CHECK(basis.treeEdges.find({"R1", g02}) != basis.treeEdges.end());
+}
+
 BOOST_AUTO_TEST_CASE(disconnected_graph_is_detected_and_root_component_isolated)
 {
     std::set<ZhangGraphEdge> edges = {

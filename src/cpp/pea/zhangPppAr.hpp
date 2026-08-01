@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <set>
 #include <string>
 #include <vector>
 #include "common/enums.h"
@@ -60,7 +61,8 @@ void recordZhangPhaseReinitialisation(
     GTime                         time,
     E_Sys                         sys,
     const std::vector<E_ObsCode>& observables,
-    const std::string&            reason
+    const std::string&            reason,
+    const std::set<SatSys>&       affectedSatellites
 );
 
 /** Write both pre-fix and post-feedback internal products. */

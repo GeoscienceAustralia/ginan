@@ -7066,6 +7066,27 @@ bool ACSConfig::parse(
                             "reference"
                         );
                         tryGetFromYaml(
+                            opts.state_edge_grace_epochs,
+                            sys_options,
+                            {"@ state_edge_grace_epochs"},
+                            "Epochs that an unbroken historical graph edge may remain in the "
+                            "datum-state graph without a current observation"
+                        );
+                        tryGetFromYaml(
+                            opts.prefer_historical_edges,
+                            sys_options,
+                            {"@ prefer_historical_edges"},
+                            "Prefer edges with an existing ambiguity/state representation and "
+                            "longer continuous arcs before root incidence or instantaneous quality"
+                        );
+                        tryGetFromYaml(
+                            opts.core_skeleton,
+                            sys_options,
+                            {"@ core_skeleton"},
+                            "Retain the existing datum skeleton and exclude detached observations "
+                            "instead of reinitialising on an unrepresentable replacement edge"
+                        );
+                        tryGetFromYaml(
                             opts.reference_receiver_candidates,
                             sys_options,
                             {"@ reference_receiver_candidates"},
@@ -9181,6 +9202,14 @@ bool ACSConfig::parse(
                 valid = false;
             }
 
+            if (opts.state_edge_grace_epochs < 0)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank state_edge_grace_epochs must be non-negative for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
             for (auto& satelliteId : opts.reference_satellite_candidates)
             {
                 SatSys candidate(satelliteId.c_str());
@@ -9203,7 +9232,10 @@ bool ACSConfig::parse(
                     << " reference_satellite=" << opts.reference_satellite
                     << " use_spanning_tree=" << opts.use_spanning_tree
                     << " auto_reference_switch=" << opts.auto_reference_switch
-                    << " reference_outage_epochs=" << opts.reference_outage_epochs;
+                    << " reference_outage_epochs=" << opts.reference_outage_epochs
+                    << " state_edge_grace_epochs=" << opts.state_edge_grace_epochs
+                    << " prefer_historical_edges=" << opts.prefer_historical_edges
+                    << " core_skeleton=" << opts.core_skeleton;
             }
         }
 

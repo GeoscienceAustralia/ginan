@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <set>
 #include <string>
 #include "common/enums.h"
 #include "common/satSys.hpp"
@@ -38,4 +39,11 @@ bool zhangGraphRetainsAmbiguity(
     const std::string& receiver,
     const SatSys&      satellite,
     E_ObsCode          code
+);
+
+/** Whether a satellite belongs to the retained datum-state component and may
+ * therefore be emitted as a current network product. */
+bool zhangGraphProductSatelliteActive(
+    const KFState& kfState,
+    const SatSys&  satellite
 );

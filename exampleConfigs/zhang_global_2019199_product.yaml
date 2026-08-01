@@ -79,6 +79,11 @@ processing_options:
           reference_receiver: USN7
           use_spanning_tree: true
           auto_reference_switch: false
+          # T1 continuity policy: keep modelled arcs through two transient
+          # gaps and prefer edges already represented in the integer state.
+          state_edge_grace_epochs: 2
+          prefer_historical_edges: true
+          core_skeleton: false
 
     zhang_pppar:
       output_products: true

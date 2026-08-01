@@ -12,6 +12,8 @@
 #include <iostream>
 #include <limits>
 #include <math.h>
+#include <set>
+#include <sstream>
 #include "ambres/GNSSambres.hpp"
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
@@ -137,6 +139,146 @@ static pair<int, double> zhangHeldIntegerRank(
         (postEigenSolver.eigenvalues().array() <= heldThreshold).count();
 
     return {heldIntegerRank, heldMinEigenvalue};
+}
+
+/** Report what is known about the integer lattice needed by satellite products.
+ *
+ * A fixed-row count or a real-valued rank is not an integer-lattice containment
+ * proof.  Until the product sensitivity matrix G_sat is explicitly derived from
+ * the graph S-basis, keep the production gate on the conservative full-network
+ * condition and expose the missing proof instead of labelling rank >= nSat - 1
+ * as a valid satellite datum.
+ */
+static void traceZhangSatelliteIntegerLattice(
+    Trace&           trace,
+    const KFState&   kfState,
+    const GinAR_mtx& ambiguityResolution
+)
+{
+    if (!acsConfig.zhangPppAr.output_products ||
+        !acsConfig.zhangPppAr.output_diagnostics)
+    {
+        return;
+    }
+
+    constexpr double integerTolerance = 1e-8;
+    for (const auto& [sys, options] : acsConfig.zhangFullRank.sysOpts)
+    {
+        for (E_ObsCode code : options.baseline_observables)
+        {
+            set<SatSys> satellites;
+            for (const auto& [key, index] : kfState.kfIndexMap)
+            {
+                if (key.type == KF::PHASE_BIAS &&
+                    key.Sat.sys == sys &&
+                    key.Sat.prn > 0 &&
+                    key.str.empty() &&
+                    key.num == static_cast<int>(code))
+                {
+                    satellites.insert(key.Sat);
+                }
+            }
+
+            vector<int> signalColumns;
+            set<int> signalColumnSet;
+            for (const auto& [column, key] : ambiguityResolution.ambmap)
+            {
+                if (key.Sat.sys == sys && key.num == static_cast<int>(code))
+                {
+                    signalColumns.push_back(column);
+                    signalColumnSet.insert(column);
+                }
+            }
+
+            vector<int> signalLocalRows;
+            int integerRows = 0;
+            for (int row = 0; row < ambiguityResolution.Ztrs.rows(); row++)
+            {
+                bool integerRow = true;
+                bool signalLocal = true;
+                bool hasSignalCoefficient = false;
+                for (int column = 0; column < ambiguityResolution.Ztrs.cols(); column++)
+                {
+                    double coefficient = ambiguityResolution.Ztrs(row, column);
+                    if (std::abs(coefficient - std::round(coefficient)) > integerTolerance)
+                    {
+                        integerRow = false;
+                    }
+                    if (std::abs(coefficient) <= integerTolerance)
+                    {
+                        continue;
+                    }
+                    if (signalColumnSet.find(column) == signalColumnSet.end())
+                    {
+                        signalLocal = false;
+                    }
+                    else
+                    {
+                        hasSignalCoefficient = true;
+                    }
+                }
+                integerRows += integerRow;
+                if (integerRow && signalLocal && hasSignalCoefficient)
+                {
+                    signalLocalRows.push_back(row);
+                }
+            }
+
+            int signalLocalRationalRank = 0;
+            if (!signalLocalRows.empty() && !signalColumns.empty())
+            {
+                MatrixXd local = MatrixXd::Zero(
+                    signalLocalRows.size(),
+                    signalColumns.size()
+                );
+                for (int row = 0; row < static_cast<int>(signalLocalRows.size()); row++)
+                {
+                    for (int column = 0;
+                         column < static_cast<int>(signalColumns.size());
+                         column++)
+                    {
+                        local(row, column) = ambiguityResolution.Ztrs(
+                            signalLocalRows[row],
+                            signalColumns[column]
+                        );
+                    }
+                }
+                Eigen::FullPivLU<MatrixXd> decomposition(local);
+                decomposition.setThreshold(1e-11);
+                signalLocalRationalRank = decomposition.rank();
+            }
+
+            std::ostringstream uncovered;
+            bool first = true;
+            for (const SatSys& satellite : satellites)
+            {
+                if (!first)
+                {
+                    uncovered << ",";
+                }
+                uncovered << satellite.id();
+                first = false;
+            }
+
+            trace << "\nZHANG_SATELLITE_INTEGER_LATTICE time="
+                  << kfState.time.to_string(0)
+                  << " system=" << enum_to_string(sys)
+                  << " observable=" << enum_to_string(code)
+                  << " satellites=" << satellites.size()
+                  << " satellite_integer_rank_required="
+                  << std::max(0, static_cast<int>(satellites.size()) - 1)
+                  << " satellite_integer_rank_covered=NOT_EVALUATED"
+                  << " fixed_rows=" << ambiguityResolution.Ztrs.rows()
+                  << " integer_rows=" << integerRows
+                  << " signal_local_integer_rows=" << signalLocalRows.size()
+                  << " signal_local_rational_rank_lower_bound="
+                  << signalLocalRationalRank
+                  << " valid_satellite_component=NONE"
+                  << " uncovered_satellites=" << uncovered.str()
+                  << " gate=FULL_NETWORK_FALLBACK"
+                  << " reason=G_sat_integer_mapping_not_defined";
+        }
+    }
 }
 
 static void traceZhangAmbiguityAndFixedProducts(
@@ -842,6 +984,7 @@ void fixAndHoldAmbiguities(
         auto floatInvariants = phaseClockOsbClockBiasInvariants(kfState);
         tracePhaseClockOsbProductClosures(trace, kfState, &floatInvariants);
         traceZhangAmbiguityAndFixedProducts(trace, kfState, ARmtx, 0);
+        traceZhangSatelliteIntegerLattice(trace, kfState, ARmtx);
         writeZhangInternalProducts(trace, kfState, kfState, 0, false);
         return;
     }
@@ -895,6 +1038,7 @@ void fixAndHoldAmbiguities(
 
     tracePhaseClockOsbProductClosures(trace, kfState, &floatInvariants);
     traceZhangAmbiguityAndFixedProducts(trace, kfState, ARmtx, nfix);
+    traceZhangSatelliteIntegerLattice(trace, kfState, ARmtx);
     auto [heldIntegerRank, heldMinEigenvalue] =
         zhangHeldIntegerRank(kfState, ARmtx);
     bool integerDatumComplete =

@@ -600,6 +600,9 @@ struct ZhangFullRankSystemOptions
     bool           use_spanning_tree      = false;
     bool           auto_reference_switch = false;
     int            reference_outage_epochs = 1;
+    int            state_edge_grace_epochs = 0;
+    bool           prefer_historical_edges = false;
+    bool           core_skeleton = false;
     vector<string> reference_receiver_candidates;
     vector<string> reference_satellite_candidates;
 };

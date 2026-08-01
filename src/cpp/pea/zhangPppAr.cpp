@@ -22,6 +22,7 @@
 #include "common/trace.hpp"
 #include "common/zhangPhaseContinuity.hpp"
 #include "orbprop/coordinates.hpp"
+#include "pea/zhangReference.hpp"
 
 using std::map;
 using std::set;
@@ -291,7 +292,8 @@ void ensureProductCovarianceFileHeader()
 
 void appendProductCovariance(
     const KFState& state,
-    const string&  solution
+    const string&  solution,
+    const KFState& graphState
 )
 {
     const string& filename =
@@ -308,6 +310,7 @@ void appendProductCovariance(
         if (key.type == KF::PHASE_BIAS &&
             key.Sat.prn > 0 &&
             key.str.empty() &&
+            zhangGraphProductSatelliteActive(graphState, key.Sat) &&
             zhangPppArUsesObservable(
                 key.Sat.sys,
                 static_cast<E_ObsCode>(key.num)
@@ -657,7 +660,8 @@ void recordZhangPhaseReinitialisation(
     GTime                         time,
     E_Sys                         sys,
     const vector<E_ObsCode>&      observables,
-    const string&                 reason
+    const string&                 reason,
+    const set<SatSys>&            affectedSatellites
 )
 {
     if (!acsConfig.zhangPppAr.output_products)
@@ -667,17 +671,13 @@ void recordZhangPhaseReinitialisation(
 
     for (E_ObsCode code : observables)
     {
-        auto& global = globalContinuityMap[{sys, code}];
-        global.counter++;
-        global.datumVersion++;
-        global.iod++;
-        global.validFrom = time;
-        global.resetReason = reason;
-        global.stabilizationRemaining = acsConfig.zhangPppAr.stabilization_epochs;
-
         for (auto& [key, state] : continuityMap)
         {
             if (key.satellite.sys != sys || key.observable != code)
+            {
+                continue;
+            }
+            if (affectedSatellites.find(key.satellite) == affectedSatellites.end())
             {
                 continue;
             }
@@ -710,6 +710,7 @@ void writeZhangInternalProducts(
             if (phaseKey.type != KF::PHASE_BIAS ||
                 phaseKey.Sat.prn <= 0 ||
                 !phaseKey.str.empty() ||
+                !zhangGraphProductSatelliteActive(fixedState, phaseKey.Sat) ||
                 !zhangPppArUsesObservable(
                     phaseKey.Sat.sys,
                     static_cast<E_ObsCode>(phaseKey.num)
@@ -824,8 +825,8 @@ void writeZhangInternalProducts(
 
     writeSolution(floatState, "FLOAT");
     writeSolution(fixedState, "FIXED");
-    appendProductCovariance(floatState, "FLOAT");
-    appendProductCovariance(fixedState, "FIXED");
+    appendProductCovariance(floatState, "FLOAT", fixedState);
+    appendProductCovariance(fixedState, "FIXED", fixedState);
 }
 
 bool queryZhangInternalProduct(

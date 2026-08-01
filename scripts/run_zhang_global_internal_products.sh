@@ -6,6 +6,7 @@ data_root="${ZHANG_DATA_ROOT:-/home/rx/GINAN/inputData}"
 base_config="${ZHANG_BASE_CONFIG:-/mnt/c/Users/rx/Documents/GINAN/osb_wum_fixed_orbit.yaml}"
 pea="${ZHANG_PEA:-$repo/bin/pea}"
 mode="${1:-smoke}"
+variant="${2:-}"
 
 selection_dir="$repo/exampleConfigs/zhang_global_2019199"
 runtime_dir="$data_root/outputs/zhang_global_2019199_runtime"
@@ -13,7 +14,11 @@ runtime_base="$runtime_dir/base_products_only.yaml"
 mkdir -p "$runtime_dir" "$data_root/run_logs"
 
 if [[ "$mode" != "smoke" && "$mode" != "throughput" && "$mode" != "full" ]]; then
-    echo "Usage: $0 [smoke|throughput|full]" >&2
+    echo "Usage: $0 [smoke|throughput|full] [t0|t1|t2]" >&2
+    exit 2
+fi
+if [[ -n "$variant" && "$variant" != "t0" && "$variant" != "t1" && "$variant" != "t2" ]]; then
+    echo "Usage: $0 [smoke|throughput|full] [t0|t1|t2]" >&2
     exit 2
 fi
 
@@ -57,7 +62,10 @@ if [[ "$mode" == "smoke" ]]; then
 elif [[ "$mode" == "throughput" ]]; then
     configs+=("$repo/exampleConfigs/zhang_global_2019199_throughput.yaml")
 fi
+if [[ -n "$variant" ]]; then
+    configs+=("$repo/exampleConfigs/zhang_global_2019199_${variant}.yaml")
+fi
 
 cd "$data_root"
 "$pea" -y "${configs[@]}" \
-    > "$data_root/run_logs/zhang_global_2019199_${mode}.log" 2>&1
+    > "$data_root/run_logs/zhang_global_2019199_${mode}${variant:+_${variant}}.log" 2>&1
