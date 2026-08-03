@@ -1,0 +1,20 @@
+# E2: first resolve canonical wide-lane rows on common dual-frequency arcs,
+# then conditionally resolve the L1C fundamental-cycle block.  L2W coverage is
+# derived from WL + L1C; no independent L2W search is performed.
+processing_options:
+  gnss_general:
+    zhang_full_rank:
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 2
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      integer_strategy: LAYERED_WL_L1
+      product_filename: ./outputs/zhang_global_2019199_e2/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e2/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e2
+  metadata:
+    config_description: zhang_global_2019199_e2

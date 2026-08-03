@@ -14,12 +14,16 @@ runtime_base="$runtime_dir/base_products_only.yaml"
 mkdir -p "$runtime_dir" "$data_root/run_logs"
 
 if [[ "$mode" != "smoke" && "$mode" != "throughput" && "$mode" != "full" ]]; then
-    echo "Usage: $0 [smoke|throughput|full] [t0|t1|t2]" >&2
+    echo "Usage: $0 [smoke|throughput|full] [t0|t1|t2|e0|e1|e2|e3|e4|e5|e6|e7base|e7a|e7b|e7c|e8_60s|e9_60s_guarded]" >&2
     exit 2
 fi
-if [[ -n "$variant" && "$variant" != "t0" && "$variant" != "t1" && "$variant" != "t2" ]]; then
-    echo "Usage: $0 [smoke|throughput|full] [t0|t1|t2]" >&2
+if [[ -n "$variant" && "$variant" != "t0" && "$variant" != "t1" && "$variant" != "t2" && "$variant" != "e0" && "$variant" != "e1" && "$variant" != "e2" && "$variant" != "e3" && "$variant" != "e4" && "$variant" != "e5" && "$variant" != "e6" && "$variant" != "e7base" && "$variant" != "e7a" && "$variant" != "e7b" && "$variant" != "e7c" && "$variant" != "e8_60s" && "$variant" != "e9_60s_guarded" ]]; then
+    echo "Usage: $0 [smoke|throughput|full] [t0|t1|t2|e0|e1|e2|e3|e4|e5|e6|e7base|e7a|e7b|e7c|e8_60s|e9_60s_guarded]" >&2
     exit 2
+fi
+if [[ "$variant" == "e3" && ! -f "$repo/exampleConfigs/zhang_global_2019199_e3.yaml" ]]; then
+    echo "E3 is blocked: the exact G_sat product-lattice mapping is not implemented." >&2
+    exit 4
 fi
 
 overlap="$(

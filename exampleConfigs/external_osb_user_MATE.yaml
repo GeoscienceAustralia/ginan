@@ -1,0 +1,13 @@
+inputs:
+  gnss_observations:
+    gnss_observations_root: ../data/
+    rnx_inputs: [MATE00ITA_R_20191990000_01D_30S_MO.rnx]
+
+outputs:
+  outputs_root: ./outputs/external_osb_stageA3_MATE
+  metadata:
+    config_description: external_osb_user_MATE
+
+receiver_options:
+  MATE:
+    exclude: false

@@ -1,0 +1,652 @@
+{
+  "bia": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\products\\IGS2R03FIN_20191990000_01D_01D_OSB.BIA",
+  "receiver_trace": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\outputs\\external_osb_stageA2_MATE\\MATE-external_osb_user_MATE-201919900.TRACE",
+  "unit": "BIA ns converted with c/1e9 = 0.299792458 m/ns",
+  "sign": "Ginan observation correction equals negative of the BIA OSB value after conversion to metres",
+  "bia_entries": 124,
+  "trace_entries": 64,
+  "matched_entries": 64,
+  "maximum_abs_difference_m": 4.56670840003337e-05,
+  "comparisons": [
+    {
+      "satellite": "G02",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -13.082,
+      "expected_observation_correction_m": 3.921884935556,
+      "trace_observation_correction_m": 3.9219,
+      "difference_m": 1.5064443999790456e-05
+    },
+    {
+      "satellite": "G02",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -23.518,
+      "expected_observation_correction_m": 7.0505190272439995,
+      "trace_observation_correction_m": 7.0505,
+      "difference_m": -1.9027243999047982e-05
+    },
+    {
+      "satellite": "G02",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.38,
+      "expected_observation_correction_m": -0.11392113404,
+      "trace_observation_correction_m": -0.1139,
+      "difference_m": 2.1134039999995413e-05
+    },
+    {
+      "satellite": "G02",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.154,
+      "expected_observation_correction_m": -0.046168038531999994,
+      "trace_observation_correction_m": -0.0462,
+      "difference_m": -3.196146800000382e-05
+    },
+    {
+      "satellite": "G05",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -6.002,
+      "expected_observation_correction_m": 1.7993543329159998,
+      "trace_observation_correction_m": 1.7994,
+      "difference_m": 4.56670840003337e-05
+    },
+    {
+      "satellite": "G05",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -8.009,
+      "expected_observation_correction_m": 2.401037796122,
+      "trace_observation_correction_m": 2.401,
+      "difference_m": -3.7796122000166577e-05
+    },
+    {
+      "satellite": "G05",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": -0.097,
+      "expected_observation_correction_m": 0.029079868426,
+      "trace_observation_correction_m": 0.0291,
+      "difference_m": 2.013157399999993e-05
+    },
+    {
+      "satellite": "G05",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.57,
+      "expected_observation_correction_m": -0.17088170105999997,
+      "trace_observation_correction_m": -0.1709,
+      "difference_m": -1.829894000002219e-05
+    },
+    {
+      "satellite": "G06",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": 9.507,
+      "expected_observation_correction_m": -2.8501268982059997,
+      "trace_observation_correction_m": -2.8501,
+      "difference_m": 2.6898205999881242e-05
+    },
+    {
+      "satellite": "G06",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": 17.282,
+      "expected_observation_correction_m": -5.181013259156,
+      "trace_observation_correction_m": -5.181,
+      "difference_m": 1.3259155999811867e-05
+    },
+    {
+      "satellite": "G06",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": -0.441,
+      "expected_observation_correction_m": 0.132208473978,
+      "trace_observation_correction_m": 0.1322,
+      "difference_m": -8.473977999995386e-06
+    },
+    {
+      "satellite": "G06",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.127,
+      "expected_observation_correction_m": 0.038073642165999996,
+      "trace_observation_correction_m": 0.0381,
+      "difference_m": 2.635783400000563e-05
+    },
+    {
+      "satellite": "G07",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -5.571,
+      "expected_observation_correction_m": 1.6701437835179997,
+      "trace_observation_correction_m": 1.6701,
+      "difference_m": -4.378351799982916e-05
+    },
+    {
+      "satellite": "G07",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -8.339,
+      "expected_observation_correction_m": 2.499969307262,
+      "trace_observation_correction_m": 2.5,
+      "difference_m": 3.069273800004879e-05
+    },
+    {
+      "satellite": "G07",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.074,
+      "expected_observation_correction_m": -0.022184641891999996,
+      "trace_observation_correction_m": -0.0222,
+      "difference_m": -1.535810800000481e-05
+    },
+    {
+      "satellite": "G07",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.505,
+      "expected_observation_correction_m": -0.15139519128999998,
+      "trace_observation_correction_m": -0.1514,
+      "difference_m": -4.8087100000260286e-06
+    },
+    {
+      "satellite": "G09",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": 7.397,
+      "expected_observation_correction_m": -2.217564811826,
+      "trace_observation_correction_m": -2.2176,
+      "difference_m": -3.5188173999944894e-05
+    },
+    {
+      "satellite": "G09",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": 12.399,
+      "expected_observation_correction_m": -3.7171266867419996,
+      "trace_observation_correction_m": -3.7171,
+      "difference_m": 2.668674199979293e-05
+    },
+    {
+      "satellite": "G09",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.095,
+      "expected_observation_correction_m": -0.02848028351,
+      "trace_observation_correction_m": -0.0285,
+      "difference_m": -1.9716490000001863e-05
+    },
+    {
+      "satellite": "G09",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.16,
+      "expected_observation_correction_m": -0.047966793279999996,
+      "trace_observation_correction_m": -0.048,
+      "difference_m": -3.320672000000496e-05
+    },
+    {
+      "satellite": "G12",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -6.775,
+      "expected_observation_correction_m": 2.03109390295,
+      "trace_observation_correction_m": 2.0311,
+      "difference_m": 6.097049999986837e-06
+    },
+    {
+      "satellite": "G12",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -9.926,
+      "expected_observation_correction_m": 2.975739938108,
+      "trace_observation_correction_m": 2.9757,
+      "difference_m": -3.9938108000292516e-05
+    },
+    {
+      "satellite": "G12",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.333,
+      "expected_observation_correction_m": -0.099830888514,
+      "trace_observation_correction_m": -0.0998,
+      "difference_m": 3.088851400000203e-05
+    },
+    {
+      "satellite": "G12",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.001,
+      "expected_observation_correction_m": 0.00029979245799999996,
+      "trace_observation_correction_m": 0.0003,
+      "difference_m": 2.0754200000000934e-07
+    },
+    {
+      "satellite": "G13",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -5.483,
+      "expected_observation_correction_m": 1.6437620472139998,
+      "trace_observation_correction_m": 1.6438,
+      "difference_m": 3.795278600016161e-05
+    },
+    {
+      "satellite": "G13",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -8.328,
+      "expected_observation_correction_m": 2.4966715902239995,
+      "trace_observation_correction_m": 2.4967,
+      "difference_m": 2.8409776000604126e-05
+    },
+    {
+      "satellite": "G13",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": -0.154,
+      "expected_observation_correction_m": 0.046168038531999994,
+      "trace_observation_correction_m": 0.0462,
+      "difference_m": 3.196146800000382e-05
+    },
+    {
+      "satellite": "G13",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.276,
+      "expected_observation_correction_m": -0.082742718408,
+      "trace_observation_correction_m": -0.0827,
+      "difference_m": 4.2718408000005925e-05
+    },
+    {
+      "satellite": "G15",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -5.777,
+      "expected_observation_correction_m": 1.731901029866,
+      "trace_observation_correction_m": 1.7319,
+      "difference_m": -1.0298660000351845e-06
+    },
+    {
+      "satellite": "G15",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -7.582,
+      "expected_observation_correction_m": 2.2730264165559997,
+      "trace_observation_correction_m": 2.273,
+      "difference_m": -2.6416555999553282e-05
+    },
+    {
+      "satellite": "G15",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.019,
+      "expected_observation_correction_m": -0.0056960567019999995,
+      "trace_observation_correction_m": -0.0057,
+      "difference_m": -3.9432980000007195e-06
+    },
+    {
+      "satellite": "G15",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.13,
+      "expected_observation_correction_m": 0.03897301954,
+      "trace_observation_correction_m": 0.039,
+      "difference_m": 2.6980459999999262e-05
+    },
+    {
+      "satellite": "G17",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -5.499,
+      "expected_observation_correction_m": 1.6485587265419999,
+      "trace_observation_correction_m": 1.6486,
+      "difference_m": 4.127345800020166e-05
+    },
+    {
+      "satellite": "G17",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -7.983,
+      "expected_observation_correction_m": 2.393243192214,
+      "trace_observation_correction_m": 2.3932,
+      "difference_m": -4.319221399962103e-05
+    },
+    {
+      "satellite": "G17",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": -0.055,
+      "expected_observation_correction_m": 0.01648858519,
+      "trace_observation_correction_m": 0.0165,
+      "difference_m": 1.1414810000002357e-05
+    },
+    {
+      "satellite": "G17",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.086,
+      "expected_observation_correction_m": -0.025782151387999996,
+      "trace_observation_correction_m": -0.0258,
+      "difference_m": -1.7848612000003622e-05
+    },
+    {
+      "satellite": "G19",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -7.016,
+      "expected_observation_correction_m": 2.103343885328,
+      "trace_observation_correction_m": 2.1033,
+      "difference_m": -4.3885328000037305e-05
+    },
+    {
+      "satellite": "G19",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -15.304,
+      "expected_observation_correction_m": 4.588023777232,
+      "trace_observation_correction_m": 4.588,
+      "difference_m": -2.3777232000199433e-05
+    },
+    {
+      "satellite": "G19",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.139,
+      "expected_observation_correction_m": -0.041671151662,
+      "trace_observation_correction_m": -0.0417,
+      "difference_m": -2.8848338000000973e-05
+    },
+    {
+      "satellite": "G19",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.316,
+      "expected_observation_correction_m": -0.094734416728,
+      "trace_observation_correction_m": -0.0947,
+      "difference_m": 3.441672799998907e-05
+    },
+    {
+      "satellite": "G20",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -0.594,
+      "expected_observation_correction_m": 0.17807672005199998,
+      "trace_observation_correction_m": 0.1781,
+      "difference_m": 2.327994800002675e-05
+    },
+    {
+      "satellite": "G20",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -4.051,
+      "expected_observation_correction_m": 1.214459247358,
+      "trace_observation_correction_m": 1.2145,
+      "difference_m": 4.075264199987494e-05
+    },
+    {
+      "satellite": "G20",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.217,
+      "expected_observation_correction_m": -0.06505496338599999,
+      "trace_observation_correction_m": -0.0651,
+      "difference_m": -4.5036614000015796e-05
+    },
+    {
+      "satellite": "G20",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.025,
+      "expected_observation_correction_m": 0.00749481145,
+      "trace_observation_correction_m": 0.0075,
+      "difference_m": 5.188550000000125e-06
+    },
+    {
+      "satellite": "G24",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": 7.999,
+      "expected_observation_correction_m": -2.3980398715419997,
+      "trace_observation_correction_m": -2.398,
+      "difference_m": 3.9871541999580984e-05
+    },
+    {
+      "satellite": "G24",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": 14.926,
+      "expected_observation_correction_m": -4.474702228108,
+      "trace_observation_correction_m": -4.4747,
+      "difference_m": 2.2281079994357356e-06
+    },
+    {
+      "satellite": "G24",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.145,
+      "expected_observation_correction_m": -0.043469906409999995,
+      "trace_observation_correction_m": -0.0435,
+      "difference_m": -3.0093590000002113e-05
+    },
+    {
+      "satellite": "G24",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.343,
+      "expected_observation_correction_m": 0.10282881309400001,
+      "trace_observation_correction_m": 0.1028,
+      "difference_m": -2.8813094000004758e-05
+    },
+    {
+      "satellite": "G25",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": 12.388,
+      "expected_observation_correction_m": -3.7138289697039997,
+      "trace_observation_correction_m": -3.7138,
+      "difference_m": 2.8969703999681684e-05
+    },
+    {
+      "satellite": "G25",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": 19.213,
+      "expected_observation_correction_m": -5.759912495554,
+      "trace_observation_correction_m": -5.7599,
+      "difference_m": 1.2495554000402365e-05
+    },
+    {
+      "satellite": "G25",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.086,
+      "expected_observation_correction_m": -0.025782151387999996,
+      "trace_observation_correction_m": -0.0258,
+      "difference_m": -1.7848612000003622e-05
+    },
+    {
+      "satellite": "G25",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.496,
+      "expected_observation_correction_m": 0.148697059168,
+      "trace_observation_correction_m": 0.1487,
+      "difference_m": 2.9408320000035015e-06
+    },
+    {
+      "satellite": "G28",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -4.017,
+      "expected_observation_correction_m": 1.204266303786,
+      "trace_observation_correction_m": 1.2043,
+      "difference_m": 3.369621399995637e-05
+    },
+    {
+      "satellite": "G28",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -7.984,
+      "expected_observation_correction_m": 2.393542984672,
+      "trace_observation_correction_m": 2.3935,
+      "difference_m": -4.298467200003486e-05
+    },
+    {
+      "satellite": "G28",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.332,
+      "expected_observation_correction_m": -0.099531096056,
+      "trace_observation_correction_m": -0.0995,
+      "difference_m": 3.109605599999066e-05
+    },
+    {
+      "satellite": "G28",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.296,
+      "expected_observation_correction_m": -0.08873856756799998,
+      "trace_observation_correction_m": -0.0887,
+      "difference_m": 3.856756799998362e-05
+    },
+    {
+      "satellite": "G29",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": -4.45,
+      "expected_observation_correction_m": 1.3340764380999999,
+      "trace_observation_correction_m": 1.3341,
+      "difference_m": 2.356190000019076e-05
+    },
+    {
+      "satellite": "G29",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": -5.969,
+      "expected_observation_correction_m": 1.789461181802,
+      "trace_observation_correction_m": 1.7895,
+      "difference_m": 3.88181980000013e-05
+    },
+    {
+      "satellite": "G29",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": 0.435,
+      "expected_observation_correction_m": -0.13040971923,
+      "trace_observation_correction_m": -0.1304,
+      "difference_m": 9.719230000010404e-06
+    },
+    {
+      "satellite": "G29",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": 0.378,
+      "expected_observation_correction_m": -0.113321549124,
+      "trace_observation_correction_m": -0.1133,
+      "difference_m": 2.154912400000042e-05
+    },
+    {
+      "satellite": "G32",
+      "bias_type": "CODE",
+      "bia_signal": "C1C",
+      "trace_signal": "L1C",
+      "bia_ns": 5.104,
+      "expected_observation_correction_m": -1.530140705632,
+      "trace_observation_correction_m": -1.5301,
+      "difference_m": 4.070563199998212e-05
+    },
+    {
+      "satellite": "G32",
+      "bias_type": "CODE",
+      "bia_signal": "C2W",
+      "trace_signal": "L2W",
+      "bia_ns": 10.889,
+      "expected_observation_correction_m": -3.2644400751619997,
+      "trace_observation_correction_m": -3.2644,
+      "difference_m": 4.007516199955319e-05
+    },
+    {
+      "satellite": "G32",
+      "bias_type": "PHASE",
+      "bia_signal": "L1C",
+      "trace_signal": "L1C",
+      "bia_ns": -0.074,
+      "expected_observation_correction_m": 0.022184641891999996,
+      "trace_observation_correction_m": 0.0222,
+      "difference_m": 1.535810800000481e-05
+    },
+    {
+      "satellite": "G32",
+      "bias_type": "PHASE",
+      "bia_signal": "L2W",
+      "trace_signal": "L2W",
+      "bia_ns": -0.142,
+      "expected_observation_correction_m": 0.04257052903599999,
+      "trace_observation_correction_m": 0.0426,
+      "difference_m": 2.947096400000848e-05
+    }
+  ]
+}

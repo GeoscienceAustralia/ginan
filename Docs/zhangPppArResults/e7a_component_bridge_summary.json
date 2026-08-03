@@ -1,0 +1,955 @@
+{
+  "products": "/home/rx/GINAN/inputData/outputs/zhang_global_2019199_e7a/zhang_internal_products.csv",
+  "rows": 8760,
+  "epochs": 73,
+  "structure_valid_rows": 8760,
+  "datum_continuous_rows": 452,
+  "precision_valid_rows": 460,
+  "integer_valid_rows": 226,
+  "datum_versions": {
+    "0": 8760
+  },
+  "discontinuity_counters": {
+    "0": 8760
+  },
+  "integer_shifts": {
+    "-7": 92,
+    "-3": 92,
+    "0": 8300,
+    "4": 92,
+    "9": 92,
+    "150": 92
+  },
+  "persistent_relation_known_rows": 920,
+  "current_alignment_states": {
+    "CURRENT_ALIGNMENT_PENDING": 8308,
+    "CURRENT_ALIGNMENT_VALID": 452
+  },
+  "nonzero_shift_rows": 460,
+  "promotion_count": 58,
+  "promotion_status": {
+    "ACCEPTED": 58
+  },
+  "promotion_event_type": {
+    "NEW_COMPONENT_EDGE": 6,
+    "REDUNDANT_CONFIRMATION": 52
+  },
+  "unique_topology_relation_count": 6,
+  "unique_topology_relations": [
+    [
+      "L1C",
+      "G01",
+      "G03"
+    ],
+    [
+      "L1C",
+      "G01",
+      "G22"
+    ],
+    [
+      "L1C",
+      "G12",
+      "G25"
+    ],
+    [
+      "L2W",
+      "G01",
+      "G03"
+    ],
+    [
+      "L2W",
+      "G01",
+      "G22"
+    ],
+    [
+      "L2W",
+      "G12",
+      "G25"
+    ]
+  ],
+  "promotion_provenance": {
+    "G_sat_L1_named_target": 2,
+    "G_sat_L2_from_L1_minus_WL": 2,
+    "physical_HNF_exact_membership": 54
+  },
+  "topology_result_status": {
+    "NO_TOPOLOGY_TARGET": 30,
+    "WL_NOT_FIXED": 43
+  },
+  "maximum_dual_component_satellites": 3,
+  "longest_dual_components": {
+    "GPS-L1C-P1-S0|GPS-L2W-P1-S0": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0,
+      "maximum_satellites": 3
+    },
+    "GPS-L1C-P12-S0|GPS-L2W-P12-S0": {
+      "epochs": 9,
+      "start": 1247451300,
+      "end": 1247453700,
+      "elapsed_minutes": 40.0,
+      "maximum_satellites": 2
+    }
+  },
+  "longest_integer_valid_by_satellite_signal": {
+    "L1C:G01": {
+      "epochs": 46,
+      "start": 1247451300,
+      "end": 1247464800,
+      "elapsed_minutes": 225.0
+    },
+    "L2W:G01": {
+      "epochs": 46,
+      "start": 1247451300,
+      "end": 1247464800,
+      "elapsed_minutes": 225.0
+    },
+    "L1C:G03": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0
+    },
+    "L2W:G03": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0
+    },
+    "L1C:G12": {
+      "epochs": 46,
+      "start": 1247451300,
+      "end": 1247464800,
+      "elapsed_minutes": 225.0
+    },
+    "L2W:G12": {
+      "epochs": 46,
+      "start": 1247451300,
+      "end": 1247464800,
+      "elapsed_minutes": 225.0
+    },
+    "L1C:G22": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0
+    },
+    "L2W:G22": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0
+    },
+    "L1C:G25": {
+      "epochs": 9,
+      "start": 1247451300,
+      "end": 1247453700,
+      "elapsed_minutes": 40.0
+    },
+    "L2W:G25": {
+      "epochs": 9,
+      "start": 1247451300,
+      "end": 1247453700,
+      "elapsed_minutes": 40.0
+    }
+  },
+  "longest_components": {
+    "GPS-L1C-P1-S0": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0,
+      "maximum_satellites": 3
+    },
+    "GPS-L1C-P12-S0": {
+      "epochs": 9,
+      "start": 1247451300,
+      "end": 1247453700,
+      "elapsed_minutes": 40.0,
+      "maximum_satellites": 2
+    },
+    "GPS-L2W-P1-S0": {
+      "epochs": 6,
+      "start": 1247451300,
+      "end": 1247452800,
+      "elapsed_minutes": 25.0,
+      "maximum_satellites": 3
+    },
+    "GPS-L2W-P12-S0": {
+      "epochs": 9,
+      "start": 1247451300,
+      "end": 1247453700,
+      "elapsed_minutes": 40.0,
+      "maximum_satellites": 2
+    }
+  },
+  "component_series": [
+    {
+      "epoch": 1247443200,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247443500,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247443800,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247444100,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247444400,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247444700,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247445000,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247445300,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247445600,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247445900,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247446200,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247446500,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247446800,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247447100,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247447400,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247447700,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247448000,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247448300,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247448600,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247448900,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247449200,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247449500,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247449800,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247450100,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247450400,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247450700,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247451000,
+      "valid_satellite_signals": 0,
+      "continuous_satellite_signals": 0,
+      "component_sizes": {},
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247451300,
+      "valid_satellite_signals": 10,
+      "continuous_satellite_signals": 10,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 3,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 3,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P1-S0|GPS-L2W-P1-S0": 3,
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247451600,
+      "valid_satellite_signals": 10,
+      "continuous_satellite_signals": 10,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 3,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 3,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P1-S0|GPS-L2W-P1-S0": 3,
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247451900,
+      "valid_satellite_signals": 10,
+      "continuous_satellite_signals": 10,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 3,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 3,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P1-S0|GPS-L2W-P1-S0": 3,
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247452200,
+      "valid_satellite_signals": 10,
+      "continuous_satellite_signals": 10,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 3,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 3,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P1-S0|GPS-L2W-P1-S0": 3,
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247452500,
+      "valid_satellite_signals": 10,
+      "continuous_satellite_signals": 10,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 3,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 3,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P1-S0|GPS-L2W-P1-S0": 3,
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247452800,
+      "valid_satellite_signals": 10,
+      "continuous_satellite_signals": 10,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 3,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 3,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P1-S0|GPS-L2W-P1-S0": 3,
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247453100,
+      "valid_satellite_signals": 6,
+      "continuous_satellite_signals": 6,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247453400,
+      "valid_satellite_signals": 6,
+      "continuous_satellite_signals": 6,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247453700,
+      "valid_satellite_signals": 6,
+      "continuous_satellite_signals": 6,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 2,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 2
+      },
+      "dual_component_sizes": {
+        "GPS-L1C-P12-S0|GPS-L2W-P12-S0": 2
+      }
+    },
+    {
+      "epoch": 1247454000,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247454300,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247454600,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247454900,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247455200,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247455500,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247455800,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247456100,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247456400,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247456700,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247457000,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247457300,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247457600,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247457900,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247458200,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247458500,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247458800,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247459100,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247459400,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247459700,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247460000,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247460300,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247460600,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247460900,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247461200,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247461500,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247461800,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247462100,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247462400,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247462700,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247463000,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247463300,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247463600,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247463900,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247464200,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247464500,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    },
+    {
+      "epoch": 1247464800,
+      "valid_satellite_signals": 4,
+      "continuous_satellite_signals": 4,
+      "component_sizes": {
+        "GPS-L1C-P1-S0": 1,
+        "GPS-L1C-P12-S0": 1,
+        "GPS-L2W-P1-S0": 1,
+        "GPS-L2W-P12-S0": 1
+      },
+      "dual_component_sizes": {}
+    }
+  ]
+}

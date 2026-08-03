@@ -639,6 +639,14 @@ struct ZhangPppArOptions
     string product_filename;
     string product_covariance_filename;
     string product_solution = "FIXED";
+    string integer_strategy = "JOINT";
+    bool   component_bridge_targeting = false;
+    bool   current_state_relinking = false;
+    int    max_topology_targets = 3;
+    int    promotion_confirmation_epochs = 1;
+    double promotion_confirmation_max_gap_seconds = 0;
+    bool   conflict_quarantine = false;
+    int    user_max_ambiguities_per_signal = 0;
     int    stabilization_epochs = 2;
     int    initial_discontinuity_counter = 0;
 

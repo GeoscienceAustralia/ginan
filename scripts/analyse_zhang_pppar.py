@@ -309,17 +309,29 @@ def analyse(trace_path: Path, label: str, category: str) -> dict[str, object]:
     }
 
 
+def json_safe(value: object) -> object:
+    """Replace non-finite diagnostics from empty/initial states with null."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {key: json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    return value
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("trace", type=Path)
     parser.add_argument("--label", required=True)
     parser.add_argument(
-        "--category", choices=("inside", "edge", "outside"), required=True
+        "--category", required=True,
+        help="free-form station class or geographic region",
     )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
-    result = analyse(args.trace, args.label, args.category)
+    result = json_safe(analyse(args.trace, args.label, args.category))
     text = json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

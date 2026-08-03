@@ -1,14 +1,27 @@
 #pragma once
 
 #include <iosfwd>
+#include <map>
 #include <set>
 #include <string>
 #include "common/enums.h"
 #include "common/satSys.hpp"
+#include "common/zhangFullRank.hpp"
 
 struct KFState;
 struct ReceiverMap;
 using Trace = std::ostream;
+
+/** Snapshot needed to express held integer rows in invariant physical arcs. */
+struct ZhangGraphIntegerContext
+{
+    ZhangGraphBasis                  basis;
+    ZhangGraphBasis                  productBasis;
+    std::map<ZhangGraphEdge, int>    arcVersions;
+    int                              eventId = 0;
+    int                              productDatumVersion = 0;
+    bool                             initialized = false;
+};
 
 /** Select usable Zhang references and apply an exact state/covariance S-transform when they change.
  *
@@ -46,4 +59,11 @@ bool zhangGraphRetainsAmbiguity(
 bool zhangGraphProductSatelliteActive(
     const KFState& kfState,
     const SatSys&  satellite
+);
+
+/** Current graph and physical-arc versions for exact held-lattice transport. */
+bool zhangGraphIntegerContext(
+    const KFState&             kfState,
+    E_Sys                      system,
+    ZhangGraphIntegerContext& context
 );

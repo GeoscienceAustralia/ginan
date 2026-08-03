@@ -17,6 +17,7 @@
     "boost-iostreams",
     "boost-assign",
     "boost-math",
+    "boost-multiprecision",
     "boost-odeint",
     "boost-json",
     "eigen3",

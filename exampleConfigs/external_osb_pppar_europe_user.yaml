@@ -1,0 +1,167 @@
+# Independent PPP-AR validation with a mature, matched IGS2 product family.
+# Load after exampleConfigs/ppp_example.yaml and before one station overlay.
+# No Zhang network product or regional atmosphere correction is used.
+
+inputs:
+  satellite_data:
+    sp3_files:
+      - IGS2R03FIN_20191980000_01D_05M_ORB.SP3
+      - IGS2R03FIN_20191990000_01D_05M_ORB.SP3
+      - IGS2R03FIN_20192000000_01D_05M_ORB.SP3
+    clk_files: [IGS2R03FIN_20191990000_01D_30S_CLK.CLK]
+    bsx_files: [IGS2R03FIN_20191990000_01D_01D_OSB.BIA]
+
+outputs:
+  outputs_root: ./outputs/external_osb_pppar_europe_user
+  metadata:
+    config_description: external_osb_pppar_europe_user
+  trace:
+    level: 3
+    output_receivers: true
+    output_network: true
+    receiver_filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    output_residuals: true
+    output_residual_chain: true
+    output_config: true
+  pos:
+    output: true
+    filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.POS
+  gpx:
+    output: false
+  sinex:
+    output: false
+  clocks:
+    output: false
+  bias_sinex:
+    output: false
+
+satellite_options:
+  global:
+    clock_codes: [L1C, L2W]
+    models:
+      clock:
+        enable: true
+        sources: [PRECISE, BROADCAST]
+      pos:
+        enable: true
+        sources: [PRECISE]
+      code_bias:
+        enable: true
+      phase_bias:
+        enable: true
+
+receiver_options:
+  global:
+    exclude: true
+    elevation_mask: 10
+    clock_codes: [L1C, L2W]
+    zero_dcb_codes: [L1C, L2W]
+    rec_reference_system: GPS
+    models:
+      code_bias:
+        enable: true
+      phase_bias:
+        enable: false
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 30
+    wait_next_epoch: 3600
+    max_rec_latency: 1
+
+  gnss_general:
+    use_primary_signals: true
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: true
+        # External satellite phase OSBs leave one receiver phase datum per
+        # signal.  LAMBDA therefore operates on satellite single differences.
+        receiver_amb_pivot: true
+        network_amb_pivot: false
+        reject_eclipse: false
+        code_priorities: [L1C, L2W]
+      gal:
+        process: false
+      glo:
+        process: false
+      bds:
+        process: false
+
+    zhang_full_rank:
+      enable: false
+
+    phase_clock_osb:
+      enable: false
+
+    zhang_pppar:
+      output_products: false
+      user_adapter: false
+
+  ppp_filter:
+    ionospheric_components:
+      common_ionosphere: true
+      use_gf_combo: false
+      use_if_combo: false
+      corr_mode: estimate
+    rts:
+      enable: false
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.99
+    solution_ratio_threshold: 3
+    lambda_set_size: 200
+    once_per_epoch: true
+    # Stage-A validates a per-epoch fixed solution on Ginan's augmented copy.
+    # Holding exact integer pseudo-observations in the forward filter makes its
+    # covariance semidefinite and obscures the independent PPP-AR test.
+    fix_and_hold: false
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [true]
+        sigma: [100]
+        process_noise: [0]
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [10]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [900]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [1]
+        outage_limit: [900]
+      trop:
+        estimated: [true]
+        sigma: [0.3]
+        process_noise: [0.0001]
+      trop_grads:
+        estimated: [false]
+      code_bias:
+        estimated: [true]
+        sigma: [20]
+        process_noise: [0]
+      phase_bias:
+        estimated: [false]
+
+  satellites:
+    global:
+      clock:
+        estimated: [false]
+      code_bias:
+        estimated: [false]
+      phase_bias:
+        estimated: [false]
+      orbit:
+        estimated: [false]

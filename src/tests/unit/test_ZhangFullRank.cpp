@@ -2,7 +2,9 @@
 #include <boost/test/unit_test.hpp>
 #include <random>
 #include "common/eigenIncluder.hpp"
+#include "common/zhangIntegerAudit.hpp"
 #include "common/zhangPhaseContinuity.hpp"
+#include "common/zhangSatelliteDatum.hpp"
 #include "common/zhangFullRank.hpp"
 
 namespace
@@ -1346,6 +1348,760 @@ BOOST_AUTO_TEST_CASE(disconnected_graph_is_detected_and_root_component_isolated)
 
     ZhangGraphBasis rootBasis = zhangBuildSpanningTree(rootEdges, "R0");
     BOOST_CHECK(rootBasis.connected);
+}
+
+BOOST_AUTO_TEST_CASE(canonical_integer_coordinates_close_exactly_on_two_by_two_graph)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    ZhangGraphBasis basis = zhangBuildSpanningTree(edges, "R0");
+    BOOST_REQUIRE(basis.connected);
+
+    ZhangCanonicalIntegerAudit audit = zhangCanonicalIntegerAudit(basis);
+    BOOST_REQUIRE(audit.valid);
+    BOOST_REQUIRE_EQUAL(audit.treeEdges.size(), 3);
+    BOOST_REQUIRE_EQUAL(audit.chordEdges.size(), 1);
+    BOOST_CHECK(zhangExactAbs(zhangExactDeterminant(audit.canonicalToArc)) == 1);
+    BOOST_REQUIRE_EQUAL(audit.satelliteDatumSingleDifferences.size(), 1);
+    BOOST_REQUIRE_EQUAL(audit.satelliteFixQuotient.size(), 1);
+    BOOST_CHECK(
+        std::all_of(
+            audit.satelliteFixQuotient.front().begin(),
+            audit.satelliteFixQuotient.front().end(),
+            [](const auto& value) { return value == 0; }
+        )
+    );
+
+    ZhangExactVector canonical = {2, -1, 3, 5};
+    ZhangExactVector raw =
+        zhangExactMatrixTimesColumn(audit.canonicalToArc, canonical);
+    std::vector<ZhangGraphEdge> arcs = audit.treeEdges;
+    arcs.insert(arcs.end(), audit.chordEdges.begin(), audit.chordEdges.end());
+    std::map<ZhangGraphEdge, std::size_t> arcIndex;
+    for (std::size_t index = 0; index < arcs.size(); index++)
+    {
+        arcIndex[arcs[index]] = index;
+    }
+    ZhangExactInteger recoveredCycle = 0;
+    for (const auto& [edge, coefficient] :
+         zhangFundamentalCycle(basis, audit.chordEdges.front()))
+    {
+        recoveredCycle += coefficient * raw[arcIndex.at(edge)];
+    }
+    BOOST_CHECK(recoveredCycle == canonical.back());
+}
+
+BOOST_AUTO_TEST_CASE(canonical_audit_rejects_stale_arcs_outside_active_tree)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    std::set<ZhangGraphEdge> activeEdges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    ZhangGraphBasis activeBasis = zhangBuildSpanningTree(activeEdges, "R0");
+    BOOST_REQUIRE(activeBasis.connected);
+
+    ZhangGraphBasis stateTransformBasis = activeBasis;
+    stateTransformBasis.edges.insert({"STALE", SatSys(E_Sys::GPS, 9)});
+    ZhangCanonicalIntegerAudit audit =
+        zhangCanonicalIntegerAudit(stateTransformBasis);
+    BOOST_CHECK(!audit.valid);
+    BOOST_CHECK(audit.failureReason.find("missing_chord_endpoint") == 0);
+
+    ZhangCanonicalIntegerAudit activeAudit =
+        zhangCanonicalIntegerAudit(activeBasis);
+    BOOST_CHECK(activeAudit.valid);
+}
+
+BOOST_AUTO_TEST_CASE(global_scale_canonical_audit_uses_sparse_structure)
+{
+    std::set<ZhangGraphEdge> edges;
+    for (int receiver = 0; receiver < 17; receiver++)
+    {
+        for (int satellite = 1; satellite <= 17; satellite++)
+        {
+            edges.insert(
+                {"R" + std::to_string(receiver), SatSys(E_Sys::GPS, satellite)}
+            );
+        }
+    }
+    ZhangGraphBasis basis = zhangBuildSpanningTree(edges, "R0");
+    BOOST_REQUIRE(basis.connected);
+
+    ZhangCanonicalIntegerAudit audit = zhangCanonicalIntegerAudit(basis);
+    BOOST_REQUIRE(audit.valid);
+    BOOST_CHECK(!audit.denseCanonicalMaterialised);
+    BOOST_CHECK(audit.canonicalToArc.empty());
+    BOOST_CHECK(!audit.canonicalToArcFingerprint.empty());
+    BOOST_CHECK_EQUAL(audit.treeEdges.size(), 33);
+    BOOST_CHECK_EQUAL(audit.chordEdges.size(), 256);
+}
+
+BOOST_AUTO_TEST_CASE(sparse_tree_exchange_is_an_exact_unimodular_integer_transition)
+{
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", SatSys(E_Sys::GPS, 1)}, {"R0", SatSys(E_Sys::GPS, 2)},
+        {"R1", SatSys(E_Sys::GPS, 1)}, {"R1", SatSys(E_Sys::GPS, 3)},
+        {"R2", SatSys(E_Sys::GPS, 2)}, {"R2", SatSys(E_Sys::GPS, 3)},
+        {"R0", SatSys(E_Sys::GPS, 3)}, {"R2", SatSys(E_Sys::GPS, 1)}
+    };
+    std::set<ZhangGraphEdge> preferredA = {
+        {"R0", SatSys(E_Sys::GPS, 1)}, {"R0", SatSys(E_Sys::GPS, 2)},
+        {"R0", SatSys(E_Sys::GPS, 3)}, {"R1", SatSys(E_Sys::GPS, 1)},
+        {"R2", SatSys(E_Sys::GPS, 2)}
+    };
+    std::set<ZhangGraphEdge> preferredB = {
+        {"R0", SatSys(E_Sys::GPS, 1)}, {"R1", SatSys(E_Sys::GPS, 1)},
+        {"R1", SatSys(E_Sys::GPS, 3)}, {"R2", SatSys(E_Sys::GPS, 2)},
+        {"R2", SatSys(E_Sys::GPS, 3)}
+    };
+    ZhangGraphBasis basisA = zhangBuildSpanningTree(edges, "R0", preferredA);
+    ZhangGraphBasis basisB = zhangBuildSpanningTree(edges, "R0", preferredB);
+    BOOST_REQUIRE(basisA.connected);
+    BOOST_REQUIRE(basisB.connected);
+    BOOST_REQUIRE(basisA.treeEdges != basisB.treeEdges);
+
+    ZhangExactMatrix forward = zhangCanonicalTransition(basisA, basisB);
+    ZhangExactMatrix reverse = zhangCanonicalTransition(basisB, basisA);
+    BOOST_REQUIRE(!forward.empty());
+    BOOST_CHECK(zhangExactAbs(zhangExactDeterminant(forward)) == 1);
+    BOOST_CHECK(
+        zhangExactMultiply(reverse, forward) ==
+        zhangExactIdentityMatrix(forward.size())
+    );
+}
+
+BOOST_AUTO_TEST_CASE(satellite_product_target_is_exact_across_tree_exchange)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+
+    // K2,2 has one current fundamental cycle.  The persistent product tree
+    // uses that current chord, so the G02-G01 product correction is +k.
+    std::set<ZhangGraphEdge> k22Edges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    ZhangGraphBasis current = zhangBuildSpanningTree(k22Edges, "R0");
+    ZhangGraphBasis product = zhangBuildSpanningTree(
+        k22Edges,
+        "R0",
+        {{"R0", g01}, {"R1", g01}, {"R1", g02}}
+    );
+    ZhangSatelliteProductTarget k22 =
+        zhangBuildSatelliteProductTarget(current, product, g01);
+    BOOST_REQUIRE(k22.valid);
+    BOOST_REQUIRE_EQUAL(k22.matrix.size(), 1);
+    BOOST_CHECK(k22.matrix.front() == ZhangExactVector({1}));
+    BOOST_CHECK(k22.targetSatellites == std::vector<SatSys>({g02}));
+
+    // Three stations/three satellites: the correction G*k changes when the
+    // dynamic tree changes, but z_T + G*k must equal the same persistent
+    // product datum exactly.  Comparing G*k alone would be mathematically
+    // wrong because the dynamic-tree node integer potential changes too.
+    SatSys g03(E_Sys::GPS, 3);
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R0", g03},
+        {"R1", g01}, {"R1", g02}, {"R1", g03},
+        {"R2", g01}, {"R2", g02}, {"R2", g03},
+    };
+    ZhangGraphBasis basisA = zhangBuildSpanningTree(
+        edges, "R0",
+        {{"R0", g01}, {"R0", g02}, {"R0", g03},
+         {"R1", g01}, {"R2", g02}}
+    );
+    ZhangGraphBasis basisB = zhangBuildSpanningTree(
+        edges, "R0",
+        {{"R0", g01}, {"R1", g01}, {"R1", g03},
+         {"R2", g02}, {"R2", g03}}
+    );
+    ZhangGraphBasis productBasis = zhangBuildSpanningTree(
+        edges, "R0",
+        {{"R0", g02}, {"R1", g02}, {"R1", g03},
+         {"R2", g01}, {"R2", g03}}
+    );
+    BOOST_REQUIRE(basisA.connected && basisB.connected && productBasis.connected);
+
+    map<ZhangGraphEdge, ZhangExactInteger> physical;
+    int value = 1;
+    for (const auto& edge : edges)
+    {
+        physical[edge] = value++;
+    }
+    auto cycleValues = [&](const ZhangGraphBasis& basis)
+    {
+        ZhangCanonicalIntegerAudit audit = zhangCanonicalIntegerAudit(basis);
+        ZhangExactVector cycles;
+        for (const auto& chord : audit.chordEdges)
+        {
+            ZhangExactInteger cycle = 0;
+            for (const auto& [edge, coefficient] :
+                 zhangFundamentalCycle(basis, chord))
+            {
+                cycle += coefficient * physical.at(edge);
+            }
+            cycles.push_back(cycle);
+        }
+        return cycles;
+    };
+    auto satelliteDatum = [&](const ZhangGraphBasis& basis)
+    {
+        ZhangCanonicalIntegerAudit audit = zhangCanonicalIntegerAudit(basis);
+        ZhangExactVector treeValues;
+        for (const auto& edge : audit.treeEdges)
+        {
+            treeValues.push_back(physical.at(edge));
+        }
+        ZhangExactVector nodes =
+            zhangExactMatrixTimesColumn(audit.treeInverse, treeValues);
+        const std::size_t satelliteOffset = basis.receivers.size() - 1;
+        map<SatSys, ZhangExactInteger> satelliteValues;
+        std::size_t row = satelliteOffset;
+        for (const auto& satellite : basis.satellites)
+        {
+            satelliteValues[satellite] = nodes[row++];
+        }
+        ZhangExactVector differences;
+        for (const auto& satellite : basis.satellites)
+        {
+            if (satellite != g01)
+            {
+                differences.push_back(
+                    satelliteValues[satellite] - satelliteValues[g01]
+                );
+            }
+        }
+        return differences;
+    };
+    ZhangExactVector productDatum = satelliteDatum(productBasis);
+    for (const auto& basis : {basisA, basisB})
+    {
+        ZhangSatelliteProductTarget target =
+            zhangBuildSatelliteProductTarget(basis, productBasis, g01);
+        BOOST_REQUIRE(target.valid);
+        ZhangExactVector corrected = satelliteDatum(basis);
+        ZhangExactVector correction =
+            zhangExactMatrixTimesColumn(target.matrix, cycleValues(basis));
+        for (std::size_t row = 0; row < corrected.size(); row++)
+        {
+            corrected[row] += correction[row];
+        }
+        BOOST_CHECK(corrected == productDatum);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(product_support_metrics_distinguish_paths_bridges_and_capacity)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    SatSys g03(E_Sys::GPS, 3);
+
+    std::set<ZhangGraphEdge> k22 = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    BOOST_CHECK_EQUAL(
+        zhangAlternativePhysicalPathCount(k22, {"R0", g01}), 1
+    );
+    ZhangSatelliteSupportMetrics redundant =
+        zhangSatelliteSupportMetrics(k22);
+    BOOST_REQUIRE_EQUAL(redundant.supportCounts.size(), 1);
+    BOOST_CHECK_EQUAL(redundant.supportCounts.at({g01, g02}), 2);
+    BOOST_CHECK_EQUAL(redundant.bridgeEdges.size(), 1);
+    BOOST_CHECK_EQUAL(redundant.edgeConnectivity, 2);
+
+    std::set<ZhangGraphEdge> chain = k22;
+    chain.insert({"R2", g02});
+    chain.insert({"R2", g03});
+    ZhangSatelliteSupportMetrics metrics =
+        zhangSatelliteSupportMetrics(chain);
+    BOOST_CHECK_EQUAL(metrics.satellites.size(), 3);
+    BOOST_CHECK_EQUAL(metrics.supportCounts.at({g01, g02}), 2);
+    BOOST_CHECK_EQUAL(metrics.supportCounts.at({g02, g03}), 1);
+    BOOST_CHECK_EQUAL(metrics.bridgeEdges.size(), 2);
+    BOOST_CHECK_EQUAL(metrics.minimumSupport, 1);
+    BOOST_CHECK_EQUAL(metrics.maximumSupport, 2);
+    BOOST_CHECK_EQUAL(metrics.edgeConnectivity, 1);
+
+    std::set<ZhangGraphEdge> tree = {
+        {"R0", g01}, {"R0", g02}, {"R1", g02}
+    };
+    BOOST_CHECK_EQUAL(
+        zhangAlternativePhysicalPathCount(tree, {"R0", g02}), 0
+    );
+}
+
+BOOST_AUTO_TEST_CASE(promoted_satellite_relation_survives_source_arc_retirement)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(
+        g01, g03, 2, "four_physical_arcs", true
+    ));
+    manager.retireUnprovedBridges({g03});
+
+    long long difference = 0;
+    BOOST_CHECK(manager.relation(g01, g03, difference));
+    BOOST_CHECK_EQUAL(difference, 2);
+    BOOST_CHECK_EQUAL(manager.relationCount(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(product_support_path_switch_preserves_component_and_value)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g02, 5, "path_p1", true));
+    auto before = manager.status(g02, true);
+    double rawBefore = 0.37;
+    double productBefore = rawBefore + 0.19 * before.alignmentCycles;
+
+    // Retiring p1 is a provenance event only; p2 proves the same relation.
+    manager.retireUnprovedBridges({g02});
+    BOOST_REQUIRE(manager.promoteRelation(g01, g02, 5, "path_p2", true));
+    auto after = manager.status(g02, true);
+    double productAfter = rawBefore + 0.19 * after.alignmentCycles;
+
+    BOOST_CHECK_EQUAL(after.datumVersion, before.datumVersion);
+    BOOST_CHECK_EQUAL(after.componentId, before.componentId);
+    BOOST_CHECK_SMALL(productAfter - productBefore, 1e-15);
+}
+
+BOOST_AUTO_TEST_CASE(detached_subtree_keeps_internal_promoted_relations)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    SatSys g03(E_Sys::GPS, 3);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(
+        g01, g02, 7, "unproved_dynamic_bridge", false
+    ));
+    BOOST_REQUIRE(manager.promoteRelation(
+        g02, g03, -3, "promoted_subtree_relation", true
+    ));
+
+    manager.retireUnprovedBridges({g02, g03});
+    long long difference = 0;
+    BOOST_CHECK(!manager.relation(g01, g02, difference));
+    BOOST_CHECK(manager.relation(g02, g03, difference));
+    BOOST_CHECK_EQUAL(difference, -3);
+    BOOST_CHECK_EQUAL(manager.status(g01, true).componentSize, 1);
+    BOOST_CHECK_EQUAL(manager.status(g02, true).componentSize, 2);
+}
+
+BOOST_AUTO_TEST_CASE(inconsistent_satellite_integer_bridge_is_rejected)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    SatSys g03(E_Sys::GPS, 3);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g02, 2, "edge_12"));
+    BOOST_REQUIRE(manager.promoteRelation(g02, g03, 4, "edge_23"));
+    BOOST_CHECK(!manager.promoteRelation(g01, g03, 7, "bad_cycle"));
+    BOOST_CHECK_EQUAL(manager.conflicts(), 1);
+    long long difference = 0;
+    BOOST_REQUIRE(manager.relation(g01, g03, difference));
+    BOOST_CHECK_EQUAL(difference, 6);
+}
+
+BOOST_AUTO_TEST_CASE(satellite_product_events_distinguish_topology_progress)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    SatSys g12(E_Sys::GPS, 12);
+    SatSys g25(E_Sys::GPS, 25);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+
+    auto edgeA = manager.promoteRelationDetailed(
+        g01, g03, 9, "component_a"
+    );
+    BOOST_REQUIRE(edgeA.accepted);
+    BOOST_CHECK(edgeA.type ==
+        ZhangProductRelationEventType::NEW_COMPONENT_EDGE);
+
+    auto edgeB = manager.promoteRelationDetailed(
+        g12, g25, 150, "component_b"
+    );
+    BOOST_REQUIRE(edgeB.accepted);
+    BOOST_CHECK(edgeB.type ==
+        ZhangProductRelationEventType::NEW_COMPONENT_EDGE);
+
+    auto merge = manager.promoteRelationDetailed(
+        g03, g12, -21, "bridge"
+    );
+    BOOST_REQUIRE(merge.accepted);
+    BOOST_CHECK(merge.type ==
+        ZhangProductRelationEventType::COMPONENT_MERGE);
+    BOOST_CHECK_EQUAL(merge.oldComponentSizeA, 2);
+    BOOST_CHECK_EQUAL(merge.oldComponentSizeB, 2);
+    BOOST_CHECK_EQUAL(merge.newComponentSize, 4);
+
+    auto confirmation = manager.promoteRelationDetailed(
+        g01, g25, 138, "redundant_path"
+    );
+    BOOST_REQUIRE(confirmation.accepted);
+    BOOST_CHECK(confirmation.type ==
+        ZhangProductRelationEventType::REDUNDANT_CONFIRMATION);
+
+    auto conflict = manager.promoteRelationDetailed(
+        g01, g25, 139, "bad_cycle"
+    );
+    BOOST_CHECK(!conflict.accepted);
+    BOOST_CHECK(conflict.type ==
+        ZhangProductRelationEventType::CONFLICT_REJECTED);
+    BOOST_CHECK_EQUAL(manager.eventCount(
+        ZhangProductRelationEventType::NEW_COMPONENT_EDGE), 2);
+    BOOST_CHECK_EQUAL(manager.eventCount(
+        ZhangProductRelationEventType::COMPONENT_MERGE), 1);
+    BOOST_CHECK_EQUAL(manager.eventCount(
+        ZhangProductRelationEventType::REDUNDANT_CONFIRMATION), 1);
+}
+
+BOOST_AUTO_TEST_CASE(local_fractional_alignment_loss_can_relink_to_component_anchor)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    SatSys g22(E_Sys::GPS, 22);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g03, 9, "fixed_13"));
+    BOOST_REQUIRE(manager.promoteRelation(g01, g22, -3, "fixed_122"));
+
+    auto before = manager.status(g03, true);
+    auto preserved = manager.applyDynamicTreeTransform({
+        {g01, 10.0}, {g03, 10.25}, {g22, 7.0}
+    });
+    BOOST_CHECK(preserved.at(g01));
+    BOOST_CHECK(!preserved.at(g03));
+    BOOST_CHECK(preserved.at(g22));
+    BOOST_CHECK(manager.alignmentState(g03) ==
+        ZhangCurrentAlignmentState::CURRENT_ALIGNMENT_PENDING);
+    BOOST_CHECK(manager.status(g01, true).integerDatumContinuous);
+    BOOST_CHECK(!manager.status(g03, true).integerDatumContinuous);
+
+    auto relink = manager.realignRelation(
+        g01, g03, 11, "same_component_relink"
+    );
+    BOOST_REQUIRE(relink.accepted);
+    BOOST_CHECK(relink.type ==
+        ZhangProductRelationEventType::CURRENT_REALIGNMENT);
+    BOOST_CHECK(manager.alignmentState(g03) ==
+        ZhangCurrentAlignmentState::CURRENT_ALIGNMENT_VALID);
+    auto after = manager.status(g03, true);
+    BOOST_CHECK(after.integerDatumContinuous);
+    BOOST_CHECK_EQUAL(after.datumVersion, before.datumVersion);
+    BOOST_CHECK_EQUAL(after.discontinuityCounter, before.discontinuityCounter);
+    long long currentDifference = 0;
+    BOOST_REQUIRE(manager.relation(g01, g03, currentDifference));
+    BOOST_CHECK_EQUAL(currentDifference, 11);
+}
+
+BOOST_AUTO_TEST_CASE(attaching_left_singleton_preserves_established_component_alignment)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    SatSys g11(E_Sys::GPS, 11);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g03, 9, "established"));
+    auto g01Before = manager.status(g01, true);
+    auto g03Before = manager.status(g03, true);
+
+    BOOST_REQUIRE(manager.promoteRelation(
+        g11, g01, -12, "left_singleton_attachment"
+    ));
+    auto g01After = manager.status(g01, true);
+    auto g03After = manager.status(g03, true);
+    auto g11After = manager.status(g11, true);
+    BOOST_CHECK_EQUAL(
+        g01After.alignmentCycles, g01Before.alignmentCycles
+    );
+    BOOST_CHECK_EQUAL(
+        g03After.alignmentCycles, g03Before.alignmentCycles
+    );
+    BOOST_CHECK_EQUAL(g11After.alignmentCycles, 12);
+}
+
+BOOST_AUTO_TEST_CASE(conflicting_current_relation_is_quarantined_then_relinked)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g07(E_Sys::GPS, 7);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g07, 12, "initial"));
+    auto before = manager.status(g07, true);
+
+    auto quarantined = manager.quarantineCurrentAlignment(
+        g01, g07, g01
+    );
+    BOOST_CHECK(quarantined.type ==
+        ZhangProductRelationEventType::CURRENT_ALIGNMENT_QUARANTINED);
+    BOOST_CHECK(quarantined.quarantinedSatellite == g07);
+    BOOST_CHECK(!manager.status(g07, true).integerValid);
+    BOOST_CHECK(manager.status(g01, true).integerValid);
+
+    auto relink = manager.realignRelation(
+        g01, g07, 7559, "confirmed_current_coordinate"
+    );
+    BOOST_REQUIRE(relink.accepted);
+    BOOST_CHECK(relink.type ==
+        ZhangProductRelationEventType::CURRENT_REALIGNMENT);
+    auto after = manager.status(g07, true);
+    BOOST_CHECK(after.integerValid);
+    BOOST_CHECK_EQUAL(after.datumVersion, before.datumVersion);
+    BOOST_CHECK_EQUAL(after.discontinuityCounter, before.discontinuityCounter);
+    long long currentDifference = 0;
+    BOOST_REQUIRE(manager.relation(g01, g07, currentDifference));
+    BOOST_CHECK_EQUAL(currentDifference, 7559);
+}
+
+BOOST_AUTO_TEST_CASE(dynamic_tree_integer_changes_leave_product_invariant)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g02, 3, "initial_target"));
+    constexpr double lambda = 0.190293672798365;
+    std::map<SatSys, double> raw = {{g01, 0.2}, {g02, -0.4}};
+    std::map<SatSys, double> product;
+    for (const auto& [satellite, value] : raw)
+    {
+        product[satellite] = value +
+            lambda * manager.status(satellite, true).alignmentCycles;
+    }
+    auto component = manager.status(g02, true).componentId;
+
+    for (const auto& [satellite, stateJump] :
+         std::map<SatSys, long long>{{g01, 4}, {g02, -5}})
+    {
+        raw[satellite] += lambda * stateJump;
+        manager.applyDynamicTreeShift(satellite, -stateJump);
+    }
+    for (const auto& [satellite, value] : raw)
+    {
+        double transformedProduct = value +
+            lambda * manager.status(satellite, true).alignmentCycles;
+        BOOST_CHECK_SMALL(transformedProduct - product.at(satellite), 1e-14);
+        BOOST_CHECK_EQUAL(manager.status(satellite, true).datumVersion, 0);
+        BOOST_CHECK_EQUAL(manager.status(satellite, true).componentId, component);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(component_common_fractional_gauge_preserves_integer_datum)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    SatSys g22(E_Sys::GPS, 22);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g03, 9, "fixed_13"));
+    BOOST_REQUIRE(manager.promoteRelation(g01, g22, -3, "fixed_122"));
+
+    auto before = manager.status(g03, true);
+    auto preserved = manager.applyDynamicTreeTransform({
+        {g01, 111.76080459977078},
+        {g03, 114.76080459977078},
+        {g22, 107.76080459977078},
+    });
+    BOOST_CHECK(preserved.at(g01));
+    BOOST_CHECK(preserved.at(g03));
+    BOOST_CHECK(preserved.at(g22));
+    auto after = manager.status(g03, true);
+    BOOST_CHECK(after.integerDatumContinuous);
+    BOOST_CHECK_EQUAL(after.datumVersion, before.datumVersion);
+    BOOST_CHECK_EQUAL(after.componentId, before.componentId);
+    BOOST_CHECK_EQUAL(after.alignmentCycles - before.alignmentCycles, 3);
+}
+
+BOOST_AUTO_TEST_CASE(product_reference_exchange_preserves_integer_relations)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    SatSys g22(E_Sys::GPS, 22);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g03, 9, "fixed_13"));
+    BOOST_REQUIRE(manager.promoteRelation(g01, g22, -3, "fixed_122"));
+
+    long long fromG01ToG22 = 0;
+    long long fromG03ToG22 = 0;
+    BOOST_REQUIRE(manager.relation(g01, g22, fromG01ToG22));
+    BOOST_REQUIRE(manager.relation(g03, g22, fromG03ToG22));
+    BOOST_CHECK_EQUAL(fromG01ToG22, -3);
+    BOOST_CHECK_EQUAL(fromG03ToG22, -12);
+    BOOST_CHECK_EQUAL(fromG01ToG22 - 9, fromG03ToG22);
+}
+
+BOOST_AUTO_TEST_CASE(only_satellite_discontinuity_changes_product_version)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g03, 2, "fixed_relation"));
+    auto initial = manager.status(g03, true);
+
+    manager.applyDynamicTreeTransform({{g01, 4.25}, {g03, 7.25}});
+    manager.markDynamicAlignmentUnknown({g03});
+    auto dynamic = manager.status(g03, true);
+    BOOST_CHECK_EQUAL(dynamic.datumVersion, initial.datumVersion);
+    BOOST_CHECK_EQUAL(dynamic.discontinuityCounter, initial.discontinuityCounter);
+    BOOST_CHECK(dynamic.integerDatumContinuous);
+
+    manager.recordSatelliteDiscontinuity(g03);
+    auto discontinuous = manager.status(g03, true);
+    BOOST_CHECK_EQUAL(discontinuous.datumVersion, initial.datumVersion + 1);
+    BOOST_CHECK_EQUAL(
+        discontinuous.discontinuityCounter,
+        initial.discontinuityCounter + 1
+    );
+    BOOST_CHECK(!discontinuous.integerDatumContinuous);
+}
+
+BOOST_AUTO_TEST_CASE(product_constraint_promotion_requires_exact_named_membership)
+{
+    auto recovered = ProductConstraintPromotion::recoverNamedTargets(
+        {{1, 1}, {0, 1}}, {7, 4}, 2
+    );
+    BOOST_REQUIRE_EQUAL(recovered.size(), 2);
+    BOOST_CHECK(recovered.at(0) == 3);
+    BOOST_CHECK(recovered.at(1) == 4);
+
+    auto unsaturated = ProductConstraintPromotion::recoverNamedTargets(
+        {{2}}, {6}, 1
+    );
+    BOOST_CHECK(unsaturated.empty());
+}
+
+BOOST_AUTO_TEST_CASE(local_subtree_break_preserves_unaffected_product_continuity)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    SatSys g03(E_Sys::GPS, 3);
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g02}, {"R1", g03}
+    };
+    ZhangGraphBasis oldBasis = zhangBuildSpanningTree(edges, "R0");
+    BOOST_REQUIRE(oldBasis.connected);
+
+    edges.erase({"R0", g02});
+    std::set<ZhangGraphEdge> retained = zhangRootComponentEdges(edges, "R0");
+    ZhangGraphBasis rootBasis = zhangBuildSpanningTree(retained, "R0");
+    BOOST_REQUIRE(rootBasis.connected);
+    BOOST_CHECK_EQUAL(rootBasis.satellites.size(), 1);
+    BOOST_CHECK(rootBasis.satellites.find(g01) != rootBasis.satellites.end());
+
+    ZhangPhaseContinuityState unaffected;
+    ZhangPhaseContinuityState detached;
+    unaffected.markFixed();
+    detached.markFixed();
+    GTime time;
+    detached.reinitialise(time, "local_subtree_break", 2);
+    BOOST_CHECK(unaffected.integerValid());
+    BOOST_CHECK_EQUAL(unaffected.counter, 0);
+    BOOST_CHECK(!detached.integerValid());
+    BOOST_CHECK_EQUAL(detached.counter, 1);
+}
+
+BOOST_AUTO_TEST_CASE(wide_lane_only_lattice_does_not_validate_individual_signals)
+{
+    ZhangExactMatrix held = {{1, -1}};
+    ZhangDualSignalLatticeValidity validity =
+        zhangClassifyDualSignalLattice(held, 1);
+    BOOST_CHECK(!validity.l1);
+    BOOST_CHECK(!validity.l2);
+    BOOST_CHECK(validity.wideLane);
+
+    ZhangIntegerLatticeMembership unsaturated =
+        zhangIntegerRowLatticeContains({{2}}, {1});
+    BOOST_CHECK(!unsaturated.contained);
+    BOOST_REQUIRE_EQUAL(unsaturated.smithInvariants.size(), 1);
+    BOOST_CHECK(unsaturated.smithInvariants.front() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(wide_lane_plus_l1_lattice_recovers_both_signals)
+{
+    ZhangExactMatrix held = {{1, -1}, {1, 0}};
+    ZhangDualSignalLatticeValidity validity =
+        zhangClassifyDualSignalLattice(held, 1);
+    BOOST_CHECK(validity.l1);
+    BOOST_CHECK(validity.l2);
+    BOOST_CHECK(validity.wideLane);
+}
+
+BOOST_AUTO_TEST_CASE(exact_row_hnf_removes_redundancy_and_tracks_integer_values)
+{
+    ZhangExactMatrix rows = {
+        {2, 0},
+        {0, 3},
+        {2, 3},
+        {4, 0}
+    };
+    ZhangExactVector values = {4, 6, 10, 8};
+    ZhangExactRowHnf hnf = zhangExactRowHermiteNormalForm(rows, values);
+    BOOST_REQUIRE(hnf.consistent);
+    BOOST_REQUIRE_EQUAL(hnf.basis.size(), 2);
+    BOOST_CHECK(zhangIntegerRowLatticeContains(hnf.basis, {2, 0}).contained);
+    BOOST_CHECK(zhangIntegerRowLatticeContains(hnf.basis, {0, 3}).contained);
+    BOOST_CHECK(!zhangIntegerRowLatticeContains(hnf.basis, {1, 0}).contained);
+
+    ZhangExactRowHnf inconsistent = zhangExactRowHermiteNormalForm(
+        {{1, 0}, {1, 0}},
+        {2, 3}
+    );
+    BOOST_CHECK(!inconsistent.consistent);
+
+    // Equation (17): membership must return the actual integer row
+    // combination so the persistent-product shift can be evaluated exactly.
+    ZhangIntegerLatticeMembership represented =
+        zhangIntegerRowLatticeContains({{2, 1}, {1, 1}}, {3, 2});
+    BOOST_REQUIRE(represented.contained);
+    BOOST_REQUIRE_EQUAL(represented.combination.size(), 2);
+    BOOST_CHECK(represented.combination == ZhangExactVector({1, 1}));
+    ZhangExactVector heldValues = {5, 7};
+    ZhangExactInteger shift = 0;
+    for (std::size_t row = 0; row < represented.combination.size(); row++)
+    {
+        shift += represented.combination[row] * heldValues[row];
+    }
+    BOOST_CHECK(shift == 12);
+}
+
+BOOST_AUTO_TEST_CASE(exact_surviving_lattice_eliminates_removed_arcs_without_rounding)
+{
+    ZhangExactMatrix kernel = zhangExactIntegerKernel({
+        {1, 1, 0},
+        {0, 1, 1},
+    });
+    BOOST_REQUIRE_EQUAL(kernel.size(), 1);
+    BOOST_REQUIRE_EQUAL(kernel.front().size(), 3);
+    BOOST_CHECK(
+        zhangExactMatrixTimesColumn(
+            {{1, 1, 0}, {0, 1, 1}},
+            kernel.front()
+        ) == ZhangExactVector({0, 0})
+    );
+
+    // Every input row touches the removed third arc.  Their exact integer
+    // combination r1-r2 survives as n1-n2=-2; row 3 is redundant.
+    ZhangExactSurvivingLattice surviving = zhangExactSurvivingLattice(
+        {
+            {1, 0, 1},
+            {0, 1, 1},
+            {1, 1, 2},
+        },
+        {5, 7, 12},
+        {true, true, false}
+    );
+    BOOST_CHECK(surviving.consistent);
+    BOOST_CHECK_EQUAL(surviving.touchedRows, 3);
+    BOOST_REQUIRE_EQUAL(surviving.basis.size(), 1);
+    BOOST_CHECK(surviving.basis.front() == ZhangExactVector({1, -1}));
+    BOOST_CHECK(surviving.values.front() == -2);
+
+    ZhangExactSurvivingLattice none = zhangExactSurvivingLattice(
+        {{1, 1}},
+        {3},
+        {true, false}
+    );
+    BOOST_CHECK(none.consistent);
+    BOOST_CHECK(none.basis.empty());
 }
 
 BOOST_AUTO_TEST_CASE(integer_cycle_fixing_feedback_updates_full_state_and_covariance)

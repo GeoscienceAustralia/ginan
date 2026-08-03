@@ -1,0 +1,40 @@
+{
+  "label": "DYNG_full_float",
+  "category": "europe_north_atlantic",
+  "trace": "/home/rx/GINAN/inputData/outputs/zhang_e9_DYNG_full_float/Network-zhang_e9_DYNG_full_float-201919900.TRACE",
+  "epochs": 361,
+  "ar_attempt_epochs": 0,
+  "newly_fixed_total": 0,
+  "time_to_first_fix_s": null,
+  "ambiguity_fix_rate": 0.0,
+  "maximum_held_integer_rank": 0,
+  "fixed_hold_rate_after_ttff": 0.0,
+  "raw_ambiguity_integer_like_rate": 0.0,
+  "wrong_fix_position_proxy_count": 0,
+  "wrong_fix_position_proxy_denominator": 0,
+  "wrong_fix_position_proxy_rate": null,
+  "wrong_fix_modal_proxy_count": 0,
+  "wrong_fix_modal_proxy_denominator": 0,
+  "wrong_fix_modal_proxy_rate": null,
+  "datum_change_count": 0,
+  "median_recovery_after_datum_change_s": null,
+  "reference_change_count": 4,
+  "enu_all": {
+    "east_rms_m": 1286.1551185214641,
+    "north_rms_m": 5612.027736829411,
+    "up_rms_m": 10993.0814527043,
+    "horizontal_p95_m": 5287.1188263197755,
+    "up_abs_p95_m": 13738.0
+  },
+  "enu_after_first_fix": {
+    "east_rms_m": null,
+    "north_rms_m": null,
+    "up_rms_m": null,
+    "horizontal_p95_m": null,
+    "up_abs_p95_m": null
+  },
+  "convergence_enu_10cm_20cm_s": 6120.0,
+  "convergence_enu_5cm_10cm_s": 6960.0,
+  "median_float_fractional_cycle": 0.272718,
+  "p90_float_fractional_cycle": 0.433239
+}

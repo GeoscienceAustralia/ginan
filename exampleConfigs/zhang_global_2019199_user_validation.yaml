@@ -1,0 +1,176 @@
+# Independent 20-station user validation of the guarded E9 internal products.
+# Load after /home/rx/GINAN/exampleConfigs/osb_wum_fixed_orbit.yaml. Each PEA
+# process receives exactly one held-out RINEX through the command line.
+
+outputs:
+  metadata:
+    config_description: zhang_global_2019199_user_validation
+  trace:
+    level: 3
+    output_receivers: true
+    output_network: true
+    receiver_filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    output_residuals: true
+    output_config: true
+  pos:
+    output: true
+    filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.POS
+  sinex:
+    output: false
+  clocks:
+    output: false
+  bias_sinex:
+    output: false
+  network_statistics:
+    output: false
+
+satellite_options:
+  global:
+    models:
+      clock:
+        enable: true
+        sources: [PRECISE, BROADCAST]
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+receiver_options:
+  global:
+    exclude: true
+    elevation_mask: 10
+    clock_codes: [L1C]
+    models:
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+  MARS: { exclude: false }
+  DYNG: { exclude: false }
+  NICO: { exclude: false }
+  BREW: { exclude: false }
+  JPLM: { exclude: false }
+  BOGT: { exclude: false }
+  GLPS: { exclude: false }
+  POAL: { exclude: false }
+  DJIG: { exclude: false }
+  MBAR: { exclude: false }
+  SEY2: { exclude: false }
+  GMSD: { exclude: false }
+  USUD: { exclude: false }
+  CEDU: { exclude: false }
+  GAMB: { exclude: false }
+  MRO1: { exclude: false }
+  TONG: { exclude: false }
+  CAS1: { exclude: false }
+  DUMG: { exclude: false }
+  PALM: { exclude: false }
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 60
+    # Offline RINEX validation: keep only a short scheduling allowance so a
+    # missing epoch is skipped instead of waiting up to one wall-clock hour.
+    wait_next_epoch: 0.1
+    max_rec_latency: 1
+
+  gnss_general:
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: true
+        receiver_amb_pivot: false
+        network_amb_pivot: false
+        reject_eclipse: false
+        code_priorities: [L1C, L2W]
+      gal: { process: false }
+      glo: { process: false }
+      bds: { process: false }
+
+    zhang_full_rank:
+      enable: false
+
+    phase_clock_osb:
+      enable: false
+
+    zhang_pppar:
+      output_products: false
+      user_adapter: true
+      output_diagnostics: true
+      product_filename: /home/rx/GINAN/inputData/outputs/zhang_global_2019199_e9_60s_guarded/zhang_internal_products.csv
+      product_solution: FIXED
+      stabilization_epochs: 2
+      # Variance-ranked per-signal PAR bounds the joint LAMBDA dimension when
+      # the product briefly exposes the 22-satellite component.
+      user_max_ambiguities_per_signal: 8
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+
+  ppp_filter:
+    ionospheric_components:
+      common_ionosphere: true
+      use_gf_combo: false
+      use_if_combo: false
+      corr_mode: estimate
+    rts:
+      enable: false
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.99
+    solution_ratio_threshold: 3
+    # The ratio test needs only the best and second-best candidates. Asking
+    # for 200 candidates becomes intractable when the E9 product briefly
+    # exposes a 22-satellite dual-frequency component.
+    lambda_set_size: 2
+    once_per_epoch: true
+    fix_and_hold: true
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [true]
+        sigma: [100]
+        process_noise: [0]
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [10]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [900]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [1]
+        outage_limit: [900]
+      trop:
+        estimated: [true]
+        sigma: [0.3]
+        process_noise: [0.0001]
+      trop_grads:
+        estimated: [false]
+      code_bias:
+        estimated: [false]
+      phase_bias:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+
+  satellites:
+    global:
+      clock:
+        estimated: [false]
+      code_bias:
+        estimated: [false]
+      phase_bias:
+        estimated: [false]
+      orbit:
+        estimated: [false]

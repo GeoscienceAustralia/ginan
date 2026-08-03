@@ -1,0 +1,40 @@
+{
+  "label": "BOGT_full_ar",
+  "category": "south_america_caribbean",
+  "trace": "/home/rx/GINAN/inputData/outputs/zhang_e9_BOGT_full_ar/Network-zhang_e9_BOGT_full_ar-201919900.TRACE",
+  "epochs": 356,
+  "ar_attempt_epochs": 15,
+  "newly_fixed_total": 4,
+  "time_to_first_fix_s": 7200.0,
+  "ambiguity_fix_rate": 0.3076923076923077,
+  "maximum_held_integer_rank": 4,
+  "fixed_hold_rate_after_ttff": 0.6,
+  "raw_ambiguity_integer_like_rate": 0.0,
+  "wrong_fix_position_proxy_count": 0,
+  "wrong_fix_position_proxy_denominator": 1,
+  "wrong_fix_position_proxy_rate": 0.0,
+  "wrong_fix_modal_proxy_count": 0,
+  "wrong_fix_modal_proxy_denominator": 0,
+  "wrong_fix_modal_proxy_rate": null,
+  "datum_change_count": 1,
+  "median_recovery_after_datum_change_s": null,
+  "reference_change_count": 6,
+  "enu_all": {
+    "east_rms_m": 121829047985016.27,
+    "north_rms_m": 116986614168260.17,
+    "up_rms_m": 823095563838363.4,
+    "horizontal_p95_m": 214370949678355.44,
+    "up_abs_p95_m": 1044670000000000.0
+  },
+  "enu_after_first_fix": {
+    "east_rms_m": 148070085851836.16,
+    "north_rms_m": 142184629116861.94,
+    "up_rms_m": 1000384003795231.5,
+    "horizontal_p95_m": 214370949678355.44,
+    "up_abs_p95_m": 1044670000000000.0
+  },
+  "convergence_enu_10cm_20cm_s": null,
+  "convergence_enu_5cm_10cm_s": null,
+  "median_float_fractional_cycle": null,
+  "p90_float_fractional_cycle": null
+}

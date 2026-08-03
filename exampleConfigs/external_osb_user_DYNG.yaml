@@ -1,0 +1,13 @@
+inputs:
+  gnss_observations:
+    gnss_observations_root: ../data/
+    rnx_inputs: [DYNG00GRC_R_20191990000_01D_30S_MO.rnx]
+
+outputs:
+  outputs_root: ./outputs/external_osb_stageA3_DYNG
+  metadata:
+    config_description: external_osb_user_DYNG
+
+receiver_options:
+  DYNG:
+    exclude: false

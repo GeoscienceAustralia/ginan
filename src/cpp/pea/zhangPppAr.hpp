@@ -1,12 +1,14 @@
 #pragma once
 
 #include <iosfwd>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
 #include "common/enums.h"
 #include "common/gTime.hpp"
 #include "common/satSys.hpp"
+#include "common/zhangSatelliteDatum.hpp"
 
 struct KFState;
 struct ReceiverMap;
@@ -34,6 +36,11 @@ struct ZhangInternalProduct
     GTime       valid_from;
     int         product_iod = 0;
     std::string reset_reason;
+    bool        persistent_relation_known = false;
+    std::string current_alignment_state = "CURRENT_ALIGNMENT_PENDING";
+    bool        integer_structure_valid = false;
+    bool        integer_datum_continuous = false;
+    bool        integer_precision_valid = false;
     bool        integer_valid = false;
     std::string integer_component_id = "UNRESOLVED";
     std::string integer_datum_id;
@@ -54,6 +61,15 @@ void recordZhangExactPhaseTransform(
     double         correctionChangeMetres
 );
 
+/** Batch form used by a tree exchange.  Satellite-component common
+ * fractional gauge shifts are removed before testing integer alignment. */
+void recordZhangExactPhaseTransforms(
+    GTime                              time,
+    E_Sys                              sys,
+    E_ObsCode                          code,
+    const std::map<SatSys, double>&    correctionChangesMetres
+);
+
 /** Notify the continuity manager that the old phase coordinate system could
  * not be transformed exactly and was reinitialised.
  */
@@ -63,6 +79,67 @@ void recordZhangPhaseReinitialisation(
     const std::vector<E_ObsCode>& observables,
     const std::string&            reason,
     const std::set<SatSys>&       affectedSatellites
+);
+
+/** Promote a fixed named G_sat target into the persistent satellite ledger.
+ * The relation convention is alpha_b - alpha_a = integerDifferenceCycles. */
+bool promoteZhangSatelliteProductRelation(
+    GTime              time,
+    E_Sys              sys,
+    E_ObsCode          code,
+    const SatSys&      a,
+    const SatSys&      b,
+    long long          integerDifferenceCycles,
+    const std::string& provenance
+);
+
+ZhangProductRelationEvent promoteZhangSatelliteProductRelationDetailed(
+    GTime              time,
+    E_Sys              sys,
+    E_ObsCode          code,
+    const SatSys&      a,
+    const SatSys&      b,
+    long long          integerDifferenceCycles,
+    const std::string& provenance
+);
+
+ZhangProductRelationEvent relinkZhangSatelliteProductRelation(
+    GTime              time,
+    E_Sys              sys,
+    E_ObsCode          code,
+    const SatSys&      anchor,
+    const SatSys&      satellite,
+    long long          currentDifferenceCycles,
+    const std::string& provenance
+);
+
+std::vector<ZhangSatelliteDatumComponent> zhangSatelliteDatumComponents(
+    E_Sys sys,
+    E_ObsCode code
+);
+
+ZhangCurrentAlignmentState zhangSatelliteAlignmentState(
+    E_Sys sys,
+    E_ObsCode code,
+    const SatSys& satellite
+);
+
+bool queryZhangSatelliteProductRelation(
+    E_Sys sys,
+    E_ObsCode code,
+    const SatSys& a,
+    const SatSys& b,
+    long long& differenceCycles
+);
+
+/** Explicit satellite-product phase discontinuity.  Receiver-arc slips and
+ * dynamic-tree changes must not call this function. */
+void recordZhangSatellitePhaseDiscontinuity(
+    GTime                         time,
+    E_Sys                         sys,
+    const std::vector<E_ObsCode>& observables,
+    const SatSys&                 satellite,
+    const std::string&            reason
 );
 
 /** Write both pre-fix and post-feedback internal products. */

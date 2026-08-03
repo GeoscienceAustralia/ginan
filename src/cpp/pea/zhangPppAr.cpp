@@ -21,6 +21,8 @@
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
 #include "common/zhangPhaseContinuity.hpp"
+#include "common/zhangIntegerAudit.hpp"
+#include "common/zhangSatelliteDatum.hpp"
 #include "orbprop/coordinates.hpp"
 #include "pea/zhangReference.hpp"
 
@@ -56,6 +58,49 @@ struct GlobalContinuityState
 
 map<ProductKey, ZhangPhaseContinuityState> continuityMap;
 map<std::pair<E_Sys, E_ObsCode>, GlobalContinuityState> globalContinuityMap;
+map<std::pair<E_Sys, E_ObsCode>, ZhangSatelliteDatumManager>
+    satelliteDatumManagers;
+
+struct PromotionEvidenceKey
+{
+    E_Sys      system = E_Sys::NONE;
+    E_ObsCode  observable = E_ObsCode::NONE;
+    SatSys     a;
+    int        segmentA = 0;
+    SatSys     b;
+    int        segmentB = 0;
+
+    bool operator<(const PromotionEvidenceKey& other) const
+    {
+        return std::tie(system, observable, a, segmentA, b, segmentB) <
+               std::tie(
+                   other.system, other.observable,
+                   other.a, other.segmentA, other.b, other.segmentB
+               );
+    }
+};
+
+struct PromotionEvidence
+{
+    long long difference = 0;
+    long int  lastEpoch = 0;
+    int       confirmations = 0;
+};
+
+map<PromotionEvidenceKey, PromotionEvidence> promotionEvidence;
+
+ZhangSatelliteDatumManager& satelliteDatumManager(E_Sys sys, E_ObsCode code)
+{
+    auto key = std::make_pair(sys, code);
+    auto found = satelliteDatumManagers.find(key);
+    if (found == satelliteDatumManagers.end())
+    {
+        found = satelliteDatumManagers.emplace(
+            key, ZhangSatelliteDatumManager(sys, code)
+        ).first;
+    }
+    return found->second;
+}
 
 struct ProductLookupKey
 {
@@ -218,7 +263,10 @@ void ensureProductFileHeader()
            "phase_m,phase_sigma_m,clock_phase_covariance_m2,correction_m,"
            "correction_sigma_m,discontinuity_counter,integer_shift_cycles,"
            "fractional_shift_cycles,datum_version,valid_from_gpst_seconds,"
-           "product_iod,reset_reason,integer_valid,integer_component_id,"
+           "product_iod,reset_reason,persistent_relation_known,"
+           "current_alignment_state,integer_structure_valid,"
+           "integer_datum_continuous,integer_precision_valid,integer_valid,"
+           "integer_component_id,"
            "integer_datum_id,solution_interval_start_gpst_seconds,"
            "solution_interval_end_gpst_seconds\n";
 
@@ -249,6 +297,11 @@ void appendProduct(const ZhangInternalProduct& product)
            << static_cast<double>(product.valid_from.bigTime) << ","
            << product.product_iod << ","
            << product.reset_reason << ","
+           << product.persistent_relation_known << ","
+           << product.current_alignment_state << ","
+           << product.integer_structure_valid << ","
+           << product.integer_datum_continuous << ","
+           << product.integer_precision_valid << ","
            << product.integer_valid << ","
            << product.integer_component_id << ","
            << product.integer_datum_id << ","
@@ -414,7 +467,8 @@ bool loadProducts()
     while (std::getline(input, line))
     {
         auto fields = splitCsv(line);
-        if (fields.size() != 19 && fields.size() != 23)
+        if (fields.size() != 19 && fields.size() != 23 &&
+            fields.size() != 26 && fields.size() != 28)
         {
             continue;
         }
@@ -438,12 +492,52 @@ bool loadProducts()
         product.valid_from.bigTime            = std::stold(fields[15]);
         product.product_iod                   = std::stoi(fields[16]);
         product.reset_reason                  = fields[17];
-        product.integer_valid                 = std::stoi(fields[18]) != 0;
-        if (fields.size() == 23)
+        if (fields.size() == 28)
         {
-            product.integer_component_id      = fields[19];
-            product.integer_datum_id          = fields[20];
-            product.valid_from.bigTime        = std::stold(fields[21]);
+            product.persistent_relation_known = std::stoi(fields[18]) != 0;
+            product.current_alignment_state   = fields[19];
+            product.integer_structure_valid  = std::stoi(fields[20]) != 0;
+            product.integer_datum_continuous = std::stoi(fields[21]) != 0;
+            product.integer_precision_valid  = std::stoi(fields[22]) != 0;
+            product.integer_valid            = std::stoi(fields[23]) != 0;
+            product.integer_component_id     = fields[24];
+            product.integer_datum_id          = fields[25];
+            product.valid_from.bigTime        = std::stold(fields[26]);
+        }
+        else if (fields.size() == 26)
+        {
+            product.integer_structure_valid  = std::stoi(fields[18]) != 0;
+            product.integer_datum_continuous = std::stoi(fields[19]) != 0;
+            product.integer_precision_valid  = std::stoi(fields[20]) != 0;
+            product.integer_valid            = std::stoi(fields[21]) != 0;
+            product.integer_component_id     = fields[22];
+            product.integer_datum_id          = fields[23];
+            product.valid_from.bigTime        = std::stold(fields[24]);
+            product.persistent_relation_known =
+                product.integer_component_id != "UNRESOLVED";
+            product.current_alignment_state =
+                product.integer_datum_continuous
+                    ? "CURRENT_ALIGNMENT_VALID"
+                    : (product.persistent_relation_known
+                           ? "CURRENT_ALIGNMENT_LOST"
+                           : "CURRENT_ALIGNMENT_PENDING");
+        }
+        else
+        {
+            product.integer_valid             = std::stoi(fields[18]) != 0;
+            product.persistent_relation_known = product.integer_valid;
+            product.current_alignment_state   = product.integer_valid
+                ? "CURRENT_ALIGNMENT_VALID"
+                : "CURRENT_ALIGNMENT_PENDING";
+            product.integer_structure_valid   = product.integer_valid;
+            product.integer_datum_continuous  = product.integer_valid;
+            product.integer_precision_valid   = product.integer_valid;
+            if (fields.size() == 23)
+            {
+                product.integer_component_id  = fields[19];
+                product.integer_datum_id      = fields[20];
+                product.valid_from.bigTime    = std::stold(fields[21]);
+            }
         }
 
         ProductLookupKey key{
@@ -634,26 +728,57 @@ void recordZhangExactPhaseTransform(
     double        correctionChangeMetres
 )
 {
-    if (!acsConfig.zhangPppAr.output_products)
+    recordZhangExactPhaseTransforms(
+        time, sys, code, {{satellite, correctionChangeMetres}}
+    );
+}
+
+void recordZhangExactPhaseTransforms(
+    GTime                          time,
+    E_Sys                          sys,
+    E_ObsCode                      code,
+    const map<SatSys, double>&     correctionChangesMetres
+)
+{
+    if (!acsConfig.zhangPppAr.output_products ||
+        correctionChangesMetres.empty())
     {
         return;
     }
-
     const double lambda = wavelength(sys, code);
     if (lambda <= 0)
     {
         return;
     }
 
-    ProductKey key{satellite, code};
-    auto& state = continuityMap[key];
-    initialiseContinuityState(key, state);
-
-    state.applyExactTransform(
-        time,
-        correctionChangeMetres / lambda,
-        acsConfig.zhangPppAr.stabilization_epochs
+    map<SatSys, double> cycleChanges;
+    for (const auto& [satellite, metres] : correctionChangesMetres)
+    {
+        cycleChanges[satellite] = metres / lambda;
+    }
+    auto preserved = satelliteDatumManager(sys, code).applyDynamicTreeTransform(
+        cycleChanges
     );
+    for (const auto& [satellite, cycleChange] : cycleChanges)
+    {
+        ProductKey key{satellite, code};
+        auto& state = continuityMap[key];
+        initialiseContinuityState(key, state);
+        if (preserved[satellite])
+        {
+            state.resetReason = "component_gauge_s_transform";
+            state.fractionalShiftCycles +=
+                cycleChange - std::llround(cycleChange);
+        }
+        else
+        {
+            state.applyExactTransform(
+                time,
+                cycleChange,
+                acsConfig.zhangPppAr.stabilization_epochs
+            );
+        }
+    }
 }
 
 void recordZhangPhaseReinitialisation(
@@ -671,6 +796,9 @@ void recordZhangPhaseReinitialisation(
 
     for (E_ObsCode code : observables)
     {
+        satelliteDatumManager(sys, code).markDynamicAlignmentUnknown(
+            affectedSatellites
+        );
         for (auto& [key, state] : continuityMap)
         {
             if (key.satellite.sys != sys || key.observable != code)
@@ -681,12 +809,246 @@ void recordZhangPhaseReinitialisation(
             {
                 continue;
             }
-            state.reinitialise(
-                time,
-                reason,
-                acsConfig.zhangPppAr.stabilization_epochs
+            // This is a dynamic estimation-coordinate reset, not a satellite
+            // product phase discontinuity.  Preserve the product counter,
+            // version, integer shift and promoted satellite relations.
+            state.resetReason = "dynamic_alignment_unknown:" + reason;
+            state.hasFixedDatum = false;
+            state.stabilizationRemaining =
+                acsConfig.zhangPppAr.stabilization_epochs;
+        }
+    }
+}
+
+bool promoteZhangSatelliteProductRelation(
+    GTime              time,
+    E_Sys              sys,
+    E_ObsCode          code,
+    const SatSys&      a,
+    const SatSys&      b,
+    long long          integerDifferenceCycles,
+    const string&      provenance
+)
+{
+    return promoteZhangSatelliteProductRelationDetailed(
+        time, sys, code, a, b, integerDifferenceCycles, provenance
+    ).accepted;
+}
+
+ZhangProductRelationEvent promoteZhangSatelliteProductRelationDetailed(
+    GTime              time,
+    E_Sys              sys,
+    E_ObsCode          code,
+    const SatSys&      a,
+    const SatSys&      b,
+    long long          integerDifferenceCycles,
+    const string&      provenance
+)
+{
+    auto& manager = satelliteDatumManager(sys, code);
+    long long existingDifference = 0;
+    bool relationKnown = manager.relation(a, b, existingDifference);
+    ZhangProductRelationEvent event;
+
+    if (relationKnown && existingDifference != integerDifferenceCycles &&
+        acsConfig.zhangPppAr.conflict_quarantine)
+    {
+        SatSys trustedAnchor;
+        if (provenance.rfind("G_sat_", 0) == 0)
+        {
+            trustedAnchor = a;
+        }
+        event = manager.quarantineCurrentAlignment(a, b, trustedAnchor);
+    }
+    else if (!relationKnown &&
+             acsConfig.zhangPppAr.promotion_confirmation_epochs > 1)
+    {
+        SatSys canonicalA = a;
+        SatSys canonicalB = b;
+        int segmentA = manager.status(a, false).phaseSegment;
+        int segmentB = manager.status(b, false).phaseSegment;
+        long long canonicalDifference = integerDifferenceCycles;
+        if (canonicalB < canonicalA)
+        {
+            std::swap(canonicalA, canonicalB);
+            std::swap(segmentA, segmentB);
+            canonicalDifference = -canonicalDifference;
+        }
+        PromotionEvidenceKey key{
+            sys, code, canonicalA, segmentA, canonicalB, segmentB
+        };
+        auto& evidence = promotionEvidence[key];
+        long int epoch = static_cast<long int>(
+            std::llround(time.bigTime)
+        );
+        double maxGap =
+            acsConfig.zhangPppAr.promotion_confirmation_max_gap_seconds;
+        bool sameSequence =
+            evidence.confirmations > 0 &&
+            evidence.difference == canonicalDifference &&
+            epoch != evidence.lastEpoch &&
+            (maxGap <= 0 || epoch - evidence.lastEpoch <= maxGap);
+        if (!sameSequence && epoch != evidence.lastEpoch)
+        {
+            evidence.confirmations = 0;
+        }
+        if (epoch != evidence.lastEpoch)
+        {
+            evidence.difference = canonicalDifference;
+            evidence.lastEpoch = epoch;
+            evidence.confirmations++;
+        }
+        event.type = ZhangProductRelationEventType::PENDING_CONFIRMATION;
+        event.confirmationCount = evidence.confirmations;
+        event.confirmationRequired =
+            acsConfig.zhangPppAr.promotion_confirmation_epochs;
+        if (evidence.confirmations >= event.confirmationRequired)
+        {
+            promotionEvidence.erase(key);
+            event = manager.promoteRelationDetailed(
+                a, b, integerDifferenceCycles, provenance, true
             );
         }
+    }
+    else
+    {
+        event = manager.promoteRelationDetailed(
+            a, b, integerDifferenceCycles, provenance, true
+        );
+    }
+
+    const char* status = "REJECTED_INCONSISTENT";
+    if (event.accepted)
+    {
+        status = "ACCEPTED";
+    }
+    else if (event.type ==
+             ZhangProductRelationEventType::PENDING_CONFIRMATION)
+    {
+        status = "PENDING_CONFIRMATION";
+    }
+    else if (event.type ==
+             ZhangProductRelationEventType::CURRENT_ALIGNMENT_QUARANTINED)
+    {
+        status = "QUARANTINED_CURRENT_ALIGNMENT";
+    }
+    std::ostringstream message;
+    message << "ZHANG_PRODUCT_RELATION_PROMOTION time=" << time.to_string(0)
+            << " system=" << enum_to_string(sys)
+            << " observable=" << enum_to_string(code)
+            << " satellite_a=" << a.id()
+            << " satellite_b=" << b.id()
+            << " integer_difference=" << integerDifferenceCycles
+            << " status=" << status
+            << " event_type=" << zhangProductRelationEventName(event.type)
+            << " old_component_size_a=" << event.oldComponentSizeA
+            << " old_component_size_b=" << event.oldComponentSizeB
+            << " new_component_size=" << event.newComponentSize
+            << " confirmation_count=" << event.confirmationCount
+            << " confirmation_required=" << event.confirmationRequired
+            << " quarantined_satellite="
+            << (event.quarantinedSatellite.sys == E_Sys::NONE
+                    ? "NONE" : event.quarantinedSatellite.id())
+            << " provenance=" << provenance;
+    if (event.accepted)
+    {
+        BOOST_LOG_TRIVIAL(info) << message.str();
+    }
+    else if (event.type == ZhangProductRelationEventType::CONFLICT_REJECTED)
+    {
+        BOOST_LOG_TRIVIAL(error) << message.str();
+    }
+    else if (event.type ==
+             ZhangProductRelationEventType::CURRENT_ALIGNMENT_QUARANTINED)
+    {
+        BOOST_LOG_TRIVIAL(warning) << message.str();
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << message.str();
+    }
+    return event;
+}
+
+ZhangProductRelationEvent relinkZhangSatelliteProductRelation(
+    GTime              time,
+    E_Sys              sys,
+    E_ObsCode          code,
+    const SatSys&      anchor,
+    const SatSys&      satellite,
+    long long          currentDifferenceCycles,
+    const string&      provenance
+)
+{
+    ZhangProductRelationEvent event =
+        satelliteDatumManager(sys, code).realignRelation(
+            anchor, satellite, currentDifferenceCycles, provenance
+        );
+    BOOST_LOG_TRIVIAL(info)
+        << "ZHANG_PRODUCT_RELATION_PROMOTION time=" << time.to_string(0)
+        << " system=" << enum_to_string(sys)
+        << " observable=" << enum_to_string(code)
+        << " satellite_a=" << anchor.id()
+        << " satellite_b=" << satellite.id()
+        << " integer_difference=" << currentDifferenceCycles
+        << " status=" << (event.accepted ? "ACCEPTED" : "REJECTED_INCONSISTENT")
+        << " event_type=" << zhangProductRelationEventName(event.type)
+        << " old_component_size_a=" << event.oldComponentSizeA
+        << " old_component_size_b=" << event.oldComponentSizeB
+        << " new_component_size=" << event.newComponentSize
+        << " provenance=" << provenance;
+    return event;
+}
+
+vector<ZhangSatelliteDatumComponent> zhangSatelliteDatumComponents(
+    E_Sys sys,
+    E_ObsCode code
+)
+{
+    return satelliteDatumManager(sys, code).components();
+}
+
+ZhangCurrentAlignmentState zhangSatelliteAlignmentState(
+    E_Sys sys,
+    E_ObsCode code,
+    const SatSys& satellite
+)
+{
+    return satelliteDatumManager(sys, code).alignmentState(satellite);
+}
+
+bool queryZhangSatelliteProductRelation(
+    E_Sys sys,
+    E_ObsCode code,
+    const SatSys& a,
+    const SatSys& b,
+    long long& differenceCycles
+)
+{
+    return satelliteDatumManager(sys, code).relation(
+        a, b, differenceCycles
+    );
+}
+
+void recordZhangSatellitePhaseDiscontinuity(
+    GTime                         time,
+    E_Sys                         sys,
+    const vector<E_ObsCode>&      observables,
+    const SatSys&                 satellite,
+    const string&                 reason
+)
+{
+    for (E_ObsCode code : observables)
+    {
+        satelliteDatumManager(sys, code).recordSatelliteDiscontinuity(satellite);
+        ProductKey key{satellite, code};
+        auto& state = continuityMap[key];
+        initialiseContinuityState(key, state);
+        state.reinitialise(
+            time,
+            "satellite_phase_discontinuity:" + reason,
+            acsConfig.zhangPppAr.stabilization_epochs
+        );
     }
 }
 
@@ -739,27 +1101,27 @@ void writeZhangInternalProducts(
             auto& continuity = continuityMap[productKey];
             initialiseContinuityState(productKey, continuity);
             continuity.advanceEpoch(state.time);
-            if (solution == "FIXED")
+            if (solution == "FIXED" && integerDatumComplete)
             {
-                if (integerDatumComplete)
-                {
-                    continuity.markFixed();
-                }
-                else
-                {
-                    continuity.invalidateIntegerDatum(
-                        state.time,
-                        "integer_datum_incomplete",
-                        acsConfig.zhangPppAr.stabilization_epochs
-                    );
-                }
+                continuity.markFixed();
             }
+
+            ZhangGraphIntegerContext graphContext;
+            bool structureValid =
+                zhangGraphIntegerContext(
+                    fixedState, phaseKey.Sat.sys, graphContext
+                ) &&
+                zhangCanonicalIntegerAudit(graphContext.basis).valid;
+            ZhangSatelliteDatumStatus datumStatus =
+                satelliteDatumManager(phaseKey.Sat.sys, code).status(
+                    phaseKey.Sat, structureValid
+                );
 
             int clockIndex = clockIt->second;
             double clock = state.x(clockIndex);
             double rawPhase = state.x(phaseIndex);
             double emittedPhase =
-                rawPhase + continuity.integerShiftCycles * lambda;
+                rawPhase + datumStatus.alignmentCycles * lambda;
             double covariance = state.P(clockIndex, phaseIndex);
             double correctionVariance =
                 state.P(clockIndex, clockIndex) +
@@ -781,26 +1143,36 @@ void writeZhangInternalProducts(
             product.correction_m = clock - emittedPhase;
             product.correction_sigma_m =
                 std::sqrt(std::max(0.0, correctionVariance));
-            product.discontinuity_counter = continuity.counter;
-            product.integer_shift_cycles = continuity.integerShiftCycles;
+            product.discontinuity_counter = datumStatus.discontinuityCounter;
+            product.integer_shift_cycles = datumStatus.alignmentCycles;
             product.fractional_shift_cycles = continuity.fractionalShiftCycles;
-            product.datum_version = continuity.datumVersion;
+            product.datum_version = datumStatus.datumVersion;
             product.valid_from = continuity.validFrom;
             product.product_iod = continuity.iod;
             product.reset_reason = continuity.resetReason;
+            ZhangCurrentAlignmentState alignmentState =
+                satelliteDatumManager(phaseKey.Sat.sys, code).alignmentState(
+                    phaseKey.Sat
+                );
+            product.persistent_relation_known = datumStatus.componentSize >= 2;
+            product.current_alignment_state =
+                zhangCurrentAlignmentStateName(alignmentState);
+            product.integer_structure_valid =
+                datumStatus.integerStructureValid;
+            product.integer_datum_continuous =
+                datumStatus.integerDatumContinuous;
+            product.integer_precision_valid =
+                solution == "FIXED" && datumStatus.integerPrecisionValid;
             product.integer_valid =
-                solution == "FIXED" &&
-                continuity.integerValid();
-            product.integer_component_id =
-                product.integer_valid
-                    ? enum_to_string(phaseKey.Sat.sys) + "-" +
-                          enum_to_string(code) + "-MAIN"
-                    : "UNRESOLVED";
+                product.integer_structure_valid &&
+                product.integer_datum_continuous &&
+                product.integer_precision_valid;
+            product.integer_component_id = datumStatus.componentId;
             product.integer_datum_id =
                 enum_to_string(phaseKey.Sat.sys) + "-" +
                 enum_to_string(code) + "-V" +
-                std::to_string(continuity.datumVersion) + "-IOD" +
-                std::to_string(continuity.iod);
+                std::to_string(datumStatus.datumVersion) + "-SEG" +
+                std::to_string(datumStatus.phaseSegment);
 
             appendProduct(product);
 
@@ -817,6 +1189,18 @@ void writeZhangInternalProducts(
                       << " iod=" << continuity.iod
                       << " newly_fixed=" << newlyFixed
                       << " integer_datum_complete=" << integerDatumComplete
+                      << " persistent_relation_known="
+                      << product.persistent_relation_known
+                      << " current_alignment_state="
+                      << product.current_alignment_state
+                      << " integer_structure_valid="
+                      << product.integer_structure_valid
+                      << " integer_datum_continuous="
+                      << product.integer_datum_continuous
+                      << " integer_precision_valid="
+                      << product.integer_precision_valid
+                      << " integer_component_size="
+                      << datumStatus.componentSize
                       << " integer_valid=" << product.integer_valid
                       << " reason=" << continuity.resetReason;
             }

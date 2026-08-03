@@ -7145,6 +7145,54 @@ bool ACSConfig::parse(
                         "Product solution read by the user adapter: FLOAT or FIXED"
                     );
                     tryGetFromYaml(
+                        zhangPppAr.integer_strategy,
+                        zhang_pppar,
+                        {"@ integer_strategy"},
+                        "Network integer strategy: JOINT or INDEPENDENT_SIGNAL"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.component_bridge_targeting,
+                        zhang_pppar,
+                        {"@ component_bridge_targeting"},
+                        "Prioritise dual-frequency integer targets that merge persistent satellite components"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.current_state_relinking,
+                        zhang_pppar,
+                        {"@ current_state_relinking"},
+                        "Resolve low-dimensional targets that relink a current dynamic state to its persistent component"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.max_topology_targets,
+                        zhang_pppar,
+                        {"@ max_topology_targets"},
+                        "Maximum component-bridge or relink targets attempted per constellation and epoch"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.promotion_confirmation_epochs,
+                        zhang_pppar,
+                        {"@ promotion_confirmation_epochs"},
+                        "Consecutive distinct epochs required before a new persistent satellite relation is promoted"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.promotion_confirmation_max_gap_seconds,
+                        zhang_pppar,
+                        {"@ promotion_confirmation_max_gap_seconds"},
+                        "Maximum time gap between confirmations of a pending persistent satellite relation"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.conflict_quarantine,
+                        zhang_pppar,
+                        {"@ conflict_quarantine"},
+                        "Quarantine current satellite alignment when new integer evidence conflicts with a persistent relation"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_max_ambiguities_per_signal,
+                        zhang_pppar,
+                        {"@ user_max_ambiguities_per_signal"},
+                        "Maximum lowest-variance ambiguity candidates per signal for held-out user PAR; zero disables the cap"
+                    );
+                    tryGetFromYaml(
                         zhangPppAr.stabilization_epochs,
                         zhang_pppar,
                         {"@ stabilization_epochs"},
@@ -9278,6 +9326,30 @@ bool ACSConfig::parse(
                 << "zhang_pppar stabilization_epochs must be non-negative";
             valid = false;
         }
+        if (zhangPppAr.max_topology_targets < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar max_topology_targets must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.promotion_confirmation_epochs < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar promotion_confirmation_epochs must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.promotion_confirmation_max_gap_seconds < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar promotion_confirmation_max_gap_seconds must be non-negative";
+            valid = false;
+        }
+        if (zhangPppAr.user_max_ambiguities_per_signal < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar user_max_ambiguities_per_signal must be non-negative";
+            valid = false;
+        }
 
         string solution = zhangPppAr.product_solution;
         boost::to_upper(solution);
@@ -9288,6 +9360,21 @@ bool ACSConfig::parse(
             valid = false;
         }
         zhangPppAr.product_solution = solution;
+
+        string integerStrategy = zhangPppAr.integer_strategy;
+        boost::to_upper(integerStrategy);
+        if (integerStrategy != "JOINT" &&
+            integerStrategy != "INDEPENDENT_SIGNAL" &&
+            integerStrategy != "LAYERED_WL_L1" &&
+            integerStrategy != "PRODUCT_TARGET_WL_L1")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar integer_strategy must be JOINT, "
+                   "INDEPENDENT_SIGNAL, LAYERED_WL_L1, or "
+                   "PRODUCT_TARGET_WL_L1";
+            valid = false;
+        }
+        zhangPppAr.integer_strategy = integerStrategy;
 
         for (auto& [sys, process] : process_sys)
         {

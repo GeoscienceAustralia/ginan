@@ -1,8 +1,11 @@
 #include "pea/zhangReference.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <map>
+#include <optional>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <boost/log/trivial.hpp>
@@ -14,6 +17,7 @@
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
 #include "common/zhangFullRank.hpp"
+#include "common/zhangIntegerAudit.hpp"
 #include "pea/zhangPppAr.hpp"
 
 using std::map;
@@ -28,7 +32,12 @@ struct ReferenceAvailability
     map<string, set<SatSys>> satellitesByReceiver;
     map<SatSys, double>      elevationScore;
     set<ZhangGraphEdge>      edges;
+    set<ZhangGraphEdge>      rawEdges;
     set<ZhangGraphEdge>      discontinuousEdges;
+    map<ZhangGraphEdge, set<E_ObsCode>> discontinuitySignals;
+    set<ZhangGraphEdge>      qcExcludedEdges;
+    set<ZhangGraphEdge>      elevationExcludedEdges;
+    set<ZhangGraphEdge>      signalUnavailableEdges;
     map<ZhangGraphEdge, double> edgeQuality;
 };
 
@@ -46,14 +55,22 @@ struct GraphRuntimeState
     {
         int continuousEpochs = 0;
         int outageEpochs = 0;
+        int arcVersion = 0;
     };
 
     ZhangGraphBasis          basis;
+    ZhangGraphBasis          activeBasis;
+    ZhangGraphBasis          productBasis;
+    map<ZhangGraphEdge, int> productArcVersions;
     set<ZhangGraphEdge>      observationEdges;
     set<ZhangGraphEdge>      stateEdges;
     map<ZhangGraphEdge, EdgeHistory> edgeHistory;
     bool                     initialized = false;
     int                      deferredEpochs = 0;
+    int                      datumVersion = 0;
+    int                      eventCounter = 0;
+    int                      productDatumVersion = 0;
+    bool                     productInitialized = false;
 };
 
 map<std::pair<const KFState*, E_Sys>, GraphRuntimeState> graphStateMap;
@@ -148,10 +165,15 @@ ReferenceAvailability referenceAvailability(
             }
 
             ZhangGraphEdge edge{id, obs.Sat};
+            availability.rawEdges.insert(edge);
             bool hardDiscontinuity = false;
             for (E_ObsCode code : baselineObservables)
             {
-                hardDiscontinuity |= signalHasExcludedSlip(obs, code);
+                if (signalHasExcludedSlip(obs, code))
+                {
+                    hardDiscontinuity = true;
+                    availability.discontinuitySignals[edge].insert(code);
+                }
             }
             if (hardDiscontinuity)
             {
@@ -160,6 +182,7 @@ ReferenceAvailability referenceAvailability(
 
             if (obs.exclude)
             {
+                availability.qcExcludedEdges.insert(edge);
                 continue;
             }
 
@@ -171,6 +194,7 @@ ReferenceAvailability referenceAvailability(
                 obs.satStat_ptr &&
                 obs.satStat_ptr->el < receiverOptions.elevation_mask_deg * D2R)
             {
+                availability.elevationExcludedEdges.insert(edge);
                 continue;
             }
 
@@ -182,6 +206,7 @@ ReferenceAvailability referenceAvailability(
 
             if (!usable)
             {
+                availability.signalUnavailableEdges.insert(edge);
                 continue;
             }
 
@@ -843,6 +868,7 @@ bool transformZhangGraphBasis(
         return false;
     }
 
+    map<E_ObsCode, map<SatSys, double>> correctionChanges;
     for (const auto& [key, oldPhase] : oldSatellitePhases)
     {
         const auto& [satellite, code] = key;
@@ -854,12 +880,12 @@ bool transformZhangGraphBasis(
         }
 
         double newPhase = kfState.x(phaseIt->second);
-        recordZhangExactPhaseTransform(
-            kfState.time,
-            sys,
-            code,
-            satellite,
-            -(newPhase - oldPhase)
+        correctionChanges[code][satellite] = -(newPhase - oldPhase);
+    }
+    for (const auto& [code, changes] : correctionChanges)
+    {
+        recordZhangExactPhaseTransforms(
+            kfState.time, sys, code, changes
         );
     }
 
@@ -1268,6 +1294,154 @@ void updateZhangGraphBasis(
 {
     auto& runtime = graphStateMap[{&kfState, sys}];
 
+    auto traceCanonicalAudit = [&](const ZhangGraphBasis& basis,
+                                   const string&           action,
+                                   bool                    exactTransition)
+    {
+        if (!acsConfig.zhangPppAr.output_diagnostics)
+        {
+            return;
+        }
+
+        ZhangCanonicalIntegerAudit audit = zhangCanonicalIntegerAudit(basis);
+        if (!audit.valid)
+        {
+            trace << "\nZHANG_CANONICAL_INTEGER_AUDIT time="
+                  << kfState.time.to_string(0)
+                  << " system=" << enum_to_string(sys)
+                  << " action=" << action
+                  << " valid=0 reason=canonical_graph_construction_failed"
+                  << " detail=" << audit.failureReason;
+            return;
+        }
+
+        const string componentId = zhangIntegerComponentId(basis);
+        for (E_ObsCode code : options.baseline_observables)
+        {
+            trace << "\nZHANG_CANONICAL_INTEGER_AUDIT time="
+                  << kfState.time.to_string(0)
+                  << " system=" << enum_to_string(sys)
+                  << " signal=" << enum_to_string(code)
+                  << " action=" << action
+                  << " valid=1"
+                  << " component_id=" << componentId
+                  << " root_node=R:" << basis.rootReceiver
+                  << " datum_version=" << runtime.datumVersion
+                  << " arcs=" << basis.edges.size()
+                  << " tree_datum_integers=" << audit.treeEdges.size()
+                  << " cycle_integers=" << audit.chordEdges.size()
+                  << " satellite_datum_rows="
+                  << audit.satelliteDatumSingleDifferences.size()
+                  << " satellite_fix_quotient_rows="
+                  << audit.satelliteFixQuotient.size()
+                  << " satellite_fix_quotient_nonzero_rows=0"
+                  << " canonical_to_arc_fingerprint="
+                  << audit.canonicalToArcFingerprint
+                  << " datum_mapping_fingerprint="
+                  << audit.datumMappingFingerprint
+                  << " fix_quotient_fingerprint="
+                  << audit.fixQuotientFingerprint
+                  << " dense_canonical_materialised="
+                  << audit.denseCanonicalMaterialised
+                  << " canonical_to_arc_unimodular=STRUCTURAL_UNIT_BLOCK"
+                  << " exact_epoch_transition=" << exactTransition;
+
+            for (const auto& edge : audit.treeEdges)
+            {
+                int arcVersion = runtime.edgeHistory[edge].arcVersion;
+                trace << "\nZHANG_CANONICAL_INTEGER_COORDINATE time="
+                      << kfState.time.to_string(0)
+                      << " signal=" << enum_to_string(code)
+                      << " component_id=" << componentId
+                      << " type=TREE_DATUM"
+                      << " integer_id=D:" << edge.receiver << ":"
+                      << edge.satellite.id() << ":A" << arcVersion
+                      << " arc_id=" << edge.receiver << ":"
+                      << edge.satellite.id() << ":" << enum_to_string(code)
+                      << ":A" << arcVersion;
+            }
+            for (const auto& edge : audit.chordEdges)
+            {
+                int arcVersion = runtime.edgeHistory[edge].arcVersion;
+                trace << "\nZHANG_CANONICAL_INTEGER_COORDINATE time="
+                      << kfState.time.to_string(0)
+                      << " signal=" << enum_to_string(code)
+                      << " component_id=" << componentId
+                      << " type=CYCLE"
+                      << " integer_id=K:" << edge.receiver << ":"
+                      << edge.satellite.id() << ":A" << arcVersion
+                      << " arc_id=" << edge.receiver << ":"
+                      << edge.satellite.id() << ":" << enum_to_string(code)
+                      << ":A" << arcVersion;
+            }
+        }
+    };
+
+    auto edgeList = [](const set<ZhangGraphEdge>& edges)
+    {
+        std::ostringstream stream;
+        bool first = true;
+        for (const auto& edge : edges)
+        {
+            stream << (first ? "" : ",") << edge.receiver << ":"
+                   << edge.satellite.id();
+            first = false;
+        }
+        return first ? string("NONE") : stream.str();
+    };
+    auto receiverList = [](const set<string>& receivers)
+    {
+        std::ostringstream stream;
+        bool first = true;
+        for (const auto& receiver : receivers)
+        {
+            stream << (first ? "" : ",") << receiver;
+            first = false;
+        }
+        return first ? string("NONE") : stream.str();
+    };
+    auto satelliteList = [](const set<SatSys>& satellites)
+    {
+        std::ostringstream stream;
+        bool first = true;
+        for (const auto& satellite : satellites)
+        {
+            stream << (first ? "" : ",") << satellite.id();
+            first = false;
+        }
+        return first ? string("NONE") : stream.str();
+    };
+    auto traceGraphEvent = [&](const string&              action,
+                               const string&              reason,
+                               const set<ZhangGraphEdge>& removedTreeEdges,
+                               const set<ZhangGraphEdge>& replacementEdges,
+                               const set<string>&         resetReceivers,
+                               const set<SatSys>&         resetSatellites,
+                               int                        removedIntegerColumns,
+                               bool                       exactTransform)
+    {
+        runtime.eventCounter++;
+        if (!acsConfig.zhangPppAr.output_diagnostics)
+        {
+            return;
+        }
+        trace << "\nZHANG_GRAPH_INTEGER_EVENT time="
+              << kfState.time.to_string(0)
+              << " system=" << enum_to_string(sys)
+              << " event_id=" << runtime.eventCounter
+              << " event_type=" << action
+              << " reason=" << reason
+              << " affected_tree_edges=" << edgeList(removedTreeEdges)
+              << " replacement_edges=" << edgeList(replacementEdges)
+              << " local_reset_nodes=" << receiverList(resetReceivers)
+              << " local_reset_satellites=" << satelliteList(resetSatellites)
+              << " removed_integer_columns=" << removedIntegerColumns
+              << " held_rows_touched=DEFERRED_TO_HELD_LATTICE_EVENT"
+              << " held_rows_removed=DEFERRED_TO_HELD_LATTICE_EVENT"
+              << " exact_unimodular_transform_available=" << exactTransform
+              << " held_lattice_storage=PHYSICAL_ARC_VERSION_HNF";
+    };
+
     // The filter state graph is deliberately allowed to outlive the instantaneous
     // observation graph.  Old tree edges and retained cycle ambiguities provide exact
     // integer coordinates across short data gaps, but an excluded slip is a hard arc break.
@@ -1287,7 +1461,10 @@ void updateZhangGraphBasis(
 
     for (const auto& edge : availability.discontinuousEdges)
     {
-        runtime.edgeHistory.erase(edge);
+        auto& history = runtime.edgeHistory[edge];
+        history.continuousEpochs = 0;
+        history.outageEpochs = options.state_edge_grace_epochs + 1;
+        history.arcVersion++;
     }
 
     set<ZhangGraphEdge> trackedEdges = modelledEdges;
@@ -1421,8 +1598,10 @@ void updateZhangGraphBasis(
                     affectedSatellites
                 );
                 runtime.basis = {};
+                runtime.activeBasis = {};
                 runtime.initialized = false;
                 runtime.deferredEpochs = 0;
+                runtime.datumVersion++;
             }
         }
 
@@ -1472,6 +1651,439 @@ void updateZhangGraphBasis(
         return;
     }
 
+    auto updateProductDatum = [&](const string& reason)
+    {
+        const ZhangGraphBasis oldProduct = runtime.productBasis;
+        const map<ZhangGraphEdge, int> oldProductArcVersions =
+            runtime.productArcVersions;
+        ZhangGraphBasis nextProduct = zhangBuildSpanningTree(
+            candidate.edges,
+            candidate.rootReceiver,
+            runtime.productBasis.treeEdges
+        );
+        if (!nextProduct.connected)
+        {
+            return false;
+        }
+
+        map<ZhangGraphEdge, int> nextProductArcVersions;
+        for (const auto& edge : nextProduct.treeEdges)
+        {
+            auto history = runtime.edgeHistory.find(edge);
+            if (history != runtime.edgeHistory.end())
+            {
+                nextProductArcVersions[edge] = history->second.arcVersion;
+            }
+        }
+
+        set<ZhangGraphEdge> removedProductEdges;
+        set<ZhangGraphEdge> addedProductEdges;
+        set<ZhangGraphEdge> versionChangedEdges;
+        if (runtime.productInitialized)
+        {
+            std::set_difference(
+                oldProduct.treeEdges.begin(), oldProduct.treeEdges.end(),
+                nextProduct.treeEdges.begin(), nextProduct.treeEdges.end(),
+                std::inserter(removedProductEdges, removedProductEdges.begin())
+            );
+            std::set_difference(
+                nextProduct.treeEdges.begin(), nextProduct.treeEdges.end(),
+                oldProduct.treeEdges.begin(), oldProduct.treeEdges.end(),
+                std::inserter(addedProductEdges, addedProductEdges.begin())
+            );
+            for (const auto& edge : nextProduct.treeEdges)
+            {
+                auto oldVersion = oldProductArcVersions.find(edge);
+                auto newVersion = nextProductArcVersions.find(edge);
+                if (oldProduct.treeEdges.find(edge) !=
+                        oldProduct.treeEdges.end() &&
+                    oldVersion != oldProductArcVersions.end() &&
+                    newVersion != nextProductArcVersions.end() &&
+                    oldVersion->second != newVersion->second)
+                {
+                    versionChangedEdges.insert(edge);
+                }
+            }
+        }
+
+        bool preserved = runtime.productInitialized;
+        if (preserved)
+        {
+            set<string> commonReceivers;
+            set<SatSys> commonSatellites;
+            std::set_intersection(
+                runtime.productBasis.receivers.begin(),
+                runtime.productBasis.receivers.end(),
+                candidate.receivers.begin(),
+                candidate.receivers.end(),
+                std::inserter(commonReceivers, commonReceivers.end())
+            );
+            std::set_intersection(
+                runtime.productBasis.satellites.begin(),
+                runtime.productBasis.satellites.end(),
+                candidate.satellites.begin(),
+                candidate.satellites.end(),
+                std::inserter(commonSatellites, commonSatellites.end())
+            );
+            set<ZhangGraphEdge> restrictedOldTree;
+            for (const auto& edge : runtime.productBasis.treeEdges)
+            {
+                if (commonReceivers.find(edge.receiver) !=
+                        commonReceivers.end() &&
+                    commonSatellites.find(edge.satellite) !=
+                        commonSatellites.end())
+                {
+                    restrictedOldTree.insert(edge);
+                }
+            }
+            // Added receiver/satellite leaves extend the persistent datum and
+            // removed leaves contract it.  Neither operation changes the
+            // integer potentials of the common connected nodes.  Only a break
+            // that disconnects the old tree on the common node set requires a
+            // new product-datum version.
+            const std::size_t requiredCommon =
+                commonReceivers.empty() && commonSatellites.empty()
+                    ? 0
+                    : commonReceivers.size() + commonSatellites.size() - 1;
+            preserved =
+                runtime.productBasis.rootReceiver == candidate.rootReceiver &&
+                restrictedOldTree.size() == requiredCommon &&
+                versionChangedEdges.empty() &&
+                std::includes(
+                    nextProduct.treeEdges.begin(), nextProduct.treeEdges.end(),
+                    restrictedOldTree.begin(), restrictedOldTree.end()
+                );
+        }
+        if (runtime.productInitialized && !preserved)
+        {
+            runtime.productDatumVersion++;
+        }
+        bool changed = !runtime.productInitialized ||
+            runtime.productBasis.treeEdges != nextProduct.treeEdges ||
+            runtime.productBasis.receivers != nextProduct.receivers ||
+            runtime.productBasis.satellites != nextProduct.satellites ||
+            !versionChangedEdges.empty();
+
+        ZhangSatelliteSupportMetrics oldSatelliteMetrics;
+        ZhangSatelliteSupportMetrics newSatelliteMetrics;
+        if (changed && acsConfig.zhangPppAr.output_diagnostics)
+        {
+            oldSatelliteMetrics = zhangSatelliteSupportMetrics(oldProduct.edges);
+            newSatelliteMetrics = zhangSatelliteSupportMetrics(nextProduct.edges);
+        }
+
+        struct ProductEdgeDiagnostic
+        {
+            std::optional<ZhangGraphEdge> oldEdge;
+            std::optional<ZhangGraphEdge> newEdge;
+            string                        eventReason;
+            string                        signal = "ALL_BASELINE";
+            int                           oldArcVersion = -1;
+            int                           newArcVersion = -1;
+            int                           oldAlternativePaths = 0;
+            int                           newAlternativePaths = 0;
+        };
+        vector<ZhangGraphEdge> oldChanged(
+            removedProductEdges.begin(), removedProductEdges.end()
+        );
+        oldChanged.insert(
+            oldChanged.end(),
+            versionChangedEdges.begin(), versionChangedEdges.end()
+        );
+        vector<ZhangGraphEdge> newChanged(
+            addedProductEdges.begin(), addedProductEdges.end()
+        );
+        newChanged.insert(
+            newChanged.end(),
+            versionChangedEdges.begin(), versionChangedEdges.end()
+        );
+
+        auto rawContainsReceiver = [&](const string& receiver)
+        {
+            return std::any_of(
+                availability.rawEdges.begin(), availability.rawEdges.end(),
+                [&](const auto& edge) { return edge.receiver == receiver; }
+            );
+        };
+        auto rawContainsSatellite = [&](const SatSys& satellite)
+        {
+            return std::any_of(
+                availability.rawEdges.begin(), availability.rawEdges.end(),
+                [&](const auto& edge) { return edge.satellite == satellite; }
+            );
+        };
+        auto classifyOldEdge = [&](const ZhangGraphEdge& edge,
+                                   int oldAlternativePaths)
+        {
+            if (versionChangedEdges.find(edge) != versionChangedEdges.end() ||
+                availability.discontinuousEdges.find(edge) !=
+                    availability.discontinuousEdges.end())
+            {
+                return string("CONFIRMED_CYCLE_SLIP");
+            }
+            if (availability.qcExcludedEdges.find(edge) !=
+                    availability.qcExcludedEdges.end() ||
+                availability.elevationExcludedEdges.find(edge) !=
+                    availability.elevationExcludedEdges.end())
+            {
+                return string("STATION_QC_REMOVAL");
+            }
+            if (availability.signalUnavailableEdges.find(edge) !=
+                    availability.signalUnavailableEdges.end())
+            {
+                return string("TEMPORARY_OBSERVATION_LOSS");
+            }
+            if (!rawContainsSatellite(edge.satellite))
+            {
+                return string("SATELLITE_RISE_SET");
+            }
+            if (!rawContainsReceiver(edge.receiver) ||
+                availability.rawEdges.find(edge) == availability.rawEdges.end())
+            {
+                return string("TEMPORARY_OBSERVATION_LOSS");
+            }
+            if (oldAlternativePaths == 0)
+            {
+                return string("PRODUCT_EDGE_NO_ALTERNATIVE_SUPPORT");
+            }
+            if (nextProduct.satellites.size() < oldProduct.satellites.size() ||
+                nextProduct.receivers.size() < oldProduct.receivers.size())
+            {
+                return string("COMPONENT_SPLIT");
+            }
+            return string("TREE_REOPTIMIZATION");
+        };
+
+        vector<ProductEdgeDiagnostic> edgeDiagnostics;
+        const size_t diagnosticCount = std::max(
+            oldChanged.size(), newChanged.size()
+        );
+        set<string> classifiedReasons;
+        for (size_t index = 0; index < diagnosticCount; index++)
+        {
+            ProductEdgeDiagnostic diagnostic;
+            if (index < oldChanged.size())
+            {
+                diagnostic.oldEdge = oldChanged[index];
+                auto version = oldProductArcVersions.find(*diagnostic.oldEdge);
+                if (version != oldProductArcVersions.end())
+                {
+                    diagnostic.oldArcVersion = version->second;
+                }
+                diagnostic.oldAlternativePaths =
+                    zhangAlternativePhysicalPathCount(
+                        oldProduct.edges, *diagnostic.oldEdge
+                    );
+                diagnostic.eventReason = classifyOldEdge(
+                    *diagnostic.oldEdge,
+                    diagnostic.oldAlternativePaths
+                );
+                auto signals = availability.discontinuitySignals.find(
+                    *diagnostic.oldEdge
+                );
+                if (signals != availability.discontinuitySignals.end())
+                {
+                    std::ostringstream listed;
+                    for (E_ObsCode code : signals->second)
+                    {
+                        listed << (listed.tellp() > 0 ? "," : "")
+                               << enum_to_string(code);
+                    }
+                    diagnostic.signal = listed.str();
+                }
+            }
+            if (index < newChanged.size())
+            {
+                diagnostic.newEdge = newChanged[index];
+                auto version = nextProductArcVersions.find(*diagnostic.newEdge);
+                if (version != nextProductArcVersions.end())
+                {
+                    diagnostic.newArcVersion = version->second;
+                }
+                diagnostic.newAlternativePaths =
+                    zhangAlternativePhysicalPathCount(
+                        nextProduct.edges, *diagnostic.newEdge
+                    );
+            }
+            if (diagnostic.eventReason.empty())
+            {
+                diagnostic.eventReason =
+                    nextProduct.satellites.size() > oldProduct.satellites.size() ||
+                    nextProduct.receivers.size() > oldProduct.receivers.size()
+                        ? "COMPONENT_MERGE"
+                        : "TREE_REOPTIMIZATION";
+            }
+            classifiedReasons.insert(diagnostic.eventReason);
+            edgeDiagnostics.push_back(std::move(diagnostic));
+        }
+
+        struct TreeSupportSummary
+        {
+            int minimum = 0;
+            int maximum = 0;
+            int bridgeCount = 0;
+            double mean = 0;
+        };
+        auto treeSupportSummary = [&](const ZhangGraphBasis& basis)
+        {
+            TreeSupportSummary summary;
+            if (basis.treeEdges.empty())
+            {
+                return summary;
+            }
+            summary.minimum = std::numeric_limits<int>::max();
+            long long total = 0;
+            for (const auto& edge : basis.treeEdges)
+            {
+                int support = 1 + zhangAlternativePhysicalPathCount(
+                    basis.edges, edge
+                );
+                summary.minimum = std::min(summary.minimum, support);
+                summary.maximum = std::max(summary.maximum, support);
+                summary.bridgeCount += support == 1;
+                total += support;
+            }
+            summary.mean = static_cast<double>(total) / basis.treeEdges.size();
+            return summary;
+        };
+        TreeSupportSummary oldTreeSupport;
+        TreeSupportSummary newTreeSupport;
+        if (changed && acsConfig.zhangPppAr.output_diagnostics)
+        {
+            oldTreeSupport = treeSupportSummary(oldProduct);
+            newTreeSupport = treeSupportSummary(nextProduct);
+        }
+
+        runtime.productBasis = std::move(nextProduct);
+        runtime.productArcVersions = std::move(nextProductArcVersions);
+        runtime.productInitialized = true;
+        if (changed && acsConfig.zhangPppAr.output_diagnostics)
+        {
+            std::ostringstream reasons;
+            for (const auto& classified : classifiedReasons)
+            {
+                reasons << (reasons.tellp() > 0 ? "," : "") << classified;
+            }
+            trace << "\nZHANG_PRODUCT_DATUM_EVENT time="
+                  << kfState.time.to_string(0)
+                  << " system=" << enum_to_string(sys)
+                  << " reason=" << reason
+                  << " classified_reasons="
+                  << (classifiedReasons.empty() ? "INITIALISE" : reasons.str())
+                  << " datum_version=" << runtime.productDatumVersion
+                  << " continuity_preserved=" << preserved
+                  << " component_id="
+                  << zhangIntegerComponentId(runtime.productBasis)
+                  << " product_tree_edges="
+                  << runtime.productBasis.treeEdges.size()
+                  << " product_receivers="
+                  << runtime.productBasis.receivers.size()
+                  << " product_satellites="
+                  << runtime.productBasis.satellites.size()
+                  << " old_product_tree_edges=" << edgeList(removedProductEdges)
+                  << " new_product_tree_edges=" << edgeList(addedProductEdges)
+                  << " arc_version_changes=" << edgeList(versionChangedEdges)
+                  << " old_tree_min_support=" << oldTreeSupport.minimum
+                  << " old_tree_mean_support=" << oldTreeSupport.mean
+                  << " old_tree_bridge_count=" << oldTreeSupport.bridgeCount
+                  << " new_tree_min_support=" << newTreeSupport.minimum
+                  << " new_tree_mean_support=" << newTreeSupport.mean
+                  << " new_tree_bridge_count=" << newTreeSupport.bridgeCount
+                  << " old_satellite_bridge_count="
+                  << oldSatelliteMetrics.bridgeEdges.size()
+                  << " new_satellite_bridge_count="
+                  << newSatelliteMetrics.bridgeEdges.size()
+                  << " old_satellite_edge_connectivity="
+                  << oldSatelliteMetrics.edgeConnectivity
+                  << " new_satellite_edge_connectivity="
+                  << newSatelliteMetrics.edgeConnectivity;
+
+            for (const auto& diagnostic : edgeDiagnostics)
+            {
+                auto edgeText = [](const std::optional<ZhangGraphEdge>& edge)
+                {
+                    return edge
+                        ? edge->receiver + ":" + edge->satellite.id()
+                        : string("NONE");
+                };
+                trace << "\nZHANG_PRODUCT_DATUM_EDGE_EVENT time="
+                      << kfState.time.to_string(0)
+                      << " system=" << enum_to_string(sys)
+                      << " old_product_tree_edge="
+                      << edgeText(diagnostic.oldEdge)
+                      << " new_product_tree_edge="
+                      << edgeText(diagnostic.newEdge)
+                      << " event_reason=" << diagnostic.eventReason
+                      << " receiver="
+                      << (diagnostic.oldEdge
+                              ? diagnostic.oldEdge->receiver
+                              : diagnostic.newEdge
+                                    ? diagnostic.newEdge->receiver
+                                    : "NONE")
+                      << " satellite="
+                      << (diagnostic.oldEdge
+                              ? diagnostic.oldEdge->satellite.id()
+                              : diagnostic.newEdge
+                                    ? diagnostic.newEdge->satellite.id()
+                                    : "NONE")
+                      << " signal=" << diagnostic.signal
+                      << " old_arc_version=" << diagnostic.oldArcVersion
+                      << " new_arc_version=" << diagnostic.newArcVersion
+                      << " old_support_count="
+                      << (diagnostic.oldEdge
+                              ? 1 + diagnostic.oldAlternativePaths : 0)
+                      << " new_support_count="
+                      << (diagnostic.newEdge
+                              ? 1 + diagnostic.newAlternativePaths : 0)
+                      << " old_alternative_exact_paths="
+                      << diagnostic.oldAlternativePaths
+                      << " new_alternative_exact_paths="
+                      << diagnostic.newAlternativePaths
+                      << " bridge_before="
+                      << (diagnostic.oldEdge &&
+                          diagnostic.oldAlternativePaths == 0)
+                      << " bridge_after="
+                      << (diagnostic.newEdge &&
+                          diagnostic.newAlternativePaths == 0)
+                      << " component_size_before="
+                      << oldSatelliteMetrics.largestComponent
+                      << " component_size_after="
+                      << newSatelliteMetrics.largestComponent
+                      << " datum_version_changed=" << !preserved;
+            }
+
+            trace << "\nZHANG_PRODUCT_GRAPH_REDUNDANCY time="
+                  << kfState.time.to_string(0)
+                  << " system=" << enum_to_string(sys)
+                  << " product_satellites="
+                  << newSatelliteMetrics.satellites.size()
+                  << " product_relation_edges="
+                  << newSatelliteMetrics.supportCounts.size()
+                  << " mean_support_count="
+                  << newSatelliteMetrics.meanSupport
+                  << " min_support_count="
+                  << newSatelliteMetrics.minimumSupport
+                  << " max_support_count="
+                  << newSatelliteMetrics.maximumSupport
+                  << " bridge_count="
+                  << newSatelliteMetrics.bridgeEdges.size()
+                  << " edge_connectivity="
+                  << newSatelliteMetrics.edgeConnectivity
+                  << " component_count="
+                  << newSatelliteMetrics.componentCount
+                  << " largest_component="
+                  << newSatelliteMetrics.largestComponent
+                  << " product_tree_min_support="
+                  << newTreeSupport.minimum
+                  << " product_tree_mean_support="
+                  << newTreeSupport.mean
+                  << " product_tree_bridge_count="
+                  << newTreeSupport.bridgeCount
+                  << " datum_version=" << runtime.productDatumVersion;
+        }
+        return true;
+    };
+
     bool hasEstimatedPhaseState = false;
     for (const auto& [key, index] : kfState.kfIndexMap)
     {
@@ -1493,11 +2105,24 @@ void updateZhangGraphBasis(
 
     if (!runtime.initialized || !hasEstimatedPhaseState)
     {
+        updateProductDatum("initialise");
         runtime.basis            = candidate;
+        runtime.activeBasis      = candidate;
         runtime.observationEdges = observationEdges;
         runtime.stateEdges       = stateEdges;
         runtime.initialized = true;
         runtime.deferredEpochs = 0;
+        traceGraphEvent(
+            "initialise",
+            "initial_component",
+            {},
+            candidate.treeEdges,
+            {},
+            {},
+            0,
+            true
+        );
+        traceCanonicalAudit(runtime.basis, "initialise", true);
 
         BOOST_LOG_TRIVIAL(info)
             << "ZHANG_GRAPH_BASIS sys=" << enum_to_string(sys)
@@ -1511,6 +2136,8 @@ void updateZhangGraphBasis(
 
     if (candidate.treeEdges == runtime.basis.treeEdges)
     {
+        updateProductDatum("graph_update");
+        runtime.activeBasis      = candidate;
         runtime.observationEdges = observationEdges;
         runtime.stateEdges       = stateEdges;
         runtime.deferredEpochs = 0;
@@ -1549,10 +2176,31 @@ void updateZhangGraphBasis(
 
     if (leafExtension)
     {
+        set<ZhangGraphEdge> addedTreeEdges;
+        std::set_difference(
+            candidate.treeEdges.begin(),
+            candidate.treeEdges.end(),
+            runtime.basis.treeEdges.begin(),
+            runtime.basis.treeEdges.end(),
+            std::inserter(addedTreeEdges, addedTreeEdges.begin())
+        );
+        updateProductDatum("leaf_extension");
         runtime.basis            = candidate;
+        runtime.activeBasis      = candidate;
         runtime.observationEdges = observationEdges;
         runtime.stateEdges       = stateEdges;
         runtime.deferredEpochs = 0;
+        traceGraphEvent(
+            "leaf_extension",
+            "new_leaf_node",
+            {},
+            addedTreeEdges,
+            {},
+            {},
+            0,
+            true
+        );
+        traceCanonicalAudit(runtime.basis, "leaf_extension", true);
         BOOST_LOG_TRIVIAL(info)
             << "ZHANG_GRAPH_BASIS sys=" << enum_to_string(sys)
             << " action=leaf_extension"
@@ -1608,6 +2256,36 @@ void updateZhangGraphBasis(
             return false;
         }
 
+        set<ZhangGraphEdge> removedTreeEdges;
+        set<ZhangGraphEdge> replacementEdges;
+        std::set_difference(
+            runtime.basis.treeEdges.begin(),
+            runtime.basis.treeEdges.end(),
+            candidate.treeEdges.begin(),
+            candidate.treeEdges.end(),
+            std::inserter(removedTreeEdges, removedTreeEdges.begin())
+        );
+        std::set_difference(
+            candidate.treeEdges.begin(),
+            candidate.treeEdges.end(),
+            runtime.basis.treeEdges.begin(),
+            runtime.basis.treeEdges.end(),
+            std::inserter(replacementEdges, replacementEdges.begin())
+        );
+        int removedIntegerColumns = 0;
+        for (const auto& [key, index] : kfState.kfIndexMap)
+        {
+            removedIntegerColumns +=
+                key.type == KF::AMBIGUITY &&
+                key.Sat.sys == sys &&
+                zhangFullRankUsesObservable(
+                    static_cast<E_ObsCode>(key.num),
+                    options.baseline_observables
+                ) &&
+                (affectedReceivers.find(key.str) != affectedReceivers.end() ||
+                 affectedSatellites.find(key.Sat) != affectedSatellites.end());
+        }
+
         if (!resetZhangGraphPhaseCoordinates(
                 trace,
                 kfState,
@@ -1625,10 +2303,24 @@ void updateZhangGraphBasis(
         const size_t preservedSatellites =
             runtime.basis.satellites.size() - affectedSatellites.size();
 
+        updateProductDatum("local_reinitialise");
         runtime.basis            = candidate;
+        runtime.activeBasis      = candidate;
         runtime.observationEdges = observationEdges;
         runtime.stateEdges       = stateEdges;
         runtime.deferredEpochs   = 0;
+        runtime.datumVersion++;
+        traceGraphEvent(
+            "local_reinitialise",
+            reason,
+            removedTreeEdges,
+            replacementEdges,
+            affectedReceivers,
+            affectedSatellites,
+            removedIntegerColumns,
+            false
+        );
+        traceCanonicalAudit(runtime.basis, "local_reinitialise", false);
         recordZhangPhaseReinitialisation(
             kfState.time,
             sys,
@@ -1744,10 +2436,43 @@ void updateZhangGraphBasis(
         return;
     }
 
+    set<ZhangGraphEdge> removedTreeEdges;
+    set<ZhangGraphEdge> replacementEdges;
+    std::set_difference(
+        oldBasis.treeEdges.begin(),
+        oldBasis.treeEdges.end(),
+        candidate.treeEdges.begin(),
+        candidate.treeEdges.end(),
+        std::inserter(removedTreeEdges, removedTreeEdges.begin())
+    );
+    std::set_difference(
+        candidate.treeEdges.begin(),
+        candidate.treeEdges.end(),
+        oldBasis.treeEdges.begin(),
+        oldBasis.treeEdges.end(),
+        std::inserter(replacementEdges, replacementEdges.begin())
+    );
+
+    updateProductDatum("tree_exchange");
     runtime.basis            = transformedBasis;
+    runtime.activeBasis      = candidate;
     runtime.observationEdges = observationEdges;
     runtime.stateEdges       = stateEdges;
     runtime.deferredEpochs = 0;
+    traceGraphEvent(
+        "tree_exchange",
+        "exact_state_transform",
+        removedTreeEdges,
+        replacementEdges,
+        {},
+        {},
+        0,
+        true
+    );
+    // transformedBasis retains stale ambiguity arcs solely to make the state
+    // transform dimension preserving.  Canonical integer coordinates belong
+    // to the active retained component represented by candidate/stateEdges.
+    traceCanonicalAudit(candidate, "tree_exchange", true);
 
     BOOST_LOG_TRIVIAL(info)
         << "ZHANG_GRAPH_BASIS sys=" << enum_to_string(sys)
@@ -2002,4 +2727,31 @@ bool zhangGraphProductSatelliteActive(
         }
     }
     return false;
+}
+
+bool zhangGraphIntegerContext(
+    const KFState&             kfState,
+    E_Sys                      system,
+    ZhangGraphIntegerContext& context
+)
+{
+    context = {};
+    auto stateIt = graphStateMap.find({&kfState, system});
+    if (stateIt == graphStateMap.end() || !stateIt->second.initialized)
+    {
+        return false;
+    }
+
+    context.basis   = stateIt->second.activeBasis.connected
+        ? stateIt->second.activeBasis
+        : stateIt->second.basis;
+    context.productBasis = stateIt->second.productBasis;
+    context.eventId = stateIt->second.eventCounter;
+    context.productDatumVersion = stateIt->second.productDatumVersion;
+    for (const auto& [edge, history] : stateIt->second.edgeHistory)
+    {
+        context.arcVersions[edge] = history.arcVersion;
+    }
+    context.initialized = true;
+    return true;
 }

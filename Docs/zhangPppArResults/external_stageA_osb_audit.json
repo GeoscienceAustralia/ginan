@@ -1,0 +1,268 @@
+{
+  "bia": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\products\\IGS2R03FIN_20191990000_01D_01D_OSB.BIA",
+  "receiver_trace": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\outputs\\external_osb_stageA_MATE\\MATE-external_osb_user_MATE-201919900.TRACE",
+  "unit": "BIA ns converted with c/1e9 = 0.299792458 m/ns",
+  "sign": "Ginan observation correction equals negative of the BIA OSB value after conversion to metres",
+  "bia_entries": 124,
+  "trace_entries": 32,
+  "matched_entries": 32,
+  "maximum_abs_difference_m": 1.552284641892,
+  "comparisons": [
+    {
+      "satellite": "G02",
+      "signal": "L1C",
+      "bia_ns": 0.38,
+      "expected_observation_correction_m": -0.11392113404,
+      "trace_observation_correction_m": -0.1139,
+      "difference_m": 2.1134039999995413e-05
+    },
+    {
+      "satellite": "G02",
+      "signal": "L2W",
+      "bia_ns": 0.154,
+      "expected_observation_correction_m": -0.046168038531999994,
+      "trace_observation_correction_m": -0.0462,
+      "difference_m": -3.196146800000382e-05
+    },
+    {
+      "satellite": "G05",
+      "signal": "L1C",
+      "bia_ns": -0.097,
+      "expected_observation_correction_m": 0.029079868426,
+      "trace_observation_correction_m": 0.0291,
+      "difference_m": 2.013157399999993e-05
+    },
+    {
+      "satellite": "G05",
+      "signal": "L2W",
+      "bia_ns": 0.57,
+      "expected_observation_correction_m": -0.17088170105999997,
+      "trace_observation_correction_m": -0.1709,
+      "difference_m": -1.829894000002219e-05
+    },
+    {
+      "satellite": "G06",
+      "signal": "L1C",
+      "bia_ns": -0.441,
+      "expected_observation_correction_m": 0.132208473978,
+      "trace_observation_correction_m": 0.1322,
+      "difference_m": -8.473977999995386e-06
+    },
+    {
+      "satellite": "G06",
+      "signal": "L2W",
+      "bia_ns": -0.127,
+      "expected_observation_correction_m": 0.038073642165999996,
+      "trace_observation_correction_m": 0.0381,
+      "difference_m": 2.635783400000563e-05
+    },
+    {
+      "satellite": "G07",
+      "signal": "L1C",
+      "bia_ns": 0.074,
+      "expected_observation_correction_m": -0.022184641891999996,
+      "trace_observation_correction_m": -0.0222,
+      "difference_m": -1.535810800000481e-05
+    },
+    {
+      "satellite": "G07",
+      "signal": "L2W",
+      "bia_ns": 0.505,
+      "expected_observation_correction_m": -0.15139519128999998,
+      "trace_observation_correction_m": -0.1514,
+      "difference_m": -4.8087100000260286e-06
+    },
+    {
+      "satellite": "G09",
+      "signal": "L1C",
+      "bia_ns": 0.095,
+      "expected_observation_correction_m": -0.02848028351,
+      "trace_observation_correction_m": -0.0285,
+      "difference_m": -1.9716490000001863e-05
+    },
+    {
+      "satellite": "G09",
+      "signal": "L2W",
+      "bia_ns": 0.16,
+      "expected_observation_correction_m": -0.047966793279999996,
+      "trace_observation_correction_m": -0.048,
+      "difference_m": -3.320672000000496e-05
+    },
+    {
+      "satellite": "G12",
+      "signal": "L1C",
+      "bia_ns": 0.333,
+      "expected_observation_correction_m": -0.099830888514,
+      "trace_observation_correction_m": -0.0998,
+      "difference_m": 3.088851400000203e-05
+    },
+    {
+      "satellite": "G12",
+      "signal": "L2W",
+      "bia_ns": -0.001,
+      "expected_observation_correction_m": 0.00029979245799999996,
+      "trace_observation_correction_m": 0.0003,
+      "difference_m": 2.0754200000000934e-07
+    },
+    {
+      "satellite": "G13",
+      "signal": "L1C",
+      "bia_ns": -0.154,
+      "expected_observation_correction_m": 0.046168038531999994,
+      "trace_observation_correction_m": 0.0462,
+      "difference_m": 3.196146800000382e-05
+    },
+    {
+      "satellite": "G13",
+      "signal": "L2W",
+      "bia_ns": 0.276,
+      "expected_observation_correction_m": -0.082742718408,
+      "trace_observation_correction_m": -0.0827,
+      "difference_m": 4.2718408000005925e-05
+    },
+    {
+      "satellite": "G15",
+      "signal": "L1C",
+      "bia_ns": 0.019,
+      "expected_observation_correction_m": -0.0056960567019999995,
+      "trace_observation_correction_m": -0.0057,
+      "difference_m": -3.9432980000007195e-06
+    },
+    {
+      "satellite": "G15",
+      "signal": "L2W",
+      "bia_ns": -0.13,
+      "expected_observation_correction_m": 0.03897301954,
+      "trace_observation_correction_m": 0.039,
+      "difference_m": 2.6980459999999262e-05
+    },
+    {
+      "satellite": "G17",
+      "signal": "L1C",
+      "bia_ns": -0.055,
+      "expected_observation_correction_m": 0.01648858519,
+      "trace_observation_correction_m": 0.0165,
+      "difference_m": 1.1414810000002357e-05
+    },
+    {
+      "satellite": "G17",
+      "signal": "L2W",
+      "bia_ns": 0.086,
+      "expected_observation_correction_m": -0.025782151387999996,
+      "trace_observation_correction_m": -0.0258,
+      "difference_m": -1.7848612000003622e-05
+    },
+    {
+      "satellite": "G19",
+      "signal": "L1C",
+      "bia_ns": 0.139,
+      "expected_observation_correction_m": -0.041671151662,
+      "trace_observation_correction_m": -0.0417,
+      "difference_m": -2.8848338000000973e-05
+    },
+    {
+      "satellite": "G19",
+      "signal": "L2W",
+      "bia_ns": 0.316,
+      "expected_observation_correction_m": -0.094734416728,
+      "trace_observation_correction_m": -0.0947,
+      "difference_m": 3.441672799998907e-05
+    },
+    {
+      "satellite": "G20",
+      "signal": "L1C",
+      "bia_ns": 0.217,
+      "expected_observation_correction_m": -0.06505496338599999,
+      "trace_observation_correction_m": -0.0651,
+      "difference_m": -4.5036614000015796e-05
+    },
+    {
+      "satellite": "G20",
+      "signal": "L2W",
+      "bia_ns": -0.025,
+      "expected_observation_correction_m": 0.00749481145,
+      "trace_observation_correction_m": 0.0075,
+      "difference_m": 5.188550000000125e-06
+    },
+    {
+      "satellite": "G24",
+      "signal": "L1C",
+      "bia_ns": 0.145,
+      "expected_observation_correction_m": -0.043469906409999995,
+      "trace_observation_correction_m": -0.0435,
+      "difference_m": -3.0093590000002113e-05
+    },
+    {
+      "satellite": "G24",
+      "signal": "L2W",
+      "bia_ns": -0.343,
+      "expected_observation_correction_m": 0.10282881309400001,
+      "trace_observation_correction_m": 0.1028,
+      "difference_m": -2.8813094000004758e-05
+    },
+    {
+      "satellite": "G25",
+      "signal": "L1C",
+      "bia_ns": 0.086,
+      "expected_observation_correction_m": -0.025782151387999996,
+      "trace_observation_correction_m": -0.0258,
+      "difference_m": -1.7848612000003622e-05
+    },
+    {
+      "satellite": "G25",
+      "signal": "L2W",
+      "bia_ns": -0.496,
+      "expected_observation_correction_m": 0.148697059168,
+      "trace_observation_correction_m": 0.1487,
+      "difference_m": 2.9408320000035015e-06
+    },
+    {
+      "satellite": "G28",
+      "signal": "L1C",
+      "bia_ns": 0.332,
+      "expected_observation_correction_m": -0.099531096056,
+      "trace_observation_correction_m": -0.0995,
+      "difference_m": 3.109605599999066e-05
+    },
+    {
+      "satellite": "G28",
+      "signal": "L2W",
+      "bia_ns": 0.296,
+      "expected_observation_correction_m": -0.08873856756799998,
+      "trace_observation_correction_m": -0.0887,
+      "difference_m": 3.856756799998362e-05
+    },
+    {
+      "satellite": "G29",
+      "signal": "L1C",
+      "bia_ns": 0.435,
+      "expected_observation_correction_m": -0.13040971923,
+      "trace_observation_correction_m": -0.1304,
+      "difference_m": 9.719230000010404e-06
+    },
+    {
+      "satellite": "G29",
+      "signal": "L2W",
+      "bia_ns": 0.378,
+      "expected_observation_correction_m": -0.113321549124,
+      "trace_observation_correction_m": -0.1133,
+      "difference_m": 2.154912400000042e-05
+    },
+    {
+      "satellite": "G32",
+      "signal": "L1C",
+      "bia_ns": -0.074,
+      "expected_observation_correction_m": 0.022184641891999996,
+      "trace_observation_correction_m": -1.5301,
+      "difference_m": -1.552284641892
+    },
+    {
+      "satellite": "G32",
+      "signal": "L2W",
+      "bia_ns": -0.142,
+      "expected_observation_correction_m": 0.04257052903599999,
+      "trace_observation_correction_m": 0.0426,
+      "difference_m": 2.947096400000848e-05
+    }
+  ]
+}
