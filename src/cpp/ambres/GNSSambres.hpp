@@ -12,6 +12,8 @@
 extern double FIXED_AMB_VAR;
 extern bool   AR_VERBO;
 
+double round_perr(double dx, double var);
+
 struct GinAR_mtx
 {
     map<int, KFKey> ambmap;

@@ -1,0 +1,35 @@
+# E12: retain every E11 control and add P4 held-lattice joint subset
+# isolation.  Rejected physical support is product-quarantined, unaffected
+# held rows remain conditionable, and relinking requires five confirmations.
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 02:10:00
+    epoch_interval: 60
+
+  gnss_general:
+    zhang_full_rank:
+      output_diagnostics: false
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 10
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      integer_strategy: PRODUCT_TARGET_WL_L1
+      component_bridge_targeting: true
+      current_state_relinking: true
+      max_topology_targets: 3
+      promotion_confirmation_epochs: 5
+      promotion_confirmation_max_gap_seconds: 120
+      conflict_quarantine: true
+      transactional_integer_fixing: true
+      held_constraint_nis_alpha: 1.0e-6
+      product_target_named_rounding: true
+      product_filename: ./outputs/zhang_global_2019199_e12_held_isolation/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e12_held_isolation/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e12_held_isolation
+  metadata:
+    config_description: zhang_global_2019199_e12_held_isolation

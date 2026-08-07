@@ -356,6 +356,15 @@ inline static void pppSatClocks(COMMON_PPP_ARGS)
         return;
     }
 
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        // Never combine a missing/rejected Zhang product with a conventional
+        // satellite clock while suppressing the corresponding phase bias.
+        measEntry.valid = false;
+        return;
+    }
+
     // Don't obliterate obs.satClk in satclk below, we still need the old one for next signal/phase
     SatPos satPos0 = obs;
 

@@ -56,6 +56,21 @@ struct ZhangPhaseContinuityState
         return ZhangPhaseContinuityChange::EXACT_FRACTIONAL;
     }
 
+    /** Transport the internal dynamic-tree coordinate into a persistent
+     * Hou-style product coordinate.
+     *
+     * A tree exchange is an exact affine S-transform, not a physical phase
+     * event.  Its complete offset (integer and fractional parts) therefore
+     * belongs in the product-coordinate map and must not change the product
+     * discontinuity counter, datum version, IOD, or stabilisation state. */
+    void applyHouProductTransform(double cycleChange)
+    {
+        const long long integerChange = std::llround(cycleChange);
+        integerShiftCycles += integerChange;
+        fractionalShiftCycles += cycleChange - integerChange;
+        resetReason = "hou_exact_affine_s_transform";
+    }
+
     ZhangPhaseContinuityChange reinitialise(
         GTime              time,
         const std::string& reason,
@@ -88,9 +103,36 @@ struct ZhangPhaseContinuityState
         }
     }
 
+    void markFixed(GTime time, int stabilizationEpochs)
+    {
+        if (!hasFixedDatum)
+        {
+            validFrom = time;
+            stabilizationRemaining = stabilizationEpochs;
+            resetReason = "integer_precision_acquired";
+        }
+        hasFixedDatum = true;
+    }
+
+    /** Preserve the original zero-stabilisation state-machine operation for
+     * callers that do not own an epoch clock (notably algebraic unit tests).
+     * Product generation must use the epoch-aware overload above. */
     void markFixed()
     {
         hasFixedDatum = true;
+    }
+
+    void markIntegerPrecisionUnavailable(
+        const std::string& reason,
+        int                stabilizationEpochs
+    )
+    {
+        if (hasFixedDatum)
+        {
+            hasFixedDatum = false;
+            stabilizationRemaining = stabilizationEpochs;
+            resetReason = reason;
+        }
     }
 
     bool invalidateIntegerDatum(

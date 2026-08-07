@@ -2755,3 +2755,38 @@ bool zhangGraphIntegerContext(
     context.initialized = true;
     return true;
 }
+
+void cloneZhangGraphRuntime(
+    const KFState& source,
+    const KFState& destination
+)
+{
+    eraseZhangGraphRuntime(destination);
+    vector<pair<E_Sys, GraphRuntimeState>> copies;
+    for (const auto& [identity, runtime] : graphStateMap)
+    {
+        if (identity.first == &source)
+        {
+            copies.emplace_back(identity.second, runtime);
+        }
+    }
+    for (auto& [system, runtime] : copies)
+    {
+        graphStateMap[{&destination, system}] = std::move(runtime);
+    }
+}
+
+void eraseZhangGraphRuntime(const KFState& state)
+{
+    for (auto it = graphStateMap.begin(); it != graphStateMap.end();)
+    {
+        if (it->first.first == &state)
+        {
+            it = graphStateMap.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}

@@ -1,0 +1,41 @@
+# E18 raw accepted-factor square-root boundary performance/correctness probe.
+# Two one-minute epochs are sufficient to exercise one measurement update,
+# one state transition, and the following measurement update without committing
+# to the three-hour shadow before the real-state dimension cost is known.
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 00:01:00
+    epoch_interval: 60
+    wait_next_epoch: 3600
+  gnss_general:
+    zhang_full_rank:
+      output_diagnostics: false
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 10
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      output_diagnostics: true
+      integer_strategy: PRODUCT_TARGET_WL_L1
+      component_bridge_targeting: true
+      current_state_relinking: true
+      max_topology_targets: 3
+      multi_epoch_relink_shadow: false
+      whitened_wl_fixed_lag_shadow: false
+      fixed_lag_factor_capture_shadow: true
+      fixed_lag_factor_capture_max_events: 100
+      fixed_lag_factor_capture_evaluation_stride: 2
+      promotion_confirmation_epochs: 2
+      promotion_confirmation_max_gap_seconds: 120
+      conflict_quarantine: true
+      transactional_integer_fixing: true
+      product_target_named_rounding: true
+      product_filename: ./outputs/zhang_global_2019199_e18_raw_square_root_02m/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e18_raw_square_root_02m/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e18_raw_square_root_02m
+  metadata:
+    config_description: zhang_global_2019199_e18_raw_square_root_02m

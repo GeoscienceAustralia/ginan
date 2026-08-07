@@ -5,10 +5,12 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "common/eigenIncluder.hpp"
 #include "common/enums.h"
 #include "common/gTime.hpp"
 #include "common/satSys.hpp"
 #include "common/zhangSatelliteDatum.hpp"
+#include "common/zhangPersistentProductDatum.hpp"
 
 struct KFState;
 struct ReceiverMap;
@@ -42,11 +44,81 @@ struct ZhangInternalProduct
     bool        integer_datum_continuous = false;
     bool        integer_precision_valid = false;
     bool        integer_valid = false;
+    bool        numeric_valid = false;
+    bool        branch_valid = false;
+    bool        continuity_valid = false;
+    bool        ppp_usable = false;
+    bool        pppar_usable = false;
+    std::string invalid_reason;
     std::string integer_component_id = "UNRESOLVED";
     std::string integer_datum_id;
 };
 
 bool zhangPppArUsesObservable(E_Sys sys, E_ObsCode code);
+
+/** Install read-only E18 factor taps on the authoritative network filter.
+ * Copies of the filter fail closed because callbacks verify object identity. */
+void configureZhangE18FactorCapture(KFState& kfState);
+
+/** Eliminate the captured raw H/R and F/Q chronology to the current affine
+ * integer datum block.  This is read-only shadow output and never feeds a
+ * constraint back to the network filter. */
+void traceZhangE18RawIntegerDatumWindow(
+    Trace& trace,
+    const KFState& captureOwner,
+    GTime time
+);
+
+ZhangCanonicalRelationSelection selectZhangE18CanonicalProductRelations(
+    const KFState& captureOwner,
+    E_Sys system,
+    const std::vector<ZhangCanonicalSatelliteRelation>& bootstrapCandidates,
+    const std::set<SatSys>& availableSatellites,
+    int maximumRelations
+);
+
+ZhangPersistentProductDatumObservation observeZhangE18PersistentProductDatum(
+    const KFState& captureOwner,
+    E_Sys system,
+    E_ObsCode observable,
+    const ZhangCanonicalSatelliteRelation& relation,
+    int anchorPhaseSegment,
+    int satellitePhaseSegment,
+    int anchorDatumVersion,
+    int satelliteDatumVersion,
+    bool absoluteAvailable
+);
+
+/** Register one primitive base integer target at the current posterior.
+ *
+ * The caller must supply the exact current-coordinate G row and the persistent
+ * integer translation z_T when it is known.  Before exact datum transport is
+ * available, G k is retained modulo an unknown integer translation: its
+ * fractional residual, covariance and integer-error probability are still
+ * well-defined, but it is not an absolute continuous OSB datum.  A
+ * phase-correction row (C_s-B_s)/lambda is not an integer datum and must never
+ * be passed here. */
+bool recordZhangE18IntegerDatumTarget(
+    Trace&              trace,
+    const KFState&      captureOwner,
+    const KFState&      state,
+    E_Sys               system,
+    const std::string&  targetFamily,
+    const SatSys&       anchor,
+    const SatSys&       satellite,
+    const VectorXd&     currentCoordinateRow,
+    double              persistentDatumOffsetCycles,
+    bool                exactDatumTransportValid,
+    const std::string&  canonicalCoordinateIdentity,
+    const std::string&  productDatumIdentity,
+    int                 productDatumVersion,
+    const std::string&  topologyKey,
+    const std::string&  gaugeComponentIdentity,
+    const std::string&  phaseSegmentIdentity,
+    const std::string&  physicalArcSignature,
+    const std::vector<std::pair<std::string, int>>& physicalArcVersions,
+    GTime               time
+);
 
 /** Notify the continuity manager that an exact S-transform changed a raw
  * satellite phase correction.  The manager removes integer branch changes
@@ -113,12 +185,31 @@ ZhangProductRelationEvent relinkZhangSatelliteProductRelation(
     const std::string& provenance
 );
 
+std::size_t quarantineZhangSatelliteProductAlignments(
+    GTime                         time,
+    E_Sys                         sys,
+    E_ObsCode                     code,
+    const std::set<SatSys>&       satellites,
+    const SatSys&                 trustedAnchor,
+    const std::string&            reason
+);
+
 std::vector<ZhangSatelliteDatumComponent> zhangSatelliteDatumComponents(
     E_Sys sys,
     E_ObsCode code
 );
 
 ZhangCurrentAlignmentState zhangSatelliteAlignmentState(
+    E_Sys sys,
+    E_ObsCode code,
+    const SatSys& satellite
+);
+
+/** Current persistent-product identity and exact dynamic-coordinate alignment.
+ * phaseSegment changes only for an explicit satellite phase discontinuity;
+ * alignmentCycles transports a current S-basis coordinate to that segment's
+ * persistent coordinate. */
+ZhangSatelliteDatumStatus zhangSatelliteDatumStatus(
     E_Sys sys,
     E_ObsCode code,
     const SatSys& satellite
@@ -148,7 +239,9 @@ void writeZhangInternalProducts(
     const KFState& floatState,
     const KFState& fixedState,
     int            newlyFixed,
-    bool           integerDatumComplete
+    bool           integerDatumComplete,
+    bool           fixedBranchValid,
+    bool           networkIntegerReady
 );
 
 /** Read and interpolate an exact-epoch internal product for a held-out user. */

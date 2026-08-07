@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <iostream>
+#include <functional>
 #include <limits>
 #include <map>
 #include <math.h>
@@ -470,6 +471,33 @@ struct KFState_ : FilterOptions
     vector<StateRejectCallback> stateRejectCallbacks;
     vector<MeasRejectCallback>  measRejectCallbacks;
 
+    /** Optional read-only factor taps.  They are invoked only after the
+     * corresponding operation has passed its numerical/QC checks. */
+    std::function<void(
+        const KFState&,
+        const KFMeas&,
+        const string&,
+        const VectorXd&,
+        const MatrixXd&
+    )> acceptedMeasurementFactorCallback;
+    std::function<void(
+        const KFState&,
+        GTime,
+        const map<KFKey, int>&,
+        const map<KFKey, int>&,
+        const SparseMatrix<double>&,
+        const MatrixXd&,
+        const string&
+    )> stateTransitionFactorCallback;
+    std::function<void(
+        const KFState&,
+        GTime,
+        const map<KFKey, int>&,
+        const map<KFKey, int>&,
+        const SparseMatrix<double>&,
+        const string&
+    )> exactStateTransformCallback;
+
     map<string, FilterChunk> filterChunkMap;
 
     map<string, string> metaDataMap;
@@ -627,7 +655,12 @@ struct KFState : KFState_
 
     void removeState(const KFKey& kfKey, bool allowDeleteParent = true);
 
-    void stateTransition(Trace& trace, GTime newTime, MatrixXd* stm_ptr = nullptr);
+    void stateTransition(
+        Trace&    trace,
+        GTime     newTime,
+        MatrixXd* stm_ptr = nullptr,
+        MatrixXd* processNoise_ptr = nullptr
+    );
 
     void manualStateTransition(Trace& trace, GTime newTime, MatrixXd& stm, MatrixXd& procNoise);
 

@@ -7144,6 +7144,12 @@ bool ACSConfig::parse(
                         {"@ product_solution"},
                         "Product solution read by the user adapter: FLOAT or FIXED"
                     );
+					tryGetFromYaml(
+						zhangPppAr.product_mode,
+						zhang_pppar,
+						{"@ product_mode"},
+						"Internal product coordinate: SATELLITE_TARGET_DATUM or HOU_OSB_LIKE"
+					);
                     tryGetFromYaml(
                         zhangPppAr.integer_strategy,
                         zhang_pppar,
@@ -7166,7 +7172,85 @@ bool ACSConfig::parse(
                         zhangPppAr.max_topology_targets,
                         zhang_pppar,
                         {"@ max_topology_targets"},
-                        "Maximum component-bridge or relink targets attempted per constellation and epoch"
+                        "Maximum unknown component-bridge targets attempted per constellation and epoch; current relinks of existing persistent relations remain subject to ROUND/NIS but are not truncated by this cap"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.deterministic_relink_variance_tolerance_cycles2,
+                        zhang_pppar,
+                        {"@ deterministic_relink_variance_tolerance_cycles2"},
+                        "Absolute numerical-rank tolerance in cycles squared for integer-closed current relinks; zero retains the covariance-relative tolerance"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow"},
+                        "Audit fixed-lag prior-to-posterior information increments for current relinks without feeding them back"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow_max_epochs,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow_max_epochs"},
+                        "Maximum distinct epoch increments retained by each current-relink shadow accumulator"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow_max_gap_seconds,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow_max_gap_seconds"},
+                        "Maximum gap between consecutive increments in a current-relink shadow accumulator"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow_information_floor,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow_information_floor"},
+                        "Minimum positive scalar information increment accepted by current-relink shadow accumulation"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_fixed_lag_shadow,
+                        zhang_pppar,
+                        {"@ whitened_wl_fixed_lag_shadow"},
+                        "Audit independent innovation-equivalent WL observations in a physical-arc fixed-lag window without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_fixed_lag_seconds,
+                        zhang_pppar,
+                        {"@ whitened_wl_fixed_lag_seconds"},
+                        "Time span retained by each whitened WL fixed-lag shadow window"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_fixed_lag_max_observations,
+                        zhang_pppar,
+                        {"@ whitened_wl_fixed_lag_max_observations"},
+                        "Maximum observations retained by each whitened WL fixed-lag shadow window"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.fixed_lag_factor_capture_shadow,
+                        zhang_pppar,
+                        {"@ fixed_lag_factor_capture_shadow"},
+                        "Capture final accepted PPP measurement factors, actual state transitions/process noise, and exact state-coordinate transforms for E18 shadow replay"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.fixed_lag_factor_capture_max_events,
+                        zhang_pppar,
+                        {"@ fixed_lag_factor_capture_max_events"},
+                        "Fail-closed maximum chronological E18 factor events retained before a marginal anchor is required"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.fixed_lag_factor_capture_evaluation_stride,
+                        zhang_pppar,
+                        {"@ fixed_lag_factor_capture_evaluation_stride"},
+                        "Evaluate the expensive full E18 raw-factor marginal every N accepted measurement blocks"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_prediction_gate_min_observations,
+                        zhang_pppar,
+                        {"@ whitened_wl_prediction_gate_min_observations"},
+                        "Minimum prior WL observations before leave-one-out prediction gating starts"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_prediction_gate_sigma,
+                        zhang_pppar,
+                        {"@ whitened_wl_prediction_gate_sigma"},
+                        "Absolute normalized leave-one-out WL prediction threshold"
                     );
                     tryGetFromYaml(
                         zhangPppAr.promotion_confirmation_epochs,
@@ -7203,6 +7287,36 @@ bool ACSConfig::parse(
                         zhang_pppar,
                         {"@ initial_discontinuity_counter"},
                         "Initial counter for the internal phase-continuity manager"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.transactional_integer_fixing,
+                        zhang_pppar,
+                        {"@ transactional_integer_fixing"},
+                        "Keep the authoritative Zhang filter float and condition integers only on a disposable fixed branch"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.held_constraint_nis_alpha,
+                        zhang_pppar,
+                        {"@ held_constraint_nis_alpha"},
+                        "Upper-tail probability for rejecting incompatible persistent held constraints"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_target_named_rounding,
+                        zhang_pppar,
+                        {"@ product_target_named_rounding"},
+                        "Resolve named satellite-product targets directly so committed PAR rows can enter the persistent datum ledger"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.maximum_pppar_correction_sigma_m,
+                        zhang_pppar,
+                        {"@ maximum_pppar_correction_sigma_m"},
+                        "Maximum correction standard deviation for PPP-AR product use in metres; zero disables the gate"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.maximum_product_residual_step_m,
+                        zhang_pppar,
+                        {"@ maximum_product_residual_step_m"},
+                        "Maximum satellite-dependent epoch correction step after common-mode removal in metres; zero disables the gate"
                     );
 
                     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
@@ -9332,6 +9446,68 @@ bool ACSConfig::parse(
                 << "zhang_pppar max_topology_targets must be positive";
             valid = false;
         }
+        if (zhangPppAr.deterministic_relink_variance_tolerance_cycles2 < 0 ||
+            zhangPppAr.deterministic_relink_variance_tolerance_cycles2 > 1e-6)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar deterministic_relink_variance_tolerance_cycles2 must be between zero and 1e-6";
+            valid = false;
+        }
+        if (zhangPppAr.multi_epoch_relink_shadow_max_epochs < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar multi_epoch_relink_shadow_max_epochs must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.multi_epoch_relink_shadow_max_gap_seconds < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar multi_epoch_relink_shadow_max_gap_seconds must be non-negative";
+            valid = false;
+        }
+        if (!(zhangPppAr.multi_epoch_relink_shadow_information_floor > 0) ||
+            zhangPppAr.multi_epoch_relink_shadow_information_floor > 1e6)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar multi_epoch_relink_shadow_information_floor must be in (0, 1e6]";
+            valid = false;
+        }
+        if (!(zhangPppAr.whitened_wl_fixed_lag_seconds > 0))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_fixed_lag_seconds must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.whitened_wl_fixed_lag_max_observations < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_fixed_lag_max_observations must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.fixed_lag_factor_capture_max_events < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar fixed_lag_factor_capture_max_events must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.fixed_lag_factor_capture_evaluation_stride < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar fixed_lag_factor_capture_evaluation_stride must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.whitened_wl_prediction_gate_min_observations < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_prediction_gate_min_observations must be positive";
+            valid = false;
+        }
+        if (!(zhangPppAr.whitened_wl_prediction_gate_sigma > 0))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_prediction_gate_sigma must be positive";
+            valid = false;
+        }
         if (zhangPppAr.promotion_confirmation_epochs < 1)
         {
             BOOST_LOG_TRIVIAL(error)
@@ -9350,6 +9526,20 @@ bool ACSConfig::parse(
                 << "zhang_pppar user_max_ambiguities_per_signal must be non-negative";
             valid = false;
         }
+        if (!(zhangPppAr.held_constraint_nis_alpha > 0) ||
+            !(zhangPppAr.held_constraint_nis_alpha < 1))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar held_constraint_nis_alpha must be between zero and one";
+            valid = false;
+        }
+        if (zhangPppAr.maximum_pppar_correction_sigma_m < 0 ||
+            zhangPppAr.maximum_product_residual_step_m < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product precision gates must be non-negative";
+            valid = false;
+        }
 
         string solution = zhangPppAr.product_solution;
         boost::to_upper(solution);
@@ -9360,6 +9550,18 @@ bool ACSConfig::parse(
             valid = false;
         }
         zhangPppAr.product_solution = solution;
+
+		string productMode = zhangPppAr.product_mode;
+		boost::to_upper(productMode);
+		if (productMode != "SATELLITE_TARGET_DATUM" &&
+			productMode != "HOU_OSB_LIKE")
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "zhang_pppar product_mode must be "
+				   "SATELLITE_TARGET_DATUM or HOU_OSB_LIKE";
+			valid = false;
+		}
+		zhangPppAr.product_mode = productMode;
 
         string integerStrategy = zhangPppAr.integer_strategy;
         boost::to_upper(integerStrategy);
@@ -9375,6 +9577,16 @@ bool ACSConfig::parse(
             valid = false;
         }
         zhangPppAr.integer_strategy = integerStrategy;
+		if (productMode == "HOU_OSB_LIKE" &&
+			integerStrategy != "INDEPENDENT_SIGNAL" &&
+			integerStrategy != "LAYERED_WL_L1")
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "Hou-style OSB-like products require network cycle-lattice "
+				   "AR via INDEPENDENT_SIGNAL or LAYERED_WL_L1; "
+				   "PRODUCT_TARGET_WL_L1 and opaque JOINT fixing are not valid";
+			valid = false;
+		}
 
         for (auto& [sys, process] : process_sys)
         {

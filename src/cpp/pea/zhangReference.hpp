@@ -67,3 +67,12 @@ bool zhangGraphIntegerContext(
     E_Sys                      system,
     ZhangGraphIntegerContext& context
 );
+
+/** Copy read-only graph coordinates to a disposable fixed branch. */
+void cloneZhangGraphRuntime(
+    const KFState& source,
+    const KFState& destination
+);
+
+/** Remove graph coordinates belonging to a disposable state copy. */
+void eraseZhangGraphRuntime(const KFState& state);

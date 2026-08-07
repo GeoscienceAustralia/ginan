@@ -23,8 +23,12 @@
 #include "common/zhangPhaseContinuity.hpp"
 #include "common/zhangIntegerAudit.hpp"
 #include "common/zhangSatelliteDatum.hpp"
+#include "common/zhangFactorCapture.hpp"
+#include "common/zhangIntegerTargets.hpp"
+#include "common/zhangUserTarget.hpp"
 #include "orbprop/coordinates.hpp"
 #include "pea/zhangReference.hpp"
+#include "rtklib/lambda.h"
 
 using std::map;
 using std::set;
@@ -60,6 +64,10 @@ map<ProductKey, ZhangPhaseContinuityState> continuityMap;
 map<std::pair<E_Sys, E_ObsCode>, GlobalContinuityState> globalContinuityMap;
 map<std::pair<E_Sys, E_ObsCode>, ZhangSatelliteDatumManager>
     satelliteDatumManagers;
+map<const KFState*, ZhangFactorCaptureBuffer> e18FactorCaptureBuffers;
+set<const KFState*> e18ConfiguredFactorCaptureStates;
+map<const KFState*, ZhangPersistentProductDatumRegistry>
+    e18PersistentProductDatumRegistries;
 
 struct PromotionEvidenceKey
 {
@@ -88,6 +96,7 @@ struct PromotionEvidence
 };
 
 map<PromotionEvidenceKey, PromotionEvidence> promotionEvidence;
+map<PromotionEvidenceKey, PromotionEvidence> relinkEvidence;
 
 ZhangSatelliteDatumManager& satelliteDatumManager(E_Sys sys, E_ObsCode code)
 {
@@ -118,6 +127,29 @@ struct ProductLookupKey
 
 map<ProductLookupKey, ZhangInternalProduct> productMap;
 string loadedProductFilename;
+
+struct ProductHistoryKey
+{
+    string     solution;
+    SatSys     satellite;
+    E_ObsCode  observable = E_ObsCode::NONE;
+
+    bool operator<(const ProductHistoryKey& other) const
+    {
+        return std::tie(solution, satellite, observable) <
+               std::tie(other.solution, other.satellite, other.observable);
+    }
+};
+
+struct ProductHistory
+{
+    GTime  time;
+    double correction = 0;
+    int    discontinuityCounter = 0;
+    int    datumVersion = 0;
+};
+
+map<ProductHistoryKey, ProductHistory> productHistoryMap;
 
 struct UserReferenceKey
 {
@@ -268,7 +300,8 @@ void ensureProductFileHeader()
            "integer_datum_continuous,integer_precision_valid,integer_valid,"
            "integer_component_id,"
            "integer_datum_id,solution_interval_start_gpst_seconds,"
-           "solution_interval_end_gpst_seconds\n";
+           "solution_interval_end_gpst_seconds,numeric_valid,branch_valid,"
+           "continuity_valid,ppp_usable,pppar_usable,invalid_reason\n";
 
     initializedFilename = filename;
 }
@@ -306,7 +339,13 @@ void appendProduct(const ZhangInternalProduct& product)
            << product.integer_component_id << ","
            << product.integer_datum_id << ","
            << static_cast<double>(product.valid_from.bigTime) << ","
-           << static_cast<double>(product.time.bigTime) << "\n";
+           << static_cast<double>(product.time.bigTime) << ","
+           << product.numeric_valid << ","
+           << product.branch_valid << ","
+           << product.continuity_valid << ","
+           << product.ppp_usable << ","
+           << product.pppar_usable << ","
+           << product.invalid_reason << "\n";
 }
 
 struct ProductCovarianceParameter
@@ -468,7 +507,8 @@ bool loadProducts()
     {
         auto fields = splitCsv(line);
         if (fields.size() != 19 && fields.size() != 23 &&
-            fields.size() != 26 && fields.size() != 28)
+            fields.size() != 26 && fields.size() != 28 &&
+            fields.size() != 33 && fields.size() != 34)
         {
             continue;
         }
@@ -492,7 +532,7 @@ bool loadProducts()
         product.valid_from.bigTime            = std::stold(fields[15]);
         product.product_iod                   = std::stoi(fields[16]);
         product.reset_reason                  = fields[17];
-        if (fields.size() == 28)
+        if (fields.size() == 28 || fields.size() == 33 || fields.size() == 34)
         {
             product.persistent_relation_known = std::stoi(fields[18]) != 0;
             product.current_alignment_state   = fields[19];
@@ -503,7 +543,26 @@ bool loadProducts()
             product.integer_component_id     = fields[24];
             product.integer_datum_id          = fields[25];
             product.valid_from.bigTime        = std::stold(fields[26]);
+            if (fields.size() == 33)
+            {
+                product.numeric_valid = std::stoi(fields[28]) != 0;
+                product.branch_valid  = std::stoi(fields[29]) != 0;
+                product.ppp_usable    = std::stoi(fields[30]) != 0;
+                product.pppar_usable  = std::stoi(fields[31]) != 0;
+                product.invalid_reason = fields[32];
+                product.continuity_valid = product.ppp_usable;
+            }
+            else if (fields.size() == 34)
+            {
+                product.numeric_valid = std::stoi(fields[28]) != 0;
+                product.branch_valid  = std::stoi(fields[29]) != 0;
+                product.continuity_valid = std::stoi(fields[30]) != 0;
+                product.ppp_usable    = std::stoi(fields[31]) != 0;
+                product.pppar_usable  = std::stoi(fields[32]) != 0;
+                product.invalid_reason = fields[33];
+            }
         }
+
         else if (fields.size() == 26)
         {
             product.integer_structure_valid  = std::stoi(fields[18]) != 0;
@@ -538,6 +597,25 @@ bool loadProducts()
                 product.integer_datum_id      = fields[20];
                 product.valid_from.bigTime    = std::stold(fields[21]);
             }
+        }
+
+        if (fields.size() != 33 && fields.size() != 34)
+        {
+            product.numeric_valid =
+                std::isfinite(product.clock_m) &&
+                std::isfinite(product.phase_m) &&
+                std::isfinite(product.correction_m) &&
+                std::isfinite(product.clock_sigma_m) &&
+                std::isfinite(product.phase_sigma_m) &&
+                std::isfinite(product.correction_sigma_m);
+            product.branch_valid = product.numeric_valid;
+            product.continuity_valid = product.numeric_valid;
+            product.ppp_usable = product.numeric_valid;
+            product.pppar_usable =
+                product.ppp_usable && product.integer_valid;
+            product.invalid_reason = product.numeric_valid
+                ? "LEGACY_PRODUCT"
+                : "LEGACY_NUMERIC_FAILURE";
         }
 
         ProductLookupKey key{
@@ -710,6 +788,1353 @@ bool transformUserReference(
 }
 }  // namespace
 
+ZhangCanonicalRelationSelection selectZhangE18CanonicalProductRelations(
+    const KFState& captureOwner,
+    E_Sys system,
+    const vector<ZhangCanonicalSatelliteRelation>& bootstrapCandidates,
+    const set<SatSys>& availableSatellites,
+    int maximumRelations)
+{
+    return e18PersistentProductDatumRegistries[&captureOwner].selectRelations(
+        system, bootstrapCandidates, availableSatellites, maximumRelations);
+}
+
+ZhangPersistentProductDatumObservation observeZhangE18PersistentProductDatum(
+    const KFState& captureOwner,
+    E_Sys system,
+    E_ObsCode observable,
+    const ZhangCanonicalSatelliteRelation& relation,
+    int anchorPhaseSegment,
+    int satellitePhaseSegment,
+    int anchorDatumVersion,
+    int satelliteDatumVersion,
+    bool absoluteAvailable)
+{
+    return e18PersistentProductDatumRegistries[&captureOwner].observe(
+        system, observable, relation,
+        anchorPhaseSegment, satellitePhaseSegment,
+        anchorDatumVersion, satelliteDatumVersion,
+        absoluteAvailable);
+}
+
+void configureZhangE18FactorCapture(KFState& kfState)
+{
+    const KFState* owner = &kfState;
+    if (!acsConfig.zhangPppAr.fixed_lag_factor_capture_shadow)
+    {
+        if (e18ConfiguredFactorCaptureStates.erase(owner) > 0)
+        {
+            kfState.acceptedMeasurementFactorCallback = {};
+            kfState.stateTransitionFactorCallback = {};
+            kfState.exactStateTransformCallback = {};
+            e18FactorCaptureBuffers.erase(owner);
+        }
+        return;
+    }
+    if (e18ConfiguredFactorCaptureStates.find(owner) !=
+        e18ConfiguredFactorCaptureStates.end())
+    {
+        return;
+    }
+
+    auto& buffer = e18FactorCaptureBuffers[owner];
+    buffer.clear();
+    buffer.setMaximumEvents(
+        acsConfig.zhangPppAr.fixed_lag_factor_capture_max_events
+    );
+
+    kfState.acceptedMeasurementFactorCallback =
+        [owner](const KFState& state,
+                const KFMeas& measurement,
+                const string& suffix,
+                const VectorXd& posteriorMean,
+                const MatrixXd& posteriorCovariance)
+        {
+            if (&state != owner || suffix != "/PPP")
+            {
+                return;
+            }
+            auto capture = e18FactorCaptureBuffers.find(owner);
+            if (capture == e18FactorCaptureBuffers.end())
+            {
+                return;
+            }
+            bool accepted = capture->second.recordMeasurement(
+                measurement.time,
+                zhangKeysByIndex(state.kfIndexMap),
+                state.x,
+                state.P,
+                measurement,
+                suffix,
+                posteriorMean,
+                posteriorCovariance
+            );
+            ZhangFactorCaptureSummary summary = capture->second.summary();
+            BOOST_LOG_TRIVIAL(info)
+                << "ZHANG_E18_FACTOR_CAPTURE time="
+                << measurement.time.to_string(0)
+                << " event=MEASUREMENT"
+                << " status=" << (accepted ? "ACCEPTED" : "REJECTED")
+                << " events=" << summary.events
+                << " measurements=" << summary.measurements
+                << " transitions=" << summary.transitions
+                << " exact_transforms=" << summary.coordinateTransforms
+                << " measurement_rows=" << summary.measurementRows
+                << " measurement_nnz=" << summary.measurementNonZeros
+                << " covariance_nnz=" << summary.covarianceNonZeros
+                << " replay_prior_mean_relative_error="
+                << summary.maximumReplayPriorMeanRelativeError
+                << " replay_prior_covariance_relative_error="
+                << summary.maximumReplayPriorCovarianceRelativeError
+				<< " raw_square_root_mean_relative_error="
+				<< summary.maximumRawSquareRootMeanRelativeError
+				<< " raw_square_root_covariance_relative_error="
+				<< summary.maximumRawSquareRootCovarianceRelativeError
+                << " failure_reason="
+                << (summary.failureReason.empty() ? "NONE" : summary.failureReason)
+                << " feedback=0";
+        };
+
+    kfState.stateTransitionFactorCallback =
+        [owner](const KFState& state,
+                GTime time,
+                const map<KFKey, int>& source,
+                const map<KFKey, int>& destination,
+                const SparseMatrix<double>& transition,
+                const MatrixXd& processCovariance,
+                const string& label)
+        {
+            if (&state != owner)
+            {
+                return;
+            }
+            auto capture = e18FactorCaptureBuffers.find(owner);
+            if (capture == e18FactorCaptureBuffers.end())
+            {
+                return;
+            }
+            bool accepted = capture->second.recordTransition(
+                time,
+                zhangKeysByIndex(source),
+                zhangKeysByIndex(destination),
+                transition,
+                processCovariance,
+                label
+            );
+            if (!accepted)
+            {
+                auto summary = capture->second.summary();
+                BOOST_LOG_TRIVIAL(error)
+                    << "ZHANG_E18_FACTOR_CAPTURE time=" << time.to_string(0)
+                    << " event=STATE_TRANSITION status=REJECTED"
+                    << " failure_reason=" << summary.failureReason
+                    << " feedback=0";
+            }
+        };
+
+    kfState.exactStateTransformCallback =
+        [owner](const KFState& state,
+                GTime time,
+                const map<KFKey, int>& source,
+                const map<KFKey, int>& destination,
+                const SparseMatrix<double>& transform,
+                const string& label)
+        {
+            if (&state != owner)
+            {
+                return;
+            }
+            auto capture = e18FactorCaptureBuffers.find(owner);
+            if (capture == e18FactorCaptureBuffers.end())
+            {
+                return;
+            }
+            bool accepted = capture->second.recordCoordinateTransform(
+                time,
+                zhangKeysByIndex(source),
+                zhangKeysByIndex(destination),
+                transform,
+                label
+            );
+			auto transformSummary = capture->second.summary();
+			const string transformFailure = transformSummary.failureReason;
+			const bool localPhysicalReinitialisation =
+				label.find("local phase-coordinate reinitialisation")
+					!= string::npos;
+			const bool physicalFunctionalRetired =
+				transformFailure.find(
+					"PERSISTENT_FUNCTIONAL_NOT_TRANSPORTABLE_") == 0;
+			bool physicalArcReset = false;
+			if (!accepted
+			 && localPhysicalReinitialisation
+			 && physicalFunctionalRetired)
+			{
+				// This projection removed a direction used by the physical target.
+				// It is a real arc/version boundary, not an S-basis exchange.  Close
+				// the old chronology and re-anchor at the next accepted measurement.
+				capture->second.resetForPhysicalArcChange();
+				physicalArcReset = true;
+			}
+            BOOST_LOG_TRIVIAL(info)
+                << "ZHANG_E18_FACTOR_CAPTURE time=" << time.to_string(0)
+                << " event=EXACT_COORDINATE_TRANSFORM"
+                << " label=" << label
+                << " source_states=" << source.size()
+                << " destination_states=" << destination.size()
+                << " transform_nnz=" << transform.nonZeros()
+				<< " status=" << (accepted
+					? "ACCEPTED"
+					: physicalArcReset ? "RESET" : "REJECTED")
+				<< " physical_arc_reset=" << physicalArcReset
+				<< " failure_reason="
+				<< (transformFailure.empty() ? "NONE" : transformFailure)
+                << " feedback=0";
+        };
+    e18ConfiguredFactorCaptureStates.insert(owner);
+}
+
+bool recordZhangE18IntegerDatumTarget(
+    Trace&              trace,
+    const KFState&      captureOwner,
+    const KFState&      state,
+    E_Sys               system,
+    const string&       targetFamily,
+    const SatSys&       anchor,
+    const SatSys&       satellite,
+    const VectorXd&     currentCoordinateRow,
+    double              persistentDatumOffsetCycles,
+    bool                exactDatumTransportValid,
+    const string&       canonicalCoordinateIdentity,
+    const string&       productDatumIdentity,
+    int                 productDatumVersion,
+    const string&       topologyKey,
+    const string&       gaugeComponentIdentity,
+    const string&       phaseSegmentIdentity,
+    const string&       physicalArcSignature,
+    const vector<std::pair<string, int>>& physicalArcVersions,
+    GTime               time)
+{
+    if (!acsConfig.zhangPppAr.fixed_lag_factor_capture_shadow)
+    {
+        return false;
+    }
+    auto capture = e18FactorCaptureBuffers.find(&captureOwner);
+    if (capture == e18FactorCaptureBuffers.end())
+    {
+        return false;
+    }
+	if (currentCoordinateRow.size() != state.x.size()
+	 || !currentCoordinateRow.allFinite()
+	 || !std::isfinite(persistentDatumOffsetCycles))
+	{
+        trace << "\nZHANG_E18_INTEGER_DATUM_TARGET time=" << time.to_string(0)
+              << " system=" << enum_to_string(system)
+              << " topology_key=" << topologyKey
+              << " anchor=" << anchor.id()
+              << " satellite=" << satellite.id()
+              << " status=REJECTED reason="
+			  << "INVALID_INTEGER_DATUM_FUNCTIONAL"
+              << " feedback=0";
+        return false;
+    }
+    const VectorXd& row = currentCoordinateRow;
+	// An unresolved z_T is an integer translation, not a continuous random
+	// state.  Retaining Gk modulo Z preserves the fractional likelihood and
+	// perr while still blocking absolute product publication.
+	const double offset = exactDatumTransportValid
+		? persistentDatumOffsetCycles
+		: 0.0;
+	const int unresolvedGaugeRank = exactDatumTransportValid ? 0 : 1;
+	const string integerGaugeIdentity = exactDatumTransportValid
+		? ""
+		: enum_to_string(system) + ":" + targetFamily + ":"
+			+ gaugeComponentIdentity;
+	const string identity = enum_to_string(system) + ":" + targetFamily + ":" +
+		anchor.id() + ":" + satellite.id();
+	vector<ZhangCapturedPhysicalArcVersion> capturedArcVersions;
+	for (const auto& [arc, version] : physicalArcVersions)
+	{
+		capturedArcVersions.push_back({arc, version});
+	}
+	double targetMean = offset;
+	double targetVariance = 0;
+	vector<std::pair<int, double>> nonZeros;
+	for (int index = 0; index < row.size(); index++)
+	{
+		if (row(index) != 0)
+		{
+			nonZeros.push_back({index, row(index)});
+			targetMean += row(index) * state.x(index);
+		}
+	}
+	for (const auto& [left, leftCoefficient] : nonZeros)
+	for (const auto& [right, rightCoefficient] : nonZeros)
+	{
+		targetVariance += leftCoefficient * rightCoefficient
+			* state.P(left, right);
+	}
+    const bool accepted = capture->second.recordPhysicalTarget(
+        time,
+        identity,
+        physicalArcSignature,
+		phaseSegmentIdentity,
+		capturedArcVersions,
+        zhangKeysByIndex(state.kfIndexMap),
+        row,
+        offset,
+        state.x,
+		state.P,
+		unresolvedGaugeRank,
+		integerGaugeIdentity,
+		canonicalCoordinateIdentity,
+		productDatumIdentity,
+		productDatumVersion
+    );
+	if (accepted && !capture->second.capturedPhysicalTargets().empty())
+	{
+		const auto& persisted = capture->second.capturedPhysicalTargets().back();
+		targetMean = persisted.mean;
+		targetVariance = persisted.variance;
+	}
+    const auto summary = capture->second.summary();
+	const auto& retainedBlock = capture->second.currentRetainedBlock();
+	std::ostringstream whitenedResiduals;
+	for (int index = 0; index < retainedBlock.whitenedResidual.size(); index++)
+	{
+		if (index > 0)
+		{
+			whitenedResiduals << ";";
+		}
+		whitenedResiduals << retainedBlock.whitenedResidual(index);
+	}
+	trace << "\nZHANG_E18_INTEGER_DATUM_TARGET time=" << time.to_string(0)
+		  << " system=" << enum_to_string(system)
+		  << " target_family=" << targetFamily
+          << " topology_key=" << topologyKey
+          << " anchor=" << anchor.id()
+          << " satellite=" << satellite.id()
+		  << " phase_segment_identity=" << phaseSegmentIdentity
+          << " physical_signature=" << physicalArcSignature
+          << " mean=" << targetMean
+          << " variance=" << targetVariance
+		  << " datum_offset_cycles="
+		  << (accepted
+			&& !capture->second.capturedPhysicalTargets().empty()
+				? capture->second.capturedPhysicalTargets().back().offset
+				: offset)
+		  << " canonical_coordinate_id=" << canonicalCoordinateIdentity
+		  << " product_datum_id=" << productDatumIdentity
+		  << " product_datum_version=" << productDatumVersion
+		  << " coordinate=PRIMITIVE_BASE_INTEGER_TARGET"
+		  << " quotient_valid=" << accepted
+		  << " absolute_datum_valid="
+		  << (accepted && exactDatumTransportValid)
+		  << " unresolved_gauge_rank=" << unresolvedGaugeRank
+          << " targets=" << summary.physicalTargets
+		  << " physical_identity_resets="
+		  << summary.physicalTargetIdentityResets
+		  << " coordinate_continuations="
+		  << summary.physicalTargetCoordinateContinuations
+          << " target_mean_replay_relative_error="
+          << summary.maximumTargetMeanRelativeError
+          << " target_variance_replay_relative_error="
+          << summary.maximumTargetVarianceRelativeError
+		  << " retained_block_targets=" << retainedBlock.targetCount
+		  << " retained_block_rank=" << retainedBlock.informationRank
+		  << " retained_block_residual_domain=PREFIT_INNOVATION"
+		  << " retained_block_residual_dof=" << retainedBlock.residualDof
+		  << " retained_block_projected_gauge_rank="
+		  << retainedBlock.projectedGaugeRank
+		  << " retained_block_whitened_squared_norm="
+		  << retainedBlock.whitenedSquaredNorm
+		  << " retained_block_whitened_residuals="
+		  << (whitenedResiduals.str().empty() ? "NONE" : whitenedResiduals.str())
+		  << " retained_block_valid=" << retainedBlock.valid
+		  << " retained_block_reason="
+		  << (retainedBlock.failureReason.empty()
+				? "NONE" : retainedBlock.failureReason)
+		  << " status=" << (accepted
+				? (exactDatumTransportValid
+					? "ACCEPTED_ABSOLUTE_DATUM"
+					: "ACCEPTED_INTEGER_QUOTIENT")
+				: "REJECTED")
+          << " reason="
+		  << (!accepted
+				? (!capture->second.lastTargetReason().empty()
+					? capture->second.lastTargetReason()
+					: summary.failureReason.empty()
+						? "UNKNOWN" : summary.failureReason)
+				: (exactDatumTransportValid
+					? "NONE" : "INTEGER_GAUGE_UNRESOLVED"))
+          << " feedback=0";
+    return accepted;
+}
+
+namespace
+{
+struct ZhangOperationalLambdaResult
+{
+	bool valid = false;
+	bool validationPass = false;
+	VectorXd best;
+	VectorXd second;
+	MatrixXd decorrelation;
+	MatrixXd reducedCovariance;
+	VectorXd conditionalVariances;
+	VectorXd conditionalSuccessRates;
+	VectorXd reducedBest;
+	VectorXd reducedSecond;
+	double bestDistance = std::numeric_limits<double>::quiet_NaN();
+	double secondDistance = std::numeric_limits<double>::quiet_NaN();
+	double bootstrappedSuccessRate = std::numeric_limits<double>::quiet_NaN();
+	double bootstrapImplementationConsistencyError =
+		std::numeric_limits<double>::quiet_NaN();
+	double ambiguityDilutionOfPrecision =
+		std::numeric_limits<double>::quiet_NaN();
+	double covarianceTransformMaximumError =
+		std::numeric_limits<double>::quiet_NaN();
+	double conditionalDeterminantLogError =
+		std::numeric_limits<double>::quiet_NaN();
+	double bestCandidateBackTransformMaximumError =
+		std::numeric_limits<double>::quiet_NaN();
+	double secondCandidateBackTransformMaximumError =
+		std::numeric_limits<double>::quiet_NaN();
+	double reducedCandidateIntegerMaximumError =
+		std::numeric_limits<double>::quiet_NaN();
+	bool transformUnimodular = false;
+	bool candidateBackTransformConsistent = false;
+	std::string failureReason;
+};
+
+ZhangOperationalLambdaResult runZhangOperationalLambda(
+	Trace& trace,
+	const VectorXd& mean,
+	const MatrixXd& covariance)
+{
+	ZhangOperationalLambdaResult result;
+	if (mean.size() == 0
+	 || covariance.rows() != mean.size()
+	 || covariance.cols() != mean.size()
+	 || !mean.allFinite() || !covariance.allFinite())
+	{
+		result.failureReason = "INVALID_OPERATIONAL_LAMBDA_DIMENSIONS";
+		return result;
+	}
+	const MatrixXd symmetric = 0.5 * (covariance + covariance.transpose());
+	Eigen::SelfAdjointEigenSolver<MatrixXd> spectrum(symmetric);
+	if (spectrum.info() != Eigen::Success
+	 || spectrum.eigenvalues().minCoeff() <= 0)
+	{
+		result.failureReason = "NON_POSITIVE_OPERATIONAL_LAMBDA_COVARIANCE";
+		return result;
+	}
+	std::vector<double> candidates(mean.size() * 2);
+	double distances[2] = {};
+	const int status = lambdaWithTransform(
+		trace, mean.size(), 2, mean.data(), symmetric.data(),
+		candidates.data(), distances, acsConfig.predefined_fail,
+		result.validationPass, result.decorrelation,
+		result.reducedCovariance, result.conditionalVariances,
+		result.conditionalSuccessRates,
+		result.bootstrappedSuccessRate);
+	if (status != 0)
+	{
+		result.failureReason = "OPERATIONAL_LAMBDA_FAILED_"
+			+ std::to_string(status);
+		return result;
+	}
+	result.best = Eigen::Map<VectorXd>(candidates.data(), mean.size());
+	result.second = Eigen::Map<VectorXd>(
+		candidates.data() + mean.size(), mean.size());
+	result.bestDistance = distances[0];
+	result.secondDistance = distances[1];
+	const auto reductionAudit = zhangAuditLambdaReduction(
+		symmetric, result.decorrelation, result.reducedCovariance,
+		result.conditionalVariances, result.best, result.second);
+	result.conditionalSuccessRates = reductionAudit.conditionalSuccessRates;
+	result.reducedBest = reductionAudit.reducedBestCandidate;
+	result.reducedSecond = reductionAudit.reducedSecondCandidate;
+	result.ambiguityDilutionOfPrecision =
+		reductionAudit.ambiguityDilutionOfPrecision;
+	result.covarianceTransformMaximumError =
+		reductionAudit.covarianceTransformMaximumError;
+	result.conditionalDeterminantLogError =
+		reductionAudit.conditionalDeterminantLogError;
+	result.bestCandidateBackTransformMaximumError =
+		reductionAudit.bestCandidateBackTransformMaximumError;
+	result.secondCandidateBackTransformMaximumError =
+		reductionAudit.secondCandidateBackTransformMaximumError;
+	result.reducedCandidateIntegerMaximumError =
+		reductionAudit.reducedCandidateIntegerMaximumError;
+	result.transformUnimodular = reductionAudit.transformUnimodular;
+	result.candidateBackTransformConsistent =
+		reductionAudit.candidateBackTransformConsistent;
+	result.bootstrapImplementationConsistencyError = std::abs(
+		result.bootstrappedSuccessRate
+		- reductionAudit.jointBootstrappedSuccessRate);
+	constexpr double bootstrapAuditTolerance = 5e-7;
+	result.valid = result.best.allFinite() && result.second.allFinite()
+		&& result.decorrelation.allFinite()
+		&& result.reducedCovariance.allFinite()
+		&& result.conditionalVariances.allFinite()
+		&& result.conditionalSuccessRates.allFinite()
+		&& std::isfinite(result.bootstrappedSuccessRate)
+		&& std::isfinite(result.ambiguityDilutionOfPrecision)
+		&& reductionAudit.valid
+		&& result.bootstrapImplementationConsistencyError
+			<= bootstrapAuditTolerance;
+	if (!result.valid)
+	{
+		if (!reductionAudit.valid)
+		{
+			result.failureReason = reductionAudit.failureReason;
+		}
+		else if (result.bootstrapImplementationConsistencyError
+			> bootstrapAuditTolerance)
+		{
+			result.failureReason =
+				"OPERATIONAL_LAMBDA_BOOTSTRAP_AUDIT_MISMATCH";
+		}
+		else
+		{
+			result.failureReason = "NONFINITE_OPERATIONAL_LAMBDA_RESULT";
+		}
+	}
+	return result;
+}
+
+ZhangIntegerVector zhangIntegerCandidate(const VectorXd& candidate)
+{
+	ZhangIntegerVector integer(candidate.size());
+	for (int index = 0; index < candidate.size(); index++)
+	{
+		integer(index) = std::llround(candidate(index));
+	}
+	return integer;
+}
+
+std::vector<int> zhangSelectOperationalParSubset(
+	Trace& trace,
+	const VectorXd& mean,
+	const MatrixXd& covariance,
+	double successThreshold,
+	double& achievedSuccess)
+{
+	std::vector<int> retained(mean.size());
+	std::iota(retained.begin(), retained.end(), 0);
+	auto evaluate = [&](const std::vector<int>& indices)
+	{
+		VectorXd subsetMean(indices.size());
+		MatrixXd subsetCovariance(indices.size(), indices.size());
+		for (int row = 0; row < static_cast<int>(indices.size()); row++)
+		{
+			subsetMean(row) = mean(indices[row]);
+			for (int column = 0;
+				 column < static_cast<int>(indices.size()); column++)
+			{
+				subsetCovariance(row, column) =
+					covariance(indices[row], indices[column]);
+			}
+		}
+		return runZhangOperationalLambda(trace, subsetMean, subsetCovariance);
+	};
+	auto current = evaluate(retained);
+	achievedSuccess = current.valid
+		? current.bootstrappedSuccessRate
+		: std::numeric_limits<double>::quiet_NaN();
+	while (retained.size() > 1
+		&& (!current.valid || achievedSuccess < successThreshold))
+	{
+		double bestSuccess = -1;
+		std::vector<int> bestSubset;
+		for (int removed = 0;
+			 removed < static_cast<int>(retained.size()); removed++)
+		{
+			std::vector<int> candidate = retained;
+			candidate.erase(candidate.begin() + removed);
+			const auto candidateResult = evaluate(candidate);
+			if (candidateResult.valid
+			 && candidateResult.bootstrappedSuccessRate > bestSuccess)
+			{
+				bestSuccess = candidateResult.bootstrappedSuccessRate;
+				bestSubset = std::move(candidate);
+			}
+		}
+		if (bestSubset.empty())
+		{
+			retained.clear();
+			break;
+		}
+		retained = std::move(bestSubset);
+		current = evaluate(retained);
+		achievedSuccess = current.valid
+			? current.bootstrappedSuccessRate
+			: std::numeric_limits<double>::quiet_NaN();
+	}
+	if (!current.valid || achievedSuccess < successThreshold)
+	{
+		retained.clear();
+	}
+	return retained;
+}
+
+MatrixXd zhangProductRelationIncidence(
+	const std::vector<std::string>& relations)
+{
+	std::map<std::string, int> nodeIndex;
+	for (const auto& relation : relations)
+	{
+		const auto delimiter = relation.find("->");
+		if (delimiter == std::string::npos)
+		{
+			continue;
+		}
+		nodeIndex.emplace(
+			relation.substr(0, delimiter), nodeIndex.size());
+		nodeIndex.emplace(
+			relation.substr(delimiter + 2), nodeIndex.size());
+	}
+	MatrixXd incidence = MatrixXd::Zero(relations.size(), nodeIndex.size());
+	for (int row = 0; row < static_cast<int>(relations.size()); row++)
+	{
+		const auto delimiter = relations[row].find("->");
+		if (delimiter == std::string::npos)
+		{
+			continue;
+		}
+		incidence(row, nodeIndex.at(relations[row].substr(0, delimiter))) = -1;
+		incidence(row, nodeIndex.at(relations[row].substr(delimiter + 2))) = 1;
+	}
+	return incidence;
+}
+
+void traceZhangIntegerDiagnostic(
+	Trace& trace,
+	GTime time,
+	const std::string& strategy,
+	const VectorXd& mean,
+	const MatrixXd& covariance,
+	const std::vector<std::string>& labels,
+	const std::vector<std::string>& relations,
+	int quotientRank,
+	int absoluteRank,
+	bool transformUnimodular,
+	const std::vector<int>& sourceIndices = {})
+{
+	const auto solution = runZhangOperationalLambda(trace, mean, covariance);
+	const MatrixXd productIncidence = zhangProductRelationIncidence(relations);
+	const MatrixXd noRedundantCycles(0, mean.size());
+	ZhangLambdaParDiagnostics diagnostics;
+	if (solution.valid)
+	{
+		diagnostics = zhangEvaluateLambdaParCandidates(
+			mean, covariance,
+			zhangIntegerCandidate(solution.best),
+			zhangIntegerCandidate(solution.second),
+			quotientRank, absoluteRank, productIncidence,
+			noRedundantCycles, 0.999);
+	}
+	const int conditionalDirectionPassCount = solution.valid
+		? (solution.conditionalSuccessRates.array() >= 0.999).count() : 0;
+	const bool jointReliabilityPass = solution.valid
+		&& solution.validationPass
+		&& solution.bootstrappedSuccessRate >= 0.999;
+	trace << "\nZHANG_E18_INTEGER_DIAGNOSTIC time=" << time.to_string(0)
+		<< " strategy=" << strategy
+		<< " valid=" << (solution.valid && diagnostics.valid)
+		<< " target_count=" << mean.size()
+		<< " quotient_valid_rank=" << quotientRank
+		<< " absolute_valid_rank=" << absoluteRank
+		<< " product_relation_graph_rank="
+		<< diagnostics.productRelationGraphRank
+		<< " conditional_direction_pass_count="
+		<< conditionalDirectionPassCount
+		<< " recoverable_satellite_count="
+		<< diagnostics.recoverableSatelliteCount
+		<< " best_candidate_distance=" << solution.bestDistance
+		<< " second_candidate_distance=" << solution.secondDistance
+		<< " second_to_best_distance_ratio="
+		<< (solution.bestDistance > 0
+			? solution.secondDistance / solution.bestDistance
+			: std::numeric_limits<double>::infinity())
+		<< " joint_bootstrapped_success_rate="
+		<< solution.bootstrappedSuccessRate
+		<< " bootstrap_implementation_consistency_error="
+		<< solution.bootstrapImplementationConsistencyError
+		<< " lambda_validation_pass=" << solution.validationPass
+		<< " joint_reliability_pass=" << jointReliabilityPass
+		<< " reliability_gate=JOINT_BOOTSTRAP_AND_FFRT"
+		<< " ambiguity_dilution_of_precision="
+		<< solution.ambiguityDilutionOfPrecision
+		<< " lambda_transform_unimodular="
+		<< solution.transformUnimodular
+		<< " candidate_back_transform_consistent="
+		<< solution.candidateBackTransformConsistent
+		<< " covariance_transform_maximum_error="
+		<< solution.covarianceTransformMaximumError
+		<< " conditional_determinant_log_error="
+		<< solution.conditionalDeterminantLogError
+		<< " best_candidate_back_transform_maximum_error="
+		<< solution.bestCandidateBackTransformMaximumError
+		<< " second_candidate_back_transform_maximum_error="
+		<< solution.secondCandidateBackTransformMaximumError
+		<< " reduced_candidate_integer_maximum_error="
+		<< solution.reducedCandidateIntegerMaximumError
+		<< " maximum_cycle_closure_error="
+		<< diagnostics.maximumCycleClosureError
+		<< " cycle_constraint_count=0"
+		<< " transform_unimodular=" << transformUnimodular
+		<< " target_labels=";
+	for (int index = 0; index < static_cast<int>(labels.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << labels[index];
+	}
+	trace << " best_candidate=";
+	for (int index = 0; index < solution.best.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << std::llround(solution.best(index));
+	}
+	trace << " second_candidate=";
+	for (int index = 0; index < solution.second.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << std::llround(solution.second(index));
+	}
+	trace << " lambda_Z=";
+	for (int row = 0; row < solution.decorrelation.rows(); row++)
+	for (int column = 0; column < solution.decorrelation.cols(); column++)
+	{
+		if (row || column) trace << ";";
+		trace << std::llround(solution.decorrelation(row, column));
+	}
+	trace << " reduced_covariance=";
+	for (int row = 0; row < solution.reducedCovariance.rows(); row++)
+	for (int column = 0; column < solution.reducedCovariance.cols(); column++)
+	{
+		if (row || column) trace << ";";
+		trace << solution.reducedCovariance(row, column);
+	}
+	trace << " conditional_variances=";
+	for (int index = 0; index < solution.conditionalVariances.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << solution.conditionalVariances(index);
+	}
+	trace << " conditional_success_rates=";
+	for (int index = 0; index < solution.conditionalSuccessRates.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << solution.conditionalSuccessRates(index);
+	}
+	trace << " reduced_best_candidate=";
+	for (int index = 0; index < solution.reducedBest.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << std::llround(solution.reducedBest(index));
+	}
+	trace << " reduced_second_candidate=";
+	for (int index = 0; index < solution.reducedSecond.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << std::llround(solution.reducedSecond(index));
+	}
+	trace << " source_indices=";
+	if (sourceIndices.empty())
+	{
+		trace << "ALL";
+	}
+	else
+	{
+		for (int index = 0; index < static_cast<int>(sourceIndices.size()); index++)
+		{
+			if (index) trace << ";";
+			trace << sourceIndices[index];
+		}
+	}
+	trace << " status=" << (solution.valid && diagnostics.valid
+			? "EVALUATED" : "REJECTED")
+		<< " reason=" << (!solution.valid ? solution.failureReason
+			: !diagnostics.valid ? diagnostics.failureReason : "NONE")
+		<< " feedback=0";
+}
+
+template<typename Marginal>
+void traceZhangE18IntegerDiagnostics(
+	Trace& trace,
+	GTime time,
+	const Marginal& marginal,
+	const std::string& strategyPrefix)
+{
+	if (!marginal.valid)
+	{
+		return;
+	}
+	const auto quotient = zhangBuildIntegerQuotientCoordinates(
+		marginal.identities, marginal.gaugeIdentities,
+		marginal.absoluteValidity, marginal.mean, marginal.covariance);
+	if (!quotient.valid)
+	{
+		trace << "\nZHANG_E18_INTEGER_DIAGNOSTIC time=" << time.to_string(0)
+			<< " strategy=" << strategyPrefix
+			<< "QUOTIENT_CONSTRUCTION valid=0 status=REJECTED reason="
+			<< quotient.failureReason << " feedback=0";
+		return;
+	}
+	traceZhangIntegerDiagnostic(
+		trace, time, strategyPrefix + "DIRECT_JOINT",
+		quotient.mean, quotient.covariance,
+		quotient.labels, quotient.relations, marginal.quotientValidRank,
+		marginal.absoluteValidRank, true);
+
+	const auto wideLane = zhangBuildWideLaneL1BlockCoordinates(quotient);
+	if (wideLane.valid)
+	{
+		const MatrixXd transform = wideLane.transform.template cast<double>();
+		traceZhangIntegerDiagnostic(
+			trace, time, strategyPrefix + "WL_L1_UNIMODULAR",
+			transform.transpose() * quotient.mean,
+			transform.transpose() * quotient.covariance * transform,
+			wideLane.labels, quotient.relations,
+			marginal.quotientValidRank, marginal.absoluteValidRank, true);
+	}
+	else
+	{
+		trace << "\nZHANG_E18_INTEGER_DIAGNOSTIC time=" << time.to_string(0)
+			<< " strategy=" << strategyPrefix
+			<< "WL_L1_UNIMODULAR valid=0 status=REJECTED reason="
+			<< wideLane.failureReason << " feedback=0";
+	}
+
+	double parSuccess = std::numeric_limits<double>::quiet_NaN();
+	const std::vector<int> par = zhangSelectOperationalParSubset(
+		trace, quotient.mean, quotient.covariance, 0.999, parSuccess);
+	if (!par.empty())
+	{
+		VectorXd parMean(par.size());
+		MatrixXd parCovariance(par.size(), par.size());
+		std::vector<std::string> parLabels;
+		std::vector<std::string> parRelations;
+		for (int row = 0; row < static_cast<int>(par.size()); row++)
+		{
+			parMean(row) = quotient.mean(par[row]);
+			parLabels.push_back(quotient.labels[par[row]]);
+			parRelations.push_back(quotient.relations[par[row]]);
+			for (int column = 0; column < static_cast<int>(par.size()); column++)
+			{
+				parCovariance(row, column) =
+					quotient.covariance(par[row], par[column]);
+			}
+		}
+		traceZhangIntegerDiagnostic(
+			trace, time, strategyPrefix + "PAR_OPERATIONAL_SUBSET",
+			parMean, parCovariance,
+			parLabels, parRelations, par.size(), 0, true, par);
+	}
+	else
+	{
+		trace << "\nZHANG_E18_INTEGER_DIAGNOSTIC time=" << time.to_string(0)
+			<< " strategy=" << strategyPrefix
+			<< "PAR_OPERATIONAL_SUBSET valid=0 target_count=0"
+			<< " joint_bootstrapped_success_rate=" << parSuccess
+			<< " status=REJECTED reason=NO_SUBSET_REACHES_0.999 feedback=0";
+	}
+}
+}
+
+void traceZhangE18RawIntegerDatumWindow(
+    Trace& trace,
+    const KFState& captureOwner,
+    GTime time)
+{
+    if (!acsConfig.zhangPppAr.fixed_lag_factor_capture_shadow)
+    {
+        return;
+    }
+    auto capture = e18FactorCaptureBuffers.find(&captureOwner);
+    if (capture == e18FactorCaptureBuffers.end())
+    {
+        return;
+    }
+	const auto summary = capture->second.summary();
+	const int evaluationStride = std::max(
+		1, acsConfig.zhangPppAr.fixed_lag_factor_capture_evaluation_stride);
+	if (summary.measurements == 0
+	 || summary.measurements % evaluationStride != 0)
+	{
+		return;
+	}
+	const ZhangRawSquareRootTargetMarginal rawMarginal =
+		capture->second.currentRawSquareRootTargetMarginal();
+	trace << "\nZHANG_E18_RAW_SQUARE_ROOT_WINDOW time="
+		<< time.to_string(0)
+		<< " valid=" << rawMarginal.valid
+		<< " quotient_valid="
+		<< (rawMarginal.valid && rawMarginal.quotientValidRank > 0)
+		<< " absolute_datum_valid="
+		<< (rawMarginal.valid
+			&& rawMarginal.absoluteValidRank
+				== rawMarginal.requestedTargetCount)
+		<< " requested_targets=" << rawMarginal.requestedTargetCount
+		<< " unresolved_gauge_rank=" << rawMarginal.unresolvedGaugeRank
+		<< " information_rank=" << rawMarginal.informationRank
+		<< " quotient_valid_rank=" << rawMarginal.quotientValidRank
+		<< " absolute_valid_rank=" << rawMarginal.absoluteValidRank
+		<< " batch_orthogonal_residual_dof="
+		<< rawMarginal.batchOrthogonalDof
+		<< " batch_orthogonal_residual_squared_norm="
+		<< rawMarginal.batchOrthogonalSquaredNorm
+		<< " boundary_rows=" << rawMarginal.storedRows
+		<< " boundary_columns=" << rawMarginal.storedColumns
+		<< " maximum_boundary_rows=" << rawMarginal.maximumStoredRows
+		<< " maximum_boundary_columns=" << rawMarginal.maximumStoredColumns
+		<< " target_identities=";
+	for (int index = 0;
+		 index < static_cast<int>(rawMarginal.identities.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << rawMarginal.identities[index];
+	}
+	if (rawMarginal.identities.empty()) trace << "NONE";
+	trace << " target_gauge_identities=";
+	for (int index = 0;
+		 index < static_cast<int>(rawMarginal.gaugeIdentities.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << (rawMarginal.gaugeIdentities[index].empty()
+			? "ABSOLUTE" : rawMarginal.gaugeIdentities[index]);
+	}
+	if (rawMarginal.gaugeIdentities.empty()) trace << "NONE";
+	trace << " target_absolute_valid=";
+	for (int index = 0;
+		 index < static_cast<int>(rawMarginal.absoluteValidity.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << rawMarginal.absoluteValidity[index];
+	}
+	if (rawMarginal.absoluteValidity.empty()) trace << "NONE";
+	trace << " target_covariance_row_major=";
+	for (int row = 0; row < rawMarginal.covariance.rows(); row++)
+	for (int column = 0; column < rawMarginal.covariance.cols(); column++)
+	{
+		if (row || column) trace << ";";
+		trace << rawMarginal.covariance(row, column);
+	}
+	if (rawMarginal.covariance.rows() == 0) trace << "NONE";
+	trace << " target_mean=";
+	for (int index = 0; index < rawMarginal.mean.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << rawMarginal.mean(index);
+	}
+	if (rawMarginal.mean.size() == 0) trace << "NONE";
+	trace << " status=" << (rawMarginal.valid ? "ACCEPTED" : "REJECTED")
+		<< " reason=" << (rawMarginal.failureReason.empty()
+			? "NONE" : rawMarginal.failureReason)
+		<< " source=FINAL_ACCEPTED_H_R_F_Q_SQUARE_ROOT feedback=0";
+	traceZhangE18IntegerDiagnostics(
+		trace, time, rawMarginal, "RAW_SQUARE_ROOT_");
+
+	const ZhangRawSquareRootTargetMarginal persistentMarginal =
+		capture->second.currentPersistentRawTargetMarginal();
+	trace << "\nZHANG_E19_PERSISTENT_RAW_TARGET_WINDOW time="
+		<< time.to_string(0)
+		<< " valid=" << persistentMarginal.valid
+		<< " requested_targets=" << persistentMarginal.requestedTargetCount
+		<< " information_rank=" << persistentMarginal.informationRank
+		<< " unresolved_gauge_rank="
+		<< persistentMarginal.unresolvedGaugeRank
+		<< " quotient_valid_rank=" << persistentMarginal.quotientValidRank
+		<< " absolute_valid_rank=" << persistentMarginal.absoluteValidRank
+		<< " exact_constraints_applied="
+		<< persistentMarginal.exactConstraintsApplied
+		<< " batch_orthogonal_residual_dof="
+		<< persistentMarginal.batchOrthogonalDof
+		<< " batch_orthogonal_residual_squared_norm="
+		<< persistentMarginal.batchOrthogonalSquaredNorm
+		<< " boundary_rows=" << persistentMarginal.storedRows
+		<< " boundary_columns=" << persistentMarginal.storedColumns
+		<< " target_identities=";
+	for (int index = 0;
+		 index < static_cast<int>(persistentMarginal.identities.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << persistentMarginal.identities[index];
+	}
+	if (persistentMarginal.identities.empty()) trace << "NONE";
+	trace << " target_gauge_identities=";
+	for (int index = 0;
+		 index < static_cast<int>(persistentMarginal.gaugeIdentities.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << (persistentMarginal.gaugeIdentities[index].empty()
+			? "ABSOLUTE" : persistentMarginal.gaugeIdentities[index]);
+	}
+	if (persistentMarginal.gaugeIdentities.empty()) trace << "NONE";
+	trace << " target_absolute_valid=";
+	for (int index = 0;
+		 index < static_cast<int>(persistentMarginal.absoluteValidity.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << persistentMarginal.absoluteValidity[index];
+	}
+	if (persistentMarginal.absoluteValidity.empty()) trace << "NONE";
+	trace << " target_covariance_row_major=";
+	for (int row = 0; row < persistentMarginal.covariance.rows(); row++)
+	for (int column = 0;
+		 column < persistentMarginal.covariance.cols(); column++)
+	{
+		if (row || column) trace << ";";
+		trace << persistentMarginal.covariance(row, column);
+	}
+	if (persistentMarginal.covariance.size() == 0) trace << "NONE";
+	trace << " target_mean=";
+	for (int index = 0; index < persistentMarginal.mean.size(); index++)
+	{
+		if (index) trace << ";";
+		trace << persistentMarginal.mean(index);
+	}
+	if (persistentMarginal.mean.size() == 0) trace << "NONE";
+	trace << " status=" << (persistentMarginal.valid
+			? "ACCEPTED" : "REJECTED")
+		<< " reason=" << (persistentMarginal.failureReason.empty()
+			? "NONE" : persistentMarginal.failureReason)
+		<< " source=PERSISTENT_RAW_TARGET_EXACT_CONSTRAINT feedback=0";
+	traceZhangE18IntegerDiagnostics(
+		trace, time, persistentMarginal, "PERSISTENT_RAW_TARGET_");
+	for (const auto& scale :
+		capture->second.innovationScaleDiagnostics())
+	{
+		trace << "\nZHANG_E19_INNOVATION_SCALE_GROUP time="
+			<< time.to_string(0)
+			<< " group=" << scale.identity
+			<< " blocks=" << scale.blocks
+			<< " marginal_samples=" << scale.samples
+			<< " marginal_standardised_squared_sum="
+			<< scale.marginalStandardisedSquaredSum
+			<< " predictive_covariance_scale_mle="
+			<< scale.predictiveCovarianceScaleMle()
+			<< " maximum_absolute_prefit_ratio="
+			<< scale.maximumAbsoluteRatio
+			<< " statistic=MARGINAL_PREFIT_RATIO_NOT_JOINT_CHI_SQUARE"
+			<< " role=TRAINING_HOLDOUT_DIAGNOSTIC_ONLY feedback=0";
+	}
+
+	const ZhangIncrementalTargetMarginal marginal =
+		capture->second.currentIncrementalTargetMarginal();
+	trace << "\nZHANG_E18_INCREMENTAL_INTEGER_WINDOW time="
+		  << time.to_string(0)
+		  << " valid=" << marginal.valid
+		  << " quotient_valid="
+		  << (marginal.valid && marginal.quotientValidRank > 0)
+		  << " absolute_datum_valid="
+		  << (marginal.valid
+			&& marginal.absoluteValidRank == marginal.requestedTargetCount)
+		  << " requested_targets=" << marginal.requestedTargetCount
+		  << " unresolved_gauge_rank=" << marginal.unresolvedGaugeRank
+		  << " information_rank=" << marginal.informationRank
+		  << " quotient_valid_rank=" << marginal.quotientValidRank
+		  << " absolute_valid_rank=" << marginal.absoluteValidRank
+		  << " orthogonal_residual_dof=" << marginal.orthogonalResidualDof
+		  << " orthogonal_residual_squared_norm="
+		  << marginal.orthogonalResidualSquaredNorm
+		  << " separator_rows=" << marginal.storedRows
+		  << " separator_columns=" << marginal.storedColumns
+		  << " maximum_separator_rows=" << marginal.maximumStoredRows
+		  << " maximum_separator_columns=" << marginal.maximumStoredColumns
+		  << " target_identities=";
+	if (marginal.identities.empty())
+	{
+		trace << "NONE";
+	}
+	else
+	{
+		for (int index = 0; index < static_cast<int>(marginal.identities.size()); index++)
+		{
+			if (index > 0) trace << ";";
+			trace << marginal.identities[index];
+		}
+	}
+	trace << " target_gauge_identities=";
+	if (marginal.gaugeIdentities.empty())
+	{
+		trace << "NONE";
+	}
+	else
+	{
+		for (int index = 0;
+			 index < static_cast<int>(marginal.gaugeIdentities.size());
+			 index++)
+		{
+			if (index > 0) trace << ";";
+			trace << (marginal.gaugeIdentities[index].empty()
+				? "ABSOLUTE" : marginal.gaugeIdentities[index]);
+		}
+	}
+	trace << " target_absolute_valid=";
+	if (marginal.absoluteValidity.empty())
+	{
+		trace << "NONE";
+	}
+	else
+	{
+		for (int index = 0;
+			 index < static_cast<int>(marginal.absoluteValidity.size());
+			 index++)
+		{
+			if (index > 0) trace << ";";
+			trace << marginal.absoluteValidity[index];
+		}
+	}
+	trace << " target_coordinate_offsets=";
+	if (marginal.coordinateOffsets.empty())
+	{
+		trace << "NONE";
+	}
+	else
+	{
+		for (int index = 0;
+			 index < static_cast<int>(marginal.coordinateOffsets.size());
+			 index++)
+		{
+			if (index > 0) trace << ";";
+			trace << marginal.coordinateOffsets[index];
+		}
+	}
+	trace << " target_covariance_row_major=";
+	if (marginal.covariance.rows() == 0)
+	{
+		trace << "NONE";
+	}
+	else
+	{
+		for (int row = 0; row < marginal.covariance.rows(); row++)
+		for (int column = 0; column < marginal.covariance.cols(); column++)
+		{
+			if (row > 0 || column > 0) trace << ";";
+			trace << marginal.covariance(row, column);
+		}
+	}
+	trace
+		  << " target_mean=";
+    if (marginal.mean.size() == 0)
+    {
+        trace << "NONE";
+    }
+    else
+    {
+        for (int index = 0; index < marginal.mean.size(); index++)
+        {
+            if (index > 0) trace << ";";
+            trace << marginal.mean(index);
+        }
+    }
+    trace << " target_variance_diagonal=";
+    if (marginal.covariance.rows() == 0)
+    {
+        trace << "NONE";
+    }
+	else
+	{
+		for (int index = 0; index < marginal.covariance.rows(); index++)
+		{
+			if (index > 0) trace << ";";
+			trace << marginal.covariance(index, index);
+		}
+	}
+	trace << " target_fractional_mean=";
+	if (marginal.fractionalMean.size() == 0)
+	{
+		trace << "NONE";
+	}
+	else
+	{
+		for (int index = 0; index < marginal.fractionalMean.size(); index++)
+		{
+			if (index > 0) trace << ";";
+			trace << marginal.fractionalMean(index);
+		}
+	}
+	trace << " status=" << (marginal.valid ? "ACCEPTED" : "REJECTED")
+		  << " reason="
+		  << (marginal.failureReason.empty() ? "NONE" : marginal.failureReason)
+		  << " source=INCREMENTAL_TARGET_SEPARATOR feedback=0";
+
+	// Compare only identical physical coordinates.  A covariance difference is
+	// otherwise contaminated by a datum or coordinate change and cannot
+	// distinguish stochastic scaling from information discarded by the
+	// epoch-local separator.
+	std::vector<int> rawCommon;
+	std::vector<int> incrementalCommon;
+	std::vector<std::string> commonIdentities;
+	if (rawMarginal.valid && marginal.valid)
+	{
+		for (int rawIndex = 0;
+			 rawIndex < static_cast<int>(rawMarginal.identities.size());
+			 rawIndex++)
+		{
+			for (int incrementalIndex = 0;
+				 incrementalIndex < static_cast<int>(marginal.identities.size());
+				 incrementalIndex++)
+			{
+				if (rawMarginal.identities[rawIndex]
+						!= marginal.identities[incrementalIndex]
+				 || rawMarginal.gaugeIdentities[rawIndex]
+						!= marginal.gaugeIdentities[incrementalIndex]
+				 || rawMarginal.absoluteValidity[rawIndex]
+						!= marginal.absoluteValidity[incrementalIndex])
+				{
+					continue;
+				}
+				rawCommon.push_back(rawIndex);
+				incrementalCommon.push_back(incrementalIndex);
+				commonIdentities.push_back(rawMarginal.identities[rawIndex]);
+				break;
+			}
+		}
+	}
+	const int commonCount = rawCommon.size();
+	VectorXd rawCommonMean(commonCount);
+	VectorXd incrementalCommonMean(commonCount);
+	MatrixXd rawCommonCovariance(commonCount, commonCount);
+	MatrixXd incrementalCommonCovariance(commonCount, commonCount);
+	for (int row = 0; row < commonCount; row++)
+	{
+		rawCommonMean(row) = rawMarginal.mean(rawCommon[row]);
+		incrementalCommonMean(row) = marginal.mean(incrementalCommon[row]);
+		for (int column = 0; column < commonCount; column++)
+		{
+			rawCommonCovariance(row, column) = rawMarginal.covariance(
+				rawCommon[row], rawCommon[column]);
+			incrementalCommonCovariance(row, column) = marginal.covariance(
+				incrementalCommon[row], incrementalCommon[column]);
+		}
+	}
+	auto informationMatrix = [](const MatrixXd& covariance,
+		MatrixXd& information, int& rank)
+	{
+		rank = 0;
+		information = MatrixXd::Zero(covariance.rows(), covariance.cols());
+		if (covariance.rows() == 0 || covariance.rows() != covariance.cols())
+		{
+			return false;
+		}
+		Eigen::SelfAdjointEigenSolver<MatrixXd> spectrum(
+			0.5 * (covariance + covariance.transpose()));
+		if (spectrum.info() != Eigen::Success)
+		{
+			return false;
+		}
+		const double maximum = spectrum.eigenvalues().cwiseAbs().maxCoeff();
+		const double threshold = std::max(1e-14, maximum * 1e-12);
+		VectorXd inverse = VectorXd::Zero(covariance.rows());
+		for (int index = 0; index < covariance.rows(); index++)
+		{
+			if (spectrum.eigenvalues()(index) > threshold)
+			{
+				inverse(index) = 1 / spectrum.eigenvalues()(index);
+				rank++;
+			}
+		}
+		information = spectrum.eigenvectors() * inverse.asDiagonal()
+			* spectrum.eigenvectors().transpose();
+		information = 0.5 * (information + information.transpose());
+		return information.allFinite() && rank > 0;
+	};
+	MatrixXd rawInformation;
+	MatrixXd incrementalInformation;
+	int rawInformationRank = 0;
+	int incrementalInformationRank = 0;
+	const bool comparisonValid = commonCount > 0
+		&& informationMatrix(rawCommonCovariance,
+			rawInformation, rawInformationRank)
+		&& informationMatrix(incrementalCommonCovariance,
+			incrementalInformation, incrementalInformationRank);
+	const MatrixXd covarianceDifference = comparisonValid
+		? incrementalCommonCovariance - rawCommonCovariance : MatrixXd();
+	const MatrixXd informationDifference = comparisonValid
+		? incrementalInformation - rawInformation : MatrixXd();
+	const VectorXd meanDifference = comparisonValid
+		? incrementalCommonMean - rawCommonMean : VectorXd();
+	const double covarianceRelativeDifference = comparisonValid
+		? covarianceDifference.norm()
+			/ std::max(1e-30, rawCommonCovariance.norm())
+		: std::numeric_limits<double>::quiet_NaN();
+	const double informationRelativeDifference = comparisonValid
+		? informationDifference.norm()
+			/ std::max(1e-30, rawInformation.norm())
+		: std::numeric_limits<double>::quiet_NaN();
+	trace << "\nZHANG_E19_TARGET_INFORMATION_COMPARISON time="
+		<< time.to_string(0)
+		<< " valid=" << comparisonValid
+		<< " common_target_count=" << commonCount
+		<< " raw_information_rank=" << rawInformationRank
+		<< " incremental_information_rank=" << incrementalInformationRank
+		<< " covariance_relative_difference="
+		<< covarianceRelativeDifference
+		<< " information_relative_difference="
+		<< informationRelativeDifference
+		<< " covariance_trace_ratio="
+		<< (comparisonValid && rawCommonCovariance.trace() > 0
+			? incrementalCommonCovariance.trace()
+				/ rawCommonCovariance.trace()
+			: std::numeric_limits<double>::quiet_NaN())
+		<< " information_trace_ratio="
+		<< (comparisonValid && rawInformation.trace() > 0
+			? incrementalInformation.trace() / rawInformation.trace()
+			: std::numeric_limits<double>::quiet_NaN())
+		<< " common_target_identities=";
+	for (int index = 0; index < static_cast<int>(commonIdentities.size()); index++)
+	{
+		if (index) trace << ";";
+		trace << commonIdentities[index];
+	}
+	if (commonIdentities.empty()) trace << "NONE";
+	auto traceVector = [&trace](const VectorXd& vector)
+	{
+		for (int index = 0; index < vector.size(); index++)
+		{
+			if (index) trace << ";";
+			trace << vector(index);
+		}
+		if (vector.size() == 0) trace << "NONE";
+	};
+	auto traceMatrix = [&trace](const MatrixXd& matrix)
+	{
+		for (int row = 0; row < matrix.rows(); row++)
+		for (int column = 0; column < matrix.cols(); column++)
+		{
+			if (row || column) trace << ";";
+			trace << matrix(row, column);
+		}
+		if (matrix.size() == 0) trace << "NONE";
+	};
+	trace << " raw_mean=";
+	traceVector(rawCommonMean);
+	trace << " incremental_mean=";
+	traceVector(incrementalCommonMean);
+	trace << " mean_difference=";
+	traceVector(meanDifference);
+	trace << " raw_covariance=";
+	traceMatrix(rawCommonCovariance);
+	trace << " incremental_covariance=";
+	traceMatrix(incrementalCommonCovariance);
+	trace << " covariance_difference=";
+	traceMatrix(covarianceDifference);
+	trace << " raw_information=";
+	traceMatrix(rawInformation);
+	trace << " incremental_information=";
+	traceMatrix(incrementalInformation);
+	trace << " information_difference=";
+	traceMatrix(informationDifference);
+	trace << " status=" << (comparisonValid ? "EVALUATED" : "REJECTED")
+		<< " reason=" << (comparisonValid ? "NONE" : "NO_COMMON_COORDINATE")
+		<< " incremental_role=DIAGNOSTIC_ONLY feedback=0";
+	traceZhangE18IntegerDiagnostics(
+		trace, time, marginal, "TARGET_INCREMENT_");
+}
+
 bool zhangPppArUsesObservable(E_Sys sys, E_ObsCode code)
 {
     auto it = acsConfig.zhangPppAr.baseline_observables.find(sys);
@@ -759,12 +2184,21 @@ void recordZhangExactPhaseTransforms(
     auto preserved = satelliteDatumManager(sys, code).applyDynamicTreeTransform(
         cycleChanges
     );
+    const bool houOsbLike =
+        acsConfig.zhangPppAr.product_mode == "HOU_OSB_LIKE";
     for (const auto& [satellite, cycleChange] : cycleChanges)
     {
         ProductKey key{satellite, code};
         auto& state = continuityMap[key];
         initialiseContinuityState(key, state);
-        if (preserved[satellite])
+        if (houOsbLike)
+        {
+            // The complete affine offset defines the fixed Hou product
+            // coordinate.  A pure internal-tree exchange is never a product
+            // discontinuity, even when its current float value is fractional.
+            state.applyHouProductTransform(cycleChange);
+        }
+        else if (preserved[satellite])
         {
             state.resetReason = "component_gauge_s_transform";
             state.fractionalShiftCycles +=
@@ -980,10 +2414,45 @@ ZhangProductRelationEvent relinkZhangSatelliteProductRelation(
     const string&      provenance
 )
 {
-    ZhangProductRelationEvent event =
-        satelliteDatumManager(sys, code).realignRelation(
+    auto& manager = satelliteDatumManager(sys, code);
+    int segmentA = manager.status(anchor, false).phaseSegment;
+    int segmentB = manager.status(satellite, false).phaseSegment;
+    PromotionEvidenceKey key{
+        sys, code, anchor, segmentA, satellite, segmentB
+    };
+    auto& evidence = relinkEvidence[key];
+    long int epoch = static_cast<long int>(std::llround(time.bigTime));
+    double maxGap =
+        acsConfig.zhangPppAr.promotion_confirmation_max_gap_seconds;
+    bool sameSequence =
+        evidence.confirmations > 0 &&
+        evidence.difference == currentDifferenceCycles &&
+        epoch != evidence.lastEpoch &&
+        (maxGap <= 0 || epoch - evidence.lastEpoch <= maxGap);
+    if (!sameSequence && epoch != evidence.lastEpoch)
+    {
+        evidence.confirmations = 0;
+    }
+    if (epoch != evidence.lastEpoch)
+    {
+        evidence.difference = currentDifferenceCycles;
+        evidence.lastEpoch = epoch;
+        evidence.confirmations++;
+    }
+
+    ZhangProductRelationEvent event;
+    event.type = ZhangProductRelationEventType::PENDING_CONFIRMATION;
+    event.confirmationCount = evidence.confirmations;
+    event.confirmationRequired = std::max(
+        1, acsConfig.zhangPppAr.promotion_confirmation_epochs
+    );
+    if (evidence.confirmations >= event.confirmationRequired)
+    {
+        relinkEvidence.erase(key);
+        event = manager.realignRelation(
             anchor, satellite, currentDifferenceCycles, provenance
         );
+    }
     BOOST_LOG_TRIVIAL(info)
         << "ZHANG_PRODUCT_RELATION_PROMOTION time=" << time.to_string(0)
         << " system=" << enum_to_string(sys)
@@ -991,13 +2460,43 @@ ZhangProductRelationEvent relinkZhangSatelliteProductRelation(
         << " satellite_a=" << anchor.id()
         << " satellite_b=" << satellite.id()
         << " integer_difference=" << currentDifferenceCycles
-        << " status=" << (event.accepted ? "ACCEPTED" : "REJECTED_INCONSISTENT")
+        << " status="
+        << (event.accepted
+                ? "ACCEPTED"
+                : event.type == ZhangProductRelationEventType::PENDING_CONFIRMATION
+                    ? "PENDING_CONFIRMATION"
+                    : "REJECTED_INCONSISTENT")
         << " event_type=" << zhangProductRelationEventName(event.type)
         << " old_component_size_a=" << event.oldComponentSizeA
         << " old_component_size_b=" << event.oldComponentSizeB
         << " new_component_size=" << event.newComponentSize
+        << " confirmation_count=" << event.confirmationCount
+        << " confirmation_required=" << event.confirmationRequired
         << " provenance=" << provenance;
     return event;
+}
+
+std::size_t quarantineZhangSatelliteProductAlignments(
+    GTime                   time,
+    E_Sys                   sys,
+    E_ObsCode               code,
+    const std::set<SatSys>& satellites,
+    const SatSys&           trustedAnchor,
+    const std::string&      reason
+)
+{
+    auto quarantined = satelliteDatumManager(sys, code)
+        .quarantineCurrentAlignments(satellites, trustedAnchor);
+    BOOST_LOG_TRIVIAL(info)
+        << "ZHANG_HELD_PRODUCT_QUARANTINE time=" << time.to_string(0)
+        << " system=" << enum_to_string(sys)
+        << " observable=" << enum_to_string(code)
+        << " support_satellites=" << satellites.size()
+        << " quarantined_satellites=" << quarantined
+        << " trusted_anchor="
+        << (trustedAnchor.sys == E_Sys::NONE ? "NONE" : trustedAnchor.id())
+        << " reason=" << reason;
+    return quarantined;
 }
 
 vector<ZhangSatelliteDatumComponent> zhangSatelliteDatumComponents(
@@ -1015,6 +2514,15 @@ ZhangCurrentAlignmentState zhangSatelliteAlignmentState(
 )
 {
     return satelliteDatumManager(sys, code).alignmentState(satellite);
+}
+
+ZhangSatelliteDatumStatus zhangSatelliteDatumStatus(
+    E_Sys sys,
+    E_ObsCode code,
+    const SatSys& satellite
+)
+{
+    return satelliteDatumManager(sys, code).status(satellite, false);
 }
 
 bool queryZhangSatelliteProductRelation(
@@ -1057,14 +2565,32 @@ void writeZhangInternalProducts(
     const KFState& floatState,
     const KFState& fixedState,
     int            newlyFixed,
-    bool           integerDatumComplete
+    bool           integerDatumComplete,
+    bool           fixedBranchValid,
+    bool           networkIntegerReady
 )
 {
     if (!acsConfig.zhangPppAr.output_products)
     {
         return;
     }
+	const bool houOsbLike =
+		acsConfig.zhangPppAr.product_mode == "HOU_OSB_LIKE";
+	if (houOsbLike && acsConfig.zhangPppAr.output_diagnostics)
+	{
+		trace << "\nZHANG_HOU_OSB_LIKE_PRODUCT_MODEL time="
+			<< fixedState.time.to_string(0)
+			<< " correction_definition=CLOCK_MINUS_PHASE"
+			<< " integer_source=NETWORK_CYCLE_LATTICE"
+			<< " product_datum=RELATIVE_PER_SYSTEM_SIGNAL"
+			<< " absolute_satellite_integer_required=0"
+			<< " user_ambiguity_datum=ONE_REFERENCE_PER_SYSTEM_SIGNAL"
+			<< " network_integer_ready=" << networkIntegerReady
+			<< " fixed_branch_transactional="
+			<< acsConfig.zhangPppAr.transactional_integer_fixing;
+	}
 
+    vector<ZhangInternalProduct> epochProducts;
     auto writeSolution = [&](const KFState& state, const string& solution)
     {
         for (const auto& [phaseKey, phaseIndex] : state.kfIndexMap)
@@ -1101,10 +2627,6 @@ void writeZhangInternalProducts(
             auto& continuity = continuityMap[productKey];
             initialiseContinuityState(productKey, continuity);
             continuity.advanceEpoch(state.time);
-            if (solution == "FIXED" && integerDatumComplete)
-            {
-                continuity.markFixed();
-            }
 
             ZhangGraphIntegerContext graphContext;
             bool structureValid =
@@ -1116,17 +2638,36 @@ void writeZhangInternalProducts(
                 satelliteDatumManager(phaseKey.Sat.sys, code).status(
                     phaseKey.Sat, structureValid
                 );
-
             int clockIndex = clockIt->second;
             double clock = state.x(clockIndex);
             double rawPhase = state.x(phaseIndex);
+            double houAlignmentCycles =
+                static_cast<double>(continuity.integerShiftCycles) +
+                continuity.fractionalShiftCycles;
+            double productAlignmentCycles = houOsbLike
+                ? houAlignmentCycles
+                : static_cast<double>(datumStatus.alignmentCycles);
             double emittedPhase =
-                rawPhase + datumStatus.alignmentCycles * lambda;
+                rawPhase + productAlignmentCycles * lambda;
             double covariance = state.P(clockIndex, phaseIndex);
+            double clockVariance = state.P(clockIndex, clockIndex);
+            double phaseVariance = state.P(phaseIndex, phaseIndex);
+            double correction = zhangUserPhaseCorrectionValue(
+                clock,
+                rawPhase,
+                lambda,
+                datumStatus.alignmentCycles
+            );
             double correctionVariance =
-                state.P(clockIndex, clockIndex) +
-                state.P(phaseIndex, phaseIndex) -
-                2 * covariance;
+                clockVariance + phaseVariance - 2 * covariance;
+			if (houOsbLike)
+			{
+				const auto target = zhangHouOsbLikePhaseCorrectionTarget(
+					state.x.size(), clockIndex, phaseIndex, lambda,
+					productAlignmentCycles);
+				correction = target.value(state.x);
+				correctionVariance = target.variance(state.P);
+			}
 
             ZhangInternalProduct product;
             product.time = state.time;
@@ -1140,46 +2681,140 @@ void writeZhangInternalProducts(
             product.phase_sigma_m =
                 std::sqrt(std::max(0.0, state.P(phaseIndex, phaseIndex)));
             product.clock_phase_covariance_m2 = covariance;
-            product.correction_m = clock - emittedPhase;
+            product.correction_m = correction;
             product.correction_sigma_m =
                 std::sqrt(std::max(0.0, correctionVariance));
-            product.discontinuity_counter = datumStatus.discontinuityCounter;
-            product.integer_shift_cycles = datumStatus.alignmentCycles;
+            bool productPrecisionValid =
+                acsConfig.zhangPppAr.maximum_pppar_correction_sigma_m <= 0 ||
+                product.correction_sigma_m <=
+                    acsConfig.zhangPppAr.maximum_pppar_correction_sigma_m;
+            bool productIntegerCoordinateReady = houOsbLike
+                ? networkIntegerReady && structureValid
+                : datumStatus.integerValid;
+            if (solution == "FIXED" && fixedBranchValid &&
+                productIntegerCoordinateReady && productPrecisionValid)
+            {
+                // Integer validity is a per-satellite, per-signal property.
+                // A newly precise product must also pass the configured
+                // stabilization window before it can be consumed by PPP-AR.
+                continuity.markFixed(
+                    state.time, acsConfig.zhangPppAr.stabilization_epochs
+                );
+            }
+            else if (solution == "FIXED" && !productPrecisionValid)
+            {
+                continuity.markIntegerPrecisionUnavailable(
+                    "product_correction_sigma_exceeded",
+                    acsConfig.zhangPppAr.stabilization_epochs
+                );
+            }
+            else if (solution == "FIXED" && houOsbLike &&
+                     !productIntegerCoordinateReady)
+            {
+                continuity.markIntegerPrecisionUnavailable(
+                    "network_cycle_phase_not_ready",
+                    acsConfig.zhangPppAr.stabilization_epochs
+                );
+            }
+            product.discontinuity_counter = houOsbLike
+                ? continuity.counter
+                : datumStatus.discontinuityCounter;
+            product.integer_shift_cycles = houOsbLike
+                ? continuity.integerShiftCycles
+                : datumStatus.alignmentCycles;
             product.fractional_shift_cycles = continuity.fractionalShiftCycles;
-            product.datum_version = datumStatus.datumVersion;
+            product.datum_version = houOsbLike
+                ? continuity.datumVersion
+                : datumStatus.datumVersion;
             product.valid_from = continuity.validFrom;
             product.product_iod = continuity.iod;
             product.reset_reason = continuity.resetReason;
-            ZhangCurrentAlignmentState alignmentState =
-                satelliteDatumManager(phaseKey.Sat.sys, code).alignmentState(
-                    phaseKey.Sat
-                );
-            product.persistent_relation_known = datumStatus.componentSize >= 2;
+            ZhangCurrentAlignmentState alignmentState = houOsbLike
+                ? ZhangCurrentAlignmentState::CURRENT_ALIGNMENT_VALID
+                : satelliteDatumManager(
+                    phaseKey.Sat.sys, code).alignmentState(phaseKey.Sat);
+            // Hou products intentionally do not claim a conventional
+            // satellite-only persistent integer relation.  Their integer
+            // compatibility comes from the fixed network cycle lattice and
+            // the explicitly transported product S-coordinate instead.
+            product.persistent_relation_known = houOsbLike
+                ? false
+                : datumStatus.componentSize >= 2;
             product.current_alignment_state =
                 zhangCurrentAlignmentStateName(alignmentState);
             product.integer_structure_valid =
-                datumStatus.integerStructureValid;
+                houOsbLike
+                    ? structureValid
+                    : datumStatus.integerStructureValid;
             product.integer_datum_continuous =
-                datumStatus.integerDatumContinuous;
+                houOsbLike
+                    ? structureValid
+                    : datumStatus.integerDatumContinuous;
             product.integer_precision_valid =
-                solution == "FIXED" && datumStatus.integerPrecisionValid;
+                solution == "FIXED" && fixedBranchValid &&
+                (houOsbLike
+                    ? networkIntegerReady
+                    : datumStatus.integerPrecisionValid) &&
+                productPrecisionValid &&
+                continuity.integerValid();
             product.integer_valid =
                 product.integer_structure_valid &&
                 product.integer_datum_continuous &&
                 product.integer_precision_valid;
-            product.integer_component_id = datumStatus.componentId;
-            product.integer_datum_id =
-                enum_to_string(phaseKey.Sat.sys) + "-" +
-                enum_to_string(code) + "-V" +
-                std::to_string(datumStatus.datumVersion) + "-SEG" +
-                std::to_string(datumStatus.phaseSegment);
+            product.branch_valid =
+                solution == "FLOAT" || fixedBranchValid;
+            double covarianceScale = std::max(
+                1.0,
+                std::max(std::abs(clockVariance), std::abs(phaseVariance))
+            );
+            bool finite =
+                std::isfinite(clock) && std::isfinite(rawPhase) &&
+                std::isfinite(emittedPhase) && std::isfinite(covariance) &&
+                std::isfinite(clockVariance) &&
+                std::isfinite(phaseVariance) &&
+                std::isfinite(correctionVariance);
+            bool covarianceValid =
+                clockVariance >= -1e-10 * covarianceScale &&
+                phaseVariance >= -1e-10 * covarianceScale &&
+                correctionVariance >= -1e-10 * covarianceScale &&
+                covariance * covariance <=
+                    clockVariance * phaseVariance +
+                    1e-10 * covarianceScale * covarianceScale;
+            product.numeric_valid = finite && covarianceValid;
+            product.continuity_valid = true;
+            product.ppp_usable = product.numeric_valid && product.branch_valid;
+            product.pppar_usable =
+                product.ppp_usable && product.integer_valid;
+            product.invalid_reason = !product.branch_valid
+                ? "FIXED_TRANSACTION_ABORTED"
+                : (!finite
+                       ? "NONFINITE_PRODUCT"
+                       : (!covarianceValid
+                              ? "INVALID_PRODUCT_COVARIANCE"
+                              : "NONE"));
+            product.integer_component_id = houOsbLike
+                ? "HOU-" + enum_to_string(phaseKey.Sat.sys) + "-" +
+                    enum_to_string(code) + "-NETWORK-CYCLE"
+                : datumStatus.componentId;
+            product.integer_datum_id = houOsbLike
+                ? "HOU-" + enum_to_string(phaseKey.Sat.sys) + "-" +
+                    enum_to_string(code) + "-V" +
+                    std::to_string(continuity.datumVersion)
+                : enum_to_string(phaseKey.Sat.sys) + "-" +
+                    enum_to_string(code) + "-V" +
+                    std::to_string(datumStatus.datumVersion) + "-SEG" +
+                    std::to_string(datumStatus.phaseSegment);
 
-            appendProduct(product);
+            epochProducts.push_back(product);
 
             if (acsConfig.zhangPppAr.output_diagnostics)
             {
                 trace << "\nZHANG_CONTINUITY_PRODUCT time=" << state.time.to_string(0)
                       << " solution=" << solution
+					  << " product_mode="
+					  << acsConfig.zhangPppAr.product_mode
+					  << " absolute_satellite_integer_required="
+					  << (!houOsbLike)
                       << " satellite=" << phaseKey.Sat.id()
                       << " observable=" << enum_to_string(code)
                       << " counter=" << continuity.counter
@@ -1189,6 +2824,7 @@ void writeZhangInternalProducts(
                       << " iod=" << continuity.iod
                       << " newly_fixed=" << newlyFixed
                       << " integer_datum_complete=" << integerDatumComplete
+                      << " network_integer_ready=" << networkIntegerReady
                       << " persistent_relation_known="
                       << product.persistent_relation_known
                       << " current_alignment_state="
@@ -1200,8 +2836,13 @@ void writeZhangInternalProducts(
                       << " integer_precision_valid="
                       << product.integer_precision_valid
                       << " integer_component_size="
-                      << datumStatus.componentSize
+                      << (houOsbLike ? 0 : datumStatus.componentSize)
                       << " integer_valid=" << product.integer_valid
+                      << " numeric_valid=" << product.numeric_valid
+                      << " branch_valid=" << product.branch_valid
+                      << " ppp_usable=" << product.ppp_usable
+                      << " pppar_usable=" << product.pppar_usable
+                      << " invalid_reason=" << product.invalid_reason
                       << " reason=" << continuity.resetReason;
             }
         }
@@ -1209,6 +2850,116 @@ void writeZhangInternalProducts(
 
     writeSolution(floatState, "FLOAT");
     writeSolution(fixedState, "FIXED");
+
+    // Reject satellite-dependent correction jumps after removing the robust
+    // per-signal common mode.  A common clock-datum change can be absorbed by
+    // the user's receiver clock; a non-common jump cannot.
+    map<pair<string, E_ObsCode>, vector<int>> continuityGroups;
+    for (int index = 0; index < static_cast<int>(epochProducts.size()); index++)
+    {
+        continuityGroups[
+            {epochProducts[index].solution, epochProducts[index].observable}
+        ].push_back(index);
+    }
+    const double maximumGap = std::max(120.0, 2.5 * acsConfig.epoch_interval);
+    const double maximumResidualStep =
+        acsConfig.zhangPppAr.maximum_product_residual_step_m;
+    for (const auto& [group, indices] : continuityGroups)
+    {
+        map<int, double> deltas;
+        vector<double> commonModeCandidates;
+        for (int index : indices)
+        {
+            const auto& product = epochProducts[index];
+            ProductHistoryKey key{
+                product.solution, product.satellite, product.observable
+            };
+            auto previous = productHistoryMap.find(key);
+            if (previous == productHistoryMap.end() ||
+                !product.numeric_valid ||
+                previous->second.discontinuityCounter !=
+                    product.discontinuity_counter ||
+                previous->second.datumVersion != product.datum_version)
+            {
+                continue;
+            }
+            double gap = (product.time - previous->second.time).to_double();
+            if (!(gap > 0) || gap > maximumGap)
+            {
+                continue;
+            }
+            double delta = product.correction_m - previous->second.correction;
+            if (std::isfinite(delta))
+            {
+                deltas[index] = delta;
+                commonModeCandidates.push_back(delta);
+            }
+        }
+
+        double commonMode = 0;
+        if (!commonModeCandidates.empty())
+        {
+            auto middle = commonModeCandidates.begin() +
+                commonModeCandidates.size() / 2;
+            std::nth_element(
+                commonModeCandidates.begin(), middle, commonModeCandidates.end()
+            );
+            commonMode = *middle;
+        }
+        for (int index : indices)
+        {
+            auto& product = epochProducts[index];
+            auto delta = deltas.find(index);
+            double residualStep = 0;
+            if (delta != deltas.end())
+            {
+                residualStep = std::abs(delta->second - commonMode);
+                if (!std::isfinite(residualStep) ||
+                    (maximumResidualStep > 0 &&
+                     residualStep > maximumResidualStep))
+                {
+                    product.continuity_valid = false;
+                    product.invalid_reason =
+                        "COMMON_MODE_REMOVED_STEP_EXCEEDED";
+                }
+            }
+            product.ppp_usable =
+                product.numeric_valid && product.branch_valid &&
+                product.continuity_valid;
+            product.pppar_usable =
+                product.ppp_usable && product.integer_valid;
+
+            ProductHistoryKey key{
+                product.solution, product.satellite, product.observable
+            };
+            if (product.ppp_usable)
+            {
+                productHistoryMap[key] = {
+                    product.time,
+                    product.correction_m,
+                    product.discontinuity_counter,
+                    product.datum_version
+                };
+            }
+            appendProduct(product);
+            if (acsConfig.zhangPppAr.output_diagnostics)
+            {
+                trace << "\nZHANG_PRODUCT_NUMERIC_GATE time="
+                      << product.time.to_string(0)
+                      << " solution=" << product.solution
+                      << " satellite=" << product.satellite.id()
+                      << " observable=" << enum_to_string(product.observable)
+                      << " common_mode_step_m=" << commonMode
+                      << " residual_step_m=" << residualStep
+                      << " numeric_valid=" << product.numeric_valid
+                      << " branch_valid=" << product.branch_valid
+                      << " continuity_valid=" << product.continuity_valid
+                      << " ppp_usable=" << product.ppp_usable
+                      << " pppar_usable=" << product.pppar_usable
+                      << " reason=" << product.invalid_reason;
+            }
+        }
+    }
     appendProductCovariance(floatState, "FLOAT", fixedState);
     appendProductCovariance(fixedState, "FIXED", fixedState);
 }
@@ -1237,7 +2988,7 @@ bool queryZhangInternalProduct(
         return false;
     }
     product = it->second;
-    return true;
+    return product.ppp_usable;
 }
 
 void updateZhangPppArUserReferences(
@@ -1471,8 +3222,8 @@ bool zhangPppArUserAmbiguityIntegerValid(
         return false;
     }
 
-    return satelliteProduct.integer_valid &&
-           referenceProduct.integer_valid;
+    return satelliteProduct.pppar_usable &&
+           referenceProduct.pppar_usable;
 }
 
 void traceZhangPppArUserDiagnostics(

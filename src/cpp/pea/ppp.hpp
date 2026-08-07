@@ -163,6 +163,8 @@ bool satQuat(SatPos& satPos, vector<E_Source> attitudeTypes, Quaterniond& quat);
 
 void fixAndHoldAmbiguities(Trace& trace, KFState& kfState);
 
+void captureZhangPppArFloatPrior(const KFState& kfState);
+
 bool queryBiasUC(
     Trace&     trace,
     GTime      time,

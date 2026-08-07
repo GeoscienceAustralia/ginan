@@ -423,6 +423,31 @@ public:
         return event;
     }
 
+    /** Fail closed for a diagnosed held-lattice support set while preserving
+     * the exact persistent relation forest.  A trusted component anchor may
+     * remain aligned so that the quarantined members can later be reacquired. */
+    std::size_t quarantineCurrentAlignments(
+        const std::set<SatSys>& satellites,
+        const SatSys&           trustedAnchor = SatSys()
+    )
+    {
+        std::size_t quarantined = 0;
+        for (const auto& satellite : satellites)
+        {
+            if (satellite == trustedAnchor)
+            {
+                continue;
+            }
+            auto node = currentNode(satellite);
+            if (alignmentKnown.erase(node) > 0)
+            {
+                quarantined++;
+            }
+            precisionValid.erase(node);
+        }
+        return quarantined;
+    }
+
     ZhangProductRelationEvent realignRelation(
         const SatSys&      anchor,
         const SatSys&      satellite,

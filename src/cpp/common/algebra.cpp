@@ -739,6 +739,18 @@ bool KFState::applyStateTransform(
         return false;
     }
 
+    if (exactStateTransformCallback)
+    {
+        exactStateTransformCallback(
+            *this,
+            time,
+            kfIndexMap,
+            newIndexMap,
+            transform,
+            label
+        );
+    }
+
     x  = std::move(transformedX);
     dx = std::move(transformedDx);
     P  = std::move(transformedP);
@@ -795,9 +807,10 @@ bool KFState::applyStateTransform(
  * matrix is generated.
  */
 void KFState::stateTransition(
-    Trace&    trace,    ///< Trace file for output
-    GTime     newTime,  ///< Time of update for process noise and dynamics (s)
-    MatrixXd* stm_ptr   ///< Optional pointer to output state transition matrix
+    Trace&    trace,            ///< Trace file for output
+    GTime     newTime,          ///< Time of update for process noise and dynamics (s)
+    MatrixXd* stm_ptr,          ///< Optional pointer to output state transition matrix
+    MatrixXd* processNoise_ptr  ///< Optional pointer to the actual process covariance used
 )
 {
     double tgap = 0;
@@ -1131,6 +1144,22 @@ void KFState::stateTransition(
     if (simulate_filter_only)
     {
         Q0.setZero();
+    }
+    if (processNoise_ptr)
+    {
+        *processNoise_ptr = Q0;
+    }
+    if (stateTransitionFactorCallback)
+    {
+        stateTransitionFactorCallback(
+            *this,
+            time,
+            kfIndexMap,
+            newKFIndexMap,
+            F,
+            Q0,
+            "KF_STATE_TRANSITION"
+        );
     }
     bool blockCovarianceTransition = acsConfig.pppOpts.receiver_chunking;
 
@@ -3381,6 +3410,11 @@ void KFState::filterKalman(
             rts_basename + FORWARD_SUFFIX,
             acsConfig.pppOpts.queue_rts_outputs
         );
+    }
+
+    if (acceptedMeasurementFactorCallback)
+    {
+        acceptedMeasurementFactorCallback(*this, kfMeas, suffix, xp, Pp);
     }
 
     if (simulate_filter_only)

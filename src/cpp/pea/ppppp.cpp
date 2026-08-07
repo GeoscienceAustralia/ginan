@@ -1924,6 +1924,7 @@ void ppp(
     DOCS_REFERENCE(Main_Filter__);
 
     updateFilter(trace, receiverMap, kfState);
+    configureZhangE18FactorCapture(kfState);
 
     // add process noise and dynamics to existing states as a prediction of current state
     if (kfState.assume_linearity == false)
@@ -2066,6 +2067,7 @@ void ppp(
 
     BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << "\n";
 
+    captureZhangPppArFloatPrior(kfState);
     kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
 
     postFilterChecks(tsync, receiverMap, kfState, kfMeas);
