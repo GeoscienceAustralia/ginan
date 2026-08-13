@@ -28,12 +28,15 @@ def main() -> int:
     quotient: list[dict[str, str]] = []
     pair_sources: dict[str, int] = {}
     certified_graph: dict[str, str] | None = None
+    current_epoch_lattices: list[dict[str, str]] = []
     with args.trace.open(errors="replace") as stream:
         for raw in stream:
             if args.epoch not in raw:
                 continue
             if "ZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR" in raw:
                 quotient.append(fields(raw))
+            elif "ZHANG_CURRENT_EPOCH_CERTIFIED_LATTICE" in raw:
+                current_epoch_lattices.append(fields(raw))
             elif "ZHANG_PRODUCT_RELATION_PAIR_FLOAT" in raw:
                 source = fields(raw).get("evidence_source", "MISSING")
                 pair_sources[source] = pair_sources.get(source, 0) + 1
@@ -48,12 +51,21 @@ def main() -> int:
         covariance = integer(item, "quotient_covariance_rank")
         newly_fixed = integer(item, "newly_fixed_rank")
         combined = integer(item, "combined_certified_rank")
+        persistent = integer(item, "persistent_held_intersection_rank")
+        current = integer(item, "current_certified_increment_rank")
         if target != held + unresolved:
             errors.append(f"component {item.get('component')}: target != held + quotient")
-        if item.get("status") != "UNTRACKED_DETERMINISTIC_RELATION" and covariance != unresolved:
+        if item.get("status") not in {
+            "UNTRACKED_DETERMINISTIC_RELATION",
+            "DETERMINISTIC_INTEGER_INCONSISTENCY",
+        } and covariance != unresolved:
             errors.append(f"component {item.get('component')}: quotient covariance rank mismatch")
         if combined < held or combined > target:
             errors.append(f"component {item.get('component')}: invalid combined certified rank")
+        if held != persistent + current:
+            errors.append(
+                f"component {item.get('component')}: held/certified provenance rank mismatch"
+            )
         if newly_fixed > unresolved:
             errors.append(f"component {item.get('component')}: fixed rank exceeds quotient")
         if item.get("certified") == "1" and combined != target:
@@ -70,6 +82,10 @@ def main() -> int:
         errors.append("pair provenance classification is degenerate")
     if certified_graph is None:
         errors.append("missing actual certified product graph summary")
+    if not current_epoch_lattices:
+        errors.append("missing current-epoch certified lattice provenance")
+    elif any(item.get("valid") != "1" for item in current_epoch_lattices):
+        errors.append("invalid current-epoch certified physical lattice")
 
     report = {
         "epoch": args.epoch,
@@ -77,6 +93,7 @@ def main() -> int:
         "quotient_components": quotient,
         "pair_evidence_sources": pair_sources,
         "actual_certified_graph": certified_graph,
+        "current_epoch_certified_lattices": current_epoch_lattices,
         "errors": errors,
         "valid": not errors,
     }

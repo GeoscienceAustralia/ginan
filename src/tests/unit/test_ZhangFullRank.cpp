@@ -37,6 +37,7 @@
 #include "common/zhangIfWideLane.hpp"
 #include "common/zhangProductGaugeCompiler.hpp"
 #include "common/zhangQuotientIntegerLattice.hpp"
+#include "common/zhangIntegerProductGainFrontier.hpp"
 #include "common/zhangIntegerConditioner.hpp"
 #include "common/zhangHybridUserModel.hpp"
 #include "common/zhangHybridService.hpp"
@@ -8944,4 +8945,61 @@ BOOST_AUTO_TEST_CASE(exact_certified_union_recomputes_rank_and_target_equality)
 	BOOST_CHECK(complete.consistent);
 	BOOST_CHECK_EQUAL(complete.combinedCertifiedRank, 3);
 	BOOST_CHECK(complete.exactTargetEquality);
+}
+
+BOOST_AUTO_TEST_CASE(deterministic_quotient_distinguishes_integer_inconsistency)
+{
+	VectorXd integerMean(2); integerMean << 4, 1.25;
+	MatrixXd covariance = MatrixXd::Zero(2, 2);
+	covariance(1, 1) = 0.04;
+	const auto consistent = zhangAuditDeterministicQuotientModes(
+		integerMean, covariance);
+	BOOST_REQUIRE(consistent.covarianceValid);
+	BOOST_CHECK_EQUAL(consistent.covarianceRank, 1);
+	BOOST_CHECK_EQUAL(consistent.nullity, 1);
+	BOOST_CHECK(consistent.integerConsistent);
+	BOOST_CHECK_EQUAL(consistent.status, "UNTRACKED_DETERMINISTIC_RELATION");
+
+	VectorXd fractionalMean(2); fractionalMean << 4.25, 1.25;
+	const auto inconsistent = zhangAuditDeterministicQuotientModes(
+		fractionalMean, covariance);
+	BOOST_REQUIRE(inconsistent.covarianceValid);
+	BOOST_CHECK(!inconsistent.integerConsistent);
+	BOOST_CHECK_EQUAL(
+		inconsistent.status, "DETERMINISTIC_INTEGER_INCONSISTENCY");
+}
+
+BOOST_AUTO_TEST_CASE(integer_gain_frontier_is_reliability_first_and_exact_at_rank_one)
+{
+	VectorXd mean(2); mean << 3.01, -1.02;
+	MatrixXd covariance = MatrixXd::Identity(2, 2) * 1e-4;
+	MatrixXd products = MatrixXd::Identity(2, 2);
+	MatrixXd productCross = products * covariance;
+	const auto frontier = zhangBoundedIntegerProductGainFrontier(
+		mean, covariance, productCross, 1, 1e-3, 1e-6, 2, 64,
+		(products * covariance * products.transpose()).trace());
+	BOOST_REQUIRE(frontier.valid);
+	BOOST_CHECK_EQUAL(frontier.status, "COMPLETE");
+	BOOST_CHECK(frontier.enumeratedPrimitiveRows > 0);
+	BOOST_CHECK(frontier.reliablePrimitiveRows > 0);
+	BOOST_REQUIRE(!frontier.points.empty());
+	BOOST_CHECK_EQUAL(frontier.points.front().rank, 1);
+	BOOST_CHECK(frontier.points.front().reliable);
+	BOOST_CHECK(frontier.points.front().exactBoundedOptimum);
+	BOOST_CHECK(frontier.points.front().failureProbabilityBound <= 1e-3);
+}
+
+BOOST_AUTO_TEST_CASE(integer_gain_frontier_rejects_fractional_low_variance_rows)
+{
+	VectorXd mean(1); mean << 0.25;
+	MatrixXd covariance(1, 1); covariance << 1e-8;
+	MatrixXd products(1, 1); products << 1;
+	MatrixXd productCross = products * covariance;
+	const auto frontier = zhangBoundedIntegerProductGainFrontier(
+		mean, covariance, productCross, 2, 1e-3, 1e-6, 1, 128,
+		(products * covariance * products.transpose()).trace());
+	BOOST_REQUIRE(frontier.valid);
+	BOOST_CHECK_EQUAL(frontier.status, "NO_RELIABLE_PRIMITIVE_ROW");
+	BOOST_CHECK_EQUAL(frontier.reliablePrimitiveRows, 0);
+	BOOST_CHECK(frontier.points.empty());
 }

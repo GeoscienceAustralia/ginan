@@ -1,0 +1,47 @@
+# R-Q6 multi-epoch stability audit.  The filter starts at 00:00 for warm-up;
+# quotient/product audits are restricted to 00:10:00--00:16:00 every 30 s.
+# No product feedback, temporal gauge, BESD, or user PPP-AR is authorized.
+processing_options:
+  epoch_control:
+    start_epoch: 2024-07-17 00:00:00
+    end_epoch: 2024-07-17 00:16:00
+    epoch_interval: 30
+    wait_next_epoch: 3600
+  gnss_general:
+    zhang_pppar:
+      product_mode: HOU_OSB_LIKE
+      hou_product_coordinate: HYBRID_STABLE
+      product_relation_solver_mode: SHADOW
+      product_relation_beam_width: 12
+      product_relation_minimum_rank: 1
+      product_relation_maximum_evaluations: 256
+      product_relation_pair_audit_shadow: true
+      product_relation_pair_audit_epochs:
+        - 2024-07-17 00:10:00
+        - 2024-07-17 00:10:30
+        - 2024-07-17 00:11:00
+        - 2024-07-17 00:11:30
+        - 2024-07-17 00:12:00
+        - 2024-07-17 00:12:30
+        - 2024-07-17 00:13:00
+        - 2024-07-17 00:13:30
+        - 2024-07-17 00:14:00
+        - 2024-07-17 00:14:30
+        - 2024-07-17 00:15:00
+        - 2024-07-17 00:15:30
+        - 2024-07-17 00:16:00
+      product_relation_pair_audit_best_edge_count: 20
+      product_relation_admission_shadow: false
+      product_relation_feedback: false
+      temporal_product_transition_shadow: false
+      fixed_lag_factor_capture_shadow: false
+      output_products: true
+      user_adapter: false
+      output_diagnostics: false
+      product_filename: ./outputs/zhang_global_2024199_180_rq6_multiepoch_001000_001600_20260813/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2024199_180_rq6_multiepoch_001000_001600_20260813/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2024199_180_rq6_multiepoch_001000_001600_20260813
+  metadata:
+    config_description: zhang_global_2024199_180_rq6_multiepoch_001000_001600_20260813

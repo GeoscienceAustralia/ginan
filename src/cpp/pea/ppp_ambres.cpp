@@ -52,6 +52,7 @@
 #include "common/zhangLambdaBeam.hpp"
 #include "common/zhangProductRelationBasis.hpp"
 #include "common/zhangQuotientIntegerLattice.hpp"
+#include "common/zhangIntegerProductGainFrontier.hpp"
 #include "common/zhangProductRelationSolver.hpp"
 #include "common/zhangProductRelationAdmission.hpp"
 #include "common/zhangTheoryRegression.hpp"
@@ -9253,15 +9254,89 @@ struct ZhangComponentQuotientInput
 	ZhangExactMatrix targetPhysicalRows;
 	ZhangExactMatrix heldPhysicalRows;
 	ZhangExactVector heldValues;
+	ZhangExactMatrix persistentHeldPhysicalRows;
+	ZhangExactVector persistentHeldValues;
+	ZhangExactMatrix currentCertifiedPhysicalRows;
+	ZhangExactVector currentCertifiedValues;
 	bool valid = false;
 	string failureReason;
 };
+
+/** Convert statistically accepted rows in the current ambiguity coordinates
+ * to the invariant physical-arc lattice without admitting them to the
+ * persistent held ledger.  This is required when the same rows have already
+ * conditioned the disposable same-epoch covariance: omitting them from the
+ * exact quotient audit would manufacture unexplained zero-variance modes. */
+static bool zhangCurrentCertifiedPhysicalLattice(
+	const KFState& state,
+	const GinAR_mtx& fixed,
+	E_Sys system,
+	ZhangPersistentHeldLattice& result,
+	string& failureReason)
+{
+	ZhangGraphIntegerContext context;
+	if (!zhangGraphIntegerContext(state, system, context))
+	{
+		failureReason = "NO_GRAPH_INTEGER_CONTEXT";
+		return false;
+	}
+	if (fixed.Ztrs.rows() != fixed.zfix.size())
+	{
+		failureReason = "CURRENT_CERTIFIED_VALUE_DIMENSION_MISMATCH";
+		return false;
+	}
+	for (int row = 0; row < fixed.Ztrs.rows(); row++)
+	{
+		ZhangPersistentHeldRow physical;
+		for (int column = 0; column < fixed.Ztrs.cols(); column++)
+		{
+			const double raw = fixed.Ztrs(row, column);
+			if (std::abs(raw) < 1e-10) continue;
+			const long long coefficient = std::llround(raw);
+			if (std::abs(raw - static_cast<double>(coefficient)) > 1e-8)
+			{
+				failureReason = "CURRENT_CERTIFIED_NON_INTEGER_ROW";
+				return false;
+			}
+			auto key = fixed.ambmap.find(column);
+			if (key == fixed.ambmap.end() || key->second.Sat.sys != system ||
+				!addCurrentCycleToPhysicalRow(
+					context,
+					static_cast<E_ObsCode>(key->second.num),
+					{key->second.str, key->second.Sat},
+					ZhangExactInteger(coefficient),
+					physical.coefficients))
+			{
+				failureReason = "CURRENT_CERTIFIED_PHYSICAL_MAPPING_FAILED";
+				return false;
+			}
+		}
+		const double rawValue = fixed.zfix(row);
+		const long long value = std::llround(rawValue);
+		if (std::abs(rawValue - static_cast<double>(value)) > 1e-8 ||
+			physical.coefficients.empty())
+		{
+			failureReason = "CURRENT_CERTIFIED_INVALID_AFFINE_VALUE";
+			return false;
+		}
+		physical.value = value;
+		result.rows.push_back(std::move(physical));
+	}
+	normalisePersistentHeldLattice(result);
+	if (!result.consistent)
+	{
+		failureReason = "CURRENT_CERTIFIED_AFFINE_LATTICE_INCONSISTENT";
+		return false;
+	}
+	return true;
+}
 
 static ZhangComponentQuotientInput zhangBuildComponentQuotientInput(
 	const KFState& state,
 	const ZhangProductRelationBasis& basis,
 	const ZhangProductRelationBasis* subtractBasis,
-	const ZhangExactMatrix& targetNamedRows)
+	const ZhangExactMatrix& targetNamedRows,
+	const ZhangPersistentHeldLattice* currentCertified = nullptr)
 {
 	ZhangComponentQuotientInput result;
 	ZhangGraphIntegerContext context;
@@ -9280,6 +9355,11 @@ static ZhangComponentQuotientInput zhangBuildComponentQuotientInput(
 	if (held != zhangPersistentHeldLattices.end() && !held->second.consistent)
 	{
 		result.failureReason = "INCONSISTENT_HELD_LATTICE";
+		return result;
+	}
+	if (currentCertified && !currentCertified->consistent)
+	{
+		result.failureReason = "INCONSISTENT_CURRENT_CERTIFIED_LATTICE";
 		return result;
 	}
 	set<ZhangPhysicalIntegerArc> columnSet;
@@ -9328,6 +9408,10 @@ static ZhangComponentQuotientInput zhangBuildComponentQuotientInput(
 	for (const auto& row : held->second.rows)
 	for (const auto& [arc, coefficient] : row.coefficients)
 		if (coefficient != 0) columnSet.insert(arc);
+	if (currentCertified)
+	for (const auto& row : currentCertified->rows)
+	for (const auto& [arc, coefficient] : row.coefficients)
+		if (coefficient != 0) columnSet.insert(arc);
 	vector<ZhangPhysicalIntegerArc> columns(columnSet.begin(), columnSet.end());
 	map<ZhangPhysicalIntegerArc, size_t> columnIndex;
 	for (size_t column = 0; column < columns.size(); column++)
@@ -9347,6 +9431,19 @@ static ZhangComponentQuotientInput zhangBuildComponentQuotientInput(
 			row[columnIndex.at(arc)] = coefficient;
 		result.heldPhysicalRows.push_back(std::move(row));
 		result.heldValues.push_back(heldRow.value);
+		result.persistentHeldPhysicalRows.push_back(result.heldPhysicalRows.back());
+		result.persistentHeldValues.push_back(heldRow.value);
+	}
+	if (currentCertified)
+	for (const auto& certifiedRow : currentCertified->rows)
+	{
+		ZhangExactVector row(columns.size());
+		for (const auto& [arc, coefficient] : certifiedRow.coefficients)
+			row[columnIndex.at(arc)] = coefficient;
+		result.heldPhysicalRows.push_back(row);
+		result.heldValues.push_back(certifiedRow.value);
+		result.currentCertifiedPhysicalRows.push_back(std::move(row));
+		result.currentCertifiedValues.push_back(certifiedRow.value);
 	}
 	result.valid = true;
 	return result;
@@ -9374,7 +9471,9 @@ static void traceZhangProductPairAudit(
 	const VectorXd& wideLaneMean,
 	const MatrixXd& wideLaneCovariance,
 	const GinAR_opt& options,
-	GTime time)
+	GTime time,
+	const string& auditScenario = "BASELINE",
+	const ZhangPersistentHeldLattice* currentCertified = nullptr)
 {
 	if (!zhangProductPairAuditEpoch(time)) return;
 	const int rank = basis.mappableTargetRank;
@@ -9383,7 +9482,8 @@ static void traceZhangProductPairAudit(
 		wideLaneCovariance.cols() != rank)
 	{
 		trace << "\nZHANG_PRODUCT_RELATION_PAIR_AUDIT_SUMMARY time="
-			  << time.to_string(0) << " status=INVALID_DIMENSION feedback=0";
+			  << time.to_string(0) << " audit_scenario=" << auditScenario
+			  << " status=INVALID_DIMENSION feedback=0";
 		return;
 	}
 	std::vector<std::set<string>> relationReceivers(rank);
@@ -9478,7 +9578,8 @@ static void traceZhangProductPairAudit(
 		if (first < targetNamedCount) exactNamedRow[first] += 1;
 		if (second < targetNamedCount) exactNamedRow[second] -= 1;
 		const auto exactInput = zhangBuildComponentQuotientInput(
-			state, basis, &secondBasis, ZhangExactMatrix{exactNamedRow});
+			state, basis, &secondBasis, ZhangExactMatrix{exactNamedRow},
+			currentCertified);
 		if (exactInput.valid && !exactInput.targetPhysicalRows.empty())
 		{
 			const auto membership = zhangIntegerRowLatticeContains(
@@ -9509,6 +9610,7 @@ static void traceZhangProductPairAudit(
 	{
 		const auto& metric = metrics[order];
 		trace << "\nZHANG_PRODUCT_RELATION_PAIR_FLOAT time=" << time.to_string(0)
+			  << " audit_scenario=" << auditScenario
 			  << " order=" << order + 1
 			  << " satellite=" << zhangProductPairNodeId(basis, metric.first)
 			  << " reference=" << zhangProductPairNodeId(basis, metric.second)
@@ -9672,19 +9774,33 @@ static void traceZhangProductPairAudit(
 			exactNamedRows.push_back(std::move(exactRow));
 		}
 		const auto quotientInput = zhangBuildComponentQuotientInput(
-			state, basis, &secondBasis, exactNamedRows);
+			state, basis, &secondBasis, exactNamedRows, currentCertified);
 		const auto quotient = quotientInput.valid
 			? zhangExactHeldQuotientAudit(
 				quotientInput.targetPhysicalRows,
 				quotientInput.heldPhysicalRows,
 				quotientInput.heldValues)
 			: ZhangHeldQuotientAudit{};
+		const auto persistentQuotient = quotientInput.valid
+			? zhangExactHeldQuotientAudit(
+				quotientInput.targetPhysicalRows,
+				quotientInput.persistentHeldPhysicalRows,
+				quotientInput.persistentHeldValues)
+			: ZhangHeldQuotientAudit{};
+		const int persistentIntersectionRank = persistentQuotient.valid
+			? persistentQuotient.heldIntersectionRank : 0;
+		const int currentCertifiedIncrementRank = quotient.valid
+			? std::max(0, quotient.heldIntersectionRank - persistentIntersectionRank)
+			: 0;
 		if (!quotientInput.valid || !quotient.valid)
 		{
 			trace << "\nZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR time="
 				  << time.to_string(0) << " component=" << id
+				  << " audit_scenario=" << auditScenario
 				  << " size=" << nodes.size()
 				  << " target_rank=" << tree.size()
+				  << " persistent_held_intersection_rank=0"
+				  << " current_certified_increment_rank=0"
 				  << " held_rank=0 quotient_rank=0 quotient_covariance_rank=0"
 				  << " newly_fixed_rank=0 combined_certified_rank=0"
 				  << " certified=0 status=QUOTIENT_AUDIT_REJECTED reason="
@@ -9702,31 +9818,90 @@ static void traceZhangProductPairAudit(
 		GinAR_mtx joint;
 		joint.aflt = quotientRows * wideLaneMean;
 		joint.Paflt = quotientRows * symmetric * quotientRows.transpose();
-		Eigen::SelfAdjointEigenSolver<MatrixXd> quotientEigen(joint.Paflt);
-		int quotientCovarianceRank = 0;
-		if (quotientEigen.info() == Eigen::Success &&
-			quotientEigen.eigenvalues().allFinite() && quotient.quotientRank > 0)
+		// R-Q4: bounded integer-constrained gain frontier.  The candidate pool is
+		// exhaustive for primitive rows inside |a_i| <= bound.  A frontier point
+		// is labelled OPTIMUM only if no beam truncation occurred; otherwise it is
+		// explicitly a reliable lower bound, not G_k^Z.
+		if (quotient.quotientRank > 0 && quotient.quotientRank <= 7)
 		{
-			const double largest = std::max(
-				0.0, quotientEigen.eigenvalues().maxCoeff());
-			const double tolerance = std::max(1e-14, 1e-12 * largest);
-			quotientCovarianceRank = std::count_if(
-				quotientEigen.eigenvalues().data(),
-				quotientEigen.eigenvalues().data() + quotientEigen.eigenvalues().size(),
-				[tolerance](double value) { return value > tolerance; });
+			const MatrixXd productQuotientCrossCovariance =
+				zhangAllPairIncidence(rank) * symmetric *
+				quotientRows.transpose();
+			const double fullPairVariance = zhangReferenceInvariantPairTrace(symmetric);
+			for (int coefficientBound : {2, 3})
+			{
+				const auto frontier = zhangBoundedIntegerProductGainFrontier(
+					joint.aflt,
+					joint.Paflt,
+					productQuotientCrossCovariance,
+					coefficientBound,
+					maximumPerr,
+					std::max(1e-9, options.lambda_candidate_nis_alpha),
+					std::min(quotient.quotientRank, 7),
+					128,
+					fullPairVariance);
+				trace << "\nZHANG_INTEGER_PRODUCT_GAIN_FRONTIER_SUMMARY time="
+					  << time.to_string(0)
+					  << " audit_scenario=" << auditScenario
+					  << " component=" << id
+					  << " quotient_rank=" << quotient.quotientRank
+					  << " coefficient_bound=" << coefficientBound
+					  << " primitive_rows_enumerated="
+					  << frontier.enumeratedPrimitiveRows
+					  << " reliable_primitive_rows="
+					  << frontier.reliablePrimitiveRows
+					  << " product_variance=" << frontier.totalProductVariance
+					  << " status=" << frontier.status
+					  << " feedback=0";
+				for (const auto& point : frontier.points)
+				{
+					trace << "\nZHANG_INTEGER_PRODUCT_GAIN_FRONTIER_POINT time="
+						  << time.to_string(0)
+						  << " audit_scenario=" << auditScenario
+						  << " component=" << id
+						  << " quotient_rank=" << quotient.quotientRank
+						  << " coefficient_bound=" << coefficientBound
+						  << " fixed_rank=" << point.rank
+						  << " gain=" << point.gain
+						  << " gain_fraction=" << point.gainFraction
+						  << " failure_probability_bound="
+						  << point.failureProbabilityBound
+						  << " joint_nis=" << point.jointNis
+						  << " joint_nis_threshold=" << point.jointNisThreshold
+						  << " optimum_scope="
+						  << (point.exactBoundedOptimum
+							? "EXACT_WITHIN_COEFFICIENT_BOUND"
+							: "RELIABLE_BEAM_LOWER_BOUND")
+						  << " canonical_hnf="
+						  << zhangExactMatrixFingerprint(
+							zhangExactRowHermiteNormalForm(point.rows).basis)
+						  << " feedback=0";
+				}
+			}
 		}
+		const auto deterministicAudit = zhangAuditDeterministicQuotientModes(
+			joint.aflt, joint.Paflt);
+		const int quotientCovarianceRank = deterministicAudit.covarianceRank;
 		if (quotientCovarianceRank != quotient.quotientRank)
 		{
 			trace << "\nZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR time="
 				  << time.to_string(0) << " component=" << id
+				  << " audit_scenario=" << auditScenario
 				  << " size=" << nodes.size()
 				  << " target_rank=" << quotient.targetRank
 				  << " held_rank=" << quotient.heldIntersectionRank
+				  << " persistent_held_intersection_rank="
+				  << persistentIntersectionRank
+				  << " current_certified_increment_rank="
+				  << currentCertifiedIncrementRank
 				  << " quotient_rank=" << quotient.quotientRank
 				  << " quotient_covariance_rank=" << quotientCovarianceRank
 				  << " newly_fixed_rank=0 combined_certified_rank="
 				  << quotient.heldIntersectionRank
-				  << " certified=0 status=UNTRACKED_DETERMINISTIC_RELATION"
+				  << " certified=0 status=" << deterministicAudit.status
+				  << " deterministic_nullity=" << deterministicAudit.nullity
+				  << " maximum_null_fractional_integer="
+				  << deterministicAudit.maximumNullFractionalInteger
 				  << " reason=QUOTIENT_COVARIANCE_RANK_DEFICIENT feedback=0";
 			continue;
 		}
@@ -9778,10 +9953,15 @@ static void traceZhangProductPairAudit(
 			newPhysicalRows, newValues);
 		const bool accepted = statisticallyAccepted && unionAudit.exactTargetEquality;
 		trace << "\nZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR time=" << time.to_string(0)
+			  << " audit_scenario=" << auditScenario
 			  << " component=" << id
 			  << " size=" << nodes.size()
 			  << " target_rank=" << quotient.targetRank
 			  << " held_rank=" << quotient.heldIntersectionRank
+			  << " persistent_held_intersection_rank="
+			  << persistentIntersectionRank
+			  << " current_certified_increment_rank="
+			  << currentCertifiedIncrementRank
 			  << " quotient_rank=" << quotient.quotientRank
 			  << " quotient_covariance_rank=" << quotientCovarianceRank
 			  << " newly_fixed_rank=" << unionAudit.newlyFixedRank
@@ -9848,6 +10028,7 @@ static void traceZhangProductPairAudit(
 		certifiedPairValues[{first, second}] = value.convert_to<double>();
 		trace << "\nZHANG_ACTUAL_CERTIFIED_PRODUCT_EDGE time="
 			  << time.to_string(0)
+			  << " audit_scenario=" << auditScenario
 			  << " satellite=" << zhangProductPairNodeId(basis, first)
 			  << " reference=" << zhangProductPairNodeId(basis, second)
 			  << " integer_value=" << value
@@ -9897,6 +10078,7 @@ static void traceZhangProductPairAudit(
 	}
 	trace << "\nZHANG_ACTUAL_CERTIFIED_PRODUCT_GRAPH_SUMMARY time="
 		  << time.to_string(0)
+		  << " audit_scenario=" << auditScenario
 		  << " certified_integer_rank="
 		  << zhangExactRowHermiteNormalForm(globalCertifiedNamedRows).basis.size()
 		  << " certified_pair_edges=" << certifiedPairEdges.size()
@@ -9963,6 +10145,7 @@ static void traceZhangProductPairAudit(
 		const bool accepted = bridge.valid && perr <= maximumPerr &&
 			bridge.residualNis <= threshold;
 		trace << "\nZHANG_PRODUCT_COMPONENT_BRIDGE_GLS time=" << time.to_string(0)
+			  << " audit_scenario=" << auditScenario
 			  << " component_a=" << firstComponent
 			  << " component_b=" << secondComponent
 			  << " size_a=" << actualComponents[firstComponent].size()
@@ -10015,6 +10198,7 @@ static void traceZhangProductPairAudit(
 	}
 	trace << "\nZHANG_PRODUCT_RELATION_PAIR_AUDIT_SUMMARY time="
 		  << time.to_string(0)
+		  << " audit_scenario=" << auditScenario
 		  << " mapped_satellites_plus_reference=" << rank + 1
 		  << " all_pair_edges=" << metrics.size()
 		  << " reliable_pair_edges=" << reliableEdgeCount
@@ -10069,7 +10253,8 @@ static ZhangProductRelationFixResult solveZhangProductRelations(
 	const ZhangProductRelationBasis& firstBasis,
 	const ZhangProductRelationBasis& secondBasis,
 	const GinAR_opt& options,
-	GTime time)
+	GTime time,
+	const ZhangPersistentHeldLattice* currentCertified = nullptr)
 {
 	ZhangProductRelationFixResult result;
 	result.basisValid = firstBasis.valid && secondBasis.valid;
@@ -10125,7 +10310,7 @@ static ZhangProductRelationFixResult solveZhangProductRelations(
 	traceZhangProductPairAudit(
 		trace, state, firstBasis, secondBasis,
 		fullWideLaneMean, fullWideLaneCovariance,
-		options, time);
+		options, time, "BASELINE", currentCertified);
 	for (int local = 0; local < fullRank; local++)
 	{
 		const int namedIndex = firstBasis.mappableNamedIndices.at(local);
@@ -10442,6 +10627,81 @@ static ZhangProductRelationFixResult solveZhangProductRelations(
 							? (pairTraceBefore - pairTraceAfter) / pairTraceBefore : 0)
 						  << " conditioning_valid=" << conditioned.valid
 						  << " reference_invariant=1 feedback=0";
+					// R-Q5: remove all exactly recoverable pair consequences from the
+					// accepted mixed lattice.  Only the primitive residual quotient is
+					// allowed to condition this private posterior; it never becomes a
+					// product certificate or authoritative estimator feedback.
+					ZhangExactMatrix mixedRows;
+					ZhangExactVector mixedValues;
+					bool mixedExact = wideLane.Ztrs.rows() == wideLane.zfix.size();
+					for (int fixedRow = 0; fixedRow < wideLane.Ztrs.rows() && mixedExact;
+						 fixedRow++)
+					{
+						ZhangExactVector exactRow(rank);
+						for (int column = 0; column < rank; column++)
+						{
+							const long long value = std::llround(
+								wideLane.Ztrs(fixedRow, column));
+							mixedExact &= std::abs(
+								wideLane.Ztrs(fixedRow, column) - value) <= 1e-8;
+							exactRow[column] = value;
+						}
+						const long long integer = std::llround(wideLane.zfix(fixedRow));
+						mixedExact &= std::abs(wideLane.zfix(fixedRow) - integer) <= 1e-8;
+						mixedRows.push_back(std::move(exactRow));
+						mixedValues.push_back(integer);
+					}
+					ZhangExactMatrix pairRows;
+					ZhangExactVector pairValues;
+					for (const auto& pair : pairs)
+					{
+						ZhangExactVector pairRow(rank);
+						if (pair.firstNode < rank) pairRow[pair.firstNode] += 1;
+						if (pair.secondNode < rank) pairRow[pair.secondNode] -= 1;
+						pairRows.push_back(std::move(pairRow));
+						pairValues.push_back(pair.value);
+					}
+					const auto conditioningOnly = mixedExact
+						? zhangExactHeldQuotientAudit(
+							mixedRows, pairRows, pairValues)
+						: ZhangHeldQuotientAudit{};
+					if (conditioningOnly.valid && conditioningOnly.quotientRank > 0)
+					{
+						MatrixXd privateRows = MatrixXd::Zero(
+							conditioningOnly.quotientRank, rank);
+						VectorXd privateValues = VectorXd::Zero(
+							conditioningOnly.quotientRank);
+						for (int q = 0; q < conditioningOnly.quotientRank; q++)
+						{
+							const auto exactRow = zhangExactRowCombination(
+								conditioningOnly.quotientTargetCoordinates[q], mixedRows);
+							for (int column = 0; column < rank; column++)
+								privateRows(q, column) = exactRow[column].convert_to<double>();
+							ZhangExactInteger value = 0;
+							for (int row = 0; row < static_cast<int>(mixedValues.size()); row++)
+								value += conditioningOnly.quotientTargetCoordinates[q][row] *
+									mixedValues[row];
+							privateValues(q) = value.convert_to<double>();
+						}
+						const auto privatePosterior = zhangConditionExactProductRows(
+							wideLaneMean, symmetric, privateRows, privateValues);
+						trace << "\nZHANG_CONDITIONING_ONLY_MIXED_RQ5 time="
+							  << time.to_string(0)
+							  << " mixed_fixed_rank=" << mixedRows.size()
+							  << " exact_pair_consequence_rank="
+							  << conditioningOnly.heldIntersectionRank
+							  << " conditioning_only_rank="
+							  << conditioningOnly.quotientRank
+							  << " private_conditioning_valid=" << privatePosterior.valid
+							  << " product_certificate_authorized=0 feedback=0";
+						if (privatePosterior.valid)
+						{
+							traceZhangProductPairAudit(
+								trace, state, firstBasis, secondBasis,
+								privatePosterior.mean, privatePosterior.covariance,
+								options, time, "PRIVATE_CONDITIONING_ONLY");
+						}
+					}
 					Eigen::SelfAdjointEigenSolver<MatrixXd> eigen(symmetric);
 					if (eigen.info() == Eigen::Success)
 					{
@@ -11153,9 +11413,29 @@ static int resolveLayeredWideLaneL1(
                 system,
                 firstSignal.ambmap
             );
-        if (acsConfig.zhangPppAr.product_relation_l1_par_shadow)
-        {
-            ZhangProductRelationBasis relationBasis =
+		if (acsConfig.zhangPppAr.product_relation_l1_par_shadow)
+		{
+			GinAR_mtx currentCertifiedRows;
+			currentCertifiedRows.ambmap = ambiguityResolution.ambmap;
+			currentCertifiedRows.Ztrs = fullWideLaneRows;
+			currentCertifiedRows.zfix = wideLane.zfix;
+			ZhangPersistentHeldLattice currentCertifiedPhysical;
+			string currentCertifiedFailure;
+			const bool currentCertifiedValid =
+				zhangCurrentCertifiedPhysicalLattice(
+					kfState, currentCertifiedRows, system,
+					currentCertifiedPhysical, currentCertifiedFailure);
+			trace << "\nZHANG_CURRENT_EPOCH_CERTIFIED_LATTICE time="
+				  << time.to_string(0)
+				  << " system=" << enum_to_string(system)
+				  << " input_rank=" << fullWideLaneRows.rows()
+				  << " physical_rank=" << currentCertifiedPhysical.rows.size()
+				  << " valid=" << currentCertifiedValid
+				  << " status=" << (currentCertifiedValid
+					? "EXACT_CURRENT_EPOCH_CERTIFICATE"
+					: currentCertifiedFailure)
+				  << " persistent_admission=0 feedback=0";
+			ZhangProductRelationBasis relationBasis =
                 compileZhangProductRelationBasis(
                     kfState, ambiguityResolution, system, firstCode);
             ZhangProductRelationBasis secondRelationBasis =
@@ -11178,9 +11458,10 @@ static int resolveLayeredWideLaneL1(
 					kfState,
 					ambiguityResolution,
                     relationBasis,
-                    secondRelationBasis,
-                    options,
-                    time);
+					secondRelationBasis,
+					options,
+					time,
+					currentCertifiedValid ? &currentCertifiedPhysical : nullptr);
             int productWlFixed = relationFix.wideLaneFixedRank;
             int productL1Fixed = relationFix.firstSignalFixedRank;
             int namedL1Fixed = relationFix.namedFirstSignalFixed;

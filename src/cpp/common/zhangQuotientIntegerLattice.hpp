@@ -1,8 +1,11 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
+
+#include <Eigen/Dense>
 
 #include "common/zhangIntegerAudit.hpp"
 
@@ -44,6 +47,74 @@ struct ZhangCertifiedUnionAudit
 	bool consistent = false;
 	std::string failureReason;
 };
+
+struct ZhangDeterministicQuotientAudit
+{
+	int covarianceRank = 0;
+	int nullity = 0;
+	double maximumNullFractionalInteger = 0;
+	bool covarianceValid = false;
+	bool integerConsistent = true;
+	std::string status;
+};
+
+/** Distinguish an untracked deterministic integer direction from an affine
+ * contradiction.  Eigenvectors are used only to locate the real nullspace;
+ * authorization still fails closed and never turns the mode into an integer
+ * certificate. */
+inline ZhangDeterministicQuotientAudit zhangAuditDeterministicQuotientModes(
+	const Eigen::VectorXd& mean,
+	const Eigen::MatrixXd& covariance,
+	double relativeTolerance = 1e-12,
+	double integerTolerance = 1e-8)
+{
+	ZhangDeterministicQuotientAudit result;
+	if (mean.size() == 0 || covariance.rows() != mean.size() ||
+		covariance.cols() != mean.size() || !mean.allFinite() ||
+		!covariance.allFinite())
+	{
+		result.status = "INVALID_QUOTIENT_COVARIANCE";
+		return result;
+	}
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen(
+		0.5 * (covariance + covariance.transpose()));
+	if (eigen.info() != Eigen::Success)
+	{
+		result.status = "QUOTIENT_EIGENSOLVER_FAILED";
+		return result;
+	}
+	const double largest = std::max(0.0, eigen.eigenvalues().maxCoeff());
+	const double tolerance = std::max(1e-14, relativeTolerance * largest);
+	for (int mode = 0; mode < eigen.eigenvalues().size(); mode++)
+	{
+		if (eigen.eigenvalues()(mode) > tolerance)
+		{
+			result.covarianceRank++;
+			continue;
+		}
+		result.nullity++;
+	}
+	// Eigenvectors have arbitrary real scale and cannot be treated as integer
+	// functions.  A contradiction is asserted only for a canonical quotient
+	// coordinate whose own variance is zero.  Non-axis-aligned null modes remain
+	// UNTRACKED until an exact integer null row is recovered.
+	bool canonicalContradiction = false;
+	for (int coordinate = 0; coordinate < mean.size(); coordinate++)
+	{
+		if (std::abs(covariance(coordinate, coordinate)) > tolerance) continue;
+		const double fractional = std::abs(
+			mean(coordinate) - std::round(mean(coordinate)));
+		result.maximumNullFractionalInteger = std::max(
+			result.maximumNullFractionalInteger, fractional);
+		canonicalContradiction |= fractional > integerTolerance;
+	}
+	result.covarianceValid = true;
+	result.integerConsistent = !canonicalContradiction;
+	result.status = result.nullity == 0 ? "FULL_RANK" :
+		(result.integerConsistent ? "UNTRACKED_DETERMINISTIC_RELATION" :
+			"DETERMINISTIC_INTEGER_INCONSISTENCY");
+	return result;
+}
 
 inline bool zhangExactRectangularMatrix(
 	const ZhangExactMatrix& matrix,
