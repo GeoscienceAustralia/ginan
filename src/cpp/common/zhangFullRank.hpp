@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <map>
 #include <queue>
 #include <set>
@@ -251,6 +252,414 @@ inline ZhangGraphBasis zhangBuildSpanningTree(
         nodeCount > 0 &&
         result.componentCount == 1 &&
         static_cast<int>(result.treeEdges.size()) == nodeCount - 1;
+    return result;
+}
+
+/** Build a shallow product tree rooted at the product reference receiver.
+ *
+ * Kruskal's algorithm preserves edges well but does not control how many
+ * satellite product paths depend on one non-root edge.  A single internal
+ * receiver arc can consequently reset a large satellite subtree.  Breadth-
+ * first discovery gives every node its shortest-hop path from the root;
+ * persistence and quality only resolve choices within the same depth.  The
+ * result is still an ordinary spanning-tree S-basis.
+ */
+inline ZhangGraphBasis zhangBuildRootedProductTree(
+    const std::set<ZhangGraphEdge>&         edges,
+    const std::string&                      rootReceiver,
+    const std::set<ZhangGraphEdge>&         preferredEdges = {},
+    const std::map<ZhangGraphEdge, double>& quality = {},
+    const std::set<ZhangGraphEdge>&         representedEdges = {},
+    const std::map<ZhangGraphEdge, int>&    persistence = {})
+{
+    using namespace zhang_graph_detail;
+
+    ZhangGraphBasis result = zhangBuildSpanningTree(edges, rootReceiver);
+    result.treeEdges.clear();
+    const std::string root = receiverNode(rootReceiver);
+    if (rootReceiver.empty() || result.receivers.find(rootReceiver) ==
+            result.receivers.end())
+    {
+        result.connected = false;
+        return result;
+    }
+
+    struct Neighbour
+    {
+        std::string    node;
+        ZhangGraphEdge edge;
+    };
+    std::map<std::string, std::vector<Neighbour>> adjacency;
+    for (const auto& edge : edges)
+    {
+        const std::string receiver = receiverNode(edge.receiver);
+        const std::string satellite = satelliteNode(edge.satellite);
+        adjacency[receiver].push_back({satellite, edge});
+        adjacency[satellite].push_back({receiver, edge});
+    }
+    auto preferred = [&](const ZhangGraphEdge& edge)
+    {
+        return preferredEdges.find(edge) != preferredEdges.end();
+    };
+    auto represented = [&](const ZhangGraphEdge& edge)
+    {
+        return representedEdges.find(edge) != representedEdges.end();
+    };
+    auto persistent = [&](const ZhangGraphEdge& edge)
+    {
+        auto found = persistence.find(edge);
+        return found == persistence.end() ? 0 : found->second;
+    };
+    auto qualityScore = [&](const ZhangGraphEdge& edge)
+    {
+        auto found = quality.find(edge);
+        return found == quality.end() ? 0.0 : found->second;
+    };
+    for (auto& [node, neighbours] : adjacency)
+    {
+        std::sort(neighbours.begin(), neighbours.end(),
+            [&](const Neighbour& left, const Neighbour& right)
+            {
+                if (preferred(left.edge) != preferred(right.edge))
+                    return preferred(left.edge) > preferred(right.edge);
+                if (represented(left.edge) != represented(right.edge))
+                    return represented(left.edge) > represented(right.edge);
+                if (persistent(left.edge) != persistent(right.edge))
+                    return persistent(left.edge) > persistent(right.edge);
+                if (qualityScore(left.edge) != qualityScore(right.edge))
+                    return qualityScore(left.edge) > qualityScore(right.edge);
+                if (!(left.edge == right.edge))
+                    return left.edge < right.edge;
+                return left.node < right.node;
+            });
+    }
+
+    std::queue<std::string> pending;
+    std::set<std::string> visited = {root};
+    pending.push(root);
+    while (!pending.empty())
+    {
+        const std::string node = pending.front();
+        pending.pop();
+        for (const auto& neighbour : adjacency[node])
+        {
+            if (!visited.insert(neighbour.node).second)
+            {
+                continue;
+            }
+            result.treeEdges.insert(neighbour.edge);
+            pending.push(neighbour.node);
+        }
+    }
+    const int nodeCount = static_cast<int>(
+        result.receivers.size() + result.satellites.size());
+    result.connected =
+        nodeCount > 0 &&
+        static_cast<int>(visited.size()) == nodeCount &&
+        static_cast<int>(result.treeEdges.size()) == nodeCount - 1;
+    return result;
+}
+
+/** Number of satellite root paths that depend on each product-tree edge. */
+inline std::map<ZhangGraphEdge, int> zhangProductTreeSatellitePathLoads(
+    const ZhangGraphBasis& basis)
+{
+    using namespace zhang_graph_detail;
+    struct Parent
+    {
+        std::string    node;
+        ZhangGraphEdge edge;
+    };
+    std::map<std::string,
+        std::vector<std::pair<std::string, ZhangGraphEdge>>> adjacency;
+    for (const auto& edge : basis.treeEdges)
+    {
+        const std::string receiver = receiverNode(edge.receiver);
+        const std::string satellite = satelliteNode(edge.satellite);
+        adjacency[receiver].push_back({satellite, edge});
+        adjacency[satellite].push_back({receiver, edge});
+    }
+    const std::string root = receiverNode(basis.rootReceiver);
+    std::queue<std::string> pending;
+    std::set<std::string> visited = {root};
+    std::map<std::string, Parent> parent;
+    pending.push(root);
+    while (!pending.empty())
+    {
+        const std::string node = pending.front();
+        pending.pop();
+        for (const auto& [next, edge] : adjacency[node])
+        {
+            if (!visited.insert(next).second)
+            {
+                continue;
+            }
+            parent[next] = {node, edge};
+            pending.push(next);
+        }
+    }
+
+    std::map<ZhangGraphEdge, int> loads;
+    for (const SatSys& satellite : basis.satellites)
+    {
+        std::string node = satelliteNode(satellite);
+        while (node != root)
+        {
+            auto found = parent.find(node);
+            if (found == parent.end())
+            {
+                return {};
+            }
+            loads[found->second.edge]++;
+            node = found->second.node;
+        }
+    }
+    return loads;
+}
+
+struct ZhangProductReceiverCore
+{
+    bool connected = false;
+    int minimumSatelliteSupport = 0;
+    std::set<std::string> receivers;
+    std::set<SatSys> satellites;
+    std::set<ZhangGraphEdge> edges;
+};
+
+/** Build a small connected receiver subgraph that still spans every current
+ * satellite.  The configured support is a target, clipped per satellite to
+ * the support physically present in the input graph.  Previously selected
+ * receivers are retained when they remain connected; new receivers are added
+ * greedily by reduction of the satellite-support deficit.  No future data or
+ * ambiguity-fixing outcome enters the selection. */
+inline ZhangProductReceiverCore zhangBuildProductReceiverCore(
+    const std::set<ZhangGraphEdge>& edges,
+    const std::string& rootReceiver,
+    const std::set<std::string>& previousReceivers,
+    int requestedSatelliteSupport,
+    const std::map<ZhangGraphEdge, double>& quality = {},
+    const std::map<ZhangGraphEdge, int>& persistence = {})
+{
+    ZhangProductReceiverCore result;
+    if (edges.empty() || rootReceiver.empty() || requestedSatelliteSupport < 1)
+    {
+        return result;
+    }
+    std::set<std::string> allReceivers;
+    std::map<SatSys, int> availableSupport;
+    for (const auto& edge : edges)
+    {
+        allReceivers.insert(edge.receiver);
+        result.satellites.insert(edge.satellite);
+        availableSupport[edge.satellite]++;
+    }
+    if (allReceivers.find(rootReceiver) == allReceivers.end())
+    {
+        return result;
+    }
+
+    std::set<std::string> selected = {rootReceiver};
+    for (const auto& receiver : previousReceivers)
+    {
+        if (allReceivers.find(receiver) != allReceivers.end())
+        {
+            selected.insert(receiver);
+        }
+    }
+    auto selectedComponent = [&](const std::set<std::string>& receivers)
+    {
+        std::set<ZhangGraphEdge> selectedEdges;
+        for (const auto& edge : edges)
+        {
+            if (receivers.find(edge.receiver) != receivers.end())
+            {
+                selectedEdges.insert(edge);
+            }
+        }
+        return zhangRootComponentEdges(selectedEdges, rootReceiver);
+    };
+    auto deficit = [&](const std::set<ZhangGraphEdge>& component)
+    {
+        std::map<SatSys, int> support;
+        for (const auto& edge : component)
+        {
+            support[edge.satellite]++;
+        }
+        int total = 0;
+        for (const auto& satellite : result.satellites)
+        {
+            const int target = std::min(
+                requestedSatelliteSupport, availableSupport[satellite]);
+            total += std::max(0, target - support[satellite]);
+        }
+        return total;
+    };
+
+    std::set<ZhangGraphEdge> component = selectedComponent(selected);
+    int currentDeficit = deficit(component);
+    while (currentDeficit > 0 && selected.size() < allReceivers.size())
+    {
+        std::string bestReceiver;
+        int bestImprovement = 0;
+        bool bestWasPrevious = false;
+        long long bestPersistence = std::numeric_limits<long long>::min();
+        double bestQuality = -std::numeric_limits<double>::infinity();
+        std::set<ZhangGraphEdge> bestComponent;
+        for (const auto& receiver : allReceivers)
+        {
+            if (selected.find(receiver) != selected.end())
+            {
+                continue;
+            }
+            auto trialReceivers = selected;
+            trialReceivers.insert(receiver);
+            auto trialComponent = selectedComponent(trialReceivers);
+            const int improvement = currentDeficit - deficit(trialComponent);
+            if (improvement <= 0)
+            {
+                continue;
+            }
+            long long persistenceScore = 0;
+            double qualityScore = 0;
+            const bool wasPrevious =
+                previousReceivers.find(receiver) != previousReceivers.end();
+            for (const auto& edge : trialComponent)
+            {
+                if (edge.receiver != receiver)
+                {
+                    continue;
+                }
+                auto persistenceIt = persistence.find(edge);
+                persistenceScore += persistenceIt == persistence.end()
+                    ? 0 : persistenceIt->second;
+                auto qualityIt = quality.find(edge);
+                qualityScore += qualityIt == quality.end()
+                    ? 0 : qualityIt->second;
+            }
+            if (improvement > bestImprovement
+             || (improvement == bestImprovement
+                 && wasPrevious > bestWasPrevious)
+             || (improvement == bestImprovement
+                 && wasPrevious == bestWasPrevious
+                 && persistenceScore > bestPersistence)
+             || (improvement == bestImprovement
+                 && wasPrevious == bestWasPrevious
+                 && persistenceScore == bestPersistence
+                 && qualityScore > bestQuality)
+             || (improvement == bestImprovement
+                 && wasPrevious == bestWasPrevious
+                 && persistenceScore == bestPersistence
+                 && qualityScore == bestQuality
+                 && (bestReceiver.empty() || receiver < bestReceiver)))
+            {
+                bestReceiver = receiver;
+                bestImprovement = improvement;
+                bestWasPrevious = wasPrevious;
+                bestPersistence = persistenceScore;
+                bestQuality = qualityScore;
+                bestComponent = std::move(trialComponent);
+            }
+        }
+        if (bestReceiver.empty())
+        {
+            return result;
+        }
+        selected.insert(bestReceiver);
+        component = std::move(bestComponent);
+        currentDeficit -= bestImprovement;
+    }
+    if (currentDeficit != 0)
+    {
+        return result;
+    }
+
+    // A new receiver may repair support lost by an old core member while also
+    // making that old member redundant.  Remove such redundancy after the
+    // deficit is closed so the core can replace receivers without growing
+    // monotonically.  Prefer retaining prior, persistent, high-quality
+    // receivers whenever several removals are possible.
+    while (selected.size() > 1)
+    {
+        std::string removable;
+        bool removableWasPrevious = true;
+        long long removablePersistence = std::numeric_limits<long long>::max();
+        double removableQuality = std::numeric_limits<double>::infinity();
+        std::set<ZhangGraphEdge> removableComponent;
+        for (const auto& receiver : selected)
+        {
+            if (receiver == rootReceiver)
+            {
+                continue;
+            }
+            auto trialReceivers = selected;
+            trialReceivers.erase(receiver);
+            auto trialComponent = selectedComponent(trialReceivers);
+            if (deficit(trialComponent) != 0)
+            {
+                continue;
+            }
+            const bool wasPrevious =
+                previousReceivers.find(receiver) != previousReceivers.end();
+            long long persistenceScore = 0;
+            double qualityScore = 0;
+            for (const auto& edge : component)
+            {
+                if (edge.receiver != receiver)
+                {
+                    continue;
+                }
+                auto persistenceIt = persistence.find(edge);
+                persistenceScore += persistenceIt == persistence.end()
+                    ? 0 : persistenceIt->second;
+                auto qualityIt = quality.find(edge);
+                qualityScore += qualityIt == quality.end()
+                    ? 0 : qualityIt->second;
+            }
+            if (removable.empty()
+             || wasPrevious < removableWasPrevious
+             || (wasPrevious == removableWasPrevious
+                 && persistenceScore < removablePersistence)
+             || (wasPrevious == removableWasPrevious
+                 && persistenceScore == removablePersistence
+                 && qualityScore < removableQuality)
+             || (wasPrevious == removableWasPrevious
+                 && persistenceScore == removablePersistence
+                 && qualityScore == removableQuality
+                 && receiver > removable))
+            {
+                removable = receiver;
+                removableWasPrevious = wasPrevious;
+                removablePersistence = persistenceScore;
+                removableQuality = qualityScore;
+                removableComponent = std::move(trialComponent);
+            }
+        }
+        if (removable.empty())
+        {
+            break;
+        }
+        selected.erase(removable);
+        component = std::move(removableComponent);
+    }
+
+    result.edges = std::move(component);
+    result.receivers = {rootReceiver};
+    std::map<SatSys, int> finalSupport;
+    for (const auto& edge : result.edges)
+    {
+        result.receivers.insert(edge.receiver);
+        finalSupport[edge.satellite]++;
+    }
+    result.minimumSatelliteSupport = std::numeric_limits<int>::max();
+    for (const auto& satellite : result.satellites)
+    {
+        result.minimumSatelliteSupport = std::min(
+            result.minimumSatelliteSupport, finalSupport[satellite]);
+    }
+    const auto spanning = zhangBuildSpanningTree(
+        result.edges, rootReceiver);
+    result.connected = spanning.connected
+        && spanning.satellites == result.satellites;
     return result;
 }
 

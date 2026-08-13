@@ -6,10 +6,13 @@
 
 struct RinexParser : Parser, ObsLister
 {
-    char                           ctype;
-    double                         version;
-    E_Sys                          nav_system;
-    E_TimeSys                      time_system;
+    // Keep the parser state deterministic before the first header is read.
+    // The E29 input checkpoint exporter may inspect a freshly configured
+    // parser during fail-closed inventory validation.
+    char                           ctype      = 0;
+    double                         version    = 0;
+    E_Sys                          nav_system = E_Sys::NONE;
+    E_TimeSys                      time_system = E_TimeSys::NONE;
     map<E_Sys, map<int, CodeType>> sysCodeTypes;
     ObsList                        tempObsList;
     RinexStation                   rnxRec = {};

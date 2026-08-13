@@ -4,8 +4,11 @@
 #include <cmath>
 #include <cstddef>
 #include <deque>
+#include <functional>
+#include <iomanip>
 #include <limits>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -59,10 +62,137 @@ struct ZhangCapturedFactorEvent
 	SparseMatrix<double> design;
 	SparseMatrix<double> covariance;
 	VectorXd rightHandSide;
+	VectorXd prefitRatios;
 	std::vector<ZhangCapturedStateKey> observationKeys;
 	bool dimensionPreserving = false;
 	bool nonsingularCoordinateTransform = false;
+	bool preserveUnrepresentablePersistentTargets = false;
 };
+
+enum class ZhangCapturedMeasurementFamily
+{
+	PHASE_OBSERVATION,
+	CODE_OBSERVATION,
+	CLOCK_FACTOR,
+	IONOSPHERE_FACTOR,
+	PHASE_DATUM_FACTOR,
+	MIXED_PSEUDO_FACTOR,
+	OTHER_FACTOR
+};
+
+inline const char* zhangCapturedMeasurementFamilyName(
+	ZhangCapturedMeasurementFamily family)
+{
+	switch (family)
+	{
+		case ZhangCapturedMeasurementFamily::PHASE_OBSERVATION:
+			return "PHASE_OBSERVATION";
+		case ZhangCapturedMeasurementFamily::CODE_OBSERVATION:
+			return "CODE_OBSERVATION";
+		case ZhangCapturedMeasurementFamily::CLOCK_FACTOR:
+			return "CLOCK_FACTOR";
+		case ZhangCapturedMeasurementFamily::IONOSPHERE_FACTOR:
+			return "IONOSPHERE_FACTOR";
+		case ZhangCapturedMeasurementFamily::PHASE_DATUM_FACTOR:
+			return "PHASE_DATUM_FACTOR";
+		case ZhangCapturedMeasurementFamily::MIXED_PSEUDO_FACTOR:
+			return "MIXED_PSEUDO_FACTOR";
+		default:
+			return "OTHER_FACTOR";
+	}
+}
+
+/** Classify one finally accepted measurement row from its original obsKey
+ * and actual state support.  Direct GNSS code/phase observations take
+ * precedence.  Pseudo rows are called a single-state family only when every
+ * non-constant coefficient belongs to that family; cross-family rows remain
+ * explicit instead of being assigned by a fragile label heuristic. */
+inline ZhangCapturedMeasurementFamily zhangCapturedMeasurementFamily(
+	const ZhangCapturedFactorEvent& event,
+	int row,
+	double zeroTolerance = 0)
+{
+	if (event.kind != ZhangCapturedFactorKind::MEASUREMENT
+	 || row < 0 || row >= event.design.rows()
+	 || event.observationKeys.size() !=
+		static_cast<std::size_t>(event.design.rows())
+	 || event.destinationKeys.size() !=
+		static_cast<std::size_t>(event.design.cols()))
+	{
+		return ZhangCapturedMeasurementFamily::OTHER_FACTOR;
+	}
+	const auto observationType = static_cast<KF>(
+		event.observationKeys[row].type);
+	if (observationType == KF::PHAS_MEAS)
+	{
+		return ZhangCapturedMeasurementFamily::PHASE_OBSERVATION;
+	}
+	if (observationType == KF::CODE_MEAS)
+	{
+		return ZhangCapturedMeasurementFamily::CODE_OBSERVATION;
+	}
+
+	bool clock = false;
+	bool ionosphere = false;
+	bool phaseDatum = false;
+	bool other = false;
+	for (int outer = 0; outer < event.design.outerSize(); outer++)
+	for (SparseMatrix<double>::InnerIterator entry(event.design, outer);
+		 entry; ++entry)
+	{
+		if (entry.row() != row || std::abs(entry.value()) <= zeroTolerance)
+		{
+			continue;
+		}
+		const auto stateType = static_cast<KF>(
+			event.destinationKeys[entry.col()].type);
+		if (stateType == KF::ONE)
+		{
+			continue;
+		}
+		if (stateType > KF::BEGIN_CLOCK_STATES
+		 && stateType < KF::END_CLOCK_STATES)
+		{
+			clock = true;
+		}
+		else if (stateType == KF::IONOSPHERIC
+			  || stateType == KF::IONO_STEC)
+		{
+			ionosphere = true;
+		}
+		else if (stateType == KF::PHASE_BIAS
+			  || stateType == KF::AMBIGUITY
+			  || stateType == KF::Z_AMB)
+		{
+			phaseDatum = true;
+		}
+		else
+		{
+			other = true;
+		}
+	}
+	const int families = static_cast<int>(clock)
+		+ static_cast<int>(ionosphere)
+		+ static_cast<int>(phaseDatum)
+		+ static_cast<int>(other);
+	if (families > 1)
+	{
+		return ZhangCapturedMeasurementFamily::MIXED_PSEUDO_FACTOR;
+	}
+	if (clock)
+	{
+		return ZhangCapturedMeasurementFamily::CLOCK_FACTOR;
+	}
+	if (ionosphere)
+	{
+		return ZhangCapturedMeasurementFamily::IONOSPHERE_FACTOR;
+	}
+	if (phaseDatum)
+	{
+		return ZhangCapturedMeasurementFamily::PHASE_DATUM_FACTOR;
+	}
+	return ZhangCapturedMeasurementFamily::OTHER_FACTOR;
+}
 
 struct ZhangFactorCaptureSummary
 {
@@ -89,6 +219,8 @@ struct ZhangFactorCaptureSummary
 	double maximumTargetVarianceRelativeError = 0;
 	double maximumRawSquareRootMeanRelativeError = 0;
 	double maximumRawSquareRootCovarianceRelativeError = 0;
+	double maximumPersistentTransformMeanRelativeError = 0;
+	double maximumPersistentTransformCovarianceRelativeError = 0;
 	std::string failureReason;
 };
 
@@ -192,12 +324,88 @@ struct ZhangRawSquareRootTargetMarginal
 	int maximumStoredRows = 0;
 	int maximumStoredColumns = 0;
 	int exactConstraintsApplied = 0;
+	int coordinateRepresentableTargets = 0;
+	int coordinateUnrepresentableTargets = 0;
+	std::size_t skippedUnrepresentableRebinds = 0;
 	std::vector<std::string> identities;
 	std::vector<std::string> gaugeIdentities;
 	std::vector<bool> absoluteValidity;
 	VectorXd mean;
 	MatrixXd covariance;
 	std::string failureReason;
+};
+
+struct ZhangPersistentSnapshotBinding
+{
+	std::string identity;
+	std::string physicalVersion;
+	VectorXd row;
+	double offset = 0;
+};
+
+enum class ZhangCapturedSnapshotOperationKind
+{
+	BIND_NEW_TARGETS,
+	RETAIN_TARGETS
+};
+
+/** Snapshot lifecycle operation interleaved with the accepted-factor chain.
+ *
+ * `afterEventSequence` is the number of factor events already applied when
+ * the operation occurred.  Rows are stored sparsely in the then-current state
+ * coordinate.  Recording these operations is necessary for a scientifically
+ * valid leave-one-family-out replay: rebuilding only H/R/F/Q while silently
+ * reusing the full-data snapshot marginal would condition on the omitted
+ * measurements a second time.
+ */
+struct ZhangCapturedSnapshotOperation
+{
+	ZhangCapturedSnapshotOperationKind kind =
+		ZhangCapturedSnapshotOperationKind::BIND_NEW_TARGETS;
+	std::size_t afterEventSequence = 0;
+	std::size_t operationSequence = 0;
+	std::vector<std::string> identities;
+	std::vector<std::string> physicalVersions;
+	SparseMatrix<double> rows;
+	VectorXd offsets;
+};
+
+/** Pointer-free E18 checkpoint representation.
+ *
+ * The square-root/QR workspaces are deliberately not serialized.  They are
+ * deterministic derived state and are rebuilt from this accepted-factor,
+ * physical-target, and immutable-snapshot chronology before an import is
+ * allowed to replace the destination buffer. */
+struct ZhangFactorCaptureRuntimeReplay
+{
+	std::size_t maximumEvents = 0;
+	std::vector<ZhangCapturedStateKey> initialKeys;
+	VectorXd initialMean;
+	MatrixXd initialCovariance;
+	std::vector<ZhangCapturedStateKey> currentKeys;
+	VectorXd replayMean;
+	MatrixXd replayCovariance;
+	std::deque<ZhangCapturedFactorEvent> events;
+	std::deque<ZhangCapturedSnapshotOperation> snapshotOperations;
+	std::deque<ZhangCapturedPhysicalTarget> physicalTargets;
+	std::deque<ZhangCapturedUnresolvedIntegerDatum> unresolvedIntegerDatums;
+	std::deque<ZhangCapturedRetainedTargetBlock> retainedTargetBlocks;
+	ZhangCapturedRetainedTargetBlock currentRetainedTargetBlock;
+	std::vector<ZhangInnovationScaleGroup> innovationScaleGroups;
+	VectorXd lastMeasurementPriorMean;
+	MatrixXd lastMeasurementPriorCovariance;
+	GTime lastMeasurementTime;
+	std::size_t lastMeasurementTargetStart = 0;
+	std::string lastFailure;
+	std::string lastTargetDispositionReason;
+	double maximumReplayPriorMeanRelativeError = 0;
+	double maximumReplayPriorCovarianceRelativeError = 0;
+	double maximumTargetMeanRelativeError = 0;
+	double maximumTargetVarianceRelativeError = 0;
+	double maximumRawSquareRootMeanRelativeError = 0;
+	double maximumRawSquareRootCovarianceRelativeError = 0;
+	double maximumPersistentTransformMeanRelativeError = 0;
+	double maximumPersistentTransformCovarianceRelativeError = 0;
 };
 
 inline std::vector<ZhangCapturedStateKey> zhangKeysByIndex(
@@ -244,6 +452,7 @@ public:
 		incrementalTargetSeparator.clear();
 		incrementalRawSquareRoot.clear();
 		persistentRawTargetWindow.clear();
+		persistentSnapshotIdentities.clear();
 		retainedTargetBlocks.clear();
 		currentRetainedTargetBlock = {};
 		lastMeasurementPriorMean.resize(0);
@@ -253,7 +462,9 @@ public:
 		anchorMean.resize(0);
 		anchorCovariance.resize(0, 0);
 		events.clear();
+		snapshotOperations.clear();
 		nextSequence = 0;
+		nextSnapshotOperationSequence = 0;
 		replayMean.resize(0);
 		replayCovariance.resize(0, 0);
 		lastFailure.clear();
@@ -657,6 +868,7 @@ public:
 		event.design = measurement.H.sparseView(0, sparseTolerance);
 		event.covariance = measurement.R.sparseView(0, sparseTolerance);
 		event.rightHandSide = absoluteObservation;
+		event.prefitRatios = measurement.prefitRatios;
 		for (const auto& key : measurement.obsKeys)
 		{
 			event.observationKeys.push_back(zhangCapturedStateKey(key));
@@ -741,6 +953,7 @@ public:
 		event.covariance = processCovariance.sparseView(0, sparseTolerance);
 		event.dimensionPreserving =
 			transition.rows() == transition.cols();
+		event.preserveUnrepresentablePersistentTargets = false;
 		events.push_back(std::move(event));
 		currentKeys = destination;
 		replayMean = predictedMean;
@@ -755,7 +968,8 @@ public:
 		const std::vector<ZhangCapturedStateKey>& source,
 		const std::vector<ZhangCapturedStateKey>& destination,
 		const SparseMatrix<double>& transform,
-		const std::string& label)
+		const std::string& label,
+		bool preserveUnrepresentablePersistentTargets = false)
 	{
 		if (!anchored)
 		{
@@ -772,7 +986,8 @@ public:
 		auto transportedTargets = lastTargets;
 		if (!transportPersistentFunctionals(
 				transportedTargets, source, destination, transform,
-				nullptr, "EXACT_COORDINATE_TRANSFORM", true))
+				nullptr, "EXACT_COORDINATE_TRANSFORM",
+				!preserveUnrepresentablePersistentTargets))
 		{
 			return false;
 		}
@@ -787,11 +1002,49 @@ public:
 			lastFailure = incrementalRawSquareRoot.summary().failureReason;
 			return false;
 		}
+		const auto persistentBefore =
+			persistentRawTargetWindow.targetMarginal();
 		if (!persistentRawTargetWindow.applyExactCoordinateTransform(
 				MatrixXd(transform)))
 		{
 			lastFailure = persistentRawTargetWindow.lastFailureReason();
 			return false;
+		}
+		const auto persistentAfter =
+			persistentRawTargetWindow.targetMarginal();
+		if (persistentBefore.valid != persistentAfter.valid ||
+			(persistentBefore.valid &&
+			 (persistentBefore.identities != persistentAfter.identities ||
+			  persistentBefore.mean.size() != persistentAfter.mean.size() ||
+			  persistentBefore.covariance.rows() !=
+				persistentAfter.covariance.rows())))
+		{
+			lastFailure = "PERSISTENT_TARGET_TRANSFORM_IDENTITY_CHANGED";
+			return false;
+		}
+		if (persistentBefore.valid)
+		{
+			const double meanRelativeError =
+				(persistentAfter.mean - persistentBefore.mean).norm() /
+				std::max(1.0, persistentBefore.mean.norm());
+			const double covarianceRelativeError =
+				(persistentAfter.covariance -
+				 persistentBefore.covariance).norm() /
+				std::max(1.0, persistentBefore.covariance.norm());
+			maximumPersistentTransformMeanRelativeError = std::max(
+				maximumPersistentTransformMeanRelativeError,
+				meanRelativeError);
+			maximumPersistentTransformCovarianceRelativeError = std::max(
+				maximumPersistentTransformCovarianceRelativeError,
+				covarianceRelativeError);
+			if (!std::isfinite(meanRelativeError) ||
+				!std::isfinite(covarianceRelativeError) ||
+				meanRelativeError > functionalTransportTolerance ||
+				covarianceRelativeError > functionalTransportTolerance)
+			{
+				lastFailure = "PERSISTENT_TARGET_TRANSFORM_MARGINAL_CHANGED";
+				return false;
+			}
 		}
 		if (!auditRawSquareRootBoundary(
 				transformedMean, transformedCovariance,
@@ -805,6 +1058,8 @@ public:
 		event.time = time;
 		event.sequence = nextSequence++;
 		event.label = label;
+		event.preserveUnrepresentablePersistentTargets =
+			preserveUnrepresentablePersistentTargets;
 		event.sourceKeys = source;
 		event.destinationKeys = destination;
 		event.design = transform;
@@ -825,6 +1080,128 @@ public:
 		replayCovariance = transformedCovariance;
 		lastTargets = std::move(transportedTargets);
 		trimFailClosed();
+		return true;
+	}
+
+	/** Introduce one immutable epoch-side product functional as an explicit
+	 * target variable.  Once bound it survives rectangular state transforms,
+	 * so a later product functional can form a genuine BESD difference. */
+	bool bindPersistentSnapshot(
+		const std::string& identity,
+		const std::string& physicalVersion,
+		const VectorXd& row,
+		double offset)
+	{
+		return bindPersistentSnapshots({{
+			identity, physicalVersion, row, offset}});
+	}
+
+	/** Bind all previously unseen epoch-side product functionals in one exact
+	 * augmentation.  Existing immutable identities are idempotent and are not
+	 * re-constrained to a later state. */
+	bool bindPersistentSnapshots(
+		const std::vector<ZhangPersistentSnapshotBinding>& bindings)
+	{
+		if (!anchored || bindings.empty())
+		{
+			lastFailure = "INVALID_PERSISTENT_SNAPSHOT_BATCH";
+			return false;
+		}
+		std::vector<const ZhangPersistentSnapshotBinding*> pending;
+		std::set<std::string> batchIdentities;
+		for (const auto& binding : bindings)
+		{
+			if (binding.identity.empty() || binding.physicalVersion.empty()
+			 || binding.row.size() != static_cast<int>(currentKeys.size())
+			 || !binding.row.allFinite() || !std::isfinite(binding.offset)
+			 || !batchIdentities.insert(binding.identity).second)
+			{
+				lastFailure = "INVALID_PERSISTENT_SNAPSHOT_BATCH";
+				return false;
+			}
+			if (persistentSnapshotIdentities.count(binding.identity) == 0)
+			{
+				pending.push_back(&binding);
+			}
+		}
+		if (pending.empty())
+		{
+			return true;
+		}
+		MatrixXd rows(pending.size(), currentKeys.size());
+		VectorXd offsets(pending.size());
+		std::vector<std::string> identities;
+		std::vector<std::string> physicalVersions;
+		identities.reserve(pending.size());
+		physicalVersions.reserve(pending.size());
+		for (int index = 0; index < static_cast<int>(pending.size()); index++)
+		{
+			rows.row(index) = pending[index]->row.transpose();
+			offsets(index) = pending[index]->offset;
+			identities.push_back(pending[index]->identity);
+			physicalVersions.push_back(pending[index]->physicalVersion);
+		}
+		if (!persistentRawTargetWindow.bindNewTargets(
+				identities, physicalVersions, rows, offsets, nextSequence))
+		{
+			lastFailure = persistentRawTargetWindow.lastFailureReason();
+			return false;
+		}
+		persistentSnapshotIdentities.insert(
+			identities.begin(), identities.end());
+		ZhangCapturedSnapshotOperation operation;
+		operation.kind =
+			ZhangCapturedSnapshotOperationKind::BIND_NEW_TARGETS;
+		operation.afterEventSequence = nextSequence;
+		operation.operationSequence = nextSnapshotOperationSequence++;
+		operation.identities = identities;
+		operation.physicalVersions = physicalVersions;
+		operation.rows = rows.sparseView(0, 0);
+		operation.offsets = offsets;
+		snapshotOperations.push_back(std::move(operation));
+		return true;
+	}
+
+	ZhangPersistentRawTargetMarginal persistentSnapshotMarginal() const
+	{
+		return persistentRawTargetWindow.targetMarginal();
+	}
+
+	std::size_t persistentSnapshotCount() const
+	{
+		return persistentSnapshotIdentities.size();
+	}
+
+	bool retainPersistentSnapshots(const std::set<std::string>& identities)
+	{
+		const bool changed = identities != persistentSnapshotIdentities;
+		if (!persistentRawTargetWindow.retainTargets(identities))
+		{
+			lastFailure = persistentRawTargetWindow.lastFailureReason();
+			return false;
+		}
+		for (auto it = persistentSnapshotIdentities.begin();
+			 it != persistentSnapshotIdentities.end();)
+		{
+			if (identities.count(*it) == 0)
+			{
+				it = persistentSnapshotIdentities.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+		if (changed)
+		{
+			ZhangCapturedSnapshotOperation operation;
+			operation.kind =
+				ZhangCapturedSnapshotOperationKind::RETAIN_TARGETS;
+			operation.afterEventSequence = nextSequence;
+			operation.operationSequence = nextSnapshotOperationSequence++;
+			operation.identities.assign(identities.begin(), identities.end());
+			snapshotOperations.push_back(std::move(operation));
+		}
 		return true;
 	}
 
@@ -891,6 +1268,10 @@ public:
 			maximumRawSquareRootMeanRelativeError;
 		result.maximumRawSquareRootCovarianceRelativeError =
 			maximumRawSquareRootCovarianceRelativeError;
+		result.maximumPersistentTransformMeanRelativeError =
+			maximumPersistentTransformMeanRelativeError;
+		result.maximumPersistentTransformCovarianceRelativeError =
+			maximumPersistentTransformCovarianceRelativeError;
 		result.valid = anchored && lastFailure.empty() && !events.empty();
 		return result;
 	}
@@ -912,6 +1293,11 @@ public:
 	{
 		return events;
 	}
+	const std::deque<ZhangCapturedSnapshotOperation>&
+	capturedSnapshotOperations() const
+	{
+		return snapshotOperations;
+	}
 	const std::deque<ZhangCapturedPhysicalTarget>& capturedPhysicalTargets() const
 	{
 		return physicalTargets;
@@ -929,6 +1315,496 @@ public:
 	{
 		return lastTargetDispositionReason;
 	}
+
+	ZhangFactorCaptureRuntimeReplay checkpointReplay() const
+	{
+		ZhangFactorCaptureRuntimeReplay result;
+		result.maximumEvents = maximumEvents;
+		result.initialKeys = anchorKeys;
+		result.initialMean = anchorMean;
+		result.initialCovariance = anchorCovariance;
+		result.currentKeys = currentKeys;
+		result.replayMean = replayMean;
+		result.replayCovariance = replayCovariance;
+		result.events = events;
+		result.snapshotOperations = snapshotOperations;
+		result.physicalTargets = physicalTargets;
+		result.unresolvedIntegerDatums = unresolvedIntegerDatums;
+		result.retainedTargetBlocks = retainedTargetBlocks;
+		result.currentRetainedTargetBlock = currentRetainedTargetBlock;
+		result.innovationScaleGroups = innovationScaleDiagnostics();
+		result.lastMeasurementPriorMean = lastMeasurementPriorMean;
+		result.lastMeasurementPriorCovariance = lastMeasurementPriorCovariance;
+		result.lastMeasurementTime = lastMeasurementTime;
+		result.lastMeasurementTargetStart = lastMeasurementTargetStart;
+		result.lastFailure = lastFailure;
+		result.lastTargetDispositionReason = lastTargetDispositionReason;
+		result.maximumReplayPriorMeanRelativeError =
+			maximumReplayPriorMeanRelativeError;
+		result.maximumReplayPriorCovarianceRelativeError =
+			maximumReplayPriorCovarianceRelativeError;
+		result.maximumTargetMeanRelativeError = maximumTargetMeanRelativeError;
+		result.maximumTargetVarianceRelativeError =
+			maximumTargetVarianceRelativeError;
+		result.maximumRawSquareRootMeanRelativeError =
+			maximumRawSquareRootMeanRelativeError;
+		result.maximumRawSquareRootCovarianceRelativeError =
+			maximumRawSquareRootCovarianceRelativeError;
+		result.maximumPersistentTransformMeanRelativeError =
+			maximumPersistentTransformMeanRelativeError;
+		result.maximumPersistentTransformCovarianceRelativeError =
+			maximumPersistentTransformCovarianceRelativeError;
+		return result;
+	}
+
+	/** Rebuild all derived QR/square-root state in a temporary buffer. */
+#ifdef ZHANG_FACTOR_CAPTURE_CHECKPOINT_IMPLEMENTATION
+	bool restoreCheckpointReplay(
+		const ZhangFactorCaptureRuntimeReplay& snapshot,
+		std::string* failureReason = nullptr)
+	{
+		auto fail = [&](const std::string& reason)
+		{
+			if (failureReason)
+			{
+				*failureReason = reason;
+			}
+			return false;
+		};
+		if (snapshot.events.empty())
+		{
+			if (!snapshot.initialKeys.empty()
+			 || snapshot.initialMean.size() != 0
+			 || snapshot.initialCovariance.size() != 0
+			 || !snapshot.currentKeys.empty()
+			 || snapshot.replayMean.size() != 0
+			 || snapshot.replayCovariance.size() != 0
+			 || !snapshot.snapshotOperations.empty()
+			 || !snapshot.physicalTargets.empty()
+			 || !snapshot.unresolvedIntegerDatums.empty()
+			 || !snapshot.retainedTargetBlocks.empty()
+			 || snapshot.currentRetainedTargetBlock.targetCount != 0
+			 || !snapshot.innovationScaleGroups.empty()
+			 || snapshot.lastMeasurementPriorMean.size() != 0
+			 || snapshot.lastMeasurementPriorCovariance.size() != 0
+			 || snapshot.lastMeasurementTargetStart != 0)
+			{
+				return fail("E18_CHECKPOINT_EMPTY_CHRONOLOGY_INCONSISTENT");
+			}
+			ZhangFactorCaptureBuffer candidate;
+			candidate.maximumEvents = snapshot.maximumEvents;
+			candidate.lastFailure = snapshot.lastFailure;
+			candidate.lastTargetDispositionReason =
+				snapshot.lastTargetDispositionReason;
+			candidate.lastMeasurementTime = snapshot.lastMeasurementTime;
+			candidate.maximumReplayPriorMeanRelativeError =
+				snapshot.maximumReplayPriorMeanRelativeError;
+			candidate.maximumReplayPriorCovarianceRelativeError =
+				snapshot.maximumReplayPriorCovarianceRelativeError;
+			candidate.maximumTargetMeanRelativeError =
+				snapshot.maximumTargetMeanRelativeError;
+			candidate.maximumTargetVarianceRelativeError =
+				snapshot.maximumTargetVarianceRelativeError;
+			candidate.maximumRawSquareRootMeanRelativeError =
+				snapshot.maximumRawSquareRootMeanRelativeError;
+			candidate.maximumRawSquareRootCovarianceRelativeError =
+				snapshot.maximumRawSquareRootCovarianceRelativeError;
+			candidate.maximumPersistentTransformMeanRelativeError =
+				snapshot.maximumPersistentTransformMeanRelativeError;
+			candidate.maximumPersistentTransformCovarianceRelativeError =
+				snapshot.maximumPersistentTransformCovarianceRelativeError;
+			*this = std::move(candidate);
+			return true;
+		}
+		if (snapshot.initialKeys.empty()
+		 || snapshot.initialMean.size() !=
+			static_cast<int>(snapshot.initialKeys.size())
+		 || snapshot.initialCovariance.rows() != snapshot.initialMean.size()
+		 || snapshot.initialCovariance.cols() != snapshot.initialMean.size()
+		 || !snapshot.initialMean.allFinite()
+		 || !snapshot.initialCovariance.allFinite())
+		{
+			return fail("E18_CHECKPOINT_INVALID_ANCHOR");
+		}
+
+		ZhangFactorCaptureBuffer candidate;
+		candidate.maximumEvents = snapshot.maximumEvents;
+		VectorXd mean = snapshot.initialMean;
+		MatrixXd covariance = snapshot.initialCovariance;
+		std::size_t targetIndex = 0;
+		std::size_t unresolvedIndex = 0;
+		std::size_t snapshotIndex = 0;
+
+		auto applySideOperations = [&](std::size_t sequence)
+		{
+			while (targetIndex < snapshot.physicalTargets.size()
+				&& snapshot.physicalTargets[targetIndex].afterEventSequence
+					== sequence)
+			{
+				const auto& target = snapshot.physicalTargets[targetIndex++];
+				VectorXd row = VectorXd::Zero(target.row.cols());
+				for (int outer = 0; outer < target.row.outerSize(); outer++)
+				for (SparseMatrix<double>::InnerIterator entry(
+						target.row, outer); entry; ++entry)
+				{
+					row(entry.col()) = entry.value();
+				}
+				if (!candidate.recordPhysicalTarget(
+						target.time, target.identity,
+						target.physicalArcSignature,
+						target.phaseSegmentIdentity,
+						target.physicalArcVersions, target.keys, row,
+						target.offset, mean, covariance,
+						target.unresolvedIntegerGaugeRank,
+						target.integerGaugeIdentity,
+						target.canonicalCoordinateIdentity,
+						target.productDatumIdentity,
+						target.productDatumVersion))
+				{
+					return false;
+				}
+				const auto& rebuilt = candidate.physicalTargets.back();
+				const double meanScale = std::max(
+					{1.0, std::abs(rebuilt.mean), std::abs(target.mean)});
+				const double varianceScale = std::max(
+					{varianceTolerance, std::abs(rebuilt.variance),
+					 std::abs(target.variance)});
+				if (rebuilt.identity != target.identity
+				 || rebuilt.resetPhysicalIdentity != target.resetPhysicalIdentity
+				 || rebuilt.continuedAcrossCoordinateChange !=
+					target.continuedAcrossCoordinateChange
+				 || std::abs(rebuilt.mean - target.mean) /
+					meanScale > replayTolerance
+				 || std::abs(rebuilt.variance - target.variance) /
+					varianceScale > rawSquareRootReplayTolerance)
+				{
+					candidate.lastFailure =
+						"E18_CHECKPOINT_PHYSICAL_TARGET_REPLAY_MISMATCH";
+					return false;
+				}
+			}
+			while (unresolvedIndex < snapshot.unresolvedIntegerDatums.size()
+				&& snapshot.unresolvedIntegerDatums[unresolvedIndex]
+					.afterEventSequence == sequence)
+			{
+				const auto& datum =
+					snapshot.unresolvedIntegerDatums[unresolvedIndex++];
+				candidate.recordUnresolvedIntegerDatum(
+					datum.time, datum.identity, datum.missingGaugeRank);
+				if (!candidate.lastFailure.empty())
+				{
+					return false;
+				}
+			}
+			while (snapshotIndex < snapshot.snapshotOperations.size()
+				&& snapshot.snapshotOperations[snapshotIndex]
+					.afterEventSequence == sequence)
+			{
+				const auto& operation =
+					snapshot.snapshotOperations[snapshotIndex++];
+				if (operation.operationSequence != snapshotIndex - 1)
+				{
+					candidate.lastFailure =
+						"E18_CHECKPOINT_SNAPSHOT_SEQUENCE_INVALID";
+					return false;
+				}
+				if (operation.kind ==
+					ZhangCapturedSnapshotOperationKind::BIND_NEW_TARGETS)
+				{
+					if (operation.identities.size() !=
+						operation.physicalVersions.size()
+					 || operation.rows.rows() !=
+						static_cast<int>(operation.identities.size())
+					 || operation.rows.cols() != mean.size()
+					 || operation.offsets.size() != operation.rows.rows())
+					{
+						candidate.lastFailure =
+							"E18_CHECKPOINT_INVALID_SNAPSHOT_BIND";
+						return false;
+					}
+					MatrixXd rows = MatrixXd(operation.rows);
+					std::vector<ZhangPersistentSnapshotBinding> bindings;
+					for (int row = 0; row < rows.rows(); row++)
+					{
+						bindings.push_back({operation.identities[row],
+							operation.physicalVersions[row],
+							rows.row(row).transpose(), operation.offsets(row)});
+					}
+					const std::size_t operationCount =
+						candidate.snapshotOperations.size();
+					if (!candidate.bindPersistentSnapshots(bindings)
+					 || candidate.snapshotOperations.size() != operationCount + 1)
+					{
+						candidate.lastFailure =
+							"E18_CHECKPOINT_SNAPSHOT_BIND_NOT_REPRODUCED";
+						return false;
+					}
+					candidate.snapshotOperations.back() = operation;
+				}
+				else
+				{
+					const std::set<std::string> retained(
+						operation.identities.begin(),
+						operation.identities.end());
+					const std::size_t operationCount =
+						candidate.snapshotOperations.size();
+					if (!candidate.retainPersistentSnapshots(retained)
+					 || candidate.snapshotOperations.size() != operationCount + 1)
+					{
+						candidate.lastFailure =
+							"E18_CHECKPOINT_SNAPSHOT_RETAIN_NOT_REPRODUCED";
+						return false;
+					}
+					candidate.snapshotOperations.back() = operation;
+				}
+			}
+			return true;
+		};
+
+		for (std::size_t index = 0; index < snapshot.events.size(); index++)
+		{
+			const auto& event = snapshot.events[index];
+			if (event.sequence != index
+			 || (index == 0
+				 && event.kind != ZhangCapturedFactorKind::MEASUREMENT))
+			{
+				return fail("E18_CHECKPOINT_EVENT_SEQUENCE_INVALID");
+			}
+			if (event.kind == ZhangCapturedFactorKind::MEASUREMENT)
+			{
+				const MatrixXd design = MatrixXd(event.design);
+				const MatrixXd noise = MatrixXd(event.covariance);
+				if (design.cols() != mean.size()
+				 || event.rightHandSide.size() != design.rows()
+				 || noise.rows() != design.rows()
+				 || noise.cols() != design.rows())
+				{
+					return fail("E18_CHECKPOINT_MEASUREMENT_DIMENSION_INVALID");
+				}
+				MatrixXd innovation = design * covariance *
+					design.transpose() + noise;
+				innovation = 0.5 * (innovation + innovation.transpose());
+				LDLT<MatrixXd> solver(innovation);
+				if (solver.info() != Eigen::Success)
+				{
+					return fail("E18_CHECKPOINT_MEASUREMENT_INNOVATION_FAILED");
+				}
+				const MatrixXd gain = covariance * design.transpose()
+					* solver.solve(MatrixXd::Identity(
+						innovation.rows(), innovation.cols()));
+				const VectorXd posteriorMean = mean + gain *
+					(event.rightHandSide - design * mean);
+				MatrixXd posteriorCovariance = covariance
+					- gain * innovation * gain.transpose();
+				posteriorCovariance = 0.5 *
+					(posteriorCovariance + posteriorCovariance.transpose());
+				KFMeas measurement;
+				measurement.time = event.time;
+				measurement.H = design;
+				measurement.R = noise;
+				measurement.V = event.rightHandSide - design * mean;
+				measurement.prefitRatios = event.prefitRatios;
+				for (const auto& captured : event.observationKeys)
+				{
+					KFKey key;
+					key.type = static_cast<KF>(captured.type);
+					key.Sat = captured.satellite;
+					key.str = captured.receiver;
+					key.num = captured.number;
+					measurement.obsKeys.push_back(key);
+				}
+				if (!candidate.recordMeasurement(
+						event.time, event.sourceKeys, mean, covariance,
+						measurement, event.label, posteriorMean,
+						posteriorCovariance))
+				{
+					return fail("E18_CHECKPOINT_MEASUREMENT_REPLAY_FAILED:" +
+						candidate.lastFailure);
+				}
+				candidate.events.back() = event;
+				mean = posteriorMean;
+				covariance = posteriorCovariance;
+			}
+			else if (event.kind == ZhangCapturedFactorKind::STATE_TRANSITION)
+			{
+				const MatrixXd transition = MatrixXd(event.design);
+				const MatrixXd process = MatrixXd(event.covariance);
+				if (!candidate.recordTransition(
+						event.time, event.sourceKeys, event.destinationKeys,
+						event.design, process, event.label))
+				{
+					return fail("E18_CHECKPOINT_TRANSITION_REPLAY_FAILED:" +
+						candidate.lastFailure);
+				}
+				candidate.events.back() = event;
+				mean = transition * mean;
+				covariance = transition * covariance * transition.transpose()
+					+ process;
+				covariance = 0.5 * (covariance + covariance.transpose());
+			}
+			else
+			{
+				const MatrixXd transform = MatrixXd(event.design);
+				if (!candidate.recordCoordinateTransform(
+						event.time, event.sourceKeys, event.destinationKeys,
+						event.design, event.label,
+						event.preserveUnrepresentablePersistentTargets))
+				{
+					return fail("E18_CHECKPOINT_TRANSFORM_REPLAY_FAILED:" +
+						candidate.lastFailure);
+				}
+				candidate.events.back() = event;
+				mean = transform * mean;
+				covariance = transform * covariance * transform.transpose();
+				covariance = 0.5 * (covariance + covariance.transpose());
+			}
+			if (!applySideOperations(index + 1))
+			{
+				return fail("E18_CHECKPOINT_SIDE_OPERATION_REPLAY_FAILED:" +
+					candidate.lastFailure);
+			}
+		}
+		if (targetIndex != snapshot.physicalTargets.size()
+		 || unresolvedIndex != snapshot.unresolvedIntegerDatums.size()
+		 || snapshotIndex != snapshot.snapshotOperations.size())
+		{
+			return fail("E18_CHECKPOINT_ORPHAN_SIDE_OPERATION");
+		}
+		const double replayMeanScale = std::max(1.0, mean.norm());
+		const double replayCovarianceScale = std::max(1.0, covariance.norm());
+		if (candidate.currentKeys != snapshot.currentKeys)
+		{
+			return fail("E18_CHECKPOINT_FINAL_REPLAY_KEY_MISMATCH");
+		}
+		if (snapshot.replayMean.size() != mean.size()
+		 || snapshot.replayCovariance.rows() != covariance.rows()
+		 || snapshot.replayCovariance.cols() != covariance.cols())
+		{
+			return fail("E18_CHECKPOINT_FINAL_REPLAY_DIMENSION_MISMATCH");
+		}
+		if (!snapshot.replayMean.allFinite()
+		 || !snapshot.replayCovariance.allFinite())
+		{
+			return fail("E18_CHECKPOINT_FINAL_REPLAY_NONFINITE");
+		}
+		const double checkpointMeanError =
+			(snapshot.replayMean - mean).norm() / replayMeanScale;
+		const double checkpointCovarianceError =
+			(snapshot.replayCovariance - covariance).norm()
+			/ replayCovarianceScale;
+		if (checkpointMeanError > rawSquareRootReplayTolerance
+		 || checkpointCovarianceError > rawSquareRootReplayTolerance)
+		{
+			std::ostringstream detail;
+			detail << std::setprecision(17)
+				<< "E18_CHECKPOINT_FINAL_REPLAY_NUMERIC_MISMATCH"
+				<< ":mean_relative_error=" << checkpointMeanError
+				<< ":mean_tolerance=" << rawSquareRootReplayTolerance
+				<< ":covariance_relative_error="
+				<< checkpointCovarianceError
+				<< ":covariance_tolerance="
+				<< rawSquareRootReplayTolerance;
+			return fail(detail.str());
+		}
+		candidate.replayMean = snapshot.replayMean;
+		candidate.replayCovariance = snapshot.replayCovariance;
+		if (candidate.retainedTargetBlocks.size() !=
+			snapshot.retainedTargetBlocks.size()
+		 || candidate.currentRetainedTargetBlock.targetCount !=
+			snapshot.currentRetainedTargetBlock.targetCount
+		 || candidate.lastMeasurementPriorMean.size() !=
+			snapshot.lastMeasurementPriorMean.size()
+		 || candidate.lastMeasurementPriorCovariance.rows() !=
+			snapshot.lastMeasurementPriorCovariance.rows()
+		 || candidate.lastMeasurementPriorCovariance.cols() !=
+			snapshot.lastMeasurementPriorCovariance.cols()
+		 || candidate.lastMeasurementTime != snapshot.lastMeasurementTime
+		 || candidate.lastMeasurementTargetStart !=
+			snapshot.lastMeasurementTargetStart
+		 || snapshot.lastMeasurementTargetStart >
+			snapshot.physicalTargets.size())
+		{
+			return fail("E18_CHECKPOINT_RETAINED_RUNTIME_STRUCTURE_MISMATCH");
+		}
+		if (!snapshot.lastMeasurementPriorMean.allFinite()
+		 || !snapshot.lastMeasurementPriorCovariance.allFinite())
+		{
+			return fail("E18_CHECKPOINT_RETAINED_RUNTIME_NONFINITE");
+		}
+		const double checkpointPriorMeanError =
+			(candidate.lastMeasurementPriorMean -
+			 snapshot.lastMeasurementPriorMean).norm()
+			/ std::max(1.0, candidate.lastMeasurementPriorMean.norm());
+		const double checkpointPriorCovarianceError =
+			(candidate.lastMeasurementPriorCovariance -
+			 snapshot.lastMeasurementPriorCovariance).norm()
+			/ std::max(1.0, candidate.lastMeasurementPriorCovariance.norm());
+		if (checkpointPriorMeanError > rawSquareRootReplayTolerance
+		 || checkpointPriorCovarianceError > rawSquareRootReplayTolerance)
+		{
+			std::ostringstream detail;
+			detail << std::setprecision(17)
+				<< "E18_CHECKPOINT_RETAINED_RUNTIME_NUMERIC_MISMATCH"
+				<< ":mean_relative_error=" << checkpointPriorMeanError
+				<< ":covariance_relative_error="
+				<< checkpointPriorCovarianceError
+				<< ":tolerance=" << rawSquareRootReplayTolerance;
+			return fail(detail.str());
+		}
+		candidate.retainedTargetBlocks = snapshot.retainedTargetBlocks;
+		candidate.currentRetainedTargetBlock =
+			snapshot.currentRetainedTargetBlock;
+		candidate.innovationScaleGroups.clear();
+		for (const auto& group : snapshot.innovationScaleGroups)
+		{
+			if (group.identity.empty()
+			 || !std::isfinite(group.marginalStandardisedSquaredSum)
+			 || !std::isfinite(group.maximumAbsoluteRatio)
+			 || !candidate.innovationScaleGroups.emplace(
+				group.identity, group).second)
+			{
+				return fail("E18_CHECKPOINT_INVALID_INNOVATION_SCALE_GROUP");
+			}
+		}
+		candidate.lastMeasurementPriorMean =
+			snapshot.lastMeasurementPriorMean;
+		candidate.lastMeasurementPriorCovariance =
+			snapshot.lastMeasurementPriorCovariance;
+		candidate.lastMeasurementTime = snapshot.lastMeasurementTime;
+		candidate.lastMeasurementTargetStart =
+			snapshot.lastMeasurementTargetStart;
+
+		candidate.lastFailure = snapshot.lastFailure;
+		candidate.lastTargetDispositionReason =
+			snapshot.lastTargetDispositionReason;
+		candidate.maximumReplayPriorMeanRelativeError =
+			snapshot.maximumReplayPriorMeanRelativeError;
+		candidate.maximumReplayPriorCovarianceRelativeError =
+			snapshot.maximumReplayPriorCovarianceRelativeError;
+		candidate.maximumTargetMeanRelativeError =
+			snapshot.maximumTargetMeanRelativeError;
+		candidate.maximumTargetVarianceRelativeError =
+			snapshot.maximumTargetVarianceRelativeError;
+		candidate.maximumRawSquareRootMeanRelativeError =
+			snapshot.maximumRawSquareRootMeanRelativeError;
+		candidate.maximumRawSquareRootCovarianceRelativeError =
+			snapshot.maximumRawSquareRootCovarianceRelativeError;
+		candidate.maximumPersistentTransformMeanRelativeError =
+			snapshot.maximumPersistentTransformMeanRelativeError;
+		candidate.maximumPersistentTransformCovarianceRelativeError =
+			snapshot.maximumPersistentTransformCovarianceRelativeError;
+		*this = std::move(candidate);
+		if (failureReason)
+		{
+			failureReason->clear();
+		}
+		return true;
+	}
+#else
+	bool restoreCheckpointReplay(
+		const ZhangFactorCaptureRuntimeReplay& snapshot,
+		std::string* failureReason = nullptr);
+#endif
 
 	ZhangRawSquareRootTargetMarginal currentRawSquareRootTargetMarginal() const
 	{
@@ -1028,6 +1904,12 @@ public:
 		result.maximumStoredRows = summary.maximumStoredRows;
 		result.maximumStoredColumns = summary.maximumStoredColumns;
 		result.exactConstraintsApplied = marginal.exactConstraintsApplied;
+		result.coordinateRepresentableTargets =
+			marginal.coordinateRepresentableTargets;
+		result.coordinateUnrepresentableTargets =
+			marginal.coordinateUnrepresentableTargets;
+		result.skippedUnrepresentableRebinds =
+			marginal.skippedUnrepresentableRebinds;
 		if (!marginal.valid)
 		{
 			result.failureReason = marginal.failureReason;
@@ -1225,6 +2107,171 @@ public:
 		result.absoluteDatumValid =
 			result.valid && result.unresolvedGaugeRank == 0;
 		return result;
+	}
+
+	/** Replay the complete persistent-snapshot chronology while retaining an
+	 * arbitrary subset of rows from each finally accepted measurement block.
+	 *
+	 * The callback receives the captured measurement event and its row index;
+	 * returning false removes that observation from the replay.  The retained
+	 * covariance is the corresponding principal submatrix of the original R,
+	 * so correlations among all retained rows are preserved.  State dynamics,
+	 * process noise, exact S-transforms, snapshot augmentation and lifecycle
+	 * marginalisation are unchanged.  processNoiseScale=0 supplies the separate
+	 * fixed-dynamics control required by E28-2; process noise is not mislabeled
+	 * as a removable measurement family.  This is the factor-domain primitive
+	 * for E28-2 leave-one-family-out tests.
+	 */
+	ZhangPersistentRawTargetMarginal replayPersistentSnapshotsKeepingRows(
+		const std::function<bool(
+			const ZhangCapturedFactorEvent&, int)>& keepRow,
+		double processNoiseScale = 1) const
+	{
+		ZhangPersistentRawTargetMarginal rejected;
+		if (!anchored || events.empty()
+		 || !std::isfinite(processNoiseScale) || processNoiseScale < 0)
+		{
+			rejected.failureReason = !anchored || events.empty()
+				? "NO_CAPTURED_FACTOR_CHRONOLOGY"
+				: "INVALID_PROCESS_NOISE_SCALE";
+			return rejected;
+		}
+		ZhangPersistentRawTargetWindow replay;
+		if (!replay.initialise(anchorMean, anchorCovariance))
+		{
+			rejected.failureReason = replay.lastFailureReason();
+			return rejected;
+		}
+
+		std::size_t operationIndex = 0;
+		auto applySnapshotOperations = [&](std::size_t afterSequence)
+		{
+			while (operationIndex < snapshotOperations.size()
+				&& snapshotOperations[operationIndex].afterEventSequence
+					== afterSequence)
+			{
+				const auto& operation = snapshotOperations[operationIndex++];
+				if (operation.kind ==
+					ZhangCapturedSnapshotOperationKind::BIND_NEW_TARGETS)
+				{
+					if (!replay.bindNewTargets(
+							operation.identities,
+							operation.physicalVersions,
+							MatrixXd(operation.rows),
+							operation.offsets,
+							afterSequence))
+					{
+						return false;
+					}
+				}
+				else
+				{
+					const std::set<std::string> retained(
+						operation.identities.begin(),
+						operation.identities.end());
+					if (!replay.retainTargets(retained))
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		};
+
+		if (!applySnapshotOperations(0))
+		{
+			rejected.failureReason = replay.lastFailureReason();
+			return rejected;
+		}
+		std::size_t expectedSequence = 0;
+		for (const auto& event : events)
+		{
+			if (event.sequence != expectedSequence)
+			{
+				rejected.failureReason =
+					"CAPTURED_FACTOR_SEQUENCE_NOT_CONTIGUOUS";
+				return rejected;
+			}
+			const MatrixXd design(event.design);
+			if (event.kind == ZhangCapturedFactorKind::MEASUREMENT)
+			{
+				if (event.observationKeys.size() !=
+					static_cast<std::size_t>(design.rows())
+				 || event.rightHandSide.size() != design.rows())
+				{
+					rejected.failureReason =
+						"CAPTURED_MEASUREMENT_ROW_IDENTITY_MISMATCH";
+					return rejected;
+				}
+				std::vector<int> retainedRows;
+				for (int row = 0; row < design.rows(); row++)
+				{
+					if (!keepRow || keepRow(event, row))
+					{
+						retainedRows.push_back(row);
+					}
+				}
+				if (!retainedRows.empty())
+				{
+					const MatrixXd covariance(event.covariance);
+					MatrixXd retainedDesign(
+						retainedRows.size(), design.cols());
+					MatrixXd retainedCovariance(
+						retainedRows.size(), retainedRows.size());
+					VectorXd retainedObservation(retainedRows.size());
+					for (int row = 0;
+						 row < static_cast<int>(retainedRows.size()); row++)
+					{
+						retainedDesign.row(row) =
+							design.row(retainedRows[row]);
+						retainedObservation(row) =
+							event.rightHandSide(retainedRows[row]);
+						for (int column = 0;
+							 column < static_cast<int>(retainedRows.size());
+							 column++)
+						{
+							retainedCovariance(row, column) = covariance(
+								retainedRows[row], retainedRows[column]);
+						}
+					}
+					if (!replay.addAcceptedMeasurement(
+							retainedDesign, retainedCovariance,
+							retainedObservation))
+					{
+						rejected.failureReason = replay.lastFailureReason();
+						return rejected;
+					}
+				}
+			}
+			else if (event.kind == ZhangCapturedFactorKind::STATE_TRANSITION)
+			{
+				MatrixXd processCovariance(event.covariance);
+				processCovariance *= processNoiseScale;
+				if (!replay.advance(design, processCovariance))
+				{
+					rejected.failureReason = replay.lastFailureReason();
+					return rejected;
+				}
+			}
+			else if (!replay.applyExactCoordinateTransform(design))
+			{
+				rejected.failureReason = replay.lastFailureReason();
+				return rejected;
+			}
+			expectedSequence++;
+			if (!applySnapshotOperations(expectedSequence))
+			{
+				rejected.failureReason = replay.lastFailureReason();
+				return rejected;
+			}
+		}
+		if (operationIndex != snapshotOperations.size())
+		{
+			rejected.failureReason =
+				"SNAPSHOT_OPERATION_SEQUENCE_OUTSIDE_FACTOR_CHAIN";
+			return rejected;
+		}
+		return replay.targetMarginal();
 	}
 
 private:
@@ -1662,6 +2709,8 @@ private:
 	VectorXd replayMean;
 	MatrixXd replayCovariance;
 	std::deque<ZhangCapturedFactorEvent> events;
+	std::deque<ZhangCapturedSnapshotOperation> snapshotOperations;
+	std::size_t nextSnapshotOperationSequence = 0;
 	std::deque<ZhangCapturedPhysicalTarget> physicalTargets;
 	std::deque<ZhangCapturedUnresolvedIntegerDatum> unresolvedIntegerDatums;
 	std::deque<ZhangCapturedRetainedTargetBlock> retainedTargetBlocks;
@@ -1814,6 +2863,7 @@ private:
 	}
 
 	std::map<std::string, PhysicalTargetHistory> lastTargets;
+	std::set<std::string> persistentSnapshotIdentities;
 	std::string lastFailure;
 	std::string lastTargetDispositionReason;
 	double maximumReplayPriorMeanRelativeError = 0;
@@ -1822,6 +2872,8 @@ private:
 	double maximumTargetVarianceRelativeError = 0;
 	double maximumRawSquareRootMeanRelativeError = 0;
 	double maximumRawSquareRootCovarianceRelativeError = 0;
+	double maximumPersistentTransformMeanRelativeError = 0;
+	double maximumPersistentTransformCovarianceRelativeError = 0;
 	// Shadow continuity tolerance only.  The strict acceptance tests are the
 	// retained physical target marginal and integer candidate, not equality of
 	// every heterogeneous nuisance-state covariance entry.

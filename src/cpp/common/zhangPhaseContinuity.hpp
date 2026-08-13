@@ -12,6 +12,32 @@ enum class ZhangPhaseContinuityChange
     REINITIALISED
 };
 
+/** Observe the generation of the graph controller's auxiliary product tree.
+ * A generation change is diagnostic evidence only.  Product continuity is
+ * classified per satellite from its non-zero versioned physical functional;
+ * the global generation must never reset a whole constellation by itself. */
+struct ZhangProductDatumVersionTracker
+{
+    bool initialized = false;
+    int  version = 0;
+
+    bool observe(int nextVersion)
+    {
+        if (!initialized)
+        {
+            initialized = true;
+            version = nextVersion;
+            return false;
+        }
+        if (nextVersion == version)
+        {
+            return false;
+        }
+        version = nextVersion;
+        return true;
+    }
+};
+
 /** Per-(constellation, satellite, signal) continuity metadata for an internal
  * Zhang phase product.  Integer branch changes are absorbed without changing
  * the emitted correction.  Fractional changes and reinitialisations create a

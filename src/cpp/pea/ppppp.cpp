@@ -454,6 +454,22 @@ void makeIFLCs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
             kfMeasEntryJ.noiseEntryMap  = std::move(newNoiseEntryMap);
             kfMeasEntryJ.componentsMap  = std::move(newComponentsMap);
 
+            if (acsConfig.zhangPppAr.user_adapter &&
+                acsConfig.zhangPppAr.integer_strategy ==
+                    "CANONICAL_USER_IF_WL_L1")
+            {
+                trace << "\nZHANG_E27_IF_COMBINATION time="
+                      << kfState.time.to_string(0)
+                      << " receiver=" << kfMeasEntryJ.obsKey.str
+                      << " satellite=" << kfMeasEntryJ.obsKey.Sat.id()
+                      << " measurement_type="
+                      << enum_to_string(kfMeasEntryJ.obsKey.type)
+                      << " coefficient_first=" << coeff_j * scalar
+                      << " coefficient_second=" << -coeff_i * scalar
+                      << " ionosphere_coefficient=0"
+                      << " per_signal_product_applied_before_if=1";
+            }
+
             kfState.removeState(ionKey_i);
             break;
         }
@@ -1868,6 +1884,8 @@ void perRecMeasurements(
 
     orbitPseudoObs(trace, rec, kfState, kfMeasEntryList);
     receiverUducGnss(trace, rec, kfState, kfMeasEntryList, remoteState);
+    captureZhangE27WideLaneRawNoiseFactors(
+        kfState, tsync, rec.id, kfMeasEntryList);
     receiverSlr(trace, rec, kfState, kfMeasEntryList);
     receiverPseudoObs(trace, rec, kfState, kfMeasEntryList, receiverMap);
 
@@ -1925,6 +1943,7 @@ void ppp(
 
     updateFilter(trace, receiverMap, kfState);
     configureZhangE18FactorCapture(kfState);
+    configureZhangL1MeasurementReplayTransitionCapture(kfState);
 
     // add process noise and dynamics to existing states as a prediction of current state
     if (kfState.assume_linearity == false)
@@ -2067,8 +2086,27 @@ void ppp(
 
     BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << "\n";
 
+    const bool captureL1MeasurementReplay =
+        acsConfig.zhangPppAr.l1_measurement_replay_shadow &&
+        acsConfig.zhangPppAr.l1_measurement_replay_target_epoch ==
+            kfState.time.to_string(0);
+    KFState l1MeasurementReplayPrior;
+    if (captureL1MeasurementReplay)
+    {
+        l1MeasurementReplayPrior = kfState;
+    }
     captureZhangPppArFloatPrior(kfState);
     kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
+
+    if (captureL1MeasurementReplay)
+    {
+        captureZhangL1MeasurementReplayPosteriors(
+            trace,
+            l1MeasurementReplayPrior,
+            kfState,
+            kfMeas
+        );
+    }
 
     postFilterChecks(tsync, receiverMap, kfState, kfMeas);
 

@@ -485,6 +485,7 @@ struct ZhangExactRowHnf
 {
     ZhangExactMatrix basis;
     ZhangExactVector values;
+    ZhangExactMatrix rowTransform;
     bool              consistent = true;
 };
 
@@ -512,7 +513,8 @@ inline ZhangExactInteger zhangExactFloorDivide(
  */
 inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
     ZhangExactMatrix rows,
-    ZhangExactVector values = {}
+    ZhangExactVector values = {},
+    bool trackRowTransform = false
 )
 {
     ZhangExactRowHnf result;
@@ -538,6 +540,11 @@ inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
         result.consistent = false;
         return result;
     }
+    ZhangExactMatrix rowTransform;
+    if (trackRowTransform)
+    {
+        rowTransform = zhangExactIdentityMatrix(rows.size());
+    }
 
     auto addRowMultiple = [&](std::size_t destination,
                               std::size_t source,
@@ -548,6 +555,15 @@ inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
             rows[destination][column] += multiplier * rows[source][column];
         }
         values[destination] += multiplier * values[source];
+        if (trackRowTransform)
+        {
+            for (std::size_t column = 0;
+                 column < rowTransform.size(); column++)
+            {
+                rowTransform[destination][column] +=
+                    multiplier * rowTransform[source][column];
+            }
+        }
     };
     auto negateRow = [&](std::size_t row)
     {
@@ -556,6 +572,13 @@ inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
             value = -value;
         }
         values[row] = -values[row];
+        if (trackRowTransform)
+        {
+            for (auto& value : rowTransform[row])
+            {
+                value = -value;
+            }
+        }
     };
 
     std::size_t pivotRow = 0;
@@ -580,6 +603,10 @@ inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
         }
         std::swap(rows[pivotRow], rows[selected]);
         std::swap(values[pivotRow], values[selected]);
+        if (trackRowTransform)
+        {
+            std::swap(rowTransform[pivotRow], rowTransform[selected]);
+        }
 
         bool reduced = false;
         do
@@ -598,6 +625,11 @@ inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
                 {
                     std::swap(rows[row], rows[pivotRow]);
                     std::swap(values[row], values[pivotRow]);
+                    if (trackRowTransform)
+                    {
+                        std::swap(
+                            rowTransform[row], rowTransform[pivotRow]);
+                    }
                 }
                 reduced = false;
                 break;
@@ -638,6 +670,10 @@ inline ZhangExactRowHnf zhangExactRowHermiteNormalForm(
         }
         result.basis.push_back(std::move(rows[row]));
         result.values.push_back(std::move(values[row]));
+        if (trackRowTransform)
+        {
+            result.rowTransform.push_back(std::move(rowTransform[row]));
+        }
     }
     return result;
 }
@@ -1404,10 +1440,12 @@ struct ZhangSatelliteProductTarget
 /** Exact G_sat for converting a current dynamic-tree ambiguity datum to a
  * persistent product-tree datum.
  *
- * This implements D_S P_S A_TP^{-1} S_TP E_C.  The current cycle coordinates
- * k are inserted only on current chord edges; a product-tree edge therefore
- * contributes a unit column exactly when it is a current chord.  The inverse
- * product-tree incidence is already available as the exact treeInverse map.
+ * This implements D_S P_S A_TP^{-1} S_TP E_C.  The product tree may use a
+ * connected subset of current receivers, but must span the same satellites
+ * and use the same root.  Current cycle coordinates k are inserted only on
+ * current chord edges; a product-tree edge therefore contributes a unit
+ * column exactly when it is a current chord.  The inverse product-tree
+ * incidence is already available as the exact treeInverse map.
  */
 inline ZhangSatelliteProductTarget zhangBuildSatelliteProductTarget(
     const ZhangGraphBasis& currentBasis,
@@ -1416,11 +1454,13 @@ inline ZhangSatelliteProductTarget zhangBuildSatelliteProductTarget(
 )
 {
     ZhangSatelliteProductTarget result;
-    if (currentBasis.receivers != productBasis.receivers ||
-        currentBasis.satellites != productBasis.satellites ||
-        currentBasis.rootReceiver != productBasis.rootReceiver)
+    if (currentBasis.satellites != productBasis.satellites ||
+        currentBasis.rootReceiver != productBasis.rootReceiver ||
+        !std::includes(
+            currentBasis.receivers.begin(), currentBasis.receivers.end(),
+            productBasis.receivers.begin(), productBasis.receivers.end()))
     {
-        result.failureReason = "product_tree_node_or_root_mismatch";
+        result.failureReason = "product_tree_target_node_or_root_mismatch";
         return result;
     }
     if (!std::includes(

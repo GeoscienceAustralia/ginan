@@ -429,6 +429,13 @@ struct Exponential
 {
     double value = 0;
     double tau   = 0;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& ar, const unsigned int& version)
+    {
+        ar & value;
+        ar & tau;
+    }
 };
 
 /** Kalman filter object.

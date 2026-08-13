@@ -136,7 +136,16 @@ public:
 			return false;
 		}
 		MatrixXd processSquareRoot;
-		if (!positiveSquareRoot(processCovariance, processSquareRoot, true))
+		// Q=0 is a legitimate deterministic state transition and is required
+		// for the E28-2 fixed-dynamics control.  A covariance boundary may not
+		// be wholly deterministic, but an additive process-noise block may have
+		// zero rank; represent it by an empty square-root factor.
+		if (processCovariance.isZero(0))
+		{
+			processSquareRoot.resize(processCovariance.rows(), 0);
+		}
+		else if (!positiveSquareRoot(
+				processCovariance, processSquareRoot, true))
 		{
 			return false;
 		}

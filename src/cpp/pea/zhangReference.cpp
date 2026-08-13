@@ -1,14 +1,25 @@
 #include "pea/zhangReference.hpp"
 
 #include <algorithm>
+#include <cstdint>
+#include <exception>
 #include <limits>
 #include <map>
 #include <optional>
 #include <set>
 #include <sstream>
 #include <string>
+#include <tuple>
+#include <utility>
 #include <vector>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
 #include "common/constants.hpp"
@@ -16,6 +27,7 @@
 #include "common/receiver.hpp"
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
+#include "common/zhangCheckpoint.hpp"
 #include "common/zhangFullRank.hpp"
 #include "common/zhangIntegerAudit.hpp"
 #include "pea/zhangPppAr.hpp"
@@ -47,7 +59,9 @@ struct ReferenceOutageState
     int satelliteEpochs = 0;
 };
 
-map<std::pair<KFState*, E_Sys>, ReferenceOutageState> outageStateMap;
+using ZhangGraphRuntimeKey = std::pair<string, E_Sys>;
+
+map<ZhangGraphRuntimeKey, ReferenceOutageState> outageStateMap;
 
 struct GraphRuntimeState
 {
@@ -58,13 +72,26 @@ struct GraphRuntimeState
         int arcVersion = 0;
     };
 
+    struct ArcVersionObservationHistory
+    {
+        int         firstObservedEpoch = -1;
+        int         lastObservedEpoch = -1;
+        int         observationEpochs = 0;
+        vector<int> observedEpochs;
+    };
+
     ZhangGraphBasis          basis;
     ZhangGraphBasis          activeBasis;
     ZhangGraphBasis          productBasis;
     map<ZhangGraphEdge, int> productArcVersions;
+    set<string>              productCoreReceivers;
     set<ZhangGraphEdge>      observationEdges;
     set<ZhangGraphEdge>      stateEdges;
     map<ZhangGraphEdge, EdgeHistory> edgeHistory;
+    map<pair<ZhangGraphEdge, int>, ArcVersionObservationHistory>
+                                arcVersionObservationHistory;
+    int                         epochIndex = -1;
+    string                      lastProductEventCause = "INITIALISE";
     bool                     initialized = false;
     int                      deferredEpochs = 0;
     int                      datumVersion = 0;
@@ -73,7 +100,728 @@ struct GraphRuntimeState
     bool                     productInitialized = false;
 };
 
-map<std::pair<const KFState*, E_Sys>, GraphRuntimeState> graphStateMap;
+map<ZhangGraphRuntimeKey, GraphRuntimeState> graphStateMap;
+
+string zhangGraphRuntimeId(const KFState& state)
+{
+    auto branch = state.metaDataMap.find(
+        ZHANG_CHECKPOINT_RUNTIME_BRANCH_ID_METADATA);
+    if (branch != state.metaDataMap.end())
+    {
+        return branch->second;
+    }
+    return zhangCheckpointRuntimeId(state);
+}
+
+constexpr char ZHANG_GRAPH_CHECKPOINT_MAGIC[] =
+    "GINAN_ZHANG_GRAPH_RUNTIME";
+
+struct ZhangGraphCheckpointSatellite
+{
+    int system = static_cast<int>(E_Sys::NONE);
+    int prn = 0;
+
+    bool operator<(const ZhangGraphCheckpointSatellite& other) const
+    {
+        return std::tie(system, prn) < std::tie(other.system, other.prn);
+    }
+
+    bool operator==(const ZhangGraphCheckpointSatellite& other) const
+    {
+        return system == other.system && prn == other.prn;
+    }
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & system;
+        archive & prn;
+    }
+};
+
+struct ZhangGraphCheckpointEdge
+{
+    string receiver;
+    ZhangGraphCheckpointSatellite satellite;
+
+    bool operator<(const ZhangGraphCheckpointEdge& other) const
+    {
+        return std::tie(receiver, satellite) <
+               std::tie(other.receiver, other.satellite);
+    }
+
+    bool operator==(const ZhangGraphCheckpointEdge& other) const
+    {
+        return receiver == other.receiver && satellite == other.satellite;
+    }
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & receiver;
+        archive & satellite;
+    }
+};
+
+struct ZhangGraphCheckpointBasis
+{
+    string                          rootReceiver;
+    set<ZhangGraphCheckpointEdge>   edges;
+    set<ZhangGraphCheckpointEdge>   treeEdges;
+    set<string>                     receivers;
+    set<ZhangGraphCheckpointSatellite> satellites;
+    int                             componentCount = 0;
+    bool                            connected = false;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & rootReceiver;
+        archive & edges;
+        archive & treeEdges;
+        archive & receivers;
+        archive & satellites;
+        archive & componentCount;
+        archive & connected;
+    }
+};
+
+struct ZhangGraphCheckpointEdgeHistory
+{
+    int continuousEpochs = 0;
+    int outageEpochs = 0;
+    int arcVersion = 0;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & continuousEpochs;
+        archive & outageEpochs;
+        archive & arcVersion;
+    }
+};
+
+struct ZhangGraphCheckpointArcObservationHistory
+{
+    int         firstObservedEpoch = -1;
+    int         lastObservedEpoch = -1;
+    int         observationEpochs = 0;
+    vector<int> observedEpochs;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & firstObservedEpoch;
+        archive & lastObservedEpoch;
+        archive & observationEpochs;
+        archive & observedEpochs;
+    }
+};
+
+struct ZhangGraphCheckpointOutageState
+{
+    int system = static_cast<int>(E_Sys::NONE);
+    int receiverEpochs = 0;
+    int satelliteEpochs = 0;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & system;
+        archive & receiverEpochs;
+        archive & satelliteEpochs;
+    }
+};
+
+struct ZhangGraphCheckpointRuntimeState
+{
+    int system = static_cast<int>(E_Sys::NONE);
+    ZhangGraphCheckpointBasis basis;
+    ZhangGraphCheckpointBasis activeBasis;
+    ZhangGraphCheckpointBasis productBasis;
+    map<ZhangGraphCheckpointEdge, int> productArcVersions;
+    set<string> productCoreReceivers;
+    set<ZhangGraphCheckpointEdge> observationEdges;
+    set<ZhangGraphCheckpointEdge> stateEdges;
+    map<ZhangGraphCheckpointEdge, ZhangGraphCheckpointEdgeHistory> edgeHistory;
+    map<pair<ZhangGraphCheckpointEdge, int>,
+        ZhangGraphCheckpointArcObservationHistory>
+        arcVersionObservationHistory;
+    int    epochIndex = -1;
+    string lastProductEventCause = "INITIALISE";
+    bool   initialized = false;
+    int    deferredEpochs = 0;
+    int    datumVersion = 0;
+    int    eventCounter = 0;
+    int    productDatumVersion = 0;
+    bool   productInitialized = false;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & system;
+        archive & basis;
+        archive & activeBasis;
+        archive & productBasis;
+        archive & productArcVersions;
+        archive & productCoreReceivers;
+        archive & observationEdges;
+        archive & stateEdges;
+        archive & edgeHistory;
+        archive & arcVersionObservationHistory;
+        archive & epochIndex;
+        archive & lastProductEventCause;
+        archive & initialized;
+        archive & deferredEpochs;
+        archive & datumVersion;
+        archive & eventCounter;
+        archive & productDatumVersion;
+        archive & productInitialized;
+    }
+};
+
+struct ZhangGraphCheckpointPayload
+{
+    string magic = ZHANG_GRAPH_CHECKPOINT_MAGIC;
+    std::uint32_t schemaVersion = ZHANG_GRAPH_CHECKPOINT_SCHEMA_VERSION;
+    string runtimeId;
+    vector<ZhangGraphCheckpointOutageState> outageStates;
+    vector<ZhangGraphCheckpointRuntimeState> graphStates;
+
+    template <class ARCHIVE>
+    void serialize(ARCHIVE& archive, const unsigned int& version)
+    {
+        archive & magic;
+        archive & schemaVersion;
+        archive & runtimeId;
+        archive & outageStates;
+        archive & graphStates;
+    }
+};
+
+bool zhangGraphCheckpointSystemValid(int system)
+{
+    return system >= static_cast<int>(E_Sys::NONE) &&
+           system <= static_cast<int>(E_Sys::COMB);
+}
+
+ZhangGraphCheckpointSatellite zhangGraphCheckpointSatellite(
+    const SatSys& satellite)
+{
+    return {
+        static_cast<int>(satellite.sys),
+        static_cast<int>(satellite.prn)};
+}
+
+SatSys zhangGraphCheckpointSatellite(
+    const ZhangGraphCheckpointSatellite& satellite)
+{
+    return SatSys(static_cast<E_Sys>(satellite.system), satellite.prn);
+}
+
+ZhangGraphCheckpointEdge zhangGraphCheckpointEdge(
+    const ZhangGraphEdge& edge)
+{
+    return {edge.receiver, zhangGraphCheckpointSatellite(edge.satellite)};
+}
+
+ZhangGraphEdge zhangGraphCheckpointEdge(
+    const ZhangGraphCheckpointEdge& edge)
+{
+    return {edge.receiver, zhangGraphCheckpointSatellite(edge.satellite)};
+}
+
+ZhangGraphCheckpointBasis zhangGraphCheckpointBasis(
+    const ZhangGraphBasis& basis)
+{
+    ZhangGraphCheckpointBasis snapshot;
+    snapshot.rootReceiver = basis.rootReceiver;
+    for (const auto& edge : basis.edges)
+    {
+        snapshot.edges.insert(zhangGraphCheckpointEdge(edge));
+    }
+    for (const auto& edge : basis.treeEdges)
+    {
+        snapshot.treeEdges.insert(zhangGraphCheckpointEdge(edge));
+    }
+    snapshot.receivers = basis.receivers;
+    for (const auto& satellite : basis.satellites)
+    {
+        snapshot.satellites.insert(
+            zhangGraphCheckpointSatellite(satellite));
+    }
+    snapshot.componentCount = basis.componentCount;
+    snapshot.connected = basis.connected;
+    return snapshot;
+}
+
+ZhangGraphBasis zhangGraphCheckpointBasis(
+    const ZhangGraphCheckpointBasis& snapshot)
+{
+    ZhangGraphBasis basis;
+    basis.rootReceiver = snapshot.rootReceiver;
+    for (const auto& edge : snapshot.edges)
+    {
+        basis.edges.insert(zhangGraphCheckpointEdge(edge));
+    }
+    for (const auto& edge : snapshot.treeEdges)
+    {
+        basis.treeEdges.insert(zhangGraphCheckpointEdge(edge));
+    }
+    basis.receivers = snapshot.receivers;
+    for (const auto& satellite : snapshot.satellites)
+    {
+        basis.satellites.insert(
+            zhangGraphCheckpointSatellite(satellite));
+    }
+    basis.componentCount = snapshot.componentCount;
+    basis.connected = snapshot.connected;
+    return basis;
+}
+
+bool zhangGraphCheckpointEdgeValid(
+    const ZhangGraphCheckpointEdge& edge,
+    int                              system,
+    string&                          failureReason,
+    const string&                    field)
+{
+    if (edge.receiver.empty())
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_EMPTY_RECEIVER:" + field;
+        return false;
+    }
+    if (!zhangGraphCheckpointSystemValid(edge.satellite.system) ||
+        edge.satellite.system != system || edge.satellite.prn <= 0)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_INVALID_SATELLITE:" + field;
+        return false;
+    }
+    return true;
+}
+
+bool zhangGraphCheckpointBasisValid(
+    const ZhangGraphCheckpointBasis& snapshot,
+    int                               system,
+    string&                           failureReason,
+    const string&                     field)
+{
+    if (snapshot.componentCount < 0)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_NEGATIVE_COMPONENTS:" + field;
+        return false;
+    }
+
+    set<string> derivedReceivers;
+    set<ZhangGraphCheckpointSatellite> derivedSatellites;
+    for (const auto& edge : snapshot.edges)
+    {
+        if (!zhangGraphCheckpointEdgeValid(
+                edge, system, failureReason, field + ".edges"))
+        {
+            return false;
+        }
+        derivedReceivers.insert(edge.receiver);
+        derivedSatellites.insert(edge.satellite);
+    }
+    for (const auto& edge : snapshot.treeEdges)
+    {
+        if (!zhangGraphCheckpointEdgeValid(
+                edge, system, failureReason, field + ".treeEdges") ||
+            snapshot.edges.find(edge) == snapshot.edges.end())
+        {
+            if (failureReason.empty())
+            {
+                failureReason =
+                    "ZHANG_GRAPH_CHECKPOINT_TREE_EDGE_OUTSIDE_GRAPH:" + field;
+            }
+            return false;
+        }
+    }
+    for (const auto& satellite : snapshot.satellites)
+    {
+        if (!zhangGraphCheckpointSystemValid(satellite.system) ||
+            satellite.system != system || satellite.prn <= 0)
+        {
+            failureReason =
+                "ZHANG_GRAPH_CHECKPOINT_INVALID_BASIS_SATELLITE:" + field;
+            return false;
+        }
+    }
+    if (derivedReceivers != snapshot.receivers ||
+        derivedSatellites != snapshot.satellites)
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_BASIS_NODE_SET_MISMATCH:" + field;
+        return false;
+    }
+
+    if (snapshot.edges.empty())
+    {
+        if (!snapshot.treeEdges.empty() || !snapshot.receivers.empty() ||
+            !snapshot.satellites.empty() || snapshot.componentCount != 0 ||
+            snapshot.connected)
+        {
+            failureReason =
+                "ZHANG_GRAPH_CHECKPOINT_INVALID_EMPTY_BASIS:" + field;
+            return false;
+        }
+        return true;
+    }
+    if (snapshot.rootReceiver.empty() ||
+        snapshot.receivers.find(snapshot.rootReceiver) ==
+            snapshot.receivers.end())
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_INVALID_BASIS_ROOT:" + field;
+        return false;
+    }
+
+    const ZhangGraphBasis basis = zhangGraphCheckpointBasis(snapshot);
+    const ZhangGraphBasis derived =
+        zhangBuildSpanningTree(basis.edges, basis.rootReceiver);
+    if (derived.componentCount != basis.componentCount ||
+        derived.connected != basis.connected)
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_BASIS_CONNECTIVITY_MISMATCH:" + field;
+        return false;
+    }
+
+    const ZhangGraphBasis derivedTree =
+        zhangBuildSpanningTree(basis.treeEdges, basis.rootReceiver);
+    const int nodeCount = static_cast<int>(
+        basis.receivers.size() + basis.satellites.size());
+    if (derivedTree.receivers != basis.receivers ||
+        derivedTree.satellites != basis.satellites ||
+        derivedTree.componentCount != basis.componentCount ||
+        static_cast<int>(basis.treeEdges.size()) !=
+            nodeCount - basis.componentCount)
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_INVALID_BASIS_FOREST:" + field;
+        return false;
+    }
+    return true;
+}
+
+bool zhangGraphCheckpointRuntimeValid(
+    const ZhangGraphCheckpointRuntimeState& snapshot,
+    string&                                  failureReason)
+{
+    if (!zhangGraphCheckpointSystemValid(snapshot.system))
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_INVALID_SYSTEM";
+        return false;
+    }
+    if (!zhangGraphCheckpointBasisValid(
+            snapshot.basis, snapshot.system, failureReason, "basis") ||
+        !zhangGraphCheckpointBasisValid(
+            snapshot.activeBasis,
+            snapshot.system,
+            failureReason,
+            "activeBasis") ||
+        !zhangGraphCheckpointBasisValid(
+            snapshot.productBasis,
+            snapshot.system,
+            failureReason,
+            "productBasis"))
+    {
+        return false;
+    }
+    if (snapshot.epochIndex < -1 || snapshot.deferredEpochs < 0 ||
+        snapshot.datumVersion < 0 || snapshot.eventCounter < 0 ||
+        snapshot.productDatumVersion < 0)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_NEGATIVE_COUNTER";
+        return false;
+    }
+    if (snapshot.lastProductEventCause.empty())
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_EMPTY_EVENT_CAUSE";
+        return false;
+    }
+
+    for (const auto& edge : snapshot.observationEdges)
+    {
+        if (!zhangGraphCheckpointEdgeValid(
+                edge,
+                snapshot.system,
+                failureReason,
+                "observationEdges"))
+        {
+            return false;
+        }
+    }
+    for (const auto& edge : snapshot.stateEdges)
+    {
+        if (!zhangGraphCheckpointEdgeValid(
+                edge, snapshot.system, failureReason, "stateEdges"))
+        {
+            return false;
+        }
+    }
+    if (!std::includes(
+            snapshot.stateEdges.begin(),
+            snapshot.stateEdges.end(),
+            snapshot.observationEdges.begin(),
+            snapshot.observationEdges.end()))
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_OBSERVATION_OUTSIDE_STATE_EDGES";
+        return false;
+    }
+
+    for (const auto& [edge, history] : snapshot.edgeHistory)
+    {
+        if (!zhangGraphCheckpointEdgeValid(
+                edge, snapshot.system, failureReason, "edgeHistory") ||
+            history.continuousEpochs < 0 || history.outageEpochs < 0 ||
+            history.arcVersion < 0)
+        {
+            if (failureReason.empty())
+            {
+                failureReason =
+                    "ZHANG_GRAPH_CHECKPOINT_INVALID_EDGE_HISTORY";
+            }
+            return false;
+        }
+    }
+
+    for (const auto& [versionedEdge, history] :
+         snapshot.arcVersionObservationHistory)
+    {
+        const auto& edge = versionedEdge.first;
+        const int arcVersion = versionedEdge.second;
+        if (!zhangGraphCheckpointEdgeValid(
+                edge,
+                snapshot.system,
+                failureReason,
+                "arcVersionObservationHistory"))
+        {
+            return false;
+        }
+        auto current = snapshot.edgeHistory.find(edge);
+        if (arcVersion < 0 || current == snapshot.edgeHistory.end() ||
+            arcVersion > current->second.arcVersion ||
+            history.observationEpochs < 0 ||
+            history.observationEpochs !=
+                static_cast<int>(history.observedEpochs.size()))
+        {
+            failureReason =
+                "ZHANG_GRAPH_CHECKPOINT_INVALID_ARC_OBSERVATION_HISTORY";
+            return false;
+        }
+        if (history.observedEpochs.empty())
+        {
+            if (history.firstObservedEpoch != -1 ||
+                history.lastObservedEpoch != -1)
+            {
+                failureReason =
+                    "ZHANG_GRAPH_CHECKPOINT_EMPTY_ARC_HISTORY_BOUNDS";
+                return false;
+            }
+            continue;
+        }
+        if (history.firstObservedEpoch != history.observedEpochs.front() ||
+            history.lastObservedEpoch != history.observedEpochs.back() ||
+            history.firstObservedEpoch < 0 ||
+            history.lastObservedEpoch > snapshot.epochIndex ||
+            !std::is_sorted(
+                history.observedEpochs.begin(),
+                history.observedEpochs.end()) ||
+            std::adjacent_find(
+                history.observedEpochs.begin(),
+                history.observedEpochs.end()) !=
+                history.observedEpochs.end())
+        {
+            failureReason =
+                "ZHANG_GRAPH_CHECKPOINT_INCONSISTENT_ARC_EPOCHS";
+            return false;
+        }
+    }
+
+    for (const auto& [edge, arcVersion] : snapshot.productArcVersions)
+    {
+        auto current = snapshot.edgeHistory.find(edge);
+        auto versionHistory = snapshot.arcVersionObservationHistory.find(
+            {edge, arcVersion});
+        if (!zhangGraphCheckpointEdgeValid(
+                edge,
+                snapshot.system,
+                failureReason,
+                "productArcVersions") ||
+            snapshot.productBasis.treeEdges.find(edge) ==
+                snapshot.productBasis.treeEdges.end() ||
+            arcVersion < 0 || current == snapshot.edgeHistory.end() ||
+            arcVersion > current->second.arcVersion ||
+            versionHistory == snapshot.arcVersionObservationHistory.end())
+        {
+            if (failureReason.empty())
+            {
+                failureReason =
+                    "ZHANG_GRAPH_CHECKPOINT_INVALID_PRODUCT_ARC_VERSION";
+            }
+            return false;
+        }
+    }
+    if (snapshot.productInitialized)
+    {
+        if (!snapshot.productBasis.connected ||
+            snapshot.productArcVersions.size() !=
+                snapshot.productBasis.treeEdges.size())
+        {
+            failureReason =
+                "ZHANG_GRAPH_CHECKPOINT_INCOMPLETE_PRODUCT_DATUM";
+            return false;
+        }
+    }
+    else if (!snapshot.productArcVersions.empty() ||
+             !snapshot.productCoreReceivers.empty())
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_UNINITIALIZED_PRODUCT_HAS_STATE";
+        return false;
+    }
+    if (!std::includes(
+            snapshot.productBasis.receivers.begin(),
+            snapshot.productBasis.receivers.end(),
+            snapshot.productCoreReceivers.begin(),
+            snapshot.productCoreReceivers.end()))
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_CORE_OUTSIDE_PRODUCT_RECEIVERS";
+        return false;
+    }
+    return true;
+}
+
+bool zhangGraphCheckpointPayloadValid(
+    const ZhangGraphCheckpointPayload& snapshot,
+    const string&                       runtimeId,
+    string&                             failureReason)
+{
+    if (snapshot.magic != ZHANG_GRAPH_CHECKPOINT_MAGIC)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_MAGIC_MISMATCH";
+        return false;
+    }
+    if (snapshot.schemaVersion != ZHANG_GRAPH_CHECKPOINT_SCHEMA_VERSION)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_SCHEMA_MISMATCH";
+        return false;
+    }
+    if (snapshot.runtimeId.empty() || snapshot.runtimeId != runtimeId)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_RUNTIME_ID_MISMATCH";
+        return false;
+    }
+
+    set<int> outageSystems;
+    for (const auto& outage : snapshot.outageStates)
+    {
+        if (!zhangGraphCheckpointSystemValid(outage.system) ||
+            !outageSystems.insert(outage.system).second ||
+            outage.receiverEpochs < 0 || outage.satelliteEpochs < 0)
+        {
+            failureReason = "ZHANG_GRAPH_CHECKPOINT_INVALID_OUTAGE_STATE";
+            return false;
+        }
+    }
+
+    set<int> graphSystems;
+    for (const auto& runtime : snapshot.graphStates)
+    {
+        if (!graphSystems.insert(runtime.system).second)
+        {
+            failureReason = "ZHANG_GRAPH_CHECKPOINT_DUPLICATE_GRAPH_SYSTEM";
+            return false;
+        }
+        if (!zhangGraphCheckpointRuntimeValid(runtime, failureReason))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename TYPE>
+bool zhangGraphCheckpointSerialize(
+    const TYPE& value,
+    string&     payload,
+    string&     failureReason)
+{
+    try
+    {
+        std::ostringstream output(std::ios::binary | std::ios::out);
+        boost::archive::binary_oarchive archive(
+            output, boost::archive::no_header);
+        archive << value;
+        payload = output.str();
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+        payload.clear();
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_SERIALIZE_FAILED:" +
+            string(exception.what());
+        return false;
+    }
+}
+
+template <typename TYPE>
+bool zhangGraphCheckpointDeserialize(
+    const string& payload,
+    TYPE&         value,
+    string&       failureReason)
+{
+    try
+    {
+        std::istringstream input(
+            payload, std::ios::binary | std::ios::in);
+        {
+            boost::archive::binary_iarchive archive(
+                input, boost::archive::no_header);
+            archive >> value;
+        }
+        if (input.peek() != std::char_traits<char>::eof())
+        {
+            failureReason = "ZHANG_GRAPH_CHECKPOINT_TRAILING_BYTES";
+            return false;
+        }
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_DESERIALIZE_FAILED:" +
+            string(exception.what());
+        return false;
+    }
+}
+
+bool zhangGraphCheckpointDecodeAndValidate(
+    const string&                       runtimeId,
+    const string&                       payload,
+    ZhangGraphCheckpointPayload& snapshot,
+    string&                             failureReason)
+{
+    failureReason.clear();
+    if (runtimeId.empty())
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_EMPTY_RUNTIME_ID";
+        return false;
+    }
+    if (payload.empty())
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_EMPTY_PAYLOAD";
+        return false;
+    }
+    return zhangGraphCheckpointDeserialize(
+               payload, snapshot, failureReason) &&
+           zhangGraphCheckpointPayloadValid(
+               snapshot, runtimeId, failureReason);
+}
 
 bool slipIsExcluded(const SigStat::SlipStat& slip)
 {
@@ -559,7 +1307,8 @@ bool transformZhangGraphBasis(
     E_Sys                    sys,
     const vector<E_ObsCode>& baselineObservables,
     const ZhangGraphBasis&   oldBasis,
-    const ZhangGraphBasis&   newTree
+    const ZhangGraphBasis&   newTree,
+    bool                     recordProductContinuity = true
 )
 {
     map<std::pair<SatSys, E_ObsCode>, double> oldSatellitePhases;
@@ -884,9 +1633,12 @@ bool transformZhangGraphBasis(
     }
     for (const auto& [code, changes] : correctionChanges)
     {
-        recordZhangExactPhaseTransforms(
-            kfState.time, sys, code, changes
-        );
+        if (recordProductContinuity)
+        {
+            recordZhangExactPhaseTransforms(
+                kfState.time, sys, code, changes
+            );
+        }
     }
 
     return true;
@@ -1292,7 +2044,15 @@ void updateZhangGraphBasis(
     const ReferenceAvailability&       availability
 )
 {
-    auto& runtime = graphStateMap[{&kfState, sys}];
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    if (runtimeId.empty())
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "ZHANG_GRAPH_RUNTIME_ID_UNBOUND sys=" << enum_to_string(sys);
+        return;
+    }
+    auto& runtime = graphStateMap[{runtimeId, sys}];
+    runtime.epochIndex++;
 
     auto traceCanonicalAudit = [&](const ZhangGraphBasis& basis,
                                    const string&           action,
@@ -1487,6 +2247,15 @@ void updateZhangGraphBasis(
         {
             history.continuousEpochs++;
             history.outageEpochs = 0;
+            auto& observations = runtime.arcVersionObservationHistory[
+                {edge, history.arcVersion}];
+            if (observations.firstObservedEpoch < 0)
+            {
+                observations.firstObservedEpoch = runtime.epochIndex;
+            }
+            observations.lastObservedEpoch = runtime.epochIndex;
+            observations.observationEpochs++;
+            observations.observedEpochs.push_back(runtime.epochIndex);
         }
         else
         {
@@ -1656,11 +2425,45 @@ void updateZhangGraphBasis(
         const ZhangGraphBasis oldProduct = runtime.productBasis;
         const map<ZhangGraphEdge, int> oldProductArcVersions =
             runtime.productArcVersions;
-        ZhangGraphBasis nextProduct = zhangBuildSpanningTree(
-            candidate.edges,
-            candidate.rootReceiver,
-            runtime.productBasis.treeEdges
-        );
+        set<ZhangGraphEdge> productEdges = candidate.edges;
+        set<string> nextProductCoreReceivers;
+        int productCoreMinimumSatelliteSupport = 0;
+        if (options.product_core_min_satellite_support > 0)
+        {
+            const auto core = zhangBuildProductReceiverCore(
+                candidate.edges,
+                candidate.rootReceiver,
+                runtime.productCoreReceivers,
+                options.product_core_min_satellite_support,
+                activeQuality,
+                persistence);
+            if (!core.connected)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "ZHANG_PRODUCT_CORE sys=" << enum_to_string(sys)
+                    << " status=REJECTED reason=CONNECTED_CORE_UNAVAILABLE";
+                return false;
+            }
+            productEdges = core.edges;
+            nextProductCoreReceivers = core.receivers;
+            productCoreMinimumSatelliteSupport =
+                core.minimumSatelliteSupport;
+        }
+        ZhangGraphBasis nextProduct = runtime.productInitialized
+            ? zhangBuildSpanningTree(
+                productEdges,
+                candidate.rootReceiver,
+                runtime.productBasis.treeEdges,
+                activeQuality,
+                modelledEdges,
+                persistence)
+            : zhangBuildRootedProductTree(
+                productEdges,
+                candidate.rootReceiver,
+                {},
+                activeQuality,
+                modelledEdges,
+                persistence);
         if (!nextProduct.connected)
         {
             return false;
@@ -1714,15 +2517,15 @@ void updateZhangGraphBasis(
             std::set_intersection(
                 runtime.productBasis.receivers.begin(),
                 runtime.productBasis.receivers.end(),
-                candidate.receivers.begin(),
-                candidate.receivers.end(),
+                nextProduct.receivers.begin(),
+                nextProduct.receivers.end(),
                 std::inserter(commonReceivers, commonReceivers.end())
             );
             std::set_intersection(
                 runtime.productBasis.satellites.begin(),
                 runtime.productBasis.satellites.end(),
-                candidate.satellites.begin(),
-                candidate.satellites.end(),
+                nextProduct.satellites.begin(),
+                nextProduct.satellites.end(),
                 std::inserter(commonSatellites, commonSatellites.end())
             );
             set<ZhangGraphEdge> restrictedOldTree;
@@ -1956,7 +2759,20 @@ void updateZhangGraphBasis(
 
         runtime.productBasis = std::move(nextProduct);
         runtime.productArcVersions = std::move(nextProductArcVersions);
+        runtime.productCoreReceivers = std::move(nextProductCoreReceivers);
         runtime.productInitialized = true;
+        if (changed)
+        {
+            std::ostringstream eventCause;
+            for (const auto& classified : classifiedReasons)
+            {
+                eventCause << (eventCause.tellp() > 0 ? "," : "")
+                           << classified;
+            }
+            runtime.lastProductEventCause = classifiedReasons.empty()
+                ? "INITIALISE"
+                : eventCause.str();
+        }
         if (changed && acsConfig.zhangPppAr.output_diagnostics)
         {
             std::ostringstream reasons;
@@ -1980,6 +2796,12 @@ void updateZhangGraphBasis(
                   << runtime.productBasis.receivers.size()
                   << " product_satellites="
                   << runtime.productBasis.satellites.size()
+                  << " product_core_enabled="
+                  << (options.product_core_min_satellite_support > 0)
+                  << " product_core_receivers="
+                  << runtime.productCoreReceivers.size()
+                  << " product_core_min_satellite_support="
+                  << productCoreMinimumSatelliteSupport
                   << " old_product_tree_edges=" << edgeList(removedProductEdges)
                   << " new_product_tree_edges=" << edgeList(addedProductEdges)
                   << " arc_version_changes=" << edgeList(versionChangedEdges)
@@ -2286,6 +3108,84 @@ void updateZhangGraphBasis(
                  affectedSatellites.find(key.Sat) != affectedSatellites.end());
         }
 
+		// The proposed product tree is known before the rectangular local
+		// phase-coordinate reset.  Capture its immutable satellite functionals
+		// now, while the old coordinate system still contains every historical
+		// chord needed to define them.  Waiting until product output runs after
+		// the reset made a subset of otherwise mature event targets unavailable
+		// at t0 (notably the 2019-199 02:51 event group).
+		set<ZhangGraphEdge> proposedProductEdges = candidate.edges;
+		bool proposedProductAvailable = true;
+		if (options.product_core_min_satellite_support > 0)
+		{
+			const auto proposedCore = zhangBuildProductReceiverCore(
+				candidate.edges,
+				candidate.rootReceiver,
+				runtime.productCoreReceivers,
+				options.product_core_min_satellite_support,
+				activeQuality,
+				persistence);
+			if (proposedCore.connected)
+			{
+				proposedProductEdges = proposedCore.edges;
+			}
+			else
+			{
+				proposedProductAvailable = false;
+			}
+		}
+		ZhangGraphBasis proposedProduct = proposedProductAvailable &&
+			runtime.productInitialized
+			? zhangBuildSpanningTree(
+				proposedProductEdges,
+				candidate.rootReceiver,
+				runtime.productBasis.treeEdges,
+				activeQuality,
+				modelledEdges,
+				persistence)
+			: proposedProductAvailable
+			? zhangBuildRootedProductTree(
+				proposedProductEdges,
+				candidate.rootReceiver,
+				{},
+				activeQuality,
+				modelledEdges,
+				persistence)
+			: ZhangGraphBasis{};
+		if (proposedProductAvailable && proposedProduct.connected)
+		{
+			map<ZhangGraphEdge, int> previousProductArcVersions;
+			for (const auto& edge : runtime.productBasis.edges)
+			{
+				auto history = runtime.edgeHistory.find(edge);
+				if (history != runtime.edgeHistory.end())
+				{
+					previousProductArcVersions[edge] = history->second.arcVersion;
+				}
+			}
+			map<ZhangGraphEdge, int> proposedArcVersions;
+			for (const auto& edge : proposedProduct.edges)
+			{
+				auto history = runtime.edgeHistory.find(edge);
+				if (history != runtime.edgeHistory.end())
+				{
+					proposedArcVersions[edge] = history->second.arcVersion;
+				}
+			}
+			registerZhangCandidateProductSnapshotsBeforeCoordinateReset(
+				trace,
+				kfState,
+				kfState,
+				sys,
+				options.baseline_observables,
+				runtime.basis,
+				runtime.productBasis,
+				previousProductArcVersions,
+				proposedProduct,
+				proposedArcVersions,
+				kfState.time);
+		}
+
         if (!resetZhangGraphPhaseCoordinates(
                 trace,
                 kfState,
@@ -2483,6 +3383,53 @@ void updateZhangGraphBasis(
 }
 }  // namespace
 
+bool applyZhangGraphBasisTransformForAudit(
+    Trace&                        trace,
+    KFState&                      branch,
+    E_Sys                         system,
+    const vector<E_ObsCode>&      baselineObservables,
+    const ZhangGraphBasis&        oldBasis,
+    const ZhangGraphBasis&        newBasis,
+    SparseMatrix<double>&         transform,
+    string&                       failureReason)
+{
+    transform.resize(0, 0);
+    int callbackCount = 0;
+    branch.exactStateTransformCallback =
+        [&](const KFState&,
+            GTime,
+            const map<KFKey, int>&,
+            const map<KFKey, int>&,
+            const SparseMatrix<double>& applied,
+            const string&)
+        {
+            transform = applied;
+            callbackCount++;
+        };
+    if (!transformZhangGraphBasis(
+            trace,
+            branch,
+            system,
+            baselineObservables,
+            oldBasis,
+            newBasis,
+            false))
+    {
+        failureReason = "E29_A2_EXACT_S_TRANSFORM_FAILED";
+        return false;
+    }
+    if (callbackCount != 1
+        || transform.rows() != branch.x.size()
+        || transform.cols() == 0
+        || !transform.isCompressed())
+    {
+        failureReason = "E29_A2_TRANSFORM_CALLBACK_MISMATCH";
+        return false;
+    }
+    failureReason = "NONE";
+    return true;
+}
+
 void updateZhangFullRankReferences(
     Trace&       trace,
     ReceiverMap& receiverMap,
@@ -2491,6 +3438,13 @@ void updateZhangFullRankReferences(
 {
     if (!acsConfig.zhangFullRank.enable)
     {
+        return;
+    }
+
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    if (runtimeId.empty())
+    {
+        BOOST_LOG_TRIVIAL(error) << "ZHANG_GRAPH_RUNTIME_ID_UNBOUND";
         return;
     }
 
@@ -2528,7 +3482,7 @@ void updateZhangFullRankReferences(
             continue;
         }
 
-        auto& outage = outageStateMap[{&kfState, sys}];
+        auto& outage = outageStateMap[{runtimeId, sys}];
 
         bool receiverAvailable =
             availability.satellitesByReceiver.find(options.reference_receiver) !=
@@ -2664,7 +3618,8 @@ bool zhangGraphModelsObservation(
         return true;
     }
 
-    auto stateIt = graphStateMap.find({&kfState, satellite.sys});
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    auto stateIt = graphStateMap.find({runtimeId, satellite.sys});
     if (stateIt == graphStateMap.end() || !stateIt->second.initialized)
     {
         return false;
@@ -2688,7 +3643,8 @@ bool zhangGraphRetainsAmbiguity(
         return true;
     }
 
-    auto stateIt = graphStateMap.find({&kfState, satellite.sys});
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    auto stateIt = graphStateMap.find({runtimeId, satellite.sys});
     if (stateIt == graphStateMap.end() || !stateIt->second.initialized)
     {
         return false;
@@ -2713,7 +3669,8 @@ bool zhangGraphProductSatelliteActive(
         return true;
     }
 
-    auto stateIt = graphStateMap.find({&kfState, satellite.sys});
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    auto stateIt = graphStateMap.find({runtimeId, satellite.sys});
     if (stateIt == graphStateMap.end() || !stateIt->second.initialized)
     {
         return false;
@@ -2736,7 +3693,8 @@ bool zhangGraphIntegerContext(
 )
 {
     context = {};
-    auto stateIt = graphStateMap.find({&kfState, system});
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    auto stateIt = graphStateMap.find({runtimeId, system});
     if (stateIt == graphStateMap.end() || !stateIt->second.initialized)
     {
         return false;
@@ -2756,31 +3714,176 @@ bool zhangGraphIntegerContext(
     return true;
 }
 
+bool zhangProductFunctionalEventDiagnostic(
+    const KFState&                         kfState,
+    E_Sys                                  system,
+    const vector<ZhangGraphEdge>&          oldEdges,
+    const vector<int>&                     oldArcVersions,
+    const vector<ZhangGraphEdge>&          newEdges,
+    const vector<int>&                     newArcVersions,
+    ZhangProductFunctionalEventDiagnostic& diagnostic
+)
+{
+    diagnostic = {};
+    const string runtimeId = zhangGraphRuntimeId(kfState);
+    auto stateIt = graphStateMap.find({runtimeId, system});
+    if (stateIt == graphStateMap.end()
+        || oldEdges.size() != oldArcVersions.size()
+        || newEdges.size() != newArcVersions.size())
+    {
+        return false;
+    }
+
+    const auto& runtime = stateIt->second;
+    diagnostic.eventCause = runtime.lastProductEventCause;
+    using VersionedEdge = pair<ZhangGraphEdge, int>;
+    set<VersionedEdge> oldSet;
+    set<VersionedEdge> newSet;
+    for (size_t index = 0; index < oldEdges.size(); index++)
+    {
+        oldSet.emplace(oldEdges[index], oldArcVersions[index]);
+    }
+    for (size_t index = 0; index < newEdges.size(); index++)
+    {
+        newSet.emplace(newEdges[index], newArcVersions[index]);
+    }
+
+    vector<VersionedEdge> removed;
+    vector<VersionedEdge> introduced;
+    std::set_difference(
+        oldSet.begin(), oldSet.end(), newSet.begin(), newSet.end(),
+        back_inserter(removed));
+    std::set_difference(
+        newSet.begin(), newSet.end(), oldSet.begin(), oldSet.end(),
+        back_inserter(introduced));
+
+    auto appendDiagnostic = [&](const VersionedEdge& versioned,
+                                vector<ZhangPhysicalArcDiagnostic>& output)
+    {
+        ZhangPhysicalArcDiagnostic item;
+        item.edge = versioned.first;
+        item.arcVersion = versioned.second;
+        auto history = runtime.arcVersionObservationHistory.find(versioned);
+        if (history != runtime.arcVersionObservationHistory.end())
+        {
+            item.observationEpochs = history->second.observationEpochs;
+            if (history->second.firstObservedEpoch >= 0
+                && history->second.lastObservedEpoch >=
+                    history->second.firstObservedEpoch)
+            {
+                item.ageEpochs = history->second.lastObservedEpoch
+                    - history->second.firstObservedEpoch + 1;
+            }
+        }
+        output.push_back(std::move(item));
+    };
+    for (const auto& versioned : removed)
+    {
+        appendDiagnostic(versioned, diagnostic.oldSupport);
+    }
+    for (const auto& versioned : introduced)
+    {
+        appendDiagnostic(versioned, diagnostic.newSupport);
+    }
+
+    vector<int> commonEpochs;
+    bool initialised = false;
+    for (const auto& versioned : removed)
+    {
+        auto history = runtime.arcVersionObservationHistory.find(versioned);
+        if (history == runtime.arcVersionObservationHistory.end())
+        {
+            commonEpochs.clear();
+            initialised = true;
+            break;
+        }
+        if (!initialised)
+        {
+            commonEpochs = history->second.observedEpochs;
+            initialised = true;
+        }
+        else
+        {
+            vector<int> intersection;
+            std::set_intersection(
+                commonEpochs.begin(), commonEpochs.end(),
+                history->second.observedEpochs.begin(),
+                history->second.observedEpochs.end(),
+                back_inserter(intersection));
+            commonEpochs = std::move(intersection);
+        }
+    }
+    for (const auto& versioned : introduced)
+    {
+        auto history = runtime.arcVersionObservationHistory.find(versioned);
+        if (history == runtime.arcVersionObservationHistory.end())
+        {
+            commonEpochs.clear();
+            initialised = true;
+            break;
+        }
+        if (!initialised)
+        {
+            commonEpochs = history->second.observedEpochs;
+            initialised = true;
+        }
+        else
+        {
+            vector<int> intersection;
+            std::set_intersection(
+                commonEpochs.begin(), commonEpochs.end(),
+                history->second.observedEpochs.begin(),
+                history->second.observedEpochs.end(),
+                back_inserter(intersection));
+            commonEpochs = std::move(intersection);
+        }
+    }
+    diagnostic.commonObservationEpochs = initialised
+        ? static_cast<int>(commonEpochs.size())
+        : 0;
+    return true;
+}
+
 void cloneZhangGraphRuntime(
     const KFState& source,
     const KFState& destination
 )
 {
+    const string sourceRuntimeId = zhangGraphRuntimeId(source);
+    const string destinationRuntimeId = zhangGraphRuntimeId(destination);
+    if (sourceRuntimeId.empty() || destinationRuntimeId.empty() ||
+        sourceRuntimeId == destinationRuntimeId)
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "ZHANG_GRAPH_CLONE_RUNTIME_ID_INVALID source="
+            << sourceRuntimeId << " destination=" << destinationRuntimeId;
+        return;
+    }
     eraseZhangGraphRuntime(destination);
     vector<pair<E_Sys, GraphRuntimeState>> copies;
     for (const auto& [identity, runtime] : graphStateMap)
     {
-        if (identity.first == &source)
+        if (identity.first == sourceRuntimeId)
         {
             copies.emplace_back(identity.second, runtime);
         }
     }
     for (auto& [system, runtime] : copies)
     {
-        graphStateMap[{&destination, system}] = std::move(runtime);
+        graphStateMap[{destinationRuntimeId, system}] = std::move(runtime);
     }
 }
 
 void eraseZhangGraphRuntime(const KFState& state)
 {
+    const string runtimeId = zhangGraphRuntimeId(state);
+    if (runtimeId.empty())
+    {
+        return;
+    }
     for (auto it = graphStateMap.begin(); it != graphStateMap.end();)
     {
-        if (it->first.first == &state)
+        if (it->first.first == runtimeId)
         {
             it = graphStateMap.erase(it);
         }
@@ -2788,5 +3891,268 @@ void eraseZhangGraphRuntime(const KFState& state)
         {
             ++it;
         }
+    }
+}
+
+bool exportZhangGraphCheckpointSection(
+    const KFState&      state,
+    const std::string& runtimeId,
+    std::string&       payload,
+    std::string&       failureReason
+)
+{
+    payload.clear();
+    failureReason.clear();
+    if (runtimeId.empty() || zhangGraphRuntimeId(state) != runtimeId)
+    {
+        failureReason = runtimeId.empty()
+            ? "ZHANG_GRAPH_CHECKPOINT_EMPTY_RUNTIME_ID"
+            : "ZHANG_GRAPH_CHECKPOINT_RUNTIME_ID_NOT_BOUND";
+        return false;
+    }
+
+    ZhangGraphCheckpointPayload snapshot;
+    snapshot.runtimeId = runtimeId;
+
+    for (const auto& [identity, outage] : outageStateMap)
+    {
+        if (identity.first != runtimeId)
+        {
+            continue;
+        }
+        snapshot.outageStates.push_back({
+            static_cast<int>(identity.second),
+            outage.receiverEpochs,
+            outage.satelliteEpochs});
+    }
+
+    for (const auto& [identity, runtime] : graphStateMap)
+    {
+        if (identity.first != runtimeId)
+        {
+            continue;
+        }
+
+        ZhangGraphCheckpointRuntimeState output;
+        output.system = static_cast<int>(identity.second);
+        output.basis = zhangGraphCheckpointBasis(runtime.basis);
+        output.activeBasis = zhangGraphCheckpointBasis(runtime.activeBasis);
+        output.productBasis = zhangGraphCheckpointBasis(runtime.productBasis);
+        for (const auto& [edge, arcVersion] : runtime.productArcVersions)
+        {
+            output.productArcVersions[
+                zhangGraphCheckpointEdge(edge)] = arcVersion;
+        }
+        output.productCoreReceivers = runtime.productCoreReceivers;
+        for (const auto& edge : runtime.observationEdges)
+        {
+            output.observationEdges.insert(
+                zhangGraphCheckpointEdge(edge));
+        }
+        for (const auto& edge : runtime.stateEdges)
+        {
+            output.stateEdges.insert(zhangGraphCheckpointEdge(edge));
+        }
+        for (const auto& [edge, history] : runtime.edgeHistory)
+        {
+            output.edgeHistory[zhangGraphCheckpointEdge(edge)] = {
+                history.continuousEpochs,
+                history.outageEpochs,
+                history.arcVersion};
+        }
+        for (const auto& [versionedEdge, history] :
+             runtime.arcVersionObservationHistory)
+        {
+            output.arcVersionObservationHistory[
+                {zhangGraphCheckpointEdge(versionedEdge.first),
+                 versionedEdge.second}] = {
+                    history.firstObservedEpoch,
+                    history.lastObservedEpoch,
+                    history.observationEpochs,
+                    history.observedEpochs};
+        }
+        output.epochIndex = runtime.epochIndex;
+        output.lastProductEventCause = runtime.lastProductEventCause;
+        output.initialized = runtime.initialized;
+        output.deferredEpochs = runtime.deferredEpochs;
+        output.datumVersion = runtime.datumVersion;
+        output.eventCounter = runtime.eventCounter;
+        output.productDatumVersion = runtime.productDatumVersion;
+        output.productInitialized = runtime.productInitialized;
+        snapshot.graphStates.push_back(std::move(output));
+    }
+
+    auto bySystem = [](const auto& left, const auto& right)
+    {
+        return left.system < right.system;
+    };
+    std::sort(
+        snapshot.outageStates.begin(),
+        snapshot.outageStates.end(),
+        bySystem);
+    std::sort(
+        snapshot.graphStates.begin(),
+        snapshot.graphStates.end(),
+        bySystem);
+
+    if (!zhangGraphCheckpointPayloadValid(
+            snapshot, runtimeId, failureReason))
+    {
+        return false;
+    }
+    return zhangGraphCheckpointSerialize(
+        snapshot, payload, failureReason);
+}
+
+bool validateZhangGraphCheckpointSection(
+    const std::string& runtimeId,
+    const std::string& payload,
+    std::string&       failureReason
+)
+{
+    ZhangGraphCheckpointPayload snapshot;
+    return zhangGraphCheckpointDecodeAndValidate(
+        runtimeId, payload, snapshot, failureReason);
+}
+
+bool importZhangGraphCheckpointSection(
+    KFState&           state,
+    const std::string& runtimeId,
+    const std::string& payload,
+    std::string&       failureReason
+)
+{
+    if (zhangGraphRuntimeId(state) != runtimeId)
+    {
+        failureReason = "ZHANG_GRAPH_CHECKPOINT_RUNTIME_ID_NOT_BOUND";
+        return false;
+    }
+    ZhangGraphCheckpointPayload snapshot;
+    if (!zhangGraphCheckpointDecodeAndValidate(
+            runtimeId, payload, snapshot, failureReason))
+    {
+        return false;
+    }
+
+    vector<pair<E_Sys, ReferenceOutageState>> restoredOutages;
+    vector<pair<E_Sys, GraphRuntimeState>> restoredGraphs;
+    try
+    {
+        restoredOutages.reserve(snapshot.outageStates.size());
+        for (const auto& input : snapshot.outageStates)
+        {
+            ReferenceOutageState output;
+            output.receiverEpochs = input.receiverEpochs;
+            output.satelliteEpochs = input.satelliteEpochs;
+            restoredOutages.emplace_back(
+                static_cast<E_Sys>(input.system), output);
+        }
+
+        restoredGraphs.reserve(snapshot.graphStates.size());
+        for (const auto& input : snapshot.graphStates)
+        {
+            GraphRuntimeState output;
+            output.basis = zhangGraphCheckpointBasis(input.basis);
+            output.activeBasis =
+                zhangGraphCheckpointBasis(input.activeBasis);
+            output.productBasis =
+                zhangGraphCheckpointBasis(input.productBasis);
+            for (const auto& [edge, arcVersion] : input.productArcVersions)
+            {
+                output.productArcVersions[
+                    zhangGraphCheckpointEdge(edge)] = arcVersion;
+            }
+            output.productCoreReceivers = input.productCoreReceivers;
+            for (const auto& edge : input.observationEdges)
+            {
+                output.observationEdges.insert(
+                    zhangGraphCheckpointEdge(edge));
+            }
+            for (const auto& edge : input.stateEdges)
+            {
+                output.stateEdges.insert(zhangGraphCheckpointEdge(edge));
+            }
+            for (const auto& [edge, history] : input.edgeHistory)
+            {
+                auto& target =
+                    output.edgeHistory[zhangGraphCheckpointEdge(edge)];
+                target.continuousEpochs = history.continuousEpochs;
+                target.outageEpochs = history.outageEpochs;
+                target.arcVersion = history.arcVersion;
+            }
+            for (const auto& [versionedEdge, history] :
+                 input.arcVersionObservationHistory)
+            {
+                auto& target = output.arcVersionObservationHistory[
+                    {zhangGraphCheckpointEdge(versionedEdge.first),
+                     versionedEdge.second}];
+                target.firstObservedEpoch = history.firstObservedEpoch;
+                target.lastObservedEpoch = history.lastObservedEpoch;
+                target.observationEpochs = history.observationEpochs;
+                target.observedEpochs = history.observedEpochs;
+            }
+            output.epochIndex = input.epochIndex;
+            output.lastProductEventCause = input.lastProductEventCause;
+            output.initialized = input.initialized;
+            output.deferredEpochs = input.deferredEpochs;
+            output.datumVersion = input.datumVersion;
+            output.eventCounter = input.eventCounter;
+            output.productDatumVersion = input.productDatumVersion;
+            output.productInitialized = input.productInitialized;
+            restoredGraphs.emplace_back(
+                static_cast<E_Sys>(input.system), std::move(output));
+        }
+
+        // Build complete replacement maps first.  No live state is modified
+        // until every allocation/conversion above and below has succeeded.
+        auto replacementOutages = outageStateMap;
+        for (auto it = replacementOutages.begin();
+             it != replacementOutages.end();)
+        {
+            if (it->first.first == runtimeId)
+            {
+                it = replacementOutages.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        for (const auto& [system, outage] : restoredOutages)
+        {
+            replacementOutages[{runtimeId, system}] = outage;
+        }
+
+        auto replacementGraphs = graphStateMap;
+        for (auto it = replacementGraphs.begin();
+             it != replacementGraphs.end();)
+        {
+            if (it->first.first == runtimeId)
+            {
+                it = replacementGraphs.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        for (auto& [system, runtime] : restoredGraphs)
+        {
+            replacementGraphs[{runtimeId, system}] = std::move(runtime);
+        }
+
+        // std::map::swap with the standard allocator is noexcept.  These two
+        // swaps are therefore the single commit point for the validated pair
+        // of runtime maps.
+        outageStateMap.swap(replacementOutages);
+        graphStateMap.swap(replacementGraphs);
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+        failureReason =
+            "ZHANG_GRAPH_CHECKPOINT_RESTORE_PREPARE_FAILED:" +
+            string(exception.what());
+        return false;
     }
 }

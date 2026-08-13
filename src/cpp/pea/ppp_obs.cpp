@@ -344,8 +344,81 @@ inline static void pppSatClocks(COMMON_PPP_ARGS)
                 ? internalProduct.correction_sigma_m
                 : internalProduct.clock_sigma_m
         );
-
-        measEntry.addNoiseEntry(productKey, 1, variance);
+        if (acsConfig.zhangPppAr.user_use_full_product_covariance)
+        {
+            vector<double> factors;
+            int numericalRank = 0;
+            string failureReason;
+            if (!queryZhangInternalProductNoiseFactors(
+                    tsync,
+                    Sat,
+                    sig.code,
+                    phaseMeasurement,
+                    factors,
+                    &numericalRank,
+                    &failureReason))
+            {
+                measEntry.valid = false;
+                if (acsConfig.zhangPppAr.output_diagnostics)
+                {
+                    trace << "\nZHANG_E27_PRODUCT_COVARIANCE time="
+                          << tsync.to_string(0)
+                          << " receiver=" << rec.id
+                          << " satellite=" << Sat.id()
+                          << " observable=" << enum_to_string(sig.code)
+                          << " measurement="
+                          << (phaseMeasurement ? "PHASE" : "CODE")
+                          << " valid=0 reason=" << failureReason;
+                }
+                return;
+            }
+            variance = 0;
+            for (int factor = 0; factor < static_cast<int>(factors.size()); factor++)
+            {
+                const double coefficient = factors[factor];
+                variance += coefficient * coefficient;
+                KFKey factorKey;
+                factorKey.type = KF::SAT_CLOCK;
+                factorKey.str = "ZHANG_PRODUCT_COV_" +
+                    acsConfig.zhangPppAr.product_solution;
+                factorKey.Sat = SatSys(Sat.sys, 0);
+                factorKey.num = factor;
+                measEntry.addNoiseEntry(factorKey, coefficient, 1.0);
+            }
+            const double temporalSigma =
+                acsConfig.zhangPppAr.user_phase_product_temporal_sigma_m;
+            if (phaseMeasurement && temporalSigma > 0)
+            {
+                KFKey temporalKey;
+                temporalKey.type = KF::SAT_CLOCK;
+                temporalKey.str = "ZHANG_PHASE_PRODUCT_TEMPORAL";
+                temporalKey.Sat = Sat;
+                temporalKey.num = static_cast<int>(sig.code);
+                const double temporalVariance = SQR(temporalSigma);
+                measEntry.addNoiseEntry(temporalKey, 1, temporalVariance);
+                variance += temporalVariance;
+            }
+            if (acsConfig.zhangPppAr.output_diagnostics)
+            {
+                trace << "\nZHANG_E27_PRODUCT_COVARIANCE time="
+                      << tsync.to_string(0)
+                      << " receiver=" << rec.id
+                      << " satellite=" << Sat.id()
+                      << " observable=" << enum_to_string(sig.code)
+                      << " measurement="
+                      << (phaseMeasurement ? "PHASE" : "CODE")
+                      << " valid=1 rank=" << numericalRank
+                      << " marginal_variance=" << variance
+                      << " temporal_sigma_m="
+                      << (phaseMeasurement
+                          ? acsConfig.zhangPppAr.user_phase_product_temporal_sigma_m
+                          : 0);
+            }
+        }
+        else
+        {
+            measEntry.addNoiseEntry(productKey, 1, variance);
+        }
         measEntry.componentsMap[E_Component::SAT_CLOCK] = {
             -value,
             phaseMeasurement
@@ -1423,10 +1496,12 @@ inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
     kfKey.type    = KF::AMBIGUITY;
     kfKey.str     = rec.id;
     kfKey.Sat     = obs.Sat;
-    kfKey.num     = static_cast<int>(sig.code);
+    kfKey.num     = zhangPppArUserPhaseCoordinateNumber(Sat.sys, sig.code);
     kfKey.rec_ptr = &rec;
     kfKey.comment =
-        zhangOptions
+        kfKey.num != static_cast<int>(sig.code)
+            ? "Zhang user IF ambiguity"
+            : zhangOptions
             ? (zhangOptions->use_spanning_tree ? "Zhang cycle " : "Zhang DD ") + sigName
             : (acsConfig.zhangPppAr.user_adapter &&
                        zhangPppArUsesObservable(Sat.sys, sig.code)
@@ -1494,9 +1569,10 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
     kfKey.type    = KF::PHASE_BIAS;
     kfKey.str     = rec.id;
     kfKey.Sat     = sysSat;
-    kfKey.num     = static_cast<int>(sig.code);
+    kfKey.num     = zhangPppArUserPhaseCoordinateNumber(Sat.sys, sig.code);
     kfKey.rec_ptr = &rec;
-    kfKey.comment = sigName;
+    kfKey.comment = kfKey.num != static_cast<int>(sig.code)
+        ? "Zhang user IF receiver phase" : sigName;
 
     E_Source found = kfState.getKFValue(kfKey, recPhasBias, &recPhasBiasVar);
 

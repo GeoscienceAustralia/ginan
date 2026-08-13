@@ -1,9 +1,23 @@
 #define BOOST_TEST_MODULE ZhangFullRankTests
 #include <boost/test/unit_test.hpp>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <functional>
 #include <numeric>
 #include <random>
+#include <tuple>
 #include "common/eigenIncluder.hpp"
+#include "common/receiver.hpp"
+#include "common/zhangCheckpoint.hpp"
 #include "common/zhangIntegerAudit.hpp"
+#include "common/zhangIarGainAudit.hpp"
+#include "common/zhangProductRelationBasis.hpp"
+#include "common/zhangProductRelationAdmission.hpp"
+#include "common/zhangProductRelationSolver.hpp"
+#include "common/zhangIntegerSupportQuality.hpp"
+#include "common/zhangTargetedBesdTracker.hpp"
+#include "common/zhangTheoryRegression.hpp"
 #include "common/zhangPhaseContinuity.hpp"
 #include "common/zhangSatelliteDatum.hpp"
 #include "common/zhangPersistentProductDatum.hpp"
@@ -13,13 +27,158 @@
 #include "common/zhangIncrementalRawSquareRoot.hpp"
 #include "common/zhangPersistentRawTargetWindow.hpp"
 #include "common/zhangIntegerTargets.hpp"
+#include "common/zhangLambdaBeam.hpp"
 #include "common/zhangResidualStatistics.hpp"
 #include "common/zhangFactorCapture.hpp"
 #include "common/zhangRawFactorWindow.hpp"
 #include "common/zhangUserTarget.hpp"
+#include "common/zhangUserIntegerFunctional.hpp"
+#include "common/zhangIfUser.hpp"
+#include "common/zhangIfWideLane.hpp"
+#include "common/zhangProductGaugeCompiler.hpp"
+#include "common/zhangIntegerConditioner.hpp"
+#include "common/zhangHybridUserModel.hpp"
+#include "common/zhangHybridService.hpp"
 
 namespace
 {
+Receiver& checkpointTestReceiver()
+{
+	static Receiver receiver;
+	receiver.id = "R0";
+	return receiver;
+}
+
+struct TemporaryCheckpointFile
+{
+	std::filesystem::path path;
+
+	explicit TemporaryCheckpointFile(const std::string& suffix)
+	{
+		const auto nonce =
+			std::chrono::steady_clock::now().time_since_epoch().count();
+		path = std::filesystem::temp_directory_path() /
+			("ginan_e29_checkpoint_" + std::to_string(nonce) + suffix);
+	}
+
+	~TemporaryCheckpointFile()
+	{
+		std::error_code error;
+		std::filesystem::remove(path, error);
+	}
+};
+
+KFState makeCheckpointTestState()
+{
+	KFState state;
+	KFKey receiverClock;
+	receiverClock.type = KF::REC_CLOCK;
+	receiverClock.str = "R0";
+	receiverClock.comment = "receiver datum";
+	receiverClock.estimatedTime.bigTime = 123456700.5L;
+	receiverClock.rec_ptr = &checkpointTestReceiver();
+	KFKey satelliteClock;
+	satelliteClock.type = KF::SAT_CLOCK;
+	satelliteClock.Sat = SatSys(E_Sys::GPS, 7);
+	satelliteClock.comment = "satellite datum";
+	satelliteClock.estimatedTime.bigTime = 123456710.25L;
+
+	state.time.bigTime = 123456789.25L;
+	state.x = VectorXd(3);
+	state.x << 1, -2.5, 3.75;
+	state.P = MatrixXd(3, 3);
+	state.P <<
+		0, 0, 0,
+		0, 4, -0.25,
+		0, -0.25, 9;
+	state.dx = VectorXd(3);
+	state.dx << 0, 0.125, -0.5;
+	state.prefitRatios = VectorXd(2);
+	state.prefitRatios << 1.5, 2.5;
+	state.postfitRatios = VectorXd(2);
+	state.postfitRatios << 0.75, 1.25;
+	state.kfIndexMap = {
+		{KFState::oneKey, 0},
+		{receiverClock, 1},
+		{satelliteClock, 2}};
+	state.stateTransitionMap[satelliteClock][receiverClock][0] = -1.25;
+	state.gaussMarkovTauMap[receiverClock] = 3600;
+	state.gaussMarkovMuMap[receiverClock] = 0.25;
+	state.procNoiseMap[satelliteClock] = 0.01;
+	state.initNoiseMap[satelliteClock] = 4;
+	state.sigmaMaxMap[satelliteClock] = 20;
+	state.outageLimitMap[satelliteClock] = 120;
+	state.exponentialNoiseMap[receiverClock] = {0.75, 45};
+	state.pseudoStateMap[satelliteClock][receiverClock] = -1;
+	state.pseudoParentMap[receiverClock] = satelliteClock;
+	state.errorCountMap[satelliteClock] = 2;
+	FilterChunk chunk;
+	chunk.id = "connected-product-core";
+	chunk.begX = 1;
+	chunk.numX = 2;
+	chunk.begH = 7;
+	chunk.numH = 11;
+	state.filterChunkMap["zhang"] = chunk;
+	state.metaDataMap["zhang_checkpoint_runtime_id"] = "runtime-00";
+	state.lsqRequired = true;
+	state.sigmaPass = true;
+	state.chiQCPass = true;
+	state.chi2 = 12.5;
+	state.dof = 7;
+	state.chi2PerDof = 12.5 / 7;
+	state.qc = 0.875;
+	state.id = "E29-test-state";
+	state.rts_basename = "e29-test";
+	state.output_residuals = true;
+	state.outputMongoMeasurements = true;
+	state.statisticsMap["accepted"] = 17;
+	state.statisticsMapSum["accepted"] = 41;
+	return state;
+}
+
+ZhangCheckpointBundle makeCheckpointTestBundle()
+{
+	ZhangCheckpointBundle bundle;
+	bundle.manifest.runtimeId = "runtime-00";
+	bundle.manifest.checkpointId = "seed-00";
+	bundle.manifest.parentCheckpointId = "cold-start";
+	bundle.manifest.epoch = "2019-07-18T00:00:00Z";
+	bundle.manifest.binarySha256 = std::string(64, 'a');
+	bundle.manifest.configText = "frozen-e29-config";
+	bundle.manifest.inputManifestText = "frozen-e29-input-manifest";
+	bundle.manifest.configSha256 =
+		zhangCheckpointSha256(bundle.manifest.configText);
+	bundle.manifest.inputManifestSha256 =
+		zhangCheckpointSha256(bundle.manifest.inputManifestText);
+	bundle.manifest.platformFingerprint = "x86_64-linux";
+	bundle.manifest.compilerFingerprint = "gcc-11.4-cxx20";
+	bundle.manifest.linearAlgebraFingerprint = "eigen-3.4.1-openblas";
+	bundle.manifest.endianness = "LITTLE";
+	bundle.manifest.createdUtc = "2026-08-10T00:00:00Z";
+	bundle.kfCore = captureZhangCheckpointKfCore(makeCheckpointTestState());
+	bundle.sections["zhang.graph"] = {
+		1, "pointer-free-graph-runtime", ""};
+	bundle.sections["zhang.graph"].sha256 =
+		zhangCheckpointSha256(bundle.sections["zhang.graph"].payload);
+	return bundle;
+}
+
+ZhangCheckpointExpectations checkpointTestExpectations()
+{
+	ZhangCheckpointExpectations expectations;
+	expectations.experimentMode = "E29_GPS_L1C_L2W_ZHANG_FULL_RANK";
+	expectations.binarySha256 = std::string(64, 'a');
+	expectations.configSha256 =
+		zhangCheckpointSha256("frozen-e29-config");
+	expectations.inputManifestSha256 =
+		zhangCheckpointSha256("frozen-e29-input-manifest");
+	expectations.platformFingerprint = "x86_64-linux";
+	expectations.compilerFingerprint = "gcc-11.4-cxx20";
+	expectations.linearAlgebraFingerprint = "eigen-3.4.1-openblas";
+	expectations.endianness = "LITTLE";
+	return expectations;
+}
+
 struct ZhangFormalDesign
 {
     MatrixXd raw;
@@ -1165,6 +1324,84 @@ BOOST_AUTO_TEST_CASE(random_sparse_connected_graphs_have_full_rank_tree_coordina
     }
 }
 
+BOOST_AUTO_TEST_CASE(product_receiver_core_spans_all_satellites_with_redundancy)
+{
+    const SatSys g1(E_Sys::GPS, 1);
+    const SatSys g2(E_Sys::GPS, 2);
+    const SatSys g3(E_Sys::GPS, 3);
+    const SatSys g4(E_Sys::GPS, 4);
+    const SatSys g5(E_Sys::GPS, 5);
+    std::set<ZhangGraphEdge> edges = {
+        {"R0", g1}, {"R0", g2},
+        {"R1", g1}, {"R1", g3}, {"R1", g4},
+        {"R2", g2}, {"R2", g4}, {"R2", g5},
+        {"R3", g3}, {"R3", g5},
+        {"R4", g1}, {"R4", g2}, {"R4", g3}, {"R4", g4}, {"R4", g5},
+        {"R5", g1}, {"R5", g2}
+    };
+    const auto core = zhangBuildProductReceiverCore(
+        edges, "R0", {"R3", "R5"}, 2);
+    BOOST_REQUIRE(core.connected);
+    BOOST_CHECK_EQUAL(core.satellites.size(), 5);
+    BOOST_CHECK_EQUAL(core.minimumSatelliteSupport, 2);
+    BOOST_CHECK(core.receivers.find("R0") != core.receivers.end());
+    BOOST_CHECK(core.receivers.find("R3") != core.receivers.end());
+    // A prior receiver that contributes no remaining support deficit is not
+    // forced into the new core; this is the controlled-retirement invariant.
+    BOOST_CHECK(core.receivers.find("R5") == core.receivers.end());
+    BOOST_CHECK_LT(core.receivers.size(), 6);
+    std::map<SatSys, int> support;
+    for (const auto& edge : core.edges)
+    {
+        support[edge.satellite]++;
+    }
+    for (const auto& satellite : core.satellites)
+    {
+        BOOST_CHECK_GE(support[satellite], 2);
+    }
+    BOOST_CHECK(zhangBuildSpanningTree(core.edges, "R0").connected);
+}
+
+BOOST_AUTO_TEST_CASE(rooted_product_tree_limits_nonroot_satellite_path_load)
+{
+    const SatSys g1(E_Sys::GPS, 1);
+    const SatSys g2(E_Sys::GPS, 2);
+    const SatSys g3(E_Sys::GPS, 3);
+    const SatSys g4(E_Sys::GPS, 4);
+    const std::set<ZhangGraphEdge> edges = {
+        {"R0", g1}, {"R0", g2}, {"R0", g3},
+        {"R1", g1}, {"R1", g2},
+        {"R2", g2}, {"R2", g3}, {"R2", g4}
+    };
+    const std::set<ZhangGraphEdge> chainPreferred = {
+        {"R0", g1}, {"R1", g1}, {"R1", g2},
+        {"R2", g2}, {"R2", g3}, {"R2", g4}
+    };
+    const auto kruskal = zhangBuildSpanningTree(
+        edges, "R0", chainPreferred);
+    const auto rooted = zhangBuildRootedProductTree(
+        edges, "R0", chainPreferred);
+    BOOST_REQUIRE(kruskal.connected);
+    BOOST_REQUIRE(rooted.connected);
+
+    auto vulnerableMaximum = [](const ZhangGraphBasis& basis)
+    {
+        int maximum = 0;
+        for (const auto& [edge, load] :
+             zhangProductTreeSatellitePathLoads(basis))
+        {
+            if (edge.receiver != basis.rootReceiver)
+            {
+                maximum = std::max(maximum, load);
+            }
+        }
+        return maximum;
+    };
+    BOOST_CHECK_EQUAL(vulnerableMaximum(kruskal), 3);
+    BOOST_CHECK_EQUAL(vulnerableMaximum(rooted), 1);
+    BOOST_CHECK_LT(vulnerableMaximum(rooted), vulnerableMaximum(kruskal));
+}
+
 BOOST_AUTO_TEST_CASE(two_spanning_trees_preserve_observations_and_integer_cycle_lattice)
 {
     std::set<ZhangGraphEdge> edges = {
@@ -1485,6 +1722,624 @@ BOOST_AUTO_TEST_CASE(sparse_tree_exchange_is_an_exact_unimodular_integer_transit
     );
 }
 
+BOOST_AUTO_TEST_CASE(e27_if_user_integer_and_covariance_algebra_closes)
+{
+    constexpr double lambda1 = 0.190293672798365;
+    constexpr double lambda2 = 0.244210213424568;
+    const auto coefficients = zhangIfUserCoefficients(lambda1, lambda2);
+    BOOST_REQUIRE(coefficients.valid);
+    BOOST_CHECK_SMALL(coefficients.alpha + coefficients.beta - 1, 1e-14);
+    BOOST_CHECK_SMALL(
+        coefficients.narrowLaneWavelength -
+            lambda1 * lambda2 / (lambda1 + lambda2),
+        1e-14);
+
+    constexpr double firstInteger = 123456;
+    constexpr double secondInteger = 123411;
+    constexpr double wideLaneInteger = firstInteger - secondInteger;
+    const double ifAmbiguity = zhangIfAmbiguityMetres(
+        coefficients, lambda1, lambda2, firstInteger, secondInteger);
+    const double recoveredFirst = zhangIfConditionedFirstInteger(
+        coefficients, lambda2, ifAmbiguity, wideLaneInteger);
+    BOOST_CHECK_SMALL(recoveredFirst - firstInteger, 1e-10);
+
+    // Per-frequency correction precedes IF construction.  The combined
+    // correction must be exactly alpha*c1+beta*c2.
+    constexpr double rawFirst = 12.125;
+    constexpr double rawSecond = 15.750;
+    constexpr double correctionFirst = 0.237;
+    constexpr double correctionSecond = -0.119;
+    const double correctedIf =
+        coefficients.alpha * (rawFirst + correctionFirst) +
+        coefficients.beta * (rawSecond + correctionSecond);
+    const double rawIf = coefficients.alpha * rawFirst +
+        coefficients.beta * rawSecond;
+    BOOST_CHECK_SMALL(
+        (correctedIf - rawIf) -
+            (coefficients.alpha * correctionFirst +
+             coefficients.beta * correctionSecond),
+        1e-12);
+
+    // Three satellites with [clock, phase1, phase2] parameters.  The exact
+    // functional includes cross-frequency and cross-satellite covariance.
+    MatrixXd factor(9, 4);
+    factor <<
+        0.30,  0.02,  0.00,  0.00,
+        0.10,  0.15,  0.01,  0.00,
+        0.12, -0.03,  0.18,  0.00,
+        0.28,  0.01,  0.00,  0.02,
+        0.09,  0.14, -0.02,  0.01,
+        0.11, -0.04,  0.17, -0.01,
+        0.31,  0.03,  0.01, -0.02,
+        0.08,  0.16,  0.00,  0.03,
+        0.13, -0.02,  0.19,  0.01;
+    const MatrixXd covariance = factor * factor.transpose();
+    const MatrixXd transform = zhangIfProductSdFunctional(
+        3, 0, coefficients, true);
+    const MatrixXd propagated = zhangPropagateIfProductSdCovariance(
+        covariance, 3, 0, coefficients, true);
+    BOOST_REQUIRE_EQUAL(propagated.rows(), 2);
+    BOOST_CHECK_SMALL(
+        (propagated - transform * covariance * transform.transpose()).norm(),
+        1e-14);
+    BOOST_CHECK((propagated.diagonal().array() >= 0).all());
+
+    // Removing cross-satellite covariance is not an equivalent stochastic
+    // model and must be observable in this regression.
+    MatrixXd blockDiagonal = covariance;
+    for (int left = 0; left < 3; left++)
+    for (int right = 0; right < 3; right++)
+    {
+        if (left != right)
+        {
+            blockDiagonal.block<3, 3>(3 * left, 3 * right).setZero();
+        }
+    }
+    const MatrixXd independentApproximation =
+        transform * blockDiagonal * transform.transpose();
+    BOOST_CHECK_GT((propagated - independentApproximation).norm(), 1e-6);
+}
+
+BOOST_AUTO_TEST_CASE(e29_hybrid_user_model_follows_frozen_document_equations)
+{
+	constexpr double lambda1 = 0.190293672798365;
+	constexpr double mu1 = 1;
+	constexpr double mu2 = 1.646944444444444;
+	// The existing server stores B^phi.  The supplied user equations use the
+	// correction-side phase bias delta^G=-B^phi, so the adapter must map signs
+	// explicitly instead of silently renaming the internal coordinate.
+	const auto product =
+		zhangDualFrequencyHybridProductsFromInternalPhaseStates(
+			12.5, -0.08, 0.11);
+	BOOST_REQUIRE(product.valid);
+	// Equations (24)--(27): both baseline code signals consume exactly the
+	// same satellite clock.  Only phase has signal-specific products.
+	BOOST_CHECK_SMALL(
+		product.codeCorrectionToAddMetres(0)
+		- product.codeCorrectionToAddMetres(1), 1e-14);
+	BOOST_CHECK_SMALL(
+		product.phaseCorrectionToAddMetres(0) - 12.58, 1e-14);
+	BOOST_CHECK_SMALL(
+		product.phaseCorrectionToAddMetres(1) - 12.39, 1e-14);
+	constexpr double rawCode = 23456789.25;
+	constexpr double rawPhase = 23456780.75;
+	BOOST_CHECK_SMALL(
+		zhangHybridApplyLeftCorrection(
+			rawCode, product.codeCorrectionToAddMetres(0))
+		- (rawCode + 12.5), 1e-12);
+	BOOST_CHECK_SMALL(
+		zhangHybridApplyLeftCorrection(
+			rawPhase, product.phaseCorrectionToAddMetres(0))
+		- (rawPhase + 12.58), 1e-12);
+
+	// Equations (3)--(13): physical receiver/satellite code biases are not
+	// discarded; their two IF/GF directions are absorbed by the estimable
+	// clocks, ionosphere and phase biases.
+	constexpr double receiverCodeIf = 2.75;
+	constexpr double receiverCodeGf = -0.625;
+	constexpr double satelliteCodeIf = -1.2;
+	constexpr double satelliteCodeGf = 0.35;
+	const double receiverCode1 = receiverCodeIf + mu1 * receiverCodeGf;
+	const double receiverCode2 = receiverCodeIf + mu2 * receiverCodeGf;
+	const double satelliteCode1 = satelliteCodeIf + mu1 * satelliteCodeGf;
+	const double satelliteCode2 = satelliteCodeIf + mu2 * satelliteCodeGf;
+	const auto receiverDatum = zhangHybridCodeIfGfDatum(
+		receiverCode1, receiverCode2, mu1, mu2);
+	const auto satelliteDatum = zhangHybridCodeIfGfDatum(
+		satelliteCode1, satelliteCode2, mu1, mu2);
+	BOOST_REQUIRE(receiverDatum.valid);
+	BOOST_REQUIRE(satelliteDatum.valid);
+	BOOST_CHECK_SMALL(
+		receiverDatum.ifBiasMetres - receiverCodeIf, 1e-13);
+	BOOST_CHECK_SMALL(
+		receiverDatum.gfBiasMetres - receiverCodeGf, 1e-13);
+	BOOST_CHECK_SMALL(
+		satelliteDatum.ifBiasMetres - satelliteCodeIf, 1e-13);
+	BOOST_CHECK_SMALL(
+		satelliteDatum.gfBiasMetres - satelliteCodeGf, 1e-13);
+
+	constexpr double receiverClock = 8.5;
+	constexpr double satelliteClock = -3.25;
+	constexpr double ionosphere = 4.2;
+	const double estimableReceiverClock = receiverClock + receiverCodeIf;
+	const double estimableSatelliteClock = satelliteClock + satelliteCodeIf;
+	const double estimableIonosphere = ionosphere
+		+ receiverCodeGf - satelliteCodeGf;
+	for (const auto& [mu, receiverCode, satelliteCode] :
+		{std::tuple{mu1, receiverCode1, satelliteCode1},
+		 std::tuple{mu2, receiverCode2, satelliteCode2}})
+	{
+		BOOST_CHECK_SMALL(
+			zhangHybridOriginalCodePrediction(
+				receiverClock, satelliteClock, ionosphere, mu,
+				receiverCode, satelliteCode)
+			- zhangHybridFullRankCodePrediction(
+				estimableReceiverClock, estimableSatelliteClock,
+				estimableIonosphere, mu),
+			1e-13);
+	}
+
+	constexpr double receiverPhaseBias = 0.14;
+	constexpr double satellitePhaseBias = -0.09;
+	constexpr long long ambiguity = 123456;
+	const double estimableReceiverPhaseBias = receiverPhaseBias
+		- receiverCodeIf + mu1 * receiverCodeGf;
+	const double estimableSatellitePhaseBias = satellitePhaseBias
+		- satelliteCodeIf + mu1 * satelliteCodeGf;
+	BOOST_CHECK_SMALL(
+		zhangHybridOriginalPhasePrediction(
+			receiverClock, satelliteClock, ionosphere, mu1,
+			receiverPhaseBias, satellitePhaseBias,
+			lambda1, ambiguity)
+		- zhangHybridFullRankPhasePrediction(
+			estimableReceiverClock, estimableSatelliteClock,
+			estimableIonosphere, mu1,
+			estimableReceiverPhaseBias, estimableSatellitePhaseBias,
+			lambda1, ambiguity),
+		1e-12);
+
+	const MatrixXd sd = zhangHybridSatelliteSingleDifferenceTransform(4, 1);
+	BOOST_REQUIRE_EQUAL(sd.rows(), 3);
+	BOOST_REQUIRE_EQUAL(sd.cols(), 4);
+	BOOST_CHECK_SMALL((sd * Vector4d::Ones()).norm(), 1e-14);
+	const Vector4d ambiguities(17, -4, 8, 21);
+	const Vector3d expectedSd(21, 12, 25);
+	BOOST_CHECK_SMALL((sd * ambiguities - expectedSd).norm(), 1e-14);
+
+	const Matrix2d integerTransform =
+		zhangHybridWideLaneFirstIntegerTransform();
+	BOOST_CHECK_EQUAL(std::llround(integerTransform.determinant()), 1);
+	const Vector2d integerPair(31, 24);
+	const Vector2d wlFirst = integerTransform * integerPair;
+	BOOST_CHECK_SMALL(wlFirst(0) - 7, 1e-14);
+	BOOST_CHECK_SMALL(wlFirst(1) - 31, 1e-14);
+	BOOST_CHECK_SMALL(
+		(integerTransform.inverse() * wlFirst - integerPair).norm(), 1e-14);
+
+	BOOST_CHECK(
+		zhangHybridIntegerUsability(true, false)
+		== ZhangHybridIntegerUsability::FLOAT_ONLY);
+	BOOST_CHECK(
+		zhangHybridIntegerUsability(true, true)
+		== ZhangHybridIntegerUsability::PPP_AR_USABLE);
+	BOOST_CHECK(
+		zhangHybridIntegerUsability(false, true)
+		== ZhangHybridIntegerUsability::UNUSABLE);
+	BOOST_CHECK(zhangHybridRelativeIntegerPairCertified(
+		true, "GPS-L1C-COMP-A", true, "GPS-L1C-COMP-A"));
+	BOOST_CHECK(!zhangHybridRelativeIntegerPairCertified(
+		true, "GPS-L1C-COMP-A", true, "GPS-L1C-COMP-B"));
+	BOOST_CHECK(!zhangHybridRelativeIntegerPairCertified(
+		true, "NONE", true, "NONE"));
+	BOOST_CHECK(!zhangHybridRelativeIntegerPairCertified(
+		true, "GPS-L1C-COMP-A", false, "GPS-L1C-COMP-A"));
+
+	Matrix4d userNoise = Matrix4d::Identity() * 0.04;
+	Matrix4d factor;
+	factor <<
+		0.30,  0.02, 0.00, 0.00,
+		0.25, -0.01, 0.04, 0.00,
+		0.28,  0.03, 0.00, 0.02,
+		0.22, -0.02, 0.05, 0.01;
+	const Matrix4d productCovariance = factor * factor.transpose();
+	const MatrixXd corrected = zhangHybridCorrectedObservationCovariance(
+		userNoise, productCovariance);
+	BOOST_CHECK_SMALL(
+		(corrected - userNoise - productCovariance).norm(), 1e-14);
+	const MatrixXd propagated = zhangHybridSingleDifferenceCovariance(
+		userNoise, productCovariance, sd);
+	BOOST_CHECK_SMALL(
+		(propagated - sd * corrected * sd.transpose()).norm(), 1e-14);
+
+	Matrix4d diagonalProduct = productCovariance.diagonal().asDiagonal();
+	const MatrixXd diagonalApproximation = zhangHybridSingleDifferenceCovariance(
+		userNoise, diagonalProduct, sd);
+	BOOST_CHECK_GT((propagated - diagonalApproximation).norm(), 1e-6);
+}
+
+BOOST_AUTO_TEST_CASE(e29_hybrid_real_gauge_is_overlap_gls_and_not_epoch_zero_mean)
+{
+	const std::vector<SatSys> firstSatellites = {
+		SatSys(E_Sys::GPS, 1), SatSys(E_Sys::GPS, 2),
+		SatSys(E_Sys::GPS, 3)};
+	const std::vector<std::string> firstSegments = {"A", "B", "C"};
+	Vector3d firstRaw(4.0, 7.0, 13.0);
+	Matrix3d firstCovariance = Matrix3d::Zero();
+	firstCovariance.diagonal() << 1.0, 4.0, 9.0;
+	ZhangHybridRealGaugeTransport gauge;
+	const auto first = gauge.transport(
+		firstSatellites, firstSegments, firstRaw, firstCovariance);
+	BOOST_REQUIRE_MESSAGE(first.valid, first.failureReason);
+	BOOST_CHECK(first.newGeneration);
+	BOOST_CHECK_EQUAL(first.generation, 0);
+	const Vector3d inverseVarianceWeights(1.0, 0.25, 1.0 / 9.0);
+	BOOST_CHECK_SMALL(
+		inverseVarianceWeights.dot(first.values), 1e-12);
+	BOOST_CHECK_SMALL(
+		(first.covariance
+		 - first.transform * firstCovariance * first.transform.transpose()).norm(),
+		1e-13);
+
+	// G04 joins, but the old overlap remains.  A single common offset aligns
+	// G01--G03 to their previous gauge; the four-satellite result is therefore
+	// not re-zeroed over the changed membership.
+	const std::vector<SatSys> secondSatellites = {
+		SatSys(E_Sys::GPS, 1), SatSys(E_Sys::GPS, 2),
+		SatSys(E_Sys::GPS, 3), SatSys(E_Sys::GPS, 4)};
+	const std::vector<std::string> secondSegments = {"A", "B", "C", "D"};
+	Vector4d secondRaw;
+	secondRaw.head<3>() = firstRaw.array() + 2.5;
+	secondRaw(3) = 100.0;
+	Matrix4d secondCovariance = Matrix4d::Identity();
+	const auto second = gauge.transport(
+		secondSatellites, secondSegments, secondRaw, secondCovariance);
+	BOOST_REQUIRE_MESSAGE(second.valid, second.failureReason);
+	BOOST_CHECK(!second.newGeneration);
+	BOOST_CHECK_EQUAL(second.overlapCount, 3);
+	BOOST_CHECK_SMALL((second.values.head<3>() - first.values).norm(), 1e-12);
+	BOOST_CHECK_GT(std::abs(second.values.sum()), 1.0);
+
+	// No unchanged physical segment remains: continuity cannot be fabricated.
+	const std::vector<std::string> thirdSegments = {"A2", "B2", "C2", "D2"};
+	const auto third = gauge.transport(
+		secondSatellites, thirdSegments, secondRaw, secondCovariance);
+	BOOST_REQUIRE_MESSAGE(third.valid, third.failureReason);
+	BOOST_CHECK(third.newGeneration);
+	BOOST_CHECK_EQUAL(third.generation, 1);
+	BOOST_CHECK_EQUAL(third.overlapCount, 0);
+	BOOST_CHECK_SMALL(third.values.sum(), 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(e29_persistent_dynamic_gate_uses_manager_not_product_tree_proof)
+{
+	const auto persistent = zhangHybridInitialIntegerGate(
+		true,
+		true,   // backend graph valid
+		true,   // independently audited product functional valid
+		false,  // PRODUCT_TREE runtime alignment deliberately unavailable
+		false,  // named row deliberately absent from held lattice
+		true,   // persistent kappa datum continuous
+		true);  // persistent component precision valid
+	BOOST_CHECK(persistent.structureValid);
+	BOOST_CHECK(persistent.datumContinuous);
+	BOOST_CHECK(persistent.precisionValid);
+
+	const auto productTree = zhangHybridInitialIntegerGate(
+		false, true, true, false, false, true, true);
+	BOOST_CHECK(productTree.structureValid);
+	BOOST_CHECK(!productTree.datumContinuous);
+	BOOST_CHECK(!productTree.precisionValid);
+
+	const auto invalidStructure = zhangHybridInitialIntegerGate(
+		true, true, false, true, true, true, true);
+	BOOST_CHECK(!invalidStructure.structureValid);
+}
+
+BOOST_AUTO_TEST_CASE(e29_hybrid_real_gauge_checkpoint_preserves_transport)
+{
+	const std::vector<SatSys> satellites = {
+		SatSys(E_Sys::GPS, 1), SatSys(E_Sys::GPS, 3)};
+	const std::vector<std::string> segments = {"G01-S0", "G03-S0"};
+	Vector2d raw(2.0, 5.0);
+	Matrix2d covariance;
+	covariance << 1.0, 0.2, 0.2, 2.0;
+	ZhangHybridRealGaugeTransport original;
+	BOOST_REQUIRE(original.transport(
+		satellites, segments, raw, covariance).valid);
+	const auto checkpoint = original.checkpointState();
+	ZhangHybridRealGaugeTransport restored;
+	std::string failureReason;
+	BOOST_REQUIRE_MESSAGE(
+		restored.restoreCheckpointState(checkpoint, &failureReason),
+		failureReason);
+	Vector2d shifted = raw.array() + 7.0;
+	const auto expected = original.transport(
+		satellites, segments, shifted, covariance);
+	const auto actual = restored.transport(
+		satellites, segments, shifted, covariance);
+	BOOST_REQUIRE(expected.valid);
+	BOOST_REQUIRE(actual.valid);
+	BOOST_CHECK_SMALL((actual.values - expected.values).norm(), 1e-13);
+	BOOST_CHECK_SMALL((actual.covariance - expected.covariance).norm(), 1e-13);
+	BOOST_CHECK_EQUAL(actual.generation, expected.generation);
+}
+
+BOOST_AUTO_TEST_CASE(e29_hybrid_real_gauge_candidate_copy_is_transactional)
+{
+	const std::vector<SatSys> satellites = {
+		SatSys(E_Sys::GPS, 1), SatSys(E_Sys::GPS, 3)};
+	const std::vector<std::string> segments = {"G01-S0", "G03-S0"};
+	Vector2d raw(2.0, 5.0);
+	const Matrix2d covariance = Matrix2d::Identity();
+	ZhangHybridRealGaugeTransport committed;
+	const auto initial = committed.transport(
+		satellites, segments, raw, covariance);
+	BOOST_REQUIRE(initial.valid);
+	const auto before = committed.checkpointState();
+
+	// appendProductCovariance evaluates every block on a copy and assigns the
+	// copies only after every block succeeds.  Aborting the epoch must therefore
+	// leave the committed history byte-for-byte equivalent to its checkpoint.
+	ZhangHybridRealGaugeTransport candidate = committed;
+	// Include a relative change as well as a common change.  A pure common
+	// shift is deliberately removed by the gauge and may produce a committed
+	// checkpoint numerically identical to the old one; that is not evidence
+	// of a failed transaction.
+	Vector2d shifted;
+	shifted << raw(0) + 11.0, raw(1) + 12.0;
+	const auto evaluated = candidate.transport(
+		satellites, segments, shifted, covariance);
+	BOOST_REQUIRE(evaluated.valid);
+	const auto afterAbort = committed.checkpointState();
+	BOOST_CHECK_EQUAL(afterAbort.initialized, before.initialized);
+	BOOST_CHECK_EQUAL(afterAbort.generation, before.generation);
+	BOOST_CHECK(afterAbort.previousValues == before.previousValues);
+	BOOST_CHECK(afterAbort.previousSegments == before.previousSegments);
+
+	const auto candidateCheckpoint = candidate.checkpointState();
+	committed = std::move(candidate);
+	const auto afterCommit = committed.checkpointState();
+	BOOST_CHECK(afterCommit.previousValues != before.previousValues);
+	BOOST_CHECK(afterCommit.previousValues == candidateCheckpoint.previousValues);
+	BOOST_CHECK(afterCommit.previousSegments == candidateCheckpoint.previousSegments);
+	BOOST_CHECK_SMALL(
+		afterCommit.previousValues.at(satellites.front())
+			- evaluated.values(0),
+		1e-13);
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_stable_frontend_controller_is_prepare_commit_atomic)
+{
+	using State = std::map<std::string, ZhangHybridRealGaugeTransport>;
+	const std::vector<SatSys> satellites = {
+		SatSys(E_Sys::GPS, 1), SatSys(E_Sys::GPS, 3)};
+	const std::vector<std::string> segments = {"G01-S0", "G03-S0"};
+	const Matrix2d covariance = Matrix2d::Identity();
+	Vector2d raw(2.0, 5.0);
+	State persistent;
+	BOOST_REQUIRE(persistent["L1"].transport(
+		satellites, segments, raw, covariance).valid);
+	const auto before = persistent.at("L1").checkpointState();
+
+	ZhangHybridStableFrontend controller;
+	auto rejected = controller.prepare(persistent);
+	Vector2d changed(14.0, 19.0);
+	BOOST_REQUIRE(rejected.preparedState["L1"].transport(
+		satellites, segments, changed, covariance).valid);
+	controller.validateIntegerAlignment(rejected, true);
+	controller.validateRealGauge(rejected, true);
+	controller.validateComponentConsistency(rejected, false);
+	controller.validateMetadata(rejected, true);
+	BOOST_CHECK(!controller.commit(persistent, rejected));
+	controller.rollback(rejected);
+	const auto afterRollback = persistent.at("L1").checkpointState();
+	BOOST_CHECK(afterRollback.previousValues == before.previousValues);
+	BOOST_CHECK(afterRollback.previousSegments == before.previousSegments);
+
+	auto accepted = controller.prepare(persistent);
+	BOOST_REQUIRE(accepted.preparedState["L1"].transport(
+		satellites, segments, changed, covariance).valid);
+	controller.validateIntegerAlignment(accepted, true);
+	controller.validateRealGauge(accepted, true);
+	controller.validateComponentConsistency(accepted, true);
+	controller.validateMetadata(accepted, true);
+	const auto expected = accepted.preparedState.at("L1").checkpointState();
+	BOOST_REQUIRE(controller.commit(persistent, accepted));
+	const auto committed = persistent.at("L1").checkpointState();
+	BOOST_CHECK(committed.previousValues == expected.previousValues);
+	BOOST_CHECK(committed.previousSegments == expected.previousSegments);
+}
+
+BOOST_AUTO_TEST_CASE(e29_hybrid_real_gauge_maps_transform_cross_block_covariance)
+{
+	const std::vector<SatSys> satellites = {
+		SatSys(E_Sys::GPS, 1), SatSys(E_Sys::GPS, 3)};
+	const std::vector<std::string> clockSegments = {"CLOCK-G01", "CLOCK-G03"};
+	const std::vector<std::string> phaseSegments = {"G01-L1-S0", "G03-L1-S0"};
+	Matrix4d factor;
+	factor <<
+		0.8, 0.0, 0.0, 0.0,
+		0.2, 0.7, 0.0, 0.0,
+		0.3, 0.1, 0.6, 0.0,
+		0.1, 0.2, 0.2, 0.5;
+	const Matrix4d rawCovariance = factor * factor.transpose();
+	Vector2d clockMean(4.0, 7.0);
+	Vector2d phaseMean(-2.0, 3.0);
+	ZhangHybridRealGaugeTransport clockGauge;
+	ZhangHybridRealGaugeTransport phaseGauge;
+	const auto clock = clockGauge.transport(
+		satellites, clockSegments, clockMean,
+		rawCovariance.block<2, 2>(0, 0));
+	const auto phase = phaseGauge.transport(
+		satellites, phaseSegments, phaseMean,
+		rawCovariance.block<2, 2>(2, 2));
+	BOOST_REQUIRE(clock.valid);
+	BOOST_REQUIRE(phase.valid);
+
+	Matrix4d fullTransform = Matrix4d::Zero();
+	fullTransform.block<2, 2>(0, 0) = clock.transform;
+	fullTransform.block<2, 2>(2, 2) = phase.transform;
+	const Matrix4d propagated =
+		fullTransform * rawCovariance * fullTransform.transpose();
+	const Matrix2d expectedCross = clock.transform
+		* rawCovariance.block<2, 2>(0, 2)
+		* phase.transform.transpose();
+	BOOST_CHECK_SMALL(
+		(propagated.block<2, 2>(0, 2) - expectedCross).norm(), 1e-14);
+	BOOST_CHECK_GT(
+		(propagated.block<2, 2>(0, 2)
+			- rawCovariance.block<2, 2>(0, 2)).norm(),
+		1e-6);
+}
+
+BOOST_AUTO_TEST_CASE(e29_dual_frequency_partition_is_component_intersection)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	SatSys g03(E_Sys::GPS, 3);
+	SatSys g04(E_Sys::GPS, 4);
+	const std::map<SatSys, std::string> l1 = {
+		{g01, "L1-A"}, {g02, "L1-A"}, {g03, "L1-A"}, {g04, "L1-B"}};
+	const std::map<SatSys, std::string> l2 = {
+		{g01, "L2-X"}, {g02, "L2-X"}, {g03, "L2-Y"}, {g04, "L2-X"}};
+	const auto components = zhangHybridDualFrequencyComponents(l1, l2);
+	BOOST_REQUIRE_EQUAL(components.size(), 1);
+	const auto& members = components.begin()->second;
+	BOOST_CHECK_EQUAL(members.size(), 2);
+	BOOST_CHECK(members.count(g01));
+	BOOST_CHECK(members.count(g02));
+	BOOST_CHECK(!members.count(g03));
+	BOOST_CHECK(!members.count(g04));
+}
+
+BOOST_AUTO_TEST_CASE(e27_if_wl_conditioning_uses_the_full_cross_covariance)
+{
+    const Vector2d ifMean(17.35, -4.20);
+    const Vector2d wideLaneMean(3.08, -1.12);
+    const Vector2d fixedWideLane(3, -1);
+    Matrix2d ifCovariance;
+    ifCovariance << 0.40, 0.08,
+                    0.08, 0.30;
+    Matrix2d wideLaneCovariance;
+    wideLaneCovariance << 0.20, 0.03,
+                          0.03, 0.16;
+    Matrix2d crossCovariance;
+    crossCovariance << 0.050, -0.010,
+                       0.015,  0.040;
+    constexpr double coefficient = -0.73;
+
+    const auto conditioned = zhangConditionFirstIntegerGivenWideLane(
+        ifMean, ifCovariance, wideLaneMean, wideLaneCovariance,
+        crossCovariance, fixedWideLane, coefficient);
+    BOOST_REQUIRE_MESSAGE(conditioned.valid, conditioned.failureReason);
+    const Matrix2d inverse = wideLaneCovariance.inverse();
+    const Vector2d expectedMean = ifMean + coefficient * fixedWideLane +
+        crossCovariance * inverse * (fixedWideLane - wideLaneMean);
+    const Matrix2d expectedCovariance = ifCovariance -
+        crossCovariance * inverse * crossCovariance.transpose();
+    BOOST_CHECK_SMALL((conditioned.mean - expectedMean).norm(), 1e-13);
+    BOOST_CHECK_SMALL(
+        (conditioned.covariance - expectedCovariance).norm(), 1e-13);
+    BOOST_CHECK_LT(conditioned.covariance.trace(), ifCovariance.trace());
+
+    const auto independentApproximation =
+        zhangConditionFirstIntegerGivenWideLane(
+            ifMean, ifCovariance, wideLaneMean, wideLaneCovariance,
+            Matrix2d::Zero(), fixedWideLane, coefficient);
+    BOOST_REQUIRE(independentApproximation.valid);
+    BOOST_CHECK_SMALL(
+        (independentApproximation.covariance - ifCovariance).norm(), 1e-14);
+    BOOST_CHECK_GT(
+        (independentApproximation.mean - conditioned.mean).norm(), 1e-4);
+}
+
+BOOST_AUTO_TEST_CASE(e27_wide_lane_raw_noise_sensitivity_reconstructs_covariance)
+{
+    ZhangIfWideLaneAccumulator accumulator(3600, 60, 32);
+    const std::vector<int> satellites = {3, 7, 11};
+    for (int satellite : satellites)
+    {
+        accumulator.setArcVersion(satellite, 1);
+    }
+    const Vector3d physical(10.2, 15.2, 7.2);
+    const Vector3d variances(0.04, 0.09, 0.16);
+    const Matrix3d rawDesign = Matrix3d::Identity();
+    const Matrix3d covariance = variances.asDiagonal();
+    for (int epoch = 0; epoch < 4; epoch++)
+    {
+        const std::vector<std::string> keys = {
+            "E" + std::to_string(epoch) + "-G03",
+            "E" + std::to_string(epoch) + "-G07",
+            "E" + std::to_string(epoch) + "-G11"};
+        accumulator.addEpoch(
+            epoch * 60, satellites, physical, covariance,
+            keys, variances, rawDesign);
+    }
+    const auto estimate = accumulator.estimate(satellites, 3, 240);
+    BOOST_REQUIRE_MESSAGE(estimate.valid, estimate.failureReason);
+    BOOST_REQUIRE_EQUAL(estimate.noiseSensitivity.size(), 12);
+    Matrix2d reconstructed = Matrix2d::Zero();
+    for (const auto& [key, sensitivity] : estimate.noiseSensitivity)
+    {
+        reconstructed += estimate.noiseVariance.at(key) *
+            sensitivity * sensitivity.transpose();
+    }
+    BOOST_CHECK_SMALL(
+        (reconstructed - estimate.covariance).norm(), 1e-12);
+
+    const auto exchanged = accumulator.estimate(satellites, 11, 240);
+    BOOST_REQUIRE(exchanged.valid);
+    Matrix2d transform;
+    // ref=3 targets [7,11]; ref=11 targets [3,7].
+    transform << 0, -1,
+                 1, -1;
+    for (const auto& [key, sensitivity] : estimate.noiseSensitivity)
+    {
+        BOOST_REQUIRE(exchanged.noiseSensitivity.count(key));
+        BOOST_CHECK_SMALL(
+            (exchanged.noiseSensitivity.at(key) -
+             transform * sensitivity).norm(), 1e-12);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(e27_wide_lane_window_is_reference_invariant_and_arc_safe)
+{
+    ZhangIfWideLaneAccumulator accumulator(3600, 60, 32);
+    for (int satellite : {3, 7, 11, 19})
+    {
+        accumulator.setArcVersion(satellite, 1);
+    }
+    const std::vector<int> satellites = {3, 7, 11, 19};
+    const VectorXd physical = (VectorXd(4) << 10.2, 15.2, 7.2, 21.2).finished();
+    MatrixXd covariance = MatrixXd::Constant(4, 4, 0.01);
+    covariance.diagonal().array() += 0.04;
+    for (int epoch = 0; epoch < 10; epoch++)
+    {
+        accumulator.addEpoch(epoch * 60, satellites, physical, covariance);
+    }
+    const auto reference3 = accumulator.estimate(satellites, 3, 600);
+    const auto reference11 = accumulator.estimate(satellites, 11, 600);
+    BOOST_REQUIRE(reference3.valid && reference11.valid);
+
+    // Transform SDs relative to G03 into SDs relative to G11 exactly.
+    MatrixXd exchange = MatrixXd::Zero(3, 3);
+    // ref=3 targets [7,11,19]; ref=11 targets [3,7,19].
+    exchange.row(0) << 0, -1, 0;
+    exchange.row(1) << 1, -1, 0;
+    exchange.row(2) << 0, -1, 1;
+    BOOST_CHECK_SMALL(
+        (reference11.mean - exchange * reference3.mean).norm(), 1e-12);
+    BOOST_CHECK_SMALL(
+        (reference11.covariance -
+         exchange * reference3.covariance * exchange.transpose()).norm(),
+        1e-12);
+
+    // A real physical arc change invalidates old factors involving G11.
+    accumulator.setArcVersion(11, 2);
+    const auto changedArc = accumulator.estimate(satellites, 3, 600);
+    BOOST_CHECK(!changedArc.valid);
+}
+
 BOOST_AUTO_TEST_CASE(satellite_product_target_is_exact_across_tree_exchange)
 {
     SatSys g01(E_Sys::GPS, 1);
@@ -1592,6 +2447,15 @@ BOOST_AUTO_TEST_CASE(satellite_product_target_is_exact_across_tree_exchange)
         ZhangSatelliteProductTarget target =
             zhangBuildSatelliteProductTarget(basis, productBasis, g01);
         BOOST_REQUIRE(target.valid);
+		ZhangIntegerLatticeMembership smith =
+			zhangIntegerRowLatticeContains(
+				target.matrix,
+				ZhangExactVector(target.currentChords.size()));
+		BOOST_CHECK_EQUAL(smith.rank, target.matrix.size());
+		for (const auto& invariant : smith.smithInvariants)
+		{
+			BOOST_CHECK(zhangExactAbs(invariant) == 1);
+		}
         ZhangExactVector corrected = satelliteDatum(basis);
         ZhangExactVector correction =
             zhangExactMatrixTimesColumn(target.matrix, cycleValues(basis));
@@ -1601,6 +2465,173 @@ BOOST_AUTO_TEST_CASE(satellite_product_target_is_exact_across_tree_exchange)
         }
         BOOST_CHECK(corrected == productDatum);
     }
+
+    // A product tree needs all target satellites but not every estimation
+    // receiver.  The same exact projection must close when R2 remains in the
+    // current state graph but is deliberately absent from the product core.
+    std::set<ZhangGraphEdge> coreEdges;
+    for (const auto& edge : edges)
+    {
+        if (edge.receiver != "R2")
+        {
+            coreEdges.insert(edge);
+        }
+    }
+    ZhangGraphBasis coreProduct = zhangBuildSpanningTree(
+        coreEdges, "R0",
+        {{"R0", g02}, {"R1", g01}, {"R1", g03}});
+    BOOST_REQUIRE(coreProduct.connected);
+    BOOST_CHECK_LT(coreProduct.receivers.size(), basisA.receivers.size());
+    const ZhangExactVector coreProductDatum = satelliteDatum(coreProduct);
+    for (const auto& basis : {basisA, basisB})
+    {
+        ZhangSatelliteProductTarget target =
+            zhangBuildSatelliteProductTarget(basis, coreProduct, g01);
+        BOOST_REQUIRE_MESSAGE(target.valid, target.failureReason);
+        ZhangExactVector corrected = satelliteDatum(basis);
+        ZhangExactVector correction = zhangExactMatrixTimesColumn(
+            target.matrix, cycleValues(basis));
+        for (std::size_t row = 0; row < corrected.size(); row++)
+        {
+            corrected[row] += correction[row];
+        }
+        BOOST_CHECK(corrected == coreProductDatum);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_basis_expands_independently_to_physical_arcs)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    const std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    const ZhangGraphBasis current = zhangBuildSpanningTree(edges, "R0");
+    const ZhangGraphBasis product = zhangBuildSpanningTree(
+        edges,
+        "R0",
+        {{"R0", g01}, {"R1", g01}, {"R1", g02}});
+    const ZhangProductRelationBasis relationBasis =
+        ProductRelationBasisBuilder::build(current, product, g01);
+
+    BOOST_REQUIRE_MESSAGE(relationBasis.valid, relationBasis.failureReason);
+    BOOST_CHECK_EQUAL(relationBasis.namedRelationCount, 1);
+    BOOST_CHECK_EQUAL(relationBasis.exactRank, 1);
+    BOOST_CHECK(relationBasis.independentNamedIndices == std::vector<int>({0}));
+    BOOST_CHECK(relationBasis.primitive);
+    BOOST_CHECK(relationBasis.saturationIndex == 1);
+    BOOST_CHECK(relationBasis.admissibleCompletionProven);
+    BOOST_CHECK(relationBasis.networkLatticeContained);
+    BOOST_CHECK(relationBasis.networkClosureExactZero);
+    BOOST_CHECK(
+        zhangExactMultiply(
+            relationBasis.networkContainmentTransform,
+            relationBasis.networkIntegerBasis) ==
+        relationBasis.exactRowBasis);
+    BOOST_CHECK(relationBasis.nuisanceOrthogonal);
+    BOOST_CHECK(relationBasis.physicalExpansionValid);
+    BOOST_REQUIRE_EQUAL(relationBasis.namedRelations.size(), 1);
+    const auto& relation = relationBasis.namedRelations.front();
+    BOOST_CHECK(relation.satellite == g02);
+    BOOST_CHECK(relation.referenceSatellite == g01);
+    BOOST_CHECK(relation.currentCycleCoefficients == ZhangExactVector({1}));
+    BOOST_CHECK(std::all_of(
+        relation.nuisanceCoefficients.begin(),
+        relation.nuisanceCoefficients.end(),
+        [](const auto& coefficient) { return coefficient == 0; }));
+
+    BOOST_REQUIRE_EQUAL(relationBasis.currentChords.size(), 1);
+    const auto expectedCycle = zhangFundamentalCycle(
+        current, relationBasis.currentChords.front());
+    std::map<ZhangGraphEdge, ZhangExactInteger> expectedPhysical;
+    for (const auto& [edge, coefficient] : expectedCycle)
+    {
+        expectedPhysical[edge] += coefficient;
+    }
+    BOOST_CHECK(relation.physicalArcCoefficients == expectedPhysical);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_basis_is_reference_invariant)
+{
+    const SatSys g01(E_Sys::GPS, 1);
+    const SatSys g02(E_Sys::GPS, 2);
+    const SatSys g03(E_Sys::GPS, 3);
+    const std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R0", g03},
+        {"R1", g01}, {"R1", g02}, {"R1", g03}
+    };
+    const ZhangGraphBasis current = zhangBuildSpanningTree(edges, "R0");
+    const ZhangGraphBasis product = zhangBuildSpanningTree(
+        edges,
+        "R0",
+        {{"R0", g01}, {"R1", g01}, {"R1", g02}, {"R1", g03}});
+
+    const auto relativeToG01 = ProductRelationBasisBuilder::build(
+        current, product, g01, E_Sys::GPS, E_ObsCode::L1C);
+    const auto relativeToG02 = ProductRelationBasisBuilder::build(
+        current, product, g02, E_Sys::GPS, E_ObsCode::L1C);
+    BOOST_REQUIRE_MESSAGE(relativeToG01.valid, relativeToG01.failureReason);
+    BOOST_REQUIRE_MESSAGE(relativeToG02.valid, relativeToG02.failureReason);
+    BOOST_CHECK_EQUAL(relativeToG01.fullTargetRank, 2);
+    BOOST_CHECK_EQUAL(relativeToG02.fullTargetRank, 2);
+    BOOST_CHECK(relativeToG01.referenceSatellite == g01);
+    BOOST_CHECK(relativeToG02.referenceSatellite == g02);
+
+    // The named coordinate matrices differ with the reference, but their
+    // canonical physical row lattice must be exactly identical.
+    BOOST_CHECK(relativeToG01.exactRowBasis == relativeToG02.exactRowBasis);
+    BOOST_CHECK_EQUAL(relativeToG01.exactHnf, relativeToG02.exactHnf);
+    BOOST_CHECK(relativeToG01.networkClosureExactZero);
+    BOOST_CHECK(relativeToG02.networkClosureExactZero);
+    BOOST_CHECK(
+        zhangExactMultiply(
+            relativeToG01.networkContainmentTransform,
+            relativeToG01.networkIntegerBasis) ==
+        relativeToG01.exactRowBasis);
+    BOOST_CHECK(
+        zhangExactMultiply(
+            relativeToG02.networkContainmentTransform,
+            relativeToG02.networkIntegerBasis) ==
+        relativeToG02.exactRowBasis);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_basis_fails_closed_on_graph_mismatch)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    SatSys g03(E_Sys::GPS, 3);
+    const std::set<ZhangGraphEdge> currentEdges = {
+        {"R0", g01}, {"R0", g02}, {"R1", g01}, {"R1", g02}
+    };
+    const std::set<ZhangGraphEdge> productEdges = {
+        {"R0", g01}, {"R0", g03}, {"R1", g01}, {"R1", g03}
+    };
+    const auto relationBasis = ProductRelationBasisBuilder::build(
+        zhangBuildSpanningTree(currentEdges, "R0"),
+        zhangBuildSpanningTree(productEdges, "R0"),
+        g01);
+    BOOST_CHECK(!relationBasis.valid);
+    BOOST_CHECK_EQUAL(
+        relationBasis.failureReason,
+        "product_tree_target_node_or_root_mismatch");
+}
+
+BOOST_AUTO_TEST_CASE(product_transition_transport_includes_exact_affine_offset)
+{
+	ZhangProductIntegerFunctional previous;
+	ZhangProductIntegerFunctional current;
+	previous.satellite = SatSys(E_Sys::GPS, 7);
+	current.satellite = previous.satellite;
+	previous.valid = true;
+	current.valid = true;
+	previous.affineOffsetCycles = -4;
+	current.affineOffsetCycles = 9;
+	const auto transition = zhangProductIntegerFunctionalDifference(
+		previous, current);
+	BOOST_REQUIRE(transition.valid);
+	BOOST_CHECK(transition.coefficients.empty());
+	BOOST_CHECK(transition.affineOffsetCycles == 13);
+	BOOST_CHECK(zhangCompleteProductTransitionInteger(transition, 21) == 34);
 }
 
 BOOST_AUTO_TEST_CASE(product_support_metrics_distinguish_paths_bridges_and_capacity)
@@ -1657,6 +2688,42 @@ BOOST_AUTO_TEST_CASE(promoted_satellite_relation_survives_source_arc_retirement)
     BOOST_CHECK(manager.relation(g01, g03, difference));
     BOOST_CHECK_EQUAL(difference, 2);
     BOOST_CHECK_EQUAL(manager.relationCount(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(frontend_integer_gauge_birth_defines_zero_kappa_component)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g02(E_Sys::GPS, 2);
+    SatSys g03(E_Sys::GPS, 3);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1C);
+	// Estimator warm-up may replace a physical segment before the broadcast
+	// frontend has a fixed integer from which to define its t0.
+	manager.recordSatelliteDiscontinuity(g03);
+
+    const auto initial = manager.initialiseFrontendGaugeComponent(
+        {g03, g01, g02});
+    BOOST_REQUIRE_MESSAGE(initial.accepted, initial.reason);
+    BOOST_CHECK_EQUAL(initial.satelliteCount, 3);
+    BOOST_CHECK_EQUAL(initial.relationCount, 2);
+
+    long long difference = 99;
+    BOOST_REQUIRE(manager.relation(g01, g02, difference));
+    BOOST_CHECK_EQUAL(difference, 0);
+    BOOST_REQUIRE(manager.relation(g01, g03, difference));
+    BOOST_CHECK_EQUAL(difference, 0);
+    const auto status = manager.status(g03, true);
+    BOOST_CHECK_EQUAL(status.componentSize, 3);
+    BOOST_CHECK_EQUAL(status.componentRank, 2);
+    BOOST_CHECK(status.integerDatumContinuous);
+    BOOST_CHECK(status.integerPrecisionValid);
+    BOOST_CHECK(status.integerValid);
+
+    const auto repeated = manager.initialiseFrontendGaugeComponent(
+        {g01, g02, g03});
+    BOOST_CHECK(!repeated.accepted);
+    BOOST_CHECK_EQUAL(
+        repeated.reason, "FRONTEND_GAUGE_ALREADY_INITIALISED");
+    BOOST_CHECK_EQUAL(manager.relationCount(), 2);
 }
 
 BOOST_AUTO_TEST_CASE(product_support_path_switch_preserves_component_and_value)
@@ -1768,6 +2835,46 @@ BOOST_AUTO_TEST_CASE(satellite_product_events_distinguish_topology_progress)
         ZhangProductRelationEventType::COMPONENT_MERGE), 1);
     BOOST_CHECK_EQUAL(manager.eventCount(
         ZhangProductRelationEventType::REDUNDANT_CONFIRMATION), 1);
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_broadcast_component_metadata_is_persistent_and_exact)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g03(E_Sys::GPS, 3);
+	SatSys g12(E_Sys::GPS, 12);
+	ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1C);
+	BOOST_CHECK_EQUAL(
+		zhangHybridPhaseProductSegmentId(g03, E_ObsCode::L1C, 0),
+		"G03-L1C-SEG0");
+	BOOST_REQUIRE(manager.promoteRelation(g01, g03, 4, "edge_13"));
+	BOOST_REQUIRE(manager.promoteRelation(g03, g12, -7, "edge_312"));
+	BOOST_REQUIRE(manager.promoteRelation(g01, g12, -3, "cycle_112"));
+	const auto before = manager.status(g03, true);
+	BOOST_CHECK(before.integerValid);
+	BOOST_CHECK_EQUAL(before.componentSize, 3);
+	BOOST_CHECK_EQUAL(before.componentRank, 2);
+	BOOST_CHECK_EQUAL(before.certifiedRelationCount, 3);
+	BOOST_CHECK_EQUAL(before.redundantRelationCount, 1);
+	BOOST_CHECK(before.cycleClosureValid);
+	BOOST_CHECK_GT(before.componentVersion, 0);
+
+	// An exact backend coordinate shift transports integer potentials but is
+	// not a frontend physical-segment event.
+	manager.applyDynamicTreeShift(g03, 2);
+	const auto transported = manager.status(g03, true);
+	BOOST_CHECK_EQUAL(
+		transported.componentVersion, before.componentVersion);
+	BOOST_CHECK_EQUAL(
+		transported.alignmentGeneration, before.alignmentGeneration);
+	BOOST_CHECK_EQUAL(transported.phaseSegment, before.phaseSegment);
+
+	manager.recordSatelliteDiscontinuity(g03);
+	const auto after = manager.status(g03, true);
+	BOOST_CHECK_GT(after.componentVersion, before.componentVersion);
+	BOOST_CHECK_GT(after.alignmentGeneration, before.alignmentGeneration);
+	BOOST_CHECK_EQUAL(after.phaseSegment, before.phaseSegment + 1);
+	BOOST_CHECK_EQUAL(after.componentSize, 1);
+	BOOST_CHECK(!after.integerValid);
 }
 
 BOOST_AUTO_TEST_CASE(local_fractional_alignment_loss_can_relink_to_component_anchor)
@@ -1886,6 +2993,49 @@ BOOST_AUTO_TEST_CASE(held_support_quarantine_preserves_trusted_anchor)
     BOOST_CHECK_EQUAL(persistentDifference, -94);
 }
 
+BOOST_AUTO_TEST_CASE(certified_temporal_batch_restores_quarantined_frontend)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g07(E_Sys::GPS, 7);
+	SatSys g23(E_Sys::GPS, 23);
+	ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+	BOOST_REQUIRE(manager.promoteRelation(g01, g07, 12, "initial_07"));
+	BOOST_REQUIRE(manager.promoteRelation(g01, g23, -94, "initial_23"));
+	BOOST_REQUIRE_EQUAL(
+		manager.quarantineCurrentAlignments({g07, g23}, g01), 2);
+
+	// The common +2 cycle raw shift is an unobservable component gauge.
+	// Relative changes are +5 for G07 and -3 for G23, so kappa must change
+	// by -5 and +3 respectively to keep raw+lambda*kappa invariant.
+	const auto restored = manager.applyCertifiedTemporalTransform({
+		{g01, 2}, {g07, 7}, {g23, -1}});
+	BOOST_REQUIRE_MESSAGE(restored.accepted, restored.reason);
+	BOOST_CHECK_EQUAL(restored.restoredSatellites, 2);
+	BOOST_CHECK(manager.status(g07, true).integerValid);
+	BOOST_CHECK(manager.status(g23, true).integerValid);
+	long long difference = 0;
+	BOOST_REQUIRE(manager.relation(g01, g07, difference));
+	BOOST_CHECK_EQUAL(difference, 7);
+	BOOST_REQUIRE(manager.relation(g01, g23, difference));
+	BOOST_CHECK_EQUAL(difference, -91);
+}
+
+BOOST_AUTO_TEST_CASE(certified_temporal_batch_fails_without_aligned_anchor)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g07(E_Sys::GPS, 7);
+	ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+	BOOST_REQUIRE(manager.promoteRelation(g01, g07, 12, "initial"));
+	BOOST_REQUIRE_EQUAL(
+		manager.quarantineCurrentAlignments({g01, g07}), 2);
+	const auto before = manager.checkpointState();
+	const auto rejected = manager.applyCertifiedTemporalTransform({{g07, 5}});
+	BOOST_CHECK(!rejected.accepted);
+	BOOST_CHECK_EQUAL(rejected.reason, "NO_ALIGNED_COMPONENT_ANCHOR");
+	BOOST_CHECK(manager.checkpointState().alignmentCycles == before.alignmentCycles);
+	BOOST_CHECK(manager.checkpointState().alignmentKnown == before.alignmentKnown);
+}
+
 BOOST_AUTO_TEST_CASE(dynamic_tree_integer_changes_leave_product_invariant)
 {
     SatSys g01(E_Sys::GPS, 1);
@@ -1943,6 +3093,184 @@ BOOST_AUTO_TEST_CASE(component_common_fractional_gauge_preserves_integer_datum)
     BOOST_CHECK_EQUAL(after.alignmentCycles - before.alignmentCycles, 3);
 }
 
+BOOST_AUTO_TEST_CASE(hybrid_tree_invariance_is_relative_then_real_gauge)
+{
+    SatSys g01(E_Sys::GPS, 1);
+    SatSys g03(E_Sys::GPS, 3);
+    SatSys g22(E_Sys::GPS, 22);
+    ZhangSatelliteDatumManager manager(E_Sys::GPS, E_ObsCode::L1W);
+    BOOST_REQUIRE(manager.promoteRelation(g01, g03, 9, "fixed_13"));
+    BOOST_REQUIRE(manager.promoteRelation(g01, g22, -3, "fixed_122"));
+    constexpr double lambda = 0.190293672798365;
+    const std::map<SatSys, double> cycleChanges = {
+        {g01, 111.76080459977078},
+        {g03, 114.76080459977078},
+        {g22, 107.76080459977078}
+    };
+    std::map<SatSys, ZhangSatelliteDatumStatus> before;
+    for (const auto& [satellite, ignored] : cycleChanges)
+    {
+        before[satellite] = manager.status(satellite, true);
+    }
+    const auto preserved = manager.applyDynamicTreeTransform(cycleChanges);
+    std::vector<ZhangHybridTreeTransformSample> samples;
+    for (const auto& [satellite, change] : cycleChanges)
+    {
+        const auto after = manager.status(satellite, true);
+        const auto& old = before.at(satellite);
+        samples.push_back({
+            satellite, old.componentId, after.componentId, -lambda * change,
+            old.alignmentCycles, after.alignmentCycles,
+            old.phaseSegment, after.phaseSegment,
+            old.datumVersion, after.datumVersion,
+            old.componentVersion, after.componentVersion,
+            old.alignmentGeneration, after.alignmentGeneration,
+            preserved.at(satellite)
+        });
+    }
+    const auto audit = zhangHybridTreeTransformInvariance(samples, lambda);
+    BOOST_REQUIRE_EQUAL(audit.size(), 3);
+    const double expectedCommon = -lambda * cycleChanges.at(g01);
+    for (const auto& row : audit)
+    {
+        BOOST_CHECK(row.valid);
+        BOOST_CHECK(row.invariant);
+        BOOST_CHECK_EQUAL(row.reason, "INVARIANT");
+        BOOST_CHECK_EQUAL(row.componentSupportCount, 3);
+        BOOST_CHECK_SMALL(row.relativeFrontendDeltaMetres, 1e-12);
+        BOOST_CHECK_SMALL(
+            row.componentCommonDeltaMetres - expectedCommon, 1e-12);
+        BOOST_CHECK_SMALL(
+            row.expectedRealGaugeShiftMetres + expectedCommon, 1e-12);
+		BOOST_CHECK(row.hybridClosureMachineZero);
+		BOOST_CHECK_SMALL(row.hybridClosureResidualMetres, 1e-12);
+    }
+
+    // The second half of the frontend absorbs the one remaining component
+    // common mode and leaves the broadcast products exactly unchanged.
+    ZhangHybridRealGaugeTransport gauge;
+    const std::vector<SatSys> satellites = {g01, g03, g22};
+    const std::vector<std::string> segments = {
+        "G01-L1W-SEG0", "G03-L1W-SEG0", "G22-L1W-SEG0"};
+    VectorXd oldFrontend(3);
+    oldFrontend << 0.2, -0.4, 0.2;
+    const MatrixXd covariance = MatrixXd::Identity(3, 3);
+    const auto first = gauge.transport(
+        satellites, segments, oldFrontend, covariance);
+    BOOST_REQUIRE(first.valid);
+    const VectorXd shiftedFrontend =
+        oldFrontend + VectorXd::Constant(3, expectedCommon);
+    const auto second = gauge.transport(
+        satellites, segments, shiftedFrontend, covariance);
+    BOOST_REQUIRE(second.valid);
+    BOOST_CHECK_EQUAL(second.overlapCount, 3);
+    BOOST_CHECK_SMALL(
+        second.commonShiftMetres + expectedCommon, 1e-12);
+    BOOST_CHECK_SMALL((second.values - first.values).norm(), 1e-12);
+
+    // One member losing integer alignment must fail closed even when the
+    // remaining members still share a valid common real gauge.
+    samples[1].alignmentPreserved = false;
+    const auto suspended = zhangHybridTreeTransformInvariance(samples, lambda);
+    BOOST_CHECK(!suspended[1].invariant);
+    BOOST_CHECK_EQUAL(suspended[1].reason, "ALIGNMENT_SUSPENDED");
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_pure_s_basis_event_closes_integer_and_real_gauges)
+{
+	constexpr double lambda = 0.190293672798365;
+	constexpr long long backendIntegerGauge = 3;
+	constexpr double gamma = -0.047;
+	const double backendDelta = lambda * backendIntegerGauge + gamma;
+	const auto closure = zhangHybridPureCoordinateClosure(
+		lambda, backendIntegerGauge, gamma, backendDelta, 1e-12);
+	BOOST_REQUIRE(closure.valid);
+	BOOST_CHECK(closure.machineZero);
+	BOOST_CHECK_EQUAL(closure.reason, "PURE_COORDINATE_INVARIANT");
+	BOOST_CHECK_SMALL(closure.hybridResidualMetres, 1e-12);
+	BOOST_CHECK_SMALL(
+		closure.integerCompensationMetres + lambda * backendIntegerGauge,
+		1e-12);
+	BOOST_CHECK_SMALL(closure.realGaugeCompensationMetres + gamma, 1e-12);
+
+	const auto rejected = zhangHybridPureCoordinateClosure(
+		lambda, backendIntegerGauge, gamma, backendDelta + 1e-3, 1e-12);
+	BOOST_CHECK(!rejected.valid);
+	BOOST_CHECK_EQUAL(
+		rejected.reason, "BACKEND_INTEGER_REAL_DECOMPOSITION_MISMATCH");
+}
+
+BOOST_AUTO_TEST_CASE(real_gauge_transport_audit_separates_coordinate_and_time)
+{
+	Vector2d raw;
+	raw << 0.31, 0.29;
+	Vector2d integerRemoved = Vector2d::Zero();
+	Matrix2d posterior;
+	posterior << 4, 1, 1, 2;
+	auto pure = zhangAuditRealGaugeTransport(
+		ZhangRealGaugeTransportEventKind::
+			SAME_POSTERIOR_COORDINATE_TRANSFORM,
+		raw, integerRemoved, posterior, posterior, posterior);
+	BOOST_REQUIRE_MESSAGE(pure.valid, pure.failureReason);
+	BOOST_CHECK(pure.samePosteriorEvent);
+	BOOST_CHECK(pure.differenceCovarianceMachineZero);
+	BOOST_CHECK_SMALL(pure.glsShiftVariance, 1e-15);
+	BOOST_CHECK_SMALL(pure.realShiftMetres - 0.30, 1e-15);
+
+	Matrix2d oldCovariance;
+	oldCovariance << 4, 1, 1, 3;
+	Matrix2d newCovariance;
+	newCovariance << 5, 1.5, 1.5, 4;
+	Matrix2d crossCovariance;
+	crossCovariance << 3, 0.5, 0.75, 2;
+	auto temporal = zhangAuditRealGaugeTransport(
+		ZhangRealGaugeTransportEventKind::CROSS_EPOCH_TRANSPORT,
+		raw, integerRemoved, oldCovariance, newCovariance,
+		crossCovariance);
+	BOOST_REQUIRE_MESSAGE(temporal.valid, temporal.failureReason);
+	const Matrix2d expectedDifference = newCovariance + oldCovariance
+		- crossCovariance - crossCovariance.transpose();
+	BOOST_CHECK_SMALL(
+		(temporal.differenceCovariance - expectedDifference).norm(), 1e-14);
+	BOOST_CHECK_GT(temporal.glsShiftVariance, 0);
+
+	// Marginals without Q-+ are not an admissible temporal audit input.
+	auto missingCross = zhangAuditRealGaugeTransport(
+		ZhangRealGaugeTransportEventKind::CROSS_EPOCH_TRANSPORT,
+		raw, integerRemoved, oldCovariance, newCovariance, MatrixXd());
+	BOOST_CHECK(!missingCross.valid);
+	BOOST_CHECK_EQUAL(missingCross.failureReason,
+		"REAL_GAUGE_AUDIT_REQUIRES_FULL_JOINT_MARGINAL");
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_server_to_user_dual_frequency_integer_theorem_closes)
+{
+	auto closure = zhangHybridUserIntegerClosure(
+		ZhangExactInteger(105), ZhangExactInteger(77),
+		ZhangExactInteger(88), ZhangExactInteger(61),
+		ZhangExactInteger(12), ZhangExactInteger(9),
+		ZhangExactInteger(-4), ZhangExactInteger(-8),
+		true, true);
+	BOOST_REQUIRE_MESSAGE(closure.valid, closure.failureReason);
+	BOOST_CHECK_EQUAL(closure.firstSignalSatelliteSd, 31);
+	BOOST_CHECK_EQUAL(closure.secondSignalSatelliteSd, 31);
+	BOOST_CHECK_EQUAL(closure.wideLaneSatelliteSd, 0);
+	BOOST_CHECK(closure.admissibleDualFrequencyTransform);
+	BOOST_CHECK(closure.exactInverseClosure);
+
+	auto disconnected = zhangHybridUserIntegerClosure(
+		1, 0, 1, 0, 0, 0, 0, 0, false, true);
+	BOOST_CHECK(!disconnected.valid);
+	BOOST_CHECK_EQUAL(disconnected.failureReason,
+		"USER_SATELLITES_NOT_IN_SAME_INTEGER_COMPONENT");
+
+	auto uncertified = zhangHybridUserIntegerClosure(
+		1, 0, 1, 0, 0, 0, 0, 0, true, false);
+	BOOST_CHECK(!uncertified.valid);
+	BOOST_CHECK_EQUAL(uncertified.failureReason,
+		"SERVER_INTEGER_RELATION_NOT_CERTIFIED");
+}
+
 BOOST_AUTO_TEST_CASE(product_reference_exchange_preserves_integer_relations)
 {
     SatSys g01(E_Sys::GPS, 1);
@@ -1973,12 +3301,14 @@ BOOST_AUTO_TEST_CASE(only_satellite_discontinuity_changes_product_version)
     manager.markDynamicAlignmentUnknown({g03});
     auto dynamic = manager.status(g03, true);
     BOOST_CHECK_EQUAL(dynamic.datumVersion, initial.datumVersion);
+    BOOST_CHECK_EQUAL(dynamic.phaseSegment, initial.phaseSegment);
     BOOST_CHECK_EQUAL(dynamic.discontinuityCounter, initial.discontinuityCounter);
     BOOST_CHECK(dynamic.integerDatumContinuous);
 
     manager.recordSatelliteDiscontinuity(g03);
     auto discontinuous = manager.status(g03, true);
     BOOST_CHECK_EQUAL(discontinuous.datumVersion, initial.datumVersion + 1);
+    BOOST_CHECK_EQUAL(discontinuous.phaseSegment, initial.phaseSegment + 1);
     BOOST_CHECK_EQUAL(
         discontinuous.discontinuityCounter,
         initial.discontinuityCounter + 1
@@ -2212,6 +3542,171 @@ BOOST_AUTO_TEST_CASE(exact_row_hnf_removes_redundancy_and_tracks_integer_values)
     BOOST_CHECK(shift == 12);
 }
 
+BOOST_AUTO_TEST_CASE(exact_physical_row_hnf_tracks_a_basis_invariant_search_frame)
+{
+    const ZhangExactMatrix physicalRows = {
+        { 1, -1,  0,  1,  0},
+        { 0,  1, -1,  0,  1},
+        { 0,  0,  0,  1, -1},
+    };
+    const ZhangExactMatrix unimodular = {
+        {1,  1, 0},
+        {0,  1, 1},
+        {0, -1, 0},
+    };
+    const ZhangExactMatrix rebasedRows = zhangExactMultiply(
+        unimodular, physicalRows);
+
+    const ZhangExactRowHnf base = zhangExactRowHermiteNormalForm(
+        physicalRows, {}, true);
+    const ZhangExactRowHnf rebased = zhangExactRowHermiteNormalForm(
+        rebasedRows, {}, true);
+    BOOST_REQUIRE(base.consistent);
+    BOOST_REQUIRE(rebased.consistent);
+    BOOST_REQUIRE_EQUAL(base.basis.size(), physicalRows.size());
+    BOOST_REQUIRE_EQUAL(rebased.basis.size(), physicalRows.size());
+    BOOST_CHECK(base.basis == rebased.basis);
+    BOOST_CHECK(
+        zhangExactMultiply(base.rowTransform, physicalRows) == base.basis);
+    BOOST_CHECK(
+        zhangExactMultiply(rebased.rowTransform, rebasedRows) ==
+        rebased.basis);
+    BOOST_CHECK(
+        zhangExactMultiply(rebased.rowTransform, unimodular) ==
+        base.rowTransform);
+
+    const ZhangExactVector currentState = {7, -2, 5};
+    const ZhangExactVector rebasedState =
+        zhangExactMatrixTimesColumn(unimodular, currentState);
+    BOOST_CHECK(
+        zhangExactMatrixTimesColumn(base.rowTransform, currentState) ==
+        zhangExactMatrixTimesColumn(
+            rebased.rowTransform, rebasedState));
+}
+
+BOOST_AUTO_TEST_CASE(iar_gain_low_rank_covariance_matches_dense_conditioning)
+{
+    Matrix4d covariance;
+    covariance <<
+        4.0, 0.8, 0.3, 0.1,
+        0.8, 3.0, 0.4, 0.2,
+        0.3, 0.4, 2.0, 0.5,
+        0.1, 0.2, 0.5, 1.5;
+    Matrix<double, 2, 4> denseConstraints;
+    denseConstraints <<
+        1, -1, 0, 0,
+        0,  1, 1, -1;
+    ZhangIarFunctional constraints = denseConstraints.sparseView();
+    ZhangIarCovarianceCondition condition =
+        zhangIarCovarianceCondition(covariance, constraints);
+    BOOST_REQUIRE(condition.valid);
+    BOOST_CHECK_EQUAL(condition.rank, 2);
+
+    const Matrix2d constraintCovariance =
+        denseConstraints * covariance * denseConstraints.transpose();
+    const Matrix4d densePosterior = covariance -
+        covariance * denseConstraints.transpose() *
+        constraintCovariance.inverse() * denseConstraints * covariance;
+    const Matrix4d factorPosterior = covariance -
+        condition.reductionFactor * condition.reductionFactor.transpose();
+    BOOST_CHECK_SMALL(
+        (densePosterior - factorPosterior).norm(), 1e-11);
+
+    Matrix<double, 2, 4> denseTarget;
+    denseTarget <<
+        1, 0, -1, 0,
+        0, 1,  0, -1;
+    ZhangIarFunctional target = denseTarget.sparseView();
+    const double auditedTrace = zhangIarProjectedCovarianceTrace(
+        covariance, condition, target);
+    const double denseTrace =
+        (denseTarget * densePosterior * denseTarget.transpose()).trace();
+    BOOST_CHECK_SMALL(auditedTrace - denseTrace, 1e-11);
+
+    Matrix2d unimodular;
+    unimodular << 1, 1, 0, 1;
+    Matrix<double, 2, 4> denseRebased =
+        unimodular * denseConstraints;
+    ZhangIarFunctional rebased = denseRebased.sparseView();
+    ZhangIarCovarianceCondition rebasedCondition =
+        zhangIarCovarianceCondition(covariance, rebased);
+    BOOST_REQUIRE(rebasedCondition.valid);
+    const double rebasedTrace = zhangIarProjectedCovarianceTrace(
+        covariance, rebasedCondition, target);
+    BOOST_CHECK_SMALL(rebasedTrace - auditedTrace, 1e-11);
+}
+
+BOOST_AUTO_TEST_CASE(theory_regression_physical_dd_row_closes_in_cycle_basis)
+{
+    const SatSys g01(E_Sys::GPS, 1);
+    const SatSys g02(E_Sys::GPS, 2);
+    const SatSys g03(E_Sys::GPS, 3);
+    const std::set<ZhangGraphEdge> edges = {
+        {"R0", g01}, {"R0", g02}, {"R0", g03},
+        {"R1", g01}, {"R1", g02}, {"R1", g03},
+        {"R2", g01}, {"R2", g02}, {"R2", g03}
+    };
+    const ZhangGraphBasis basis = zhangBuildSpanningTree(edges, "R0");
+    BOOST_REQUIRE(basis.connected);
+    std::map<ZhangGraphEdge, int> chordColumns;
+    for (const ZhangGraphEdge& edge : basis.edges)
+    {
+        if (!basis.isTreeEdge(edge.receiver, edge.satellite))
+        {
+            chordColumns[edge] = chordColumns.size();
+        }
+    }
+    BOOST_REQUIRE_EQUAL(chordColumns.size(), 4);
+
+    VectorXd row;
+    BOOST_REQUIRE(zhangDdCycleCoordinateRow(
+        basis, chordColumns, "R0", "R2", g01, g03, row));
+    BOOST_CHECK_EQUAL(row.size(), chordColumns.size());
+    BOOST_CHECK(row.allFinite());
+    for (double value : row)
+    {
+        BOOST_CHECK_SMALL(value - std::round(value), 1e-14);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(theory_regression_detects_stronger_satellite_sd_correlation)
+{
+    Matrix3d covariance;
+    covariance <<
+         1.00, -0.30, 0.30,
+        -0.30,  1.13, 0.91,
+         0.30,  0.91, 1.13;
+    Matrix<double, 1, 3> ambiguityDense;
+    ambiguityDense << 1, 0, 0;
+    Matrix<double, 1, 3> undifferencedDense;
+    undifferencedDense << 0, 0, 1;
+    Matrix<double, 1, 3> satelliteDifferenceDense;
+    satelliteDifferenceDense << 0, -1, 1;
+    const ZhangIarFunctional ambiguity = ambiguityDense.sparseView();
+    const ZhangIarFunctional undifferenced =
+        undifferencedDense.sparseView();
+    const ZhangIarFunctional satelliteDifference =
+        satelliteDifferenceDense.sparseView();
+
+    const ZhangPairedCorrelationSummary ud = zhangPairedCorrelations(
+        covariance, ambiguity, undifferenced);
+    const ZhangPairedCorrelationSummary sd = zhangPairedCorrelations(
+        covariance, ambiguity, satelliteDifference);
+    BOOST_REQUIRE(ud.valid);
+    BOOST_REQUIRE(sd.valid);
+    BOOST_REQUIRE_EQUAL(ud.pairs, 1);
+    BOOST_REQUIRE_EQUAL(sd.pairs, 1);
+    BOOST_CHECK_SMALL(ud.coefficients.front() -
+        0.30 / std::sqrt(1.13), 1e-12);
+    BOOST_CHECK_SMALL(sd.coefficients.front() -
+        0.60 / std::sqrt(0.44), 1e-12);
+    BOOST_CHECK_SMALL(
+        ud.pooledCorrelation - ud.coefficients.front(), 1e-12);
+    BOOST_CHECK_SMALL(
+        sd.pooledCorrelation - sd.coefficients.front(), 1e-12);
+    BOOST_CHECK_LT(ud.rmsAbsolute, sd.rmsAbsolute);
+}
+
 BOOST_AUTO_TEST_CASE(exact_surviving_lattice_eliminates_removed_arcs_without_rounding)
 {
     ZhangExactMatrix kernel = zhangExactIntegerKernel({
@@ -2409,6 +3904,23 @@ BOOST_AUTO_TEST_CASE(phase_continuity_fractional_change_forces_user_reinitialisa
     BOOST_CHECK_CLOSE(state.fractionalShiftCycles, -2.25, 1e-12);
     BOOST_CHECK(!state.integerValid());
     BOOST_CHECK_EQUAL(state.stabilizationRemaining, 2);
+}
+
+BOOST_AUTO_TEST_CASE(auxiliary_product_tree_generation_is_not_a_global_product_reset)
+{
+    ZhangProductDatumVersionTracker tracker;
+    BOOST_CHECK(!tracker.observe(17));
+    BOOST_CHECK(!tracker.observe(17));
+    BOOST_CHECK(tracker.observe(18));
+    BOOST_CHECK(!tracker.observe(18));
+
+    ZhangPhaseContinuityState continuity;
+    continuity.markFixed();
+    BOOST_CHECK(tracker.observe(19));
+    BOOST_CHECK_EQUAL(continuity.counter, 0);
+    BOOST_CHECK_EQUAL(continuity.datumVersion, 0);
+    BOOST_CHECK_EQUAL(continuity.iod, 0);
+    BOOST_CHECK(continuity.integerValid());
 }
 
 BOOST_AUTO_TEST_CASE(hou_product_coordinate_absorbs_fractional_tree_transform)
@@ -2616,6 +4128,24 @@ ZhangProjectedPhysicalTarget projectPhysicalTarget(
     return result;
 }
 
+double testScalarRoundErrorProbability(double fractional, double variance)
+{
+	if (variance < 1e-20)
+	{
+		return 0;
+	}
+	double alternateMass = 0;
+	const double exponentScale = -0.25 / variance;
+	for (int offset = 1; offset < 10; offset++)
+	{
+		alternateMass += std::exp(
+			(offset + 2 * fractional) * offset * exponentScale);
+		alternateMass += std::exp(
+			(offset - 2 * fractional) * offset * exponentScale);
+	}
+	return alternateMass / (1 + alternateMass);
+}
+
 void checkProjectedTargetInvariant(
     const ZhangProjectedPhysicalTarget& first,
     const ZhangProjectedPhysicalTarget& second)
@@ -2627,6 +4157,21 @@ void checkProjectedTargetInvariant(
         ),
         1e-10
     );
+	BOOST_REQUIRE_GT(first.variance, 0);
+	BOOST_REQUIRE_GT(second.variance, 0);
+	const long long firstCandidate = std::llround(first.mean);
+	const long long secondCandidate = std::llround(second.mean);
+	BOOST_CHECK_EQUAL(firstCandidate, secondCandidate);
+	const double firstFractional = first.mean - firstCandidate;
+	const double secondFractional = second.mean - secondCandidate;
+	BOOST_CHECK_SMALL(
+		testScalarRoundErrorProbability(firstFractional, first.variance)
+		- testScalarRoundErrorProbability(secondFractional, second.variance),
+		1e-10);
+	BOOST_CHECK_SMALL(
+		firstFractional * firstFractional / first.variance
+		- secondFractional * secondFractional / second.variance,
+		1e-10);
 }
 }
 
@@ -3333,6 +4878,873 @@ BOOST_AUTO_TEST_CASE(factor_capture_fails_closed_on_state_key_chain_mismatch)
     );
 }
 
+BOOST_AUTO_TEST_CASE(temporal_product_snapshots_survive_rectangular_arc_reinitialisation)
+{
+	KFKey oldArc;
+	oldArc.type = KF::AMBIGUITY;
+	oldArc.str = "R0";
+	oldArc.Sat = SatSys(E_Sys::GPS, 1);
+	oldArc.num = static_cast<int>(E_ObsCode::L1C);
+	KFKey surviving = oldArc;
+	surviving.str = "R1";
+	std::vector<ZhangCapturedStateKey> source = {
+		zhangCapturedStateKey(surviving), zhangCapturedStateKey(oldArc)};
+	std::vector<ZhangCapturedStateKey> destination = {
+		zhangCapturedStateKey(surviving)};
+
+	Vector2d priorMean(3.2, -1.4);
+	Matrix2d priorCovariance;
+	priorCovariance << 0.4, 0.1, 0.1, 0.7;
+	KFMeas measurement;
+	measurement.H = MatrixXd::Identity(2, 2);
+	measurement.V = Vector2d(0.05, -0.02);
+	measurement.R = Matrix2d::Identity() * 0.2;
+	measurement.obsKeys = {surviving, oldArc};
+	const Matrix2d innovation = priorCovariance + measurement.R;
+	const Matrix2d gain = priorCovariance * innovation.inverse();
+	const Vector2d posteriorMean = priorMean + gain * measurement.V;
+	Matrix2d posteriorCovariance = priorCovariance
+		- gain * priorCovariance;
+	posteriorCovariance = 0.5 *
+		(posteriorCovariance + posteriorCovariance.transpose());
+
+	ZhangFactorCaptureBuffer capture;
+	BOOST_REQUIRE(capture.recordMeasurement(
+		GTime(), source, priorMean, priorCovariance, measurement, "/PPP",
+		posteriorMean, posteriorCovariance));
+	BOOST_REQUIRE(capture.bindPersistentSnapshot(
+		"OLD", "OLD@A0", Vector2d(0, 1), 0));
+
+	SparseMatrix<double> projection(1, 2);
+	projection.insert(0, 0) = 1;
+	BOOST_REQUIRE(capture.recordCoordinateTransform(
+		GTime(), source, destination, projection,
+		"local phase-coordinate reinitialisation", true));
+	BOOST_REQUIRE(capture.bindPersistentSnapshot(
+		"NEW", "NEW@A1", VectorXd::Ones(1), 0));
+	const auto marginal = capture.persistentSnapshotMarginal();
+	BOOST_REQUIRE_MESSAGE(marginal.valid, marginal.failureReason);
+	const auto replayed = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent&, int) { return true; });
+	BOOST_REQUIRE_MESSAGE(replayed.valid, replayed.failureReason);
+	BOOST_CHECK(marginal.identities == replayed.identities);
+	BOOST_CHECK_SMALL((marginal.mean - replayed.mean).norm(), 1e-12);
+	BOOST_CHECK_SMALL(
+		(marginal.covariance - replayed.covariance).norm(), 1e-12);
+	BOOST_REQUIRE_EQUAL(marginal.identities.size(), 2);
+	BOOST_CHECK_EQUAL(marginal.identities[0], "OLD");
+	BOOST_CHECK_EQUAL(marginal.identities[1], "NEW");
+	const double expectedDifference = posteriorMean(0) - posteriorMean(1);
+	const double expectedVariance = posteriorCovariance(0, 0)
+		+ posteriorCovariance(1, 1) - 2 * posteriorCovariance(0, 1);
+	BOOST_CHECK_SMALL(
+		(marginal.mean(1) - marginal.mean(0)) - expectedDifference, 1e-12);
+	BOOST_CHECK_SMALL(
+		(marginal.covariance(1, 1) + marginal.covariance(0, 0)
+			 - 2 * marginal.covariance(0, 1)) - expectedVariance, 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(candidate_product_snapshot_is_bound_before_its_coordinate_is_dropped)
+{
+	KFKey retained;
+	retained.type = KF::AMBIGUITY;
+	retained.str = "R0";
+	retained.Sat = SatSys(E_Sys::GPS, 1);
+	retained.num = static_cast<int>(E_ObsCode::L1C);
+	KFKey candidateChord = retained;
+	candidateChord.str = "R1";
+	std::vector<ZhangCapturedStateKey> source = {
+		zhangCapturedStateKey(retained),
+		zhangCapturedStateKey(candidateChord)};
+	std::vector<ZhangCapturedStateKey> destination = {
+		zhangCapturedStateKey(retained)};
+
+	Vector2d priorMean(2.4, -0.8);
+	Matrix2d priorCovariance;
+	priorCovariance << 0.5, 0.12, 0.12, 0.9;
+	KFMeas measurement;
+	measurement.H = MatrixXd::Identity(2, 2);
+	measurement.V = Vector2d(0.03, -0.04);
+	measurement.R = Matrix2d::Identity() * 0.25;
+	measurement.obsKeys = {retained, candidateChord};
+	const Matrix2d innovation = priorCovariance + measurement.R;
+	const Matrix2d gain = priorCovariance * innovation.inverse();
+	const Vector2d posteriorMean = priorMean + gain * measurement.V;
+	Matrix2d posteriorCovariance = priorCovariance
+		- gain * priorCovariance;
+	posteriorCovariance = 0.5 *
+		(posteriorCovariance + posteriorCovariance.transpose());
+
+	ZhangFactorCaptureBuffer capture;
+	BOOST_REQUIRE(capture.recordMeasurement(
+		GTime(), source, priorMean, priorCovariance, measurement, "/PPP",
+		posteriorMean, posteriorCovariance));
+	BOOST_REQUIRE(capture.bindPersistentSnapshots({
+		{"OLD_PRODUCT", "OLD_PRODUCT@A0", Vector2d(1, 0), 0},
+		{"CANDIDATE_PRODUCT", "CANDIDATE_PRODUCT@A0", Vector2d(0, 1), 0}}));
+
+	SparseMatrix<double> projection(1, 2);
+	projection.insert(0, 0) = 1;
+	BOOST_REQUIRE(capture.recordCoordinateTransform(
+		GTime(), source, destination, projection,
+		"candidate chord local reinitialisation", true));
+	const auto marginal = capture.persistentSnapshotMarginal();
+	BOOST_REQUIRE_MESSAGE(marginal.valid, marginal.failureReason);
+	const auto replayed = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent&, int) { return true; });
+	BOOST_REQUIRE_MESSAGE(replayed.valid, replayed.failureReason);
+	BOOST_CHECK(marginal.identities == replayed.identities);
+	BOOST_CHECK_SMALL((marginal.mean - replayed.mean).norm(), 1e-12);
+	BOOST_CHECK_SMALL(
+		(marginal.covariance - replayed.covariance).norm(), 1e-12);
+	BOOST_REQUIRE_EQUAL(marginal.identities.size(), 2);
+	BOOST_CHECK_EQUAL(marginal.identities[0], "OLD_PRODUCT");
+	BOOST_CHECK_EQUAL(marginal.identities[1], "CANDIDATE_PRODUCT");
+	const double expectedDifference = posteriorMean(1) - posteriorMean(0);
+	const double expectedVariance = posteriorCovariance(0, 0)
+		+ posteriorCovariance(1, 1) - 2 * posteriorCovariance(0, 1);
+	const double projectedDifference =
+		marginal.mean(1) - marginal.mean(0);
+	const double projectedVariance =
+		marginal.covariance(1, 1) + marginal.covariance(0, 0)
+		- 2 * marginal.covariance(0, 1);
+	BOOST_CHECK_SMALL(
+		projectedDifference - expectedDifference, 1e-12);
+	BOOST_CHECK_SMALL(
+		projectedVariance - expectedVariance, 1e-12);
+
+	const long long expectedCandidate = std::llround(expectedDifference);
+	const long long projectedCandidate = std::llround(projectedDifference);
+	const double expectedFractional = expectedDifference - expectedCandidate;
+	const double projectedFractional =
+		projectedDifference - projectedCandidate;
+	const double expectedPerr = testScalarRoundErrorProbability(
+		expectedFractional, expectedVariance);
+	const double projectedPerr = testScalarRoundErrorProbability(
+		projectedFractional, projectedVariance);
+	const double expectedNis =
+		expectedFractional * expectedFractional / expectedVariance;
+	const double projectedNis =
+		projectedFractional * projectedFractional / projectedVariance;
+	BOOST_CHECK_EQUAL(projectedCandidate, expectedCandidate);
+	BOOST_CHECK_SMALL(projectedPerr - expectedPerr, 1e-10);
+	BOOST_CHECK_SMALL(projectedNis - expectedNis, 1e-10);
+	BOOST_CHECK_EQUAL(
+		projectedPerr <= 1e-3 && projectedNis <= 23.9281,
+		expectedPerr <= 1e-3 && expectedNis <= 23.9281);
+}
+
+BOOST_AUTO_TEST_CASE(temporal_zero_row_snapshot_is_a_valid_besd_endpoint)
+{
+	KFKey ambiguity;
+	ambiguity.type = KF::AMBIGUITY;
+	ambiguity.str = "R0";
+	ambiguity.Sat = SatSys(E_Sys::GPS, 2);
+	ambiguity.num = static_cast<int>(E_ObsCode::L1C);
+	std::vector<ZhangCapturedStateKey> keys = {
+		zhangCapturedStateKey(ambiguity)};
+
+	VectorXd priorMean = VectorXd::Constant(1, 3.25);
+	MatrixXd priorCovariance = MatrixXd::Constant(1, 1, 0.4);
+	KFMeas measurement;
+	measurement.H = MatrixXd::Identity(1, 1);
+	measurement.V = VectorXd::Constant(1, 0.1);
+	measurement.R = MatrixXd::Constant(1, 1, 0.2);
+	measurement.obsKeys = {ambiguity};
+	const double gain = 0.4 / 0.6;
+	VectorXd posteriorMean = VectorXd::Constant(1, 3.25 + gain * 0.1);
+	MatrixXd posteriorCovariance = MatrixXd::Constant(
+		1, 1, 0.4 - gain * 0.4);
+
+	ZhangFactorCaptureBuffer capture;
+	BOOST_REQUIRE(capture.recordMeasurement(
+		GTime(), keys, priorMean, priorCovariance, measurement, "/PPP",
+		posteriorMean, posteriorCovariance));
+	BOOST_REQUIRE(capture.bindPersistentSnapshot(
+		"ZERO", "ZERO@A0", VectorXd::Zero(1), 0));
+	BOOST_REQUIRE(capture.bindPersistentSnapshot(
+		"CURRENT", "CURRENT@A0", VectorXd::Ones(1), 0));
+
+	const auto marginal = capture.persistentSnapshotMarginal();
+	BOOST_REQUIRE_MESSAGE(marginal.valid, marginal.failureReason);
+	BOOST_REQUIRE_EQUAL(marginal.identities.size(), 2);
+	BOOST_CHECK_SMALL(marginal.mean(0), 1e-12);
+	BOOST_CHECK_SMALL(marginal.covariance(0, 0), 1e-12);
+	BOOST_CHECK_SMALL(
+		(marginal.mean(1) - marginal.mean(0)) - posteriorMean(0), 1e-12);
+	BOOST_CHECK_SMALL(
+		(marginal.covariance(1, 1) + marginal.covariance(0, 0)
+			- 2 * marginal.covariance(0, 1)) - posteriorCovariance(0, 0),
+		1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(
+	persistent_snapshot_chronology_supports_correlated_measurement_row_ablation)
+{
+	KFKey ambiguity;
+	ambiguity.type = KF::AMBIGUITY;
+	ambiguity.str = "R0";
+	ambiguity.Sat = SatSys(E_Sys::GPS, 4);
+	ambiguity.num = static_cast<int>(E_ObsCode::L1C);
+	std::vector<ZhangCapturedStateKey> keys = {
+		zhangCapturedStateKey(ambiguity)};
+
+	VectorXd priorMean = VectorXd::Zero(1);
+	MatrixXd priorCovariance = MatrixXd::Ones(1, 1);
+	KFMeas measurement;
+	measurement.H = MatrixXd::Ones(2, 1);
+	measurement.V = Vector2d(1.0, 0.0);
+	measurement.R = Matrix2d::Zero();
+	measurement.R(0, 0) = 1.0;
+	measurement.R(1, 1) = 0.01;
+	measurement.R(0, 1) = 0.05;
+	measurement.R(1, 0) = 0.05;
+	KFKey codeObservation = ambiguity;
+	codeObservation.type = KF::CODE_MEAS;
+	KFKey phaseObservation = ambiguity;
+	phaseObservation.type = KF::PHAS_MEAS;
+	measurement.obsKeys = {codeObservation, phaseObservation};
+	const Matrix2d innovation = measurement.H * priorCovariance
+		* measurement.H.transpose() + measurement.R;
+	const MatrixXd gain = priorCovariance * measurement.H.transpose()
+		* innovation.inverse();
+	const VectorXd posteriorMean = priorMean + gain * measurement.V;
+	MatrixXd posteriorCovariance = priorCovariance
+		- gain * measurement.H * priorCovariance;
+	posteriorCovariance = 0.5
+		* (posteriorCovariance + posteriorCovariance.transpose());
+
+	ZhangFactorCaptureBuffer capture;
+	BOOST_REQUIRE(capture.recordMeasurement(
+		GTime(), keys, priorMean, priorCovariance, measurement, "/PPP",
+		posteriorMean, posteriorCovariance));
+	BOOST_REQUIRE(capture.bindPersistentSnapshots({
+		{"ZERO", "ZERO@A0", VectorXd::Zero(1), 0},
+		{"X", "X@A0", VectorXd::Ones(1), 0}}));
+
+	const auto full = capture.persistentSnapshotMarginal();
+	const auto replayedFull = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent&, int) { return true; });
+	BOOST_REQUIRE_MESSAGE(full.valid, full.failureReason);
+	BOOST_REQUIRE_MESSAGE(replayedFull.valid, replayedFull.failureReason);
+	BOOST_CHECK(full.identities == replayedFull.identities);
+	BOOST_CHECK_SMALL((full.mean - replayedFull.mean).norm(), 1e-12);
+	BOOST_CHECK_SMALL(
+		(full.covariance - replayedFull.covariance).norm(), 1e-12);
+
+	BOOST_REQUIRE(capture.retainPersistentSnapshots({"X"}));
+	BOOST_REQUIRE_EQUAL(capture.capturedSnapshotOperations().size(), 2);
+	const auto codeOnly = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent& event, int row)
+		{
+			return event.observationKeys[row].type ==
+				static_cast<int>(KF::CODE_MEAS);
+		});
+	BOOST_REQUIRE_MESSAGE(codeOnly.valid, codeOnly.failureReason);
+	BOOST_REQUIRE_EQUAL(codeOnly.identities.size(), 1);
+	BOOST_CHECK_EQUAL(codeOnly.identities.front(), "X");
+	// N(0,1) updated by y=x+e, y=1, Var(e)=1.
+	BOOST_CHECK_SMALL(codeOnly.mean(0) - 0.5, 1e-12);
+	BOOST_CHECK_SMALL(codeOnly.covariance(0, 0) - 0.5, 1e-12);
+	const auto phaseOnly = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent& event, int row)
+		{
+			return event.observationKeys[row].type ==
+				static_cast<int>(KF::PHAS_MEAS);
+		});
+	BOOST_REQUIRE_MESSAGE(phaseOnly.valid, phaseOnly.failureReason);
+	BOOST_REQUIRE_EQUAL(phaseOnly.identities.size(), 1);
+	BOOST_CHECK_SMALL(phaseOnly.mean(0), 1e-12);
+	BOOST_CHECK_SMALL(
+		phaseOnly.covariance(0, 0) - 1.0 / 101.0, 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(
+	persistent_snapshot_replay_has_separate_zero_process_noise_control)
+{
+	KFKey state;
+	state.type = KF::SAT_CLOCK;
+	state.Sat = SatSys(E_Sys::GPS, 5);
+	std::vector<ZhangCapturedStateKey> keys = {
+		zhangCapturedStateKey(state)};
+	VectorXd priorMean = VectorXd::Zero(1);
+	MatrixXd priorCovariance = MatrixXd::Ones(1, 1);
+	KFMeas anchorMeasurement;
+	anchorMeasurement.H = MatrixXd::Zero(1, 1);
+	anchorMeasurement.V = VectorXd::Zero(1);
+	anchorMeasurement.R = MatrixXd::Ones(1, 1);
+	anchorMeasurement.obsKeys = {state};
+
+	ZhangFactorCaptureBuffer capture;
+	BOOST_REQUIRE(capture.recordMeasurement(
+		GTime(), keys, priorMean, priorCovariance, anchorMeasurement,
+		"/PPP", priorMean, priorCovariance));
+	SparseMatrix<double> transition(1, 1);
+	transition.insert(0, 0) = 1;
+	MatrixXd processCovariance = MatrixXd::Constant(1, 1, 4.0);
+	BOOST_REQUIRE(capture.recordTransition(
+		GTime(), keys, keys, transition, processCovariance, "random walk"));
+	BOOST_REQUIRE(capture.bindPersistentSnapshot(
+		"X", "X@A0", VectorXd::Ones(1), 0));
+
+	const auto full = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent&, int) { return true; });
+	const auto zeroProcess = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent&, int) { return true; }, 0);
+	BOOST_REQUIRE_MESSAGE(full.valid, full.failureReason);
+	BOOST_REQUIRE_MESSAGE(zeroProcess.valid, zeroProcess.failureReason);
+	BOOST_CHECK_SMALL(full.covariance(0, 0) - 5.0, 1e-12);
+	BOOST_CHECK_SMALL(zeroProcess.covariance(0, 0) - 1.0, 1e-12);
+	auto invalid = capture.replayPersistentSnapshotsKeepingRows(
+		[](const ZhangCapturedFactorEvent&, int) { return true; }, -1);
+	BOOST_CHECK(!invalid.valid);
+	BOOST_CHECK_EQUAL(invalid.failureReason, "INVALID_PROCESS_NOISE_SCALE");
+}
+
+BOOST_AUTO_TEST_CASE(
+	e29_product_gauge_compiler_closes_ten_exact_three_by_three_by_two_s_bases)
+{
+	constexpr int receivers = 3;
+	constexpr int satellites = 3;
+	constexpr int frequencies = 2;
+	constexpr int observations =
+		2 * receivers * satellites * frequencies;
+	constexpr int tauOffset = 0;
+	constexpr int receiverClockOffset = tauOffset + receivers;
+	constexpr int satelliteClockOffset = receiverClockOffset + receivers;
+	constexpr int ionosphereOffset = satelliteClockOffset + satellites;
+	constexpr int receiverCodeOffset =
+		ionosphereOffset + receivers * satellites;
+	constexpr int satelliteCodeOffset =
+		receiverCodeOffset + receivers * frequencies;
+	constexpr int receiverPhaseOffset =
+		satelliteCodeOffset + satellites * frequencies;
+	constexpr int satellitePhaseOffset =
+		receiverPhaseOffset + receivers * frequencies;
+	constexpr int ambiguityOffset =
+		satellitePhaseOffset + satellites * frequencies;
+	constexpr int parameters =
+		ambiguityOffset + receivers * satellites * frequencies;
+	ZhangExactMatrix raw = zhangExactZeroMatrix(observations, parameters);
+	const int mu[frequencies] = {1, 2};
+	const int wavelength[frequencies] = {1, 2};
+	auto ionosphere = [](int receiver, int satellite)
+	{
+		return receiver * satellites + satellite;
+	};
+	auto receiverSignal = [](int receiver, int frequency)
+	{
+		return receiver * frequencies + frequency;
+	};
+	auto satelliteSignal = [](int satellite, int frequency)
+	{
+		return satellite * frequencies + frequency;
+	};
+	auto ambiguity = [](int receiver, int satellite, int frequency)
+	{
+		return (receiver * satellites + satellite) * frequencies + frequency;
+	};
+	int row = 0;
+	for (int receiver = 0; receiver < receivers; receiver++)
+	for (int satellite = 0; satellite < satellites; satellite++)
+	for (int frequency = 0; frequency < frequencies; frequency++)
+	{
+		auto common = [&](ZhangExactVector& design)
+		{
+			design[tauOffset + receiver] = 1;
+			design[receiverClockOffset + receiver] = 1;
+			design[satelliteClockOffset + satellite] = -1;
+		};
+		auto& code = raw[row++];
+		common(code);
+		code[ionosphereOffset + ionosphere(receiver, satellite)] =
+			mu[frequency];
+		code[receiverCodeOffset + receiverSignal(receiver, frequency)] = 1;
+		code[satelliteCodeOffset + satelliteSignal(satellite, frequency)] = -1;
+		auto& phase = raw[row++];
+		common(phase);
+		phase[ionosphereOffset + ionosphere(receiver, satellite)] =
+			-mu[frequency];
+		phase[receiverPhaseOffset + receiverSignal(receiver, frequency)] =
+			wavelength[frequency];
+		phase[satellitePhaseOffset + satelliteSignal(satellite, frequency)] =
+			-wavelength[frequency];
+		phase[ambiguityOffset + ambiguity(receiver, satellite, frequency)] =
+			wavelength[frequency];
+	}
+	BOOST_REQUIRE_EQUAL(row, observations);
+
+	MatrixXd rawDouble(observations, parameters);
+	for (int r = 0; r < observations; r++)
+	for (int c = 0; c < parameters; c++)
+	{
+		rawDouble(r, c) = raw[r][c].convert_to<double>();
+	}
+	Eigen::FullPivLU<MatrixXd> rawLu(rawDouble);
+	rawLu.setThreshold(1e-12);
+	const int estimableRank = rawLu.rank();
+	BOOST_REQUIRE_GT(estimableRank, 0);
+
+	auto chooseBasis = [&](std::vector<int> order)
+	{
+		std::vector<int> selected;
+		int rank = 0;
+		for (int column : order)
+		{
+			MatrixXd candidate(observations, selected.size() + 1);
+			for (int existing = 0;
+				 existing < static_cast<int>(selected.size()); existing++)
+			{
+				candidate.col(existing) = rawDouble.col(selected[existing]);
+			}
+			candidate.col(selected.size()) = rawDouble.col(column);
+			Eigen::FullPivLU<MatrixXd> lu(candidate);
+			lu.setThreshold(1e-12);
+			if (lu.rank() > rank)
+			{
+				selected.push_back(column);
+				rank++;
+				if (rank == estimableRank)
+				{
+					break;
+				}
+			}
+		}
+		return selected;
+	};
+	auto selectExactColumns = [&](const std::vector<int>& columns)
+	{
+		ZhangExactMatrix design = zhangExactZeroMatrix(
+			observations, columns.size());
+		for (int r = 0; r < observations; r++)
+		for (int c = 0; c < static_cast<int>(columns.size()); c++)
+		{
+			design[r][c] = raw[r][columns[c]];
+		}
+		return design;
+	};
+	auto exactToDouble = [](const ZhangExactMatrix& design)
+	{
+		MatrixXd result(design.size(), design.front().size());
+		for (int r = 0; r < result.rows(); r++)
+		for (int c = 0; c < result.cols(); c++)
+		{
+			result(r, c) = design[r][c].convert_to<double>();
+		}
+		return result;
+	};
+
+	std::vector<int> natural(parameters);
+	std::iota(natural.begin(), natural.end(), 0);
+	const auto frontendColumns = chooseBasis(natural);
+	BOOST_REQUIRE_EQUAL(frontendColumns.size(), estimableRank);
+	const auto frontendExact = selectExactColumns(frontendColumns);
+	const MatrixXd frontendDense = exactToDouble(frontendExact);
+	std::set<std::vector<int>> distinctBases;
+	std::mt19937 generator(29001);
+	for (int trial = 0; trial < 200 && distinctBases.size() < 10; trial++)
+	{
+		auto order = natural;
+		std::shuffle(order.begin(), order.end(), generator);
+		auto columns = chooseBasis(order);
+		if (columns.size() == static_cast<std::size_t>(estimableRank))
+		{
+			distinctBases.insert(std::move(columns));
+		}
+	}
+	BOOST_REQUIRE_GE(distinctBases.size(), 10);
+
+	std::normal_distribution<double> normal(0, 1);
+	int audited = 0;
+	for (const auto& backendColumns : distinctBases)
+	{
+		if (audited++ == 10)
+		{
+			break;
+		}
+		const auto backendExact = selectExactColumns(backendColumns);
+		const auto exact = zhangCompileExactProductGaugeTransform(
+			frontendExact, backendExact);
+		BOOST_REQUIRE_MESSAGE(exact.valid, exact.failureReason);
+		BOOST_REQUIRE_EQUAL(exact.rank, estimableRank);
+		for (int r = 0; r < observations; r++)
+		for (int c = 0; c < estimableRank; c++)
+		{
+			ZhangExactRational predicted = 0;
+			for (int k = 0; k < estimableRank; k++)
+			{
+				predicted += ZhangExactRational(frontendExact[r][k])
+					* exact.transform[k][c];
+			}
+			BOOST_CHECK(predicted == ZhangExactRational(backendExact[r][c]));
+		}
+
+		const MatrixXd backendDense = exactToDouble(backendExact);
+		const auto compiled = zhangCompileProductGaugeTransform(
+			frontendDense.sparseView(0, 0),
+			backendDense.sparseView(0, 0), 1e-12);
+		BOOST_REQUIRE_MESSAGE(compiled.valid, compiled.failureReason);
+		BOOST_CHECK_SMALL(compiled.maximumClosureError, 1e-12);
+		VectorXd backendState(estimableRank);
+		MatrixXd squareRoot(estimableRank, estimableRank);
+		for (int r = 0; r < estimableRank; r++)
+		{
+			backendState(r) = normal(generator);
+			for (int c = 0; c < estimableRank; c++)
+			{
+				squareRoot(r, c) = normal(generator);
+			}
+		}
+		const MatrixXd backendCovariance = squareRoot * squareRoot.transpose()
+			+ 0.1 * MatrixXd::Identity(estimableRank, estimableRank);
+		const VectorXd frontendState = compiled.transform * backendState;
+		const MatrixXd frontendCovariance =
+			zhangProjectProductGaugeCovariance(
+				backendCovariance, compiled.transform);
+		BOOST_REQUIRE_EQUAL(frontendCovariance.rows(), estimableRank);
+		BOOST_CHECK_SMALL(
+			(backendDense * backendState
+				- frontendDense * frontendState).cwiseAbs().maxCoeff(),
+			1e-10);
+		const MatrixXd backendPredictionCovariance =
+			backendDense * backendCovariance * backendDense.transpose();
+		const MatrixXd frontendPredictionCovariance =
+			frontendDense * frontendCovariance * frontendDense.transpose();
+		BOOST_CHECK_SMALL(
+			(backendPredictionCovariance - frontendPredictionCovariance)
+				.cwiseAbs().maxCoeff(),
+			1e-10);
+	}
+	BOOST_CHECK_EQUAL(audited, 10);
+}
+
+BOOST_AUTO_TEST_CASE(
+	e29_integer_conditioner_matches_near_zero_noise_fixed_resolve)
+{
+	constexpr int dimension = 12;
+	constexpr int constraintsCount = 4;
+	std::mt19937 generator(29002);
+	std::normal_distribution<double> normal(0, 1);
+	VectorXd mean(dimension);
+	MatrixXd squareRoot(dimension, dimension);
+	for (int row = 0; row < dimension; row++)
+	{
+		mean(row) = normal(generator);
+		for (int column = 0; column < dimension; column++)
+		{
+			squareRoot(row, column) = normal(generator);
+		}
+	}
+	const MatrixXd covariance = squareRoot * squareRoot.transpose()
+		+ 0.5 * MatrixXd::Identity(dimension, dimension);
+	std::vector<Eigen::Triplet<double>> triplets = {
+		{0, 0, 1}, {0, 1, -1},
+		{1, 2, 1}, {1, 3, 1}, {1, 4, -1},
+		{2, 5, 1},
+		{3, 6, 1}, {3, 7, -1}, {3, 8, 1}};
+	ZhangIarFunctional constraints(constraintsCount, dimension);
+	constraints.setFromTriplets(triplets.begin(), triplets.end());
+	constraints.makeCompressed();
+	VectorXd integers = constraints * mean;
+	for (int row = 0; row < integers.size(); row++)
+	{
+		integers(row) = std::round(integers(row));
+	}
+
+	const auto exact = zhangConditionIntegersExact(
+		mean, covariance, constraints, integers);
+	const auto squareRootConditioned =
+		zhangConditionIntegersSquareRootOrthogonal(
+		mean, covariance, constraints, integers);
+	const auto pseudo = zhangConditionIntegersPseudoObservation(
+		mean, covariance, constraints, integers, 1e-8);
+	BOOST_REQUIRE_MESSAGE(exact.valid, exact.failureReason);
+	BOOST_REQUIRE_MESSAGE(
+		squareRootConditioned.valid,
+		squareRootConditioned.failureReason);
+	BOOST_REQUIRE_MESSAGE(pseudo.valid, pseudo.failureReason);
+	BOOST_CHECK_EQUAL(exact.constraintRank, constraintsCount);
+	BOOST_CHECK_EQUAL(
+		squareRootConditioned.constraintRank,
+		constraintsCount);
+	BOOST_CHECK_EQUAL(pseudo.constraintRank, constraintsCount);
+	BOOST_CHECK_SMALL(exact.maximumConstraintResidual, 1e-10);
+	BOOST_CHECK_SMALL(
+		squareRootConditioned.maximumConstraintResidual,
+		1e-10);
+	BOOST_CHECK_SMALL(
+		(exact.mean - squareRootConditioned.mean)
+			.cwiseAbs().maxCoeff(),
+		1e-9);
+	BOOST_CHECK_SMALL(
+		(exact.covariance - squareRootConditioned.covariance)
+			.cwiseAbs().maxCoeff(),
+		1e-9);
+	BOOST_CHECK_SMALL(
+		(exact.mean - pseudo.mean).cwiseAbs().maxCoeff(), 1e-9);
+	BOOST_CHECK_SMALL(
+		(exact.covariance - pseudo.covariance).cwiseAbs().maxCoeff(), 1e-9);
+
+	std::vector<Eigen::Triplet<double>> redundantTriplets = triplets;
+	redundantTriplets.emplace_back(4, 0, 2);
+	redundantTriplets.emplace_back(4, 1, -2);
+	ZhangIarFunctional redundant(constraintsCount + 1, dimension);
+	redundant.setFromTriplets(
+		redundantTriplets.begin(), redundantTriplets.end());
+	redundant.makeCompressed();
+	VectorXd redundantIntegers(constraintsCount + 1);
+	redundantIntegers.head(constraintsCount) = integers;
+	redundantIntegers(4) = 2 * integers(0);
+	const auto rejected = zhangConditionIntegersExact(
+		mean, covariance, redundant, redundantIntegers);
+	BOOST_CHECK(!rejected.valid);
+	BOOST_CHECK_EQUAL(
+		rejected.failureReason,
+		"INTEGER_CONSTRAINT_NOT_FULL_ROW_RANK");
+}
+
+BOOST_AUTO_TEST_CASE(
+	accepted_measurement_families_use_obs_key_and_actual_state_support)
+{
+	KFKey clock;
+	clock.type = KF::SAT_CLOCK;
+	clock.Sat = SatSys(E_Sys::GPS, 4);
+	KFKey ionosphere = clock;
+	ionosphere.type = KF::IONO_STEC;
+	KFKey phaseDatum = clock;
+	phaseDatum.type = KF::PHASE_BIAS;
+	KFKey position = clock;
+	position.type = KF::REC_POS;
+
+	ZhangCapturedFactorEvent event;
+	event.kind = ZhangCapturedFactorKind::MEASUREMENT;
+	event.destinationKeys = {
+		zhangCapturedStateKey(clock),
+		zhangCapturedStateKey(ionosphere),
+		zhangCapturedStateKey(phaseDatum),
+		zhangCapturedStateKey(position)};
+	event.design.resize(6, 4);
+	event.design.insert(0, 3) = 1;
+	event.design.insert(1, 3) = 1;
+	event.design.insert(2, 0) = 1;
+	event.design.insert(3, 1) = 1;
+	event.design.insert(4, 2) = 1;
+	event.design.insert(5, 0) = 1;
+	event.design.insert(5, 1) = -1;
+	KFKey phaseObservation = phaseDatum;
+	phaseObservation.type = KF::PHAS_MEAS;
+	KFKey codeObservation = phaseDatum;
+	codeObservation.type = KF::CODE_MEAS;
+	KFKey pseudo = phaseDatum;
+	pseudo.type = KF::PSEUDO_MEAS;
+	event.observationKeys = {
+		zhangCapturedStateKey(phaseObservation),
+		zhangCapturedStateKey(codeObservation),
+		zhangCapturedStateKey(pseudo),
+		zhangCapturedStateKey(pseudo),
+		zhangCapturedStateKey(pseudo),
+		zhangCapturedStateKey(pseudo)};
+
+	BOOST_CHECK(
+		zhangCapturedMeasurementFamily(event, 0) ==
+		ZhangCapturedMeasurementFamily::PHASE_OBSERVATION);
+	BOOST_CHECK(
+		zhangCapturedMeasurementFamily(event, 1) ==
+		ZhangCapturedMeasurementFamily::CODE_OBSERVATION);
+	BOOST_CHECK(
+		zhangCapturedMeasurementFamily(event, 2) ==
+		ZhangCapturedMeasurementFamily::CLOCK_FACTOR);
+	BOOST_CHECK(
+		zhangCapturedMeasurementFamily(event, 3) ==
+		ZhangCapturedMeasurementFamily::IONOSPHERE_FACTOR);
+	BOOST_CHECK(
+		zhangCapturedMeasurementFamily(event, 4) ==
+		ZhangCapturedMeasurementFamily::PHASE_DATUM_FACTOR);
+	BOOST_CHECK(
+		zhangCapturedMeasurementFamily(event, 5) ==
+		ZhangCapturedMeasurementFamily::MIXED_PSEUDO_FACTOR);
+}
+
+BOOST_AUTO_TEST_CASE(
+	persistent_snapshot_is_not_rebound_after_unrepresentable_rectangular_reset)
+{
+	Vector2d priorMean(0.4, -1.2);
+	Matrix2d priorCovariance;
+	priorCovariance << 0.8, 0.25, 0.25, 1.1;
+	ZhangPersistentRawTargetWindow window;
+	BOOST_REQUIRE(window.initialise(priorMean, priorCovariance));
+	Vector2d oldPhysicalRow(0, 1);
+	BOOST_REQUIRE(window.bindTarget(
+		"OLD", "OLD:R0/G01@0", oldPhysicalRow, 0, 1));
+	const auto beforeReset = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(beforeReset.valid, beforeReset.failureReason);
+	const long long beforeCandidate = std::llround(beforeReset.mean(0));
+	const double beforeFractional = beforeReset.mean(0) - beforeCandidate;
+	const double beforePerr = testScalarRoundErrorProbability(
+		beforeFractional, beforeReset.covariance(0, 0));
+	const double beforeNis = beforeFractional * beforeFractional /
+		beforeReset.covariance(0, 0);
+
+	// The current-state projection removes x1, but the explicit immutable
+	// target variable is carried with identity.  Its marginal must survive.
+	MatrixXd projection(1, 2);
+	projection << 1, 0;
+	BOOST_REQUIRE(window.applyExactCoordinateTransform(projection));
+	const auto afterReset = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(afterReset.valid, afterReset.failureReason);
+	BOOST_CHECK_SMALL(afterReset.mean(0) - beforeReset.mean(0), 1e-12);
+	BOOST_CHECK_SMALL(
+		afterReset.covariance(0, 0) - beforeReset.covariance(0, 0), 1e-12);
+	const long long afterCandidate = std::llround(afterReset.mean(0));
+	const double afterFractional = afterReset.mean(0) - afterCandidate;
+	const double afterPerr = testScalarRoundErrorProbability(
+		afterFractional, afterReset.covariance(0, 0));
+	const double afterNis = afterFractional * afterFractional /
+		afterReset.covariance(0, 0);
+	BOOST_CHECK_EQUAL(afterCandidate, beforeCandidate);
+	BOOST_CHECK_SMALL(afterPerr - beforePerr, 1e-12);
+	BOOST_CHECK_SMALL(afterNis - beforeNis, 1e-12);
+	BOOST_CHECK_EQUAL(
+		beforePerr <= 1e-3 && beforeNis <= 23.9281,
+		afterPerr <= 1e-3 && afterNis <= 23.9281);
+
+	// A newly initialised current row is not an exact transport proof for the
+	// removed covector.  Reusing the old snapshot identity must therefore not
+	// inject a zero-noise constraint.
+	VectorXd newlyInitialisedRow = VectorXd::Ones(1);
+	BOOST_REQUIRE(window.bindTarget(
+		"OLD", "OLD:R0/G01@0", newlyInitialisedRow, 0, 2));
+	const auto afterFirstRebind = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(
+		afterFirstRebind.valid, afterFirstRebind.failureReason);
+	BOOST_CHECK_SMALL(
+		afterFirstRebind.mean(0) - afterReset.mean(0), 1e-12);
+	BOOST_CHECK_SMALL(
+		afterFirstRebind.covariance(0, 0)
+			- afterReset.covariance(0, 0), 1e-12);
+
+	MatrixXd measurementDesign = MatrixXd::Ones(1, 1);
+	MatrixXd measurementCovariance = MatrixXd::Constant(1, 1, 0.2);
+	VectorXd observation = VectorXd::Constant(1, 0.1);
+	BOOST_REQUIRE(window.addAcceptedMeasurement(
+		measurementDesign, measurementCovariance, observation));
+	const auto beforeSecondRebind = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(
+		beforeSecondRebind.valid, beforeSecondRebind.failureReason);
+	BOOST_REQUIRE(window.bindTarget(
+		"OLD", "OLD:R0/G01@0", newlyInitialisedRow, 0, 3));
+	const auto afterSecondRebind = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(
+		afterSecondRebind.valid, afterSecondRebind.failureReason);
+	BOOST_CHECK_SMALL(
+		afterSecondRebind.mean(0) - beforeSecondRebind.mean(0), 1e-12);
+	BOOST_CHECK_SMALL(
+		afterSecondRebind.covariance(0, 0)
+			- beforeSecondRebind.covariance(0, 0), 1e-12);
+	BOOST_CHECK_EQUAL(window.summary().exactConstraintsApplied, 0);
+}
+
+BOOST_AUTO_TEST_CASE(
+	persistent_snapshot_batch_augmentation_matches_sequential_bindings)
+{
+	Vector3d priorMean(0.4, -0.7, 1.2);
+	Matrix3d priorCovariance;
+	priorCovariance <<
+		0.8, 0.1, -0.05,
+		0.1, 1.2, 0.2,
+		-0.05, 0.2, 0.6;
+	MatrixXd design(2, 3);
+	design << 1, 0.2, -0.1, -0.3, 1, 0.4;
+	Matrix2d measurementCovariance = 0.1 * Matrix2d::Identity();
+	Vector2d observation(0.1, -0.2);
+
+	ZhangPersistentRawTargetWindow sequential;
+	ZhangPersistentRawTargetWindow batch;
+	BOOST_REQUIRE(sequential.initialise(priorMean, priorCovariance));
+	BOOST_REQUIRE(batch.initialise(priorMean, priorCovariance));
+	BOOST_REQUIRE(sequential.addAcceptedMeasurement(
+		design, measurementCovariance, observation));
+	BOOST_REQUIRE(batch.addAcceptedMeasurement(
+		design, measurementCovariance, observation));
+
+	Vector3d firstRow(1, -1, 0.5);
+	Vector3d secondRow(-0.2, 0.4, 1);
+	BOOST_REQUIRE(sequential.bindTarget(
+		"FIRST", "FIRST@0", firstRow, 2.0, 1));
+	BOOST_REQUIRE(sequential.bindTarget(
+		"SECOND", "SECOND@0", secondRow, -0.3, 1));
+	MatrixXd rows(2, 3);
+	rows.row(0) = firstRow.transpose();
+	rows.row(1) = secondRow.transpose();
+	Vector2d offsets(2.0, -0.3);
+	BOOST_REQUIRE(batch.bindNewTargets(
+		{"FIRST", "SECOND"}, {"FIRST@0", "SECOND@0"},
+		rows, offsets, 1));
+
+	const auto sequentialMarginal = sequential.targetMarginal();
+	const auto batchMarginal = batch.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(
+		sequentialMarginal.valid, sequentialMarginal.failureReason);
+	BOOST_REQUIRE_MESSAGE(batchMarginal.valid, batchMarginal.failureReason);
+	BOOST_CHECK_EQUAL_COLLECTIONS(
+		sequentialMarginal.identities.begin(),
+		sequentialMarginal.identities.end(),
+		batchMarginal.identities.begin(), batchMarginal.identities.end());
+	BOOST_CHECK_SMALL(
+		(sequentialMarginal.mean - batchMarginal.mean).norm(), 1e-11);
+	BOOST_CHECK_SMALL(
+		(sequentialMarginal.covariance - batchMarginal.covariance).norm(),
+		1e-11);
+
+	Matrix3d transition = Matrix3d::Identity();
+	transition(0, 1) = 0.1;
+	Matrix3d processCovariance = 0.02 * Matrix3d::Identity();
+	BOOST_REQUIRE(sequential.advance(transition, processCovariance));
+	BOOST_REQUIRE(batch.advance(transition, processCovariance));
+	BOOST_REQUIRE(sequential.addAcceptedMeasurement(
+		design, measurementCovariance, observation));
+	BOOST_REQUIRE(batch.addAcceptedMeasurement(
+		design, measurementCovariance, observation));
+	const auto sequentialFuture = sequential.targetMarginal();
+	const auto batchFuture = batch.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(sequentialFuture.valid, sequentialFuture.failureReason);
+	BOOST_REQUIRE_MESSAGE(batchFuture.valid, batchFuture.failureReason);
+	BOOST_CHECK_SMALL((sequentialFuture.mean - batchFuture.mean).norm(), 1e-10);
+	BOOST_CHECK_SMALL(
+		(sequentialFuture.covariance - batchFuture.covariance).norm(), 1e-10);
+}
+
+BOOST_AUTO_TEST_CASE(
+	persistent_snapshot_lifecycle_marginalises_only_released_targets)
+{
+	Vector2d priorMean(0.3, -0.4);
+	Matrix2d priorCovariance;
+	priorCovariance << 0.8, 0.2, 0.2, 1.1;
+	ZhangPersistentRawTargetWindow window;
+	BOOST_REQUIRE(window.initialise(priorMean, priorCovariance));
+	MatrixXd rows(3, 2);
+	rows << 1, 0, 0, 1, 1, -1;
+	BOOST_REQUIRE(window.bindNewTargets(
+		{"A", "B", "C"}, {"A@0", "B@0", "C@0"}, rows,
+		Vector3d(0.1, -0.2, 0.3), 1));
+	const auto before = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(before.valid, before.failureReason);
+	BOOST_REQUIRE(window.retainTargets({"A", "C"}));
+	const auto after = window.targetMarginal();
+	BOOST_REQUIRE_MESSAGE(after.valid, after.failureReason);
+	BOOST_REQUIRE_EQUAL(after.identities.size(), 2);
+	BOOST_CHECK_EQUAL(after.identities[0], "A");
+	BOOST_CHECK_EQUAL(after.identities[1], "C");
+	Vector2d expectedMean(before.mean(0), before.mean(2));
+	Matrix2d expectedCovariance;
+	expectedCovariance <<
+		before.covariance(0, 0), before.covariance(0, 2),
+		before.covariance(2, 0), before.covariance(2, 2);
+	BOOST_CHECK_SMALL((after.mean - expectedMean).norm(), 1e-11);
+	BOOST_CHECK_SMALL(
+		(after.covariance - expectedCovariance).norm(), 1e-11);
+}
+
 BOOST_AUTO_TEST_CASE(retained_target_information_block_matches_scalar_schur_update)
 {
 	KFKey first;
@@ -3517,7 +5929,7 @@ BOOST_AUTO_TEST_CASE(network_fundamental_cycle_is_primitive_and_nuisance_orthogo
 	BOOST_CHECK_EQUAL(Eigen::FullPivLU<MatrixXd>(complete).rank(), 4);
 }
 
-BOOST_AUTO_TEST_CASE(four_legal_trees_replay_identical_raw_factors_and_integer_datum)
+BOOST_AUTO_TEST_CASE(six_legal_trees_and_receiver_roots_replay_identical_raw_factors)
 {
 	SatSys g01(E_Sys::GPS, 1);
 	SatSys g02(E_Sys::GPS, 2);
@@ -3535,9 +5947,18 @@ BOOST_AUTO_TEST_CASE(four_legal_trees_replay_identical_raw_factors_and_integer_d
 	trees.push_back(zhangBuildSpanningTree(
 		edges, "R0", {{"R0", g03}, {"R1", g02}, {"R1", g03},
 			{"R2", g01}, {"R2", g03}}));
+	// Explicit receiver-root changes.  Preferred edges make the physical tree
+	// sets distinct, so this is not merely the same tree traversed from another
+	// root.
+	trees.push_back(zhangBuildSpanningTree(
+		edges, "R1", {{"R1", g01}, {"R1", g02}, {"R1", g03},
+			{"R0", g01}, {"R2", g02}}));
+	trees.push_back(zhangBuildSpanningTree(
+		edges, "R2", {{"R2", g01}, {"R2", g02}, {"R2", g03},
+			{"R0", g03}, {"R1", g02}}));
 	std::mt19937 generator(20260806);
 	std::uniform_real_distribution<double> quality(0.0, 1.0);
-	for (int attempt = 0; attempt < 100 && trees.size() < 4; attempt++)
+	for (int attempt = 0; attempt < 100 && trees.size() < 6; attempt++)
 	{
 		std::map<ZhangGraphEdge, double> seededQuality;
 		for (const auto& edge : edges)
@@ -3556,7 +5977,7 @@ BOOST_AUTO_TEST_CASE(four_legal_trees_replay_identical_raw_factors_and_integer_d
 			trees.push_back(std::move(candidate));
 		}
 	}
-	BOOST_REQUIRE_EQUAL(trees.size(), 4);
+	BOOST_REQUIRE_EQUAL(trees.size(), 6);
 	for (const auto& tree : trees)
 	{
 		BOOST_REQUIRE(tree.connected);
@@ -3566,7 +5987,7 @@ BOOST_AUTO_TEST_CASE(four_legal_trees_replay_identical_raw_factors_and_integer_d
 	{
 		distinctTrees.insert(tree.treeEdges);
 	}
-	BOOST_REQUIRE_EQUAL(distinctTrees.size(), 4);
+	BOOST_REQUIRE_EQUAL(distinctTrees.size(), 6);
 
 	// The four coordinate systems all map to one physical state containing
 	// four continuous nuisance terms followed by the nine physical arc
@@ -3652,6 +6073,10 @@ BOOST_AUTO_TEST_CASE(four_legal_trees_replay_identical_raw_factors_and_integer_d
 
 	std::vector<double> means;
 	std::vector<double> variances;
+	std::vector<double> roundErrorProbabilities;
+	std::vector<double> integerNis;
+	std::vector<long long> integerCandidates;
+	std::vector<bool> reliableStates;
 	for (const auto& tree : trees)
 	{
 		ZhangCanonicalIntegerAudit audit = zhangCanonicalIntegerAudit(tree);
@@ -3696,24 +6121,121 @@ BOOST_AUTO_TEST_CASE(four_legal_trees_replay_identical_raw_factors_and_integer_d
 		BOOST_REQUIRE_MESSAGE(marginal.valid, marginal.failureReason);
 		means.push_back(marginal.mean(0));
 		variances.push_back(marginal.covariance(0, 0));
+		const double fractional = marginal.mean(0)
+			- std::round(marginal.mean(0));
+		integerCandidates.push_back(std::llround(marginal.mean(0)));
+		roundErrorProbabilities.push_back(
+			testScalarRoundErrorProbability(
+				fractional, marginal.covariance(0, 0)));
+		integerNis.push_back(
+			fractional * fractional / marginal.covariance(0, 0));
+		reliableStates.push_back(
+			roundErrorProbabilities.back() <= 1e-3
+			&& integerNis.back() <= 23.9281);
 	}
 	double maximumMeanDifference = 0;
 	double maximumVarianceDifference = 0;
-	for (int strategy = 1; strategy < 4; strategy++)
+	double maximumPerrDifference = 0;
+	double maximumNisDifference = 0;
+	for (int strategy = 1; strategy < static_cast<int>(trees.size()); strategy++)
 	{
 		maximumMeanDifference = std::max(
 			maximumMeanDifference, std::abs(means[strategy] - means[0]));
 		maximumVarianceDifference = std::max(
 			maximumVarianceDifference,
 			std::abs(variances[strategy] - variances[0]));
+		maximumPerrDifference = std::max(
+			maximumPerrDifference,
+			std::abs(
+				roundErrorProbabilities[strategy]
+				- roundErrorProbabilities[0]));
+		maximumNisDifference = std::max(
+			maximumNisDifference,
+			std::abs(integerNis[strategy] - integerNis[0]));
 		BOOST_CHECK_SMALL(means[strategy] - means[0], 1e-10);
 		BOOST_CHECK_SMALL(variances[strategy] - variances[0], 1e-10);
+		BOOST_CHECK_SMALL(
+			roundErrorProbabilities[strategy]
+			- roundErrorProbabilities[0], 1e-10);
+		BOOST_CHECK_SMALL(
+			integerNis[strategy] - integerNis[0], 1e-10);
+		BOOST_CHECK_EQUAL(integerCandidates[strategy], integerCandidates[0]);
+		BOOST_CHECK_EQUAL(reliableStates[strategy], reliableStates[0]);
 	}
 	BOOST_TEST_MESSAGE(
-		"four-tree same-factor maximum_mean_difference="
+		"six-tree/root same-factor maximum_mean_difference="
 		<< maximumMeanDifference
 		<< " maximum_variance_difference="
-		<< maximumVarianceDifference);
+		<< maximumVarianceDifference
+		<< " maximum_perr_difference="
+		<< maximumPerrDifference
+		<< " maximum_nis_difference="
+		<< maximumNisDifference);
+}
+
+BOOST_AUTO_TEST_CASE(
+	satellite_reference_change_preserves_raw_integer_mean_variance_perr_and_nis)
+{
+	// Physical satellite potentials are only observed through differences.
+	// Ref-G01 coordinates are [s2-s1,s3-s1], while Ref-G02 coordinates are
+	// [s1-s2,s3-s2].  Both describe the same target s3-s1.
+	Vector3d physicalMean(0.35, -1.2, 2.45);
+	Matrix3d physicalCovariance;
+	physicalCovariance <<
+		0.9, 0.12, -0.04,
+		0.12, 0.7, 0.08,
+		-0.04, 0.08, 1.1;
+	MatrixXd refG01(2, 3);
+	refG01 << -1, 1, 0, -1, 0, 1;
+	MatrixXd refG02(2, 3);
+	refG02 << 1, -1, 0, 0, -1, 1;
+	MatrixXd designG01(3, 2);
+	designG01 << 1, 0, 0, 1, -1, 1;
+	MatrixXd designG02(3, 2);
+	designG02 << -1, 0, -1, 1, 0, 1;
+	MatrixXd physicalDifferenceDesign(3, 3);
+	physicalDifferenceDesign << -1, 1, 0, -1, 0, 1, 0, -1, 1;
+	Vector3d observation = physicalDifferenceDesign * physicalMean;
+	observation += Vector3d(0.006, -0.004, 0.002);
+	Matrix3d observationCovariance = 0.04 * Matrix3d::Identity();
+
+	std::vector<double> means;
+	std::vector<double> variances;
+	std::vector<double> perrs;
+	std::vector<double> nises;
+	std::vector<long long> candidates;
+	for (int reference = 0; reference < 2; reference++)
+	{
+		const MatrixXd& coordinate = reference == 0 ? refG01 : refG02;
+		const MatrixXd& design = reference == 0 ? designG01 : designG02;
+		VectorXd target(2);
+		target = reference == 0 ? Vector2d(0, 1) : Vector2d(-1, 1);
+		ZhangRawFactorWindow replay;
+		BOOST_REQUIRE(replay.initialise(
+			coordinate * physicalMean,
+			coordinate * physicalCovariance * coordinate.transpose()));
+		BOOST_REQUIRE(replay.addAcceptedMeasurement(
+			design, observationCovariance, observation));
+		const auto marginal = replay.marginaliseToIntegerDatum(
+			target.transpose(), VectorXd::Zero(1));
+		BOOST_REQUIRE_MESSAGE(marginal.valid, marginal.failureReason);
+		const long long candidate = std::llround(marginal.mean(0));
+		const double fractional = marginal.mean(0) - candidate;
+		means.push_back(marginal.mean(0));
+		variances.push_back(marginal.covariance(0, 0));
+		candidates.push_back(candidate);
+		perrs.push_back(testScalarRoundErrorProbability(
+			fractional, marginal.covariance(0, 0)));
+		nises.push_back(fractional * fractional / marginal.covariance(0, 0));
+	}
+	BOOST_CHECK_SMALL(means[1] - means[0], 1e-10);
+	BOOST_CHECK_SMALL(variances[1] - variances[0], 1e-10);
+	BOOST_CHECK_EQUAL(candidates[1], candidates[0]);
+	BOOST_CHECK_SMALL(perrs[1] - perrs[0], 1e-10);
+	BOOST_CHECK_SMALL(nises[1] - nises[0], 1e-10);
+	BOOST_CHECK_EQUAL(
+		perrs[0] <= 1e-3 && nises[0] <= 23.9281,
+		perrs[1] <= 1e-3 && nises[1] <= 23.9281);
 }
 
 BOOST_AUTO_TEST_CASE(incremental_fixed_lag_matches_dense_batch_and_kalman_at_2_5_10_epochs)
@@ -4899,4 +7421,1461 @@ BOOST_AUTO_TEST_CASE(incremental_target_separator_accumulates_and_retires_withou
 	BOOST_CHECK_LE(retired.storedRows, 2);
 	BOOST_CHECK_LE(retired.storedColumns, 2);
 	BOOST_CHECK_LE(retired.maximumStoredColumns, 3);
+}
+
+BOOST_AUTO_TEST_CASE(lambda_beam_single_row_leverage_matches_direct_schur_deletion)
+{
+	Matrix3d covariance;
+	covariance <<
+		0.08, 0.02, -0.01,
+		0.02, 0.11,  0.03,
+		-0.01, 0.03, 0.09;
+	Vector3d innovation(0.22, -0.31, 0.17);
+	const auto leverage = zhangConstraintNisLeverage(
+		innovation, covariance);
+	BOOST_REQUIRE(leverage.valid);
+
+	for (int removed = 0; removed < 3; removed++)
+	{
+		vector<int> retained;
+		for (int row = 0; row < 3; row++)
+		{
+			if (row != removed)
+			{
+				retained.push_back(row);
+			}
+		}
+		VectorXd reducedInnovation = innovation(retained);
+		MatrixXd reducedCovariance = covariance(retained, retained);
+		const double reducedNis = reducedInnovation.dot(
+			reducedCovariance.ldlt().solve(reducedInnovation));
+		BOOST_CHECK_SMALL(
+			leverage.nis - reducedNis
+				- leverage.deletionReduction(removed),
+			1e-12);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(lambda_beam_product_gain_and_hnf_are_basis_invariant)
+{
+	Matrix3d ambiguityCovariance;
+	ambiguityCovariance <<
+		0.12, 0.03, 0.01,
+		0.03, 0.15, 0.02,
+		0.01, 0.02, 0.09;
+	Matrix<double, 2, 3> productCross;
+	productCross <<
+		0.04, -0.02, 0.01,
+		0.01,  0.03, 0.02;
+	Matrix<double, 2, 3> rows;
+	rows << 1, 0, -1,
+		0, 1, 1;
+	Matrix2d unimodular;
+	unimodular << 1, 2, 0, 1;
+	Matrix<double, 2, 3> changedBasis = unimodular * rows;
+
+	const double gain = zhangConstraintProductInformationGain(
+		productCross, 0.8, ambiguityCovariance, rows);
+	const double changedGain = zhangConstraintProductInformationGain(
+		productCross, 0.8, ambiguityCovariance, changedBasis);
+	BOOST_REQUIRE(std::isfinite(gain));
+	BOOST_CHECK_SMALL(gain - changedGain, 1e-12);
+	BOOST_CHECK_EQUAL(
+		zhangIntegerRowHnfFingerprint(rows),
+		zhangIntegerRowHnfFingerprint(changedBasis));
+	BOOST_CHECK_EQUAL(
+		zhangIntegerRowHnfCanonicalKey(rows),
+		zhangIntegerRowHnfCanonicalKey(changedBasis));
+
+	Matrix<double, 1, 3> reduced = rows.topRows(1);
+	const double reducedGain = zhangConstraintProductInformationGain(
+		productCross, 0.8, ambiguityCovariance, reduced);
+	BOOST_CHECK_GE(gain + 1e-12, reducedGain);
+	BOOST_CHECK_NE(
+		zhangIntegerRowHnfFingerprint(rows),
+		zhangIntegerRowHnfFingerprint(reduced));
+	BOOST_CHECK_NE(
+		zhangIntegerRowHnfCanonicalKey(rows),
+		zhangIntegerRowHnfCanonicalKey(reduced));
+
+	Vector2d rhs(7, -3);
+	Vector2d changedRhs = unimodular * rhs;
+	BOOST_CHECK_EQUAL(
+		zhangIntegerAffineHnfCanonicalKey(rows, rhs),
+		zhangIntegerAffineHnfCanonicalKey(changedBasis, changedRhs));
+	BOOST_CHECK_EQUAL(
+		zhangIntegerAffineHnfFingerprint(rows, rhs),
+		zhangIntegerAffineHnfFingerprint(changedBasis, changedRhs));
+	Vector2d inconsistentRhs = changedRhs;
+	inconsistentRhs(0) += 1;
+	BOOST_CHECK_NE(
+		zhangIntegerAffineHnfCanonicalKey(rows, rhs),
+		zhangIntegerAffineHnfCanonicalKey(changedBasis, inconsistentRhs));
+}
+
+BOOST_AUTO_TEST_CASE(iar_product_gain_spectrum_matches_known_real_mode_ceiling)
+{
+	const Matrix3d ambiguityCovariance = Matrix3d::Identity();
+	Matrix3d ambiguityProductCross = Matrix3d::Zero();
+	ambiguityProductCross.diagonal() << 3, 2, 1;
+	const auto spectrum = zhangIarProductGainSpectrum(
+		ambiguityCovariance,
+		ambiguityProductCross,
+		Matrix3d::Identity());
+	BOOST_REQUIRE_MESSAGE(spectrum.valid, spectrum.failureReason);
+	BOOST_REQUIRE_EQUAL(spectrum.ambiguityRank, 3);
+	BOOST_REQUIRE_EQUAL(spectrum.eigenvaluesDescending.size(), 3);
+	BOOST_CHECK_SMALL(spectrum.eigenvaluesDescending(0) - 9, 1e-12);
+	BOOST_CHECK_SMALL(spectrum.eigenvaluesDescending(1) - 4, 1e-12);
+	BOOST_CHECK_SMALL(spectrum.eigenvaluesDescending(2) - 1, 1e-12);
+	BOOST_CHECK_SMALL(spectrum.totalWeightedGain - 14, 1e-12);
+	BOOST_CHECK_SMALL(spectrum.rho(1) - 9.0 / 14, 1e-12);
+	BOOST_CHECK_SMALL(spectrum.rho(2) - 13.0 / 14, 1e-12);
+	BOOST_CHECK_SMALL(spectrum.rho(20) - 1, 1e-12);
+	BOOST_CHECK_EQUAL(spectrum.minimumRankForRho(0.80), 2);
+	BOOST_CHECK_EQUAL(spectrum.minimumRankForRho(0.95), 3);
+}
+
+BOOST_AUTO_TEST_CASE(iar_product_gain_spectrum_is_ambiguity_basis_invariant)
+{
+	Matrix3d ambiguityCovariance;
+	ambiguityCovariance <<
+		0.12, 0.03, 0.01,
+		0.03, 0.15, 0.02,
+		0.01, 0.02, 0.09;
+	Matrix<double, 3, 2> ambiguityProductCross;
+	ambiguityProductCross <<
+		0.04, -0.02,
+		0.01,  0.03,
+		0.02,  0.01;
+	Matrix2d productWeight;
+	productWeight << 2.0, 0.2, 0.2, 0.7;
+	Matrix3d transform;
+	transform <<
+		1, 2, 0,
+		0, 1, 1,
+		1, 0, 1;
+	const auto baseline = zhangIarProductGainSpectrum(
+		ambiguityCovariance, ambiguityProductCross, productWeight);
+	const auto changed = zhangIarProductGainSpectrum(
+		transform * ambiguityCovariance * transform.transpose(),
+		transform * ambiguityProductCross,
+		productWeight);
+	BOOST_REQUIRE_MESSAGE(baseline.valid, baseline.failureReason);
+	BOOST_REQUIRE_MESSAGE(changed.valid, changed.failureReason);
+	BOOST_REQUIRE_EQUAL(
+		baseline.eigenvaluesDescending.size(),
+		changed.eigenvaluesDescending.size());
+	BOOST_CHECK_SMALL(
+		(baseline.eigenvaluesDescending -
+		 changed.eigenvaluesDescending).norm(),
+		1e-11);
+	BOOST_CHECK_SMALL(
+		baseline.totalWeightedGain - changed.totalWeightedGain,
+		1e-11);
+	BOOST_CHECK_SMALL(baseline.rho(2) - changed.rho(2), 1e-11);
+}
+
+BOOST_AUTO_TEST_CASE(iar_product_gain_spectrum_rejects_nullspace_cross_covariance)
+{
+	Matrix2d singularCovariance = Matrix2d::Zero();
+	singularCovariance(0, 0) = 4;
+	Vector2d validCross(2, 0);
+	const auto valid = zhangIarProductGainSpectrum(
+		singularCovariance,
+		validCross,
+		Matrix<double, 1, 1>::Identity());
+	BOOST_REQUIRE_MESSAGE(valid.valid, valid.failureReason);
+	BOOST_CHECK_EQUAL(valid.ambiguityRank, 1);
+	BOOST_CHECK_SMALL(valid.totalWeightedGain - 1, 1e-12);
+
+	Vector2d invalidCross(2, 0.1);
+	const auto invalid = zhangIarProductGainSpectrum(
+		singularCovariance,
+		invalidCross,
+		Matrix<double, 1, 1>::Identity());
+	BOOST_CHECK(!invalid.valid);
+	BOOST_CHECK_EQUAL(
+		invalid.failureReason,
+		"CROSS_COVARIANCE_OUTSIDE_AMBIGUITY_RANGE");
+}
+
+BOOST_AUTO_TEST_CASE(lambda_beam_bootstrap_log_failure_does_not_saturate)
+{
+	Vector3d conditionalVariances(1e-4, 2e-4, 5e-4);
+	const double logFailure =
+		zhangBootstrapLogFailure(conditionalVariances);
+	BOOST_CHECK(std::isfinite(logFailure));
+	BOOST_CHECK_LT(logFailure, -100);
+
+	Vector2d moderate(0.08, 0.12);
+	const double moderateLogFailure = zhangBootstrapLogFailure(moderate);
+	const double directSuccess =
+		std::erf(std::sqrt(1 / (8 * moderate(0)))) *
+		std::erf(std::sqrt(1 / (8 * moderate(1))));
+	BOOST_CHECK_SMALL(
+		std::exp(moderateLogFailure) - (1 - directSuccess), 1e-14);
+}
+
+BOOST_AUTO_TEST_CASE(e25b_joint_user_integer_functional_s0_s1_closes_exactly)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	SatSys g03(E_Sys::GPS, 3);
+	std::set<ZhangGraphEdge> edges = {
+		{"R0", g01}, {"R0", g02}, {"R0", g03},
+		{"R1", g01}, {"R1", g02}, {"R1", g03},
+		{"R2", g01}, {"R2", g02}, {"R2", g03}
+	};
+	ZhangGraphBasis productBasis = zhangBuildSpanningTree(
+		edges, "R0",
+		{{"R0", g01}, {"R1", g01}, {"R1", g02},
+		 {"R2", g02}, {"R2", g03}});
+	BOOST_REQUIRE(productBasis.connected);
+	std::map<ZhangGraphEdge, int> versions;
+	for (const auto& edge : edges)
+	{
+		versions[edge] = 4;
+	}
+	auto products = zhangBuildProductIntegerFunctionals(
+		productBasis, versions, g01, 7);
+	BOOST_REQUIRE_EQUAL(products.size(), 3);
+	for (const auto& [satellite, product] : products)
+	{
+		BOOST_REQUIRE(product.valid);
+		BOOST_CHECK_NE(
+			zhangProductIntegerFunctionalFingerprint(product), "INVALID");
+	}
+
+	auto functional = zhangBuildJointUserIntegerFunctional(
+		products, g01, 5);
+	BOOST_REQUIRE(functional.valid);
+	auto audit = zhangAuditUserIntegerLattice(functional);
+	BOOST_REQUIRE_MESSAGE(audit.valid, audit.failureReason);
+	BOOST_CHECK(audit.nuisanceOrthogonal);
+	BOOST_CHECK(audit.affineInteger);
+	BOOST_CHECK(audit.primitiveAdmissible);
+	BOOST_CHECK_SMALL(audit.maximumNuisanceCoefficient, 1e-15);
+	BOOST_CHECK_SMALL(audit.maximumAffineIntegerError, 1e-15);
+
+	std::mt19937 generator(20260808);
+	std::uniform_int_distribution<int> integerDistribution(-100, 100);
+	std::uniform_real_distribution<double> nuisanceDistribution(-100, 100);
+	ZhangExactVector integers(functional.integerRows.front().size());
+	for (auto& integer : integers)
+	{
+		integer = integerDistribution(generator);
+	}
+	VectorXd nuisanceA(5);
+	VectorXd nuisanceB(5);
+	for (int index = 0; index < 5; index++)
+	{
+		nuisanceA(index) = nuisanceDistribution(generator);
+		nuisanceB(index) = nuisanceDistribution(generator);
+	}
+	VectorXd valueA = functional.value(integers, nuisanceA);
+	VectorXd valueB = functional.value(integers, nuisanceB);
+	BOOST_REQUIRE_EQUAL(valueA.size(), 2);
+	BOOST_CHECK_SMALL((valueA - valueB).norm(), 1e-12);
+	for (int row = 0; row < valueA.size(); row++)
+	{
+		BOOST_CHECK_SMALL(valueA(row) - std::round(valueA(row)), 1e-12);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(e25b_random_tree_exchange_preserves_fixed_product_lattice)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	SatSys g03(E_Sys::GPS, 3);
+	std::set<ZhangGraphEdge> edges = {
+		{"R0", g01}, {"R0", g02}, {"R0", g03},
+		{"R1", g01}, {"R1", g02}, {"R1", g03},
+		{"R2", g01}, {"R2", g02}, {"R2", g03}
+	};
+	ZhangGraphBasis currentA = zhangBuildSpanningTree(
+		edges, "R0",
+		{{"R0", g01}, {"R0", g02}, {"R0", g03},
+		 {"R1", g01}, {"R2", g02}});
+	ZhangGraphBasis currentB = zhangBuildSpanningTree(
+		edges, "R0",
+		{{"R0", g01}, {"R1", g01}, {"R1", g03},
+		 {"R2", g02}, {"R2", g03}});
+	ZhangGraphBasis fixedProduct = zhangBuildSpanningTree(
+		edges, "R0",
+		{{"R0", g02}, {"R1", g02}, {"R1", g03},
+		 {"R2", g01}, {"R2", g03}});
+	BOOST_REQUIRE(currentA.connected && currentB.connected && fixedProduct.connected);
+	BOOST_REQUIRE(currentA.treeEdges != currentB.treeEdges);
+
+	ZhangSatelliteProductTarget representationA =
+		zhangBuildSatelliteProductTarget(currentA, fixedProduct, g01);
+	ZhangSatelliteProductTarget representationB =
+		zhangBuildSatelliteProductTarget(currentB, fixedProduct, g01);
+	BOOST_REQUIRE(representationA.valid && representationB.valid);
+	BOOST_CHECK(
+		zhangExactAbs(zhangExactDeterminant(
+			zhangCanonicalTransition(currentA, currentB))) == 1);
+
+	std::map<ZhangGraphEdge, int> versions;
+	for (const auto& edge : edges)
+	{
+		versions[edge] = 9;
+	}
+	auto fixedProductsA = zhangBuildProductIntegerFunctionals(
+		fixedProduct, versions, g01, 12);
+	auto fixedProductsB = zhangBuildProductIntegerFunctionals(
+		fixedProduct, versions, g01, 12);
+	BOOST_REQUIRE_EQUAL(fixedProductsA.size(), fixedProductsB.size());
+	for (const auto& [satellite, product] : fixedProductsA)
+	{
+		BOOST_CHECK_EQUAL(
+			zhangProductIntegerFunctionalFingerprint(product),
+			zhangProductIntegerFunctionalFingerprint(fixedProductsB.at(satellite)));
+	}
+	auto userA = zhangBuildJointUserIntegerFunctional(fixedProductsA, g01, 3);
+	auto userB = zhangBuildJointUserIntegerFunctional(fixedProductsB, g01, 3);
+	BOOST_REQUIRE(zhangAuditUserIntegerLattice(userA).valid);
+	BOOST_REQUIRE(zhangAuditUserIntegerLattice(userB).valid);
+	BOOST_CHECK(userA.integerRows == userB.integerRows);
+	BOOST_CHECK(
+		zhangClassifyTemporalIntegerDatumAction(false, true, false) ==
+		ZhangTemporalIntegerDatumAction::EXACT_TRANSPORT_NO_BESD);
+}
+
+BOOST_AUTO_TEST_CASE(e25b_cycle_slip_requires_besd_or_datum_reset)
+{
+	BOOST_CHECK(
+		zhangClassifyTemporalIntegerDatumAction(true, true, true) ==
+		ZhangTemporalIntegerDatumAction::ESTIMATE_BESD);
+	BOOST_CHECK(
+		zhangClassifyTemporalIntegerDatumAction(true, true, false) ==
+		ZhangTemporalIntegerDatumAction::RESET_PRODUCT_DATUM);
+	BOOST_CHECK(
+		zhangClassifyTemporalIntegerDatumAction(false, false, false) ==
+		ZhangTemporalIntegerDatumAction::RESET_PRODUCT_DATUM);
+}
+
+BOOST_AUTO_TEST_CASE(targeted_besd_selector_routes_only_nonheld_retired_arcs)
+{
+	const SatSys g08(E_Sys::GPS, 8);
+	const ZhangGraphEdge active{"R0", g08};
+	const ZhangGraphEdge retired{"R1", g08};
+	ZhangProductIntegerTransition transition;
+	transition.physicalEdges = {active, retired};
+	transition.physicalArcVersions = {3, 7};
+	transition.coefficients = {1, -1};
+	transition.valid = true;
+	const std::set<ZhangGraphEdge> postEventEdges = {active};
+	const std::map<ZhangGraphEdge, int> postEventVersions = {{active, 3}};
+
+	const auto selected = zhangSelectTargetedBesdTransition(
+		transition, postEventEdges, postEventVersions, false, false);
+	BOOST_CHECK(selected.selected);
+	BOOST_CHECK_EQUAL(selected.reason, "REQUIRES_BESD_RETIRED_ARC");
+	BOOST_CHECK_EQUAL(selected.physicalTerms, 2);
+
+	const auto held = zhangSelectTargetedBesdTransition(
+		transition, postEventEdges, postEventVersions, true, false);
+	BOOST_CHECK(!held.selected);
+	BOOST_CHECK_EQUAL(held.reason, "EXACT_HELD_TRANSPORT");
+
+	const auto reset = zhangSelectTargetedBesdTransition(
+		transition, postEventEdges, postEventVersions, false, true);
+	BOOST_CHECK(!reset.selected);
+	BOOST_CHECK_EQUAL(reset.reason, "PHASE_SEGMENT_RESET");
+
+	const std::set<ZhangGraphEdge> allEdges = {active, retired};
+	const std::map<ZhangGraphEdge, int> allVersions = {
+		{active, 3}, {retired, 7}};
+	const auto current = zhangSelectTargetedBesdTransition(
+		transition, allEdges, allVersions, false, false);
+	BOOST_CHECK(!current.selected);
+	BOOST_CHECK_EQUAL(current.reason, "CURRENT_PHYSICAL_GRAPH_RELATION");
+
+	auto versionChanged = allVersions;
+	versionChanged[retired] = 8;
+	const auto changed = zhangSelectTargetedBesdTransition(
+		transition, allEdges, versionChanged, false, false);
+	BOOST_CHECK(changed.selected);
+	BOOST_CHECK_EQUAL(changed.reason, "REQUIRES_BESD_RETIRED_ARC");
+}
+
+BOOST_AUTO_TEST_CASE(e25b_product_phase_transport_is_current_node_plus_cycle_target)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	ZhangGraphEdge first{"R0", g01};
+	ZhangGraphEdge second{"R0", g02};
+	ZhangProductIntegerFunctional reference;
+	reference.satellite = g01;
+	reference.referenceSatellite = g01;
+	reference.physicalEdges = {first, second};
+	reference.networkCoefficients = {0, 0};
+	reference.physicalArcVersions = {3, 3};
+	reference.affineOffsetCycles = 2;
+	reference.valid = true;
+	auto satellite = reference;
+	satellite.satellite = g02;
+	satellite.networkCoefficients = {2, -1};
+	satellite.affineOffsetCycles = 5;
+	std::map<SatSys, ZhangProductIntegerFunctional> products = {
+		{g01, reference}, {g02, satellite}
+	};
+	auto joint = zhangBuildJointUserIntegerFunctional(products, g01, 0);
+	BOOST_REQUIRE(zhangAuditUserIntegerLattice(joint).valid);
+
+	// Primitive order: two network arcs, then user G01/G02 ambiguities.
+	ZhangExactVector primitive = {4, -3, 11, 24};
+	const long long networkPath = 2 * 4 - (-3);
+	const long long userSd = 24 - 11;
+	const long long productAffineDifference = 5 - 2;
+	VectorXd value = joint.value(primitive, VectorXd());
+	BOOST_REQUIRE_EQUAL(value.size(), 1);
+	BOOST_CHECK_EQUAL(
+		value(0), userSd - networkPath - productAffineDifference);
+	BOOST_CHECK_EQUAL(
+		joint.affineOffsetsCycles(0), -productAffineDifference);
+
+	// The service state is the satellite phase bias B_P.  The current-tree
+	// state already contains z_T, so exact product transport must add G*k.
+	// Since the user model applies -(C-B_P) = -C+B_P, the resulting ambiguity
+	// is the user SD minus the complete product-tree node potential.
+	const long long currentTreeNode = -5;
+	const long long productTreeNode =
+		currentTreeNode + networkPath + productAffineDifference;
+	BOOST_CHECK_EQUAL(
+		productTreeNode,
+		currentTreeNode + networkPath + productAffineDifference);
+	BOOST_CHECK_EQUAL(userSd - productTreeNode,
+		userSd - currentTreeNode - networkPath - productAffineDifference);
+}
+
+BOOST_AUTO_TEST_CASE(product_physical_identity_ignores_unrelated_tree_generation)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	ZhangProductIntegerFunctional functional;
+	functional.satellite = g02;
+	functional.referenceSatellite = g01;
+	functional.physicalEdges = {{"R0", g01}, {"R0", g02}, {"R1", g02}};
+	functional.networkCoefficients = {1, -1, 0};
+	functional.physicalArcVersions = {4, 7, 99};
+	functional.temporalBasisVersion = 12;
+	functional.valid = true;
+
+	auto nextGeneration = functional;
+	nextGeneration.temporalBasisVersion = 13;
+	nextGeneration.physicalArcVersions[2] = 100;
+	BOOST_CHECK_EQUAL(
+		zhangProductPhysicalFunctionalFingerprint(functional),
+		zhangProductPhysicalFunctionalFingerprint(nextGeneration));
+	BOOST_CHECK_NE(
+		zhangProductIntegerFunctionalFingerprint(functional),
+		zhangProductIntegerFunctionalFingerprint(nextGeneration));
+
+	auto changedSupport = nextGeneration;
+	changedSupport.physicalArcVersions[1] = 8;
+	BOOST_CHECK_NE(
+		zhangProductPhysicalFunctionalFingerprint(functional),
+		zhangProductPhysicalFunctionalFingerprint(changedSupport));
+}
+
+BOOST_AUTO_TEST_CASE(product_functional_difference_preserves_arc_versions_exactly)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	ZhangGraphEdge a{"R0", g01};
+	ZhangGraphEdge b{"R0", g02};
+	ZhangProductIntegerFunctional previous;
+	previous.satellite = g02;
+	previous.referenceSatellite = g01;
+	previous.physicalEdges = {a, b};
+	previous.networkCoefficients = {1, -1};
+	previous.physicalArcVersions = {4, 7};
+	previous.affineOffsetCycles = 2;
+	previous.valid = true;
+
+	auto generationOnly = previous;
+	generationOnly.temporalBasisVersion = 99;
+	auto zero = zhangProductIntegerFunctionalDifference(
+		previous, generationOnly);
+	BOOST_REQUIRE(zero.valid);
+	BOOST_CHECK(zero.coefficients.empty());
+	BOOST_CHECK_EQUAL(zero.affineOffsetCycles, 0);
+
+	auto current = previous;
+	current.physicalArcVersions[1] = 8;
+	current.affineOffsetCycles = 5;
+	auto changed = zhangProductIntegerFunctionalDifference(previous, current);
+	BOOST_REQUIRE(changed.valid);
+	BOOST_REQUIRE_EQUAL(changed.coefficients.size(), 2);
+	BOOST_CHECK(changed.physicalEdges[0] == b);
+	BOOST_CHECK(changed.physicalEdges[1] == b);
+	BOOST_CHECK_EQUAL(changed.physicalArcVersions[0], 7);
+	BOOST_CHECK_EQUAL(changed.physicalArcVersions[1], 8);
+	BOOST_CHECK_EQUAL(changed.coefficients[0], 1);
+	BOOST_CHECK_EQUAL(changed.coefficients[1], -1);
+	BOOST_CHECK_EQUAL(changed.affineOffsetCycles, 3);
+}
+
+BOOST_AUTO_TEST_CASE(product_pair_difference_accepts_distinct_satellites_exactly)
+{
+	SatSys g01(E_Sys::GPS, 1);
+	SatSys g02(E_Sys::GPS, 2);
+	SatSys g03(E_Sys::GPS, 3);
+	ZhangGraphEdge a{"R0", g01};
+	ZhangGraphEdge b{"R0", g02};
+	ZhangGraphEdge c{"R0", g03};
+	ZhangProductIntegerFunctional first;
+	first.satellite = g02;
+	first.referenceSatellite = g01;
+	first.physicalEdges = {a, b};
+	first.networkCoefficients = {1, -1};
+	first.physicalArcVersions = {4, 7};
+	first.affineOffsetCycles = 2;
+	first.valid = true;
+	ZhangProductIntegerFunctional second;
+	second.satellite = g03;
+	second.referenceSatellite = g01;
+	second.physicalEdges = {b, c};
+	second.networkCoefficients = {1, -1};
+	second.physicalArcVersions = {7, 9};
+	second.affineOffsetCycles = 7;
+	second.valid = true;
+
+	BOOST_CHECK(!zhangProductIntegerFunctionalDifference(first, second).valid);
+	const auto pair = zhangProductIntegerFunctionalPairDifference(first, second);
+	BOOST_REQUIRE_MESSAGE(pair.valid, pair.failureReason);
+	BOOST_REQUIRE_EQUAL(pair.coefficients.size(), 3);
+	BOOST_CHECK_EQUAL(pair.coefficients[0], -1);
+	BOOST_CHECK_EQUAL(pair.coefficients[1], 2);
+	BOOST_CHECK_EQUAL(pair.coefficients[2], -1);
+	BOOST_CHECK_EQUAL(pair.affineOffsetCycles, 5);
+}
+
+BOOST_AUTO_TEST_CASE(e25b_rejects_nuisance_fractional_offset_and_unsaturated_rows)
+{
+	ZhangJointUserIntegerFunctional valid;
+	valid.integerRows = {{1, -1, 0}, {0, 1, -1}};
+	valid.nuisanceRows = MatrixXd::Zero(2, 2);
+	valid.affineOffsetsCycles = VectorXd::Zero(2);
+	valid.valid = true;
+	BOOST_REQUIRE(zhangAuditUserIntegerLattice(valid).valid);
+
+	auto nuisanceLeak = valid;
+	nuisanceLeak.nuisanceRows(0, 1) = 0.01;
+	auto nuisanceAudit = zhangAuditUserIntegerLattice(nuisanceLeak);
+	BOOST_CHECK(!nuisanceAudit.valid);
+	BOOST_CHECK_EQUAL(
+		nuisanceAudit.failureReason,
+		"REAL_NUISANCE_LEAKS_INTO_INTEGER_FUNCTIONAL");
+
+	auto fractionalOffset = valid;
+	fractionalOffset.affineOffsetsCycles(1) = 0.25;
+	auto offsetAudit = zhangAuditUserIntegerLattice(fractionalOffset);
+	BOOST_CHECK(!offsetAudit.valid);
+	BOOST_CHECK_EQUAL(offsetAudit.failureReason, "NON_INTEGER_AFFINE_OFFSET");
+
+	auto unsaturated = valid;
+	for (auto& row : unsaturated.integerRows)
+	for (auto& coefficient : row)
+	{
+		coefficient *= 2;
+	}
+	auto saturationAudit = zhangAuditUserIntegerLattice(unsaturated);
+	BOOST_CHECK(!saturationAudit.valid);
+	BOOST_CHECK(!saturationAudit.primitiveAdmissible);
+}
+
+BOOST_AUTO_TEST_CASE(e29_checkpoint_core_roundtrip_is_bitwise_and_preserves_callbacks)
+{
+	TemporaryCheckpointFile file("_roundtrip.bin");
+	auto bundle = makeCheckpointTestBundle();
+	auto writeResult = writeZhangCheckpointBundle(
+		file.path.string(), bundle);
+	BOOST_REQUIRE_MESSAGE(writeResult.valid, writeResult.failureReason);
+	BOOST_CHECK_EQUAL(writeResult.payloadSha256.size(), 64);
+	BOOST_CHECK_GT(writeResult.payloadBytes, 0);
+	std::string fileHashFailure;
+	BOOST_CHECK_EQUAL(
+		zhangCheckpointFileSha256(file.path.string(), &fileHashFailure).size(),
+		64);
+	BOOST_CHECK_EQUAL(fileHashFailure, "NONE");
+
+	ZhangCheckpointBundle restoredBundle;
+	auto readResult = readZhangCheckpointBundle(
+		file.path.string(), checkpointTestExpectations(), restoredBundle);
+	BOOST_REQUIRE_MESSAGE(readResult.valid, readResult.failureReason);
+	BOOST_CHECK_EQUAL(readResult.payloadSha256, writeResult.payloadSha256);
+	BOOST_REQUIRE_EQUAL(restoredBundle.sections.count("zhang.graph"), 1);
+	const auto& graphSection = restoredBundle.sections.at("zhang.graph");
+	BOOST_CHECK_EQUAL(graphSection.schemaVersion, 1);
+	BOOST_CHECK_EQUAL(graphSection.payload, "pointer-free-graph-runtime");
+	BOOST_CHECK_EQUAL(
+		graphSection.sha256,
+		zhangCheckpointSha256(graphSection.payload));
+
+	KFState unresolvedDestination;
+	const VectorXd unresolvedBefore = unresolvedDestination.x;
+	std::string unresolvedFailure;
+	BOOST_CHECK(!restoreZhangCheckpointKfCoreWithReceiverResolver(
+		restoredBundle.kfCore,
+		unresolvedDestination,
+		[](const std::string&) -> Receiver* { return nullptr; },
+		&unresolvedFailure));
+	BOOST_CHECK_EQUAL(
+		unresolvedFailure,
+		"CHECKPOINT_CORE_RECEIVER_POINTER_REBIND_FAILED:R0");
+	BOOST_CHECK(
+		(unresolvedDestination.x.array() == unresolvedBefore.array()).all());
+
+	KFState destination;
+	destination.acceptedMeasurementFactorCallback = [](
+		const KFState&,
+		const KFMeas&,
+		const std::string&,
+		const VectorXd&,
+		const MatrixXd&) {};
+	std::string restoreFailure;
+	BOOST_REQUIRE(restoreZhangCheckpointKfCoreWithReceiverResolver(
+		restoredBundle.kfCore,
+		destination,
+		[](const std::string& id) -> Receiver*
+		{
+			return id == "R0" ? &checkpointTestReceiver() : nullptr;
+		},
+		&restoreFailure));
+	BOOST_CHECK_EQUAL(restoreFailure, "NONE");
+	BOOST_CHECK(static_cast<bool>(
+		destination.acceptedMeasurementFactorCallback));
+	BOOST_CHECK_EQUAL(zhangCheckpointRuntimeId(destination), "runtime-00");
+	std::string bindFailure;
+	BOOST_CHECK(bindZhangCheckpointRuntimeId(
+		destination, "runtime-00", &bindFailure));
+	BOOST_CHECK_EQUAL(bindFailure, "NONE");
+	BOOST_CHECK(!bindZhangCheckpointRuntimeId(
+		destination, "different-runtime", &bindFailure));
+	BOOST_CHECK_EQUAL(bindFailure, "CHECKPOINT_RUNTIME_ID_ALREADY_BOUND");
+	BOOST_CHECK(zhangCheckpointKfCoreBitwiseEqual(
+		restoredBundle.kfCore,
+		captureZhangCheckpointKfCore(destination)));
+	BOOST_REQUIRE_EQUAL(destination.filterChunkMap.count("zhang"), 1);
+	const auto& chunk = destination.filterChunkMap.at("zhang");
+	BOOST_CHECK_EQUAL(chunk.begH, 7);
+	BOOST_CHECK_EQUAL(chunk.numH, 11);
+	bool estimatedTimeRestored = false;
+	bool receiverPointerRestored = false;
+	for (const auto& [key, index] : destination.kfIndexMap)
+	{
+		if (key.type == KF::REC_CLOCK && key.str == "R0")
+		{
+			receiverPointerRestored =
+				key.rec_ptr == &checkpointTestReceiver();
+		}
+		if (key.type == KF::SAT_CLOCK && key.Sat == SatSys(E_Sys::GPS, 7))
+		{
+			estimatedTimeRestored =
+				key.estimatedTime.bigTime == 123456710.25L;
+		}
+	}
+	BOOST_CHECK(receiverPointerRestored);
+	BOOST_CHECK(estimatedTimeRestored);
+}
+
+BOOST_AUTO_TEST_CASE(e29_checkpoint_rejects_corruption_and_provenance_drift)
+{
+	TemporaryCheckpointFile file("_corrupt.bin");
+	auto bundle = makeCheckpointTestBundle();
+	auto writeResult = writeZhangCheckpointBundle(
+		file.path.string(), bundle);
+	BOOST_REQUIRE_MESSAGE(writeResult.valid, writeResult.failureReason);
+
+	auto wrongExpectations = checkpointTestExpectations();
+	wrongExpectations.configSha256 = std::string(64, 'd');
+	ZhangCheckpointBundle ignored;
+	auto provenanceResult = readZhangCheckpointBundle(
+		file.path.string(), wrongExpectations, ignored);
+	BOOST_CHECK(!provenanceResult.valid);
+	BOOST_CHECK_EQUAL(
+		provenanceResult.failureReason,
+		"CHECKPOINT_PROVENANCE_MISMATCH");
+
+	std::fstream stream(
+		file.path, std::ios::binary | std::ios::in | std::ios::out);
+	BOOST_REQUIRE(stream);
+	stream.seekg(-1, std::ios::end);
+	char byte = 0;
+	stream.read(&byte, 1);
+	BOOST_REQUIRE(stream);
+	byte ^= 0x5a;
+	stream.seekp(-1, std::ios::end);
+	stream.write(&byte, 1);
+	stream.flush();
+	BOOST_REQUIRE(stream);
+	stream.close();
+
+	auto corruptResult = readZhangCheckpointBundle(
+		file.path.string(), checkpointTestExpectations(), ignored);
+	BOOST_CHECK(!corruptResult.valid);
+	BOOST_CHECK_EQUAL(
+		corruptResult.failureReason,
+		"CHECKPOINT_PAYLOAD_SHA256_MISMATCH");
+}
+
+BOOST_AUTO_TEST_CASE(e29_checkpoint_writer_fails_closed_on_invalid_identity_and_index)
+{
+	TemporaryCheckpointFile missingIdentityFile("_identity.bin");
+	auto missingIdentity = makeCheckpointTestBundle();
+	missingIdentity.manifest.runtimeId.clear();
+	auto identityResult = writeZhangCheckpointBundle(
+		missingIdentityFile.path.string(), missingIdentity);
+	BOOST_CHECK(!identityResult.valid);
+	BOOST_CHECK_EQUAL(
+		identityResult.failureReason,
+		"CHECKPOINT_MANIFEST_IDENTITY_MISSING");
+	BOOST_CHECK(!std::filesystem::exists(missingIdentityFile.path));
+
+	TemporaryCheckpointFile badIndexFile("_index.bin");
+	auto badIndex = makeCheckpointTestBundle();
+	auto firstIndex = badIndex.kfCore.kfIndexMap.begin();
+	auto secondIndex = std::next(firstIndex);
+	secondIndex->second = firstIndex->second;
+	auto indexResult = writeZhangCheckpointBundle(
+		badIndexFile.path.string(), badIndex);
+	BOOST_CHECK(!indexResult.valid);
+	BOOST_CHECK_EQUAL(
+		indexResult.failureReason,
+		"CHECKPOINT_CORE_INDEX_NOT_BIJECTIVE");
+	BOOST_CHECK(!std::filesystem::exists(badIndexFile.path));
+
+	TemporaryCheckpointFile badContentFile("_content.bin");
+	auto badContent = makeCheckpointTestBundle();
+	badContent.manifest.configText += "-tampered";
+	auto contentResult = writeZhangCheckpointBundle(
+		badContentFile.path.string(), badContent);
+	BOOST_CHECK(!contentResult.valid);
+	BOOST_CHECK_EQUAL(
+		contentResult.failureReason,
+		"CHECKPOINT_MANIFEST_CONTENT_HASH_MISMATCH");
+}
+
+BOOST_AUTO_TEST_CASE(e29_checkpoint_required_sections_are_strictly_validated)
+{
+	auto bundle = makeCheckpointTestBundle();
+	const std::vector<ZhangCheckpointSectionRequirement> requirements = {
+		{"zhang.graph", 1}};
+	std::string failure;
+	BOOST_CHECK(validateZhangCheckpointRequiredSections(
+		bundle, requirements, &failure));
+	BOOST_CHECK_EQUAL(failure, "NONE");
+
+	auto missing = bundle;
+	missing.sections.clear();
+	BOOST_CHECK(!validateZhangCheckpointRequiredSections(
+		missing, requirements, &failure));
+	BOOST_CHECK_EQUAL(
+		failure, "CHECKPOINT_REQUIRED_SECTION_MISSING:zhang.graph");
+
+	auto wrongVersion = bundle;
+	wrongVersion.sections.at("zhang.graph").schemaVersion = 2;
+	BOOST_CHECK(!validateZhangCheckpointRequiredSections(
+		wrongVersion, requirements, &failure));
+	BOOST_CHECK_EQUAL(
+		failure,
+		"CHECKPOINT_REQUIRED_SECTION_VERSION_MISMATCH:zhang.graph");
+
+	auto corrupt = bundle;
+	corrupt.sections.at("zhang.graph").payload += "-corrupt";
+	BOOST_CHECK(!validateZhangCheckpointRequiredSections(
+		corrupt, requirements, &failure));
+	BOOST_CHECK_EQUAL(
+		failure, "CHECKPOINT_REQUIRED_SECTION_HASH_MISMATCH:zhang.graph");
+}
+
+BOOST_AUTO_TEST_CASE(e29_checkpoint_manifest_json_is_atomic_and_auditable)
+{
+	TemporaryCheckpointFile file("_manifest.json");
+	auto bundle = makeCheckpointTestBundle();
+	auto writeResult = writeZhangCheckpointManifestJson(
+		file.path.string(), bundle);
+	BOOST_REQUIRE_MESSAGE(writeResult.valid, writeResult.failureReason);
+	BOOST_CHECK_EQUAL(writeResult.payloadSha256.size(), 64);
+	BOOST_CHECK_GT(writeResult.payloadBytes, 0);
+
+	std::ifstream input(file.path, std::ios::binary);
+	BOOST_REQUIRE(input);
+	const std::string json(
+		(std::istreambuf_iterator<char>(input)),
+		std::istreambuf_iterator<char>());
+	BOOST_CHECK_NE(json.find("\"runtime_id\": \"runtime-00\""),
+		std::string::npos);
+	BOOST_CHECK_NE(json.find("\"state_dimension\": 3"),
+		std::string::npos);
+	BOOST_CHECK_NE(json.find("\"name\": \"zhang.graph\""),
+		std::string::npos);
+	BOOST_CHECK_NE(json.find(
+		bundle.sections.at("zhang.graph").sha256), std::string::npos);
+
+	auto secondWrite = writeZhangCheckpointManifestJson(
+		file.path.string(), bundle);
+	BOOST_CHECK(!secondWrite.valid);
+	BOOST_CHECK_EQUAL(
+		secondWrite.failureReason, "CHECKPOINT_TARGET_ALREADY_EXISTS");
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_admission_commits_exact_redundant_batch)
+{
+	ZhangProductRelationAdmissionState state;
+	auto candidate = [](
+		const std::string& id,
+		const std::string& satellite,
+		const std::string& observable,
+		const std::map<std::string, ZhangExactInteger>& row,
+		long long value)
+	{
+		ZhangProductRelationAdmissionCandidate result;
+		result.relationId = id;
+		result.satellite = satellite;
+		result.observable = observable;
+		result.physicalCoefficients = row;
+		result.integerValue = value;
+		result.exactIntegerEstimable = true;
+		result.phaseSegmentCompatible = true;
+		result.scalarReliabilityPassed = true;
+		result.jointNisPassed = true;
+		return result;
+	};
+	const std::vector<ZhangProductRelationAdmissionCandidate> rows = {
+		candidate("G02-L1-a", "G02", "L1C", {{"a", 1}}, 3),
+		candidate("G02-L1-a-repeat", "G02", "L1C", {{"a", 1}}, 3),
+		candidate("G02-L2-b", "G02", "L2W", {{"b", 1}}, -2),
+		candidate("G02-L2-b-repeat", "G02", "L2W", {{"b", 1}}, -2),
+	};
+	const auto result = ProductRelationAdmission::admit(state, rows);
+	BOOST_CHECK(result.committed);
+	BOOST_CHECK_EQUAL(result.status, "CERTIFIED_NEW_RELATION");
+	BOOST_CHECK_EQUAL(result.candidateRows, 4);
+	BOOST_CHECK_EQUAL(result.candidateExactRank, 2);
+	BOOST_CHECK_EQUAL(result.candidateRedundantRows, 2);
+	BOOST_CHECK(result.candidateCycleClosureConsistent);
+	BOOST_CHECK(result.persistentCycleClosureConsistent);
+	BOOST_CHECK_EQUAL(result.persistentRankAfter, 2);
+	BOOST_CHECK_EQUAL(result.restoredSatellites, 1);
+	BOOST_CHECK_EQUAL(state.certifiedSatellites.count("G02"), 1);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_admission_aborts_conflicting_cycle_atomically)
+{
+	ZhangProductRelationAdmissionState state;
+	ZhangProductRelationAdmissionCandidate first;
+	first.relationId = "first";
+	first.satellite = "G02";
+	first.observable = "L1C";
+	first.physicalCoefficients = {{"a", 1}};
+	first.integerValue = 3;
+	first.exactIntegerEstimable = true;
+	first.phaseSegmentCompatible = true;
+	first.scalarReliabilityPassed = true;
+	first.jointNisPassed = true;
+	auto duplicate = first;
+	duplicate.relationId = "conflict";
+	duplicate.integerValue = 4;
+	const auto result = ProductRelationAdmission::admit(
+		state, {first, duplicate});
+	BOOST_CHECK(!result.committed);
+	BOOST_CHECK_EQUAL(
+		result.status, "ABORT_INCONSISTENT_CANDIDATE_CYCLE_CLOSURE");
+	BOOST_CHECK(state.certifiedRows.empty());
+	BOOST_CHECK(state.certifiedSatellites.empty());
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_admission_waits_for_redundancy)
+{
+	ZhangProductRelationAdmissionState state;
+	ZhangProductRelationAdmissionCandidate candidate;
+	candidate.relationId = "single-bridge";
+	candidate.satellite = "G02";
+	candidate.observable = "L1C";
+	candidate.physicalCoefficients = {{"a", 1}};
+	candidate.integerValue = 3;
+	candidate.exactIntegerEstimable = true;
+	candidate.phaseSegmentCompatible = true;
+	candidate.scalarReliabilityPassed = true;
+	candidate.jointNisPassed = true;
+	const auto result = ProductRelationAdmission::admit(state, {candidate});
+	BOOST_CHECK(!result.committed);
+	BOOST_CHECK_EQUAL(
+		result.status, "PREPARE_MERGE_AWAITING_REDUNDANCY");
+	BOOST_CHECK(state.certifiedRows.empty());
+	BOOST_CHECK_EQUAL(state.pendingCandidates.size(), 1);
+	auto redundant = candidate;
+	redundant.relationId = "redundant-bridge";
+	const auto committed = ProductRelationAdmission::admit(
+		state, {redundant});
+	BOOST_CHECK(committed.committed);
+	BOOST_CHECK_EQUAL(committed.candidateRows, 2);
+	BOOST_CHECK_EQUAL(committed.candidateExactRank, 1);
+	BOOST_CHECK_EQUAL(committed.candidateRedundantRows, 1);
+	BOOST_CHECK(state.pendingCandidates.empty());
+	BOOST_CHECK_EQUAL(state.certifiedRows.size(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_admission_fails_closed_at_every_gate)
+{
+	auto validCandidate = []()
+	{
+		ZhangProductRelationAdmissionCandidate candidate;
+		candidate.relationId = "gate-a";
+		candidate.satellite = "G02";
+		candidate.observable = "L1C";
+		candidate.physicalCoefficients = {{"a", 1}};
+		candidate.integerValue = 3;
+		candidate.exactIntegerEstimable = true;
+		candidate.phaseSegmentCompatible = true;
+		candidate.scalarReliabilityPassed = true;
+		candidate.jointNisPassed = true;
+		return candidate;
+	};
+	struct GateCase
+	{
+		std::string expected;
+		std::function<void(ZhangProductRelationAdmissionCandidate&)> fail;
+	};
+	const std::vector<GateCase> cases = {
+		{"REJECTED_NOT_EXACT_INTEGER_ESTIMABLE", [](auto& row)
+			{ row.exactIntegerEstimable = false; }},
+		{"REJECTED_PHASE_SEGMENT_INCOMPATIBLE", [](auto& row)
+			{ row.phaseSegmentCompatible = false; }},
+		{"REJECTED_SCALAR_RELIABILITY", [](auto& row)
+			{ row.scalarReliabilityPassed = false; }},
+		{"REJECTED_JOINT_NIS", [](auto& row)
+			{ row.jointNisPassed = false; }},
+	};
+	for (const auto& test : cases)
+	{
+		ZhangProductRelationAdmissionState state;
+		auto first = validCandidate();
+		auto second = first;
+		second.relationId = "gate-b";
+		test.fail(first);
+		const auto result = ProductRelationAdmission::admit(
+			state, {first, second});
+		BOOST_CHECK(!result.committed);
+		BOOST_CHECK_EQUAL(result.status, test.expected);
+		BOOST_CHECK(state.certifiedRows.empty());
+		BOOST_CHECK(state.pendingCandidates.empty());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_admission_requires_redundancy_per_signal)
+{
+	auto make = [](const std::string& id, const std::string& observable,
+		const std::string& column, long long value)
+	{
+		ZhangProductRelationAdmissionCandidate candidate;
+		candidate.relationId = id;
+		candidate.satellite = "G02";
+		candidate.observable = observable;
+		candidate.physicalCoefficients = {{column, 1}};
+		candidate.integerValue = value;
+		candidate.exactIntegerEstimable = true;
+		candidate.phaseSegmentCompatible = true;
+		candidate.scalarReliabilityPassed = true;
+		candidate.jointNisPassed = true;
+		return candidate;
+	};
+	ZhangProductRelationAdmissionState state;
+	const auto result = ProductRelationAdmission::admit(state, {
+		make("l1-a", "L1C", "a", 3),
+		make("l1-b", "L1C", "a", 3),
+		make("l2-a", "L2W", "b", -2),
+	});
+	BOOST_CHECK(!result.committed);
+	BOOST_CHECK_EQUAL(
+		result.status, "PREPARE_MERGE_AWAITING_REDUNDANCY");
+	BOOST_CHECK_EQUAL(result.observableGroups, 2);
+	BOOST_CHECK_EQUAL(result.redundancyCheckedGroups, 1);
+	BOOST_CHECK_EQUAL(state.pendingCandidates.size(), 3);
+}
+
+BOOST_AUTO_TEST_CASE(temporal_certificate_confirmation_is_value_gap_and_kind_safe)
+{
+	TemporalCertificateConfirmationState state;
+	auto first = zhangConfirmTemporalCertificate(
+		state, "L1C:G03-G02", ZhangExactInteger(7), 100,
+		"path-a", false, 3, 30, false);
+	BOOST_CHECK(!first.accepted);
+	BOOST_CHECK_EQUAL(first.consistentEpochs, 1);
+
+	// Re-evaluating the same epoch must not manufacture confirmation count.
+	auto duplicate = zhangConfirmTemporalCertificate(
+		state, "L1C:G03-G02", ZhangExactInteger(7), 100,
+		"path-a", false, 3, 30, false);
+	BOOST_CHECK_EQUAL(duplicate.consistentEpochs, 1);
+
+	zhangConfirmTemporalCertificate(
+		state, "L1C:G03-G02", ZhangExactInteger(7), 110,
+		"path-a", false, 3, 30, false);
+	auto third = zhangConfirmTemporalCertificate(
+		state, "L1C:G03-G02", ZhangExactInteger(7), 120,
+		"path-a", false, 3, 30, false);
+	BOOST_CHECK(third.accepted);
+
+	// An integer change is a new hypothesis, not a continuation.
+	auto changed = zhangConfirmTemporalCertificate(
+		state, "L1C:G03-G02", ZhangExactInteger(8), 130,
+		"path-a", false, 3, 30, false);
+	BOOST_CHECK(changed.reset);
+	BOOST_CHECK_EQUAL(changed.consistentEpochs, 1);
+
+	// A bridge additionally requires independent redundant support.
+	TemporalCertificateConfirmationState bridge;
+	auto noRedundancy = zhangConfirmTemporalCertificate(
+		bridge, "L1C:G05-G02", ZhangExactInteger(2), 200,
+		"path-a", false, 1, 30, true);
+	BOOST_CHECK(!noRedundancy.accepted);
+	BOOST_CHECK_EQUAL(noRedundancy.reason, "AWAITING_REDUNDANCY");
+	auto redundant = zhangConfirmTemporalCertificate(
+		bridge, "L1C:G05-G02", ZhangExactInteger(2), 210,
+		"path-b", true, 1, 30, true);
+	BOOST_CHECK(redundant.accepted);
+
+	BOOST_CHECK_EQUAL(
+		zhangTemporalCertificateKindName(
+			TemporalCertificateKind::SELF_GAUGE_SHIFT),
+		"SELF_GAUGE_SHIFT");
+	BOOST_CHECK_EQUAL(
+		zhangTemporalCertificateKindName(
+			TemporalCertificateKind::INTER_SATELLITE_BRIDGE),
+		"INTER_SATELLITE_BRIDGE");
+}
+
+BOOST_AUTO_TEST_CASE(targeted_besd_tracker_matches_augmented_kalman_update)
+{
+	VectorXd stateMean(2);
+	stateMean << 1.2, -0.7;
+	MatrixXd stateCovariance(2, 2);
+	stateCovariance << 4.0, 0.6,
+		0.6, 2.0;
+	MatrixXd targets(2, 2);
+	targets << 1, -1,
+		2, 1;
+	VectorXd offsets(2);
+	offsets << 3, -2;
+
+	ZhangTargetedBesdTracker tracker;
+	BOOST_REQUIRE(tracker.initialise(
+		{"old", "new"}, targets, offsets, stateMean, stateCovariance));
+
+	MatrixXd design(1, 2);
+	design << 0.5, 1.5;
+	MatrixXd noise(1, 1);
+	noise << 0.25;
+	VectorXd residual(1);
+	residual << -0.8;
+
+	// Independent augmented-state reference update for [x, f].
+	VectorXd jointMean(4);
+	jointMean << stateMean, targets * stateMean + offsets;
+	MatrixXd jointCovariance(4, 4);
+	jointCovariance.topLeftCorner(2, 2) = stateCovariance;
+	jointCovariance.bottomLeftCorner(2, 2) = targets * stateCovariance;
+	jointCovariance.topRightCorner(2, 2) =
+		jointCovariance.bottomLeftCorner(2, 2).transpose();
+	jointCovariance.bottomRightCorner(2, 2) =
+		targets * stateCovariance * targets.transpose();
+	MatrixXd jointDesign = MatrixXd::Zero(1, 4);
+	jointDesign.leftCols(2) = design;
+	MatrixXd innovation = jointDesign * jointCovariance
+		* jointDesign.transpose() + noise;
+	MatrixXd gain = jointCovariance * jointDesign.transpose()
+		* innovation.inverse();
+	jointMean += gain * residual;
+	jointCovariance -= gain * innovation * gain.transpose();
+	jointCovariance = 0.5
+		* (jointCovariance + jointCovariance.transpose());
+
+	BOOST_REQUIRE(tracker.updateAcceptedMeasurement(
+		stateCovariance, design, noise, residual));
+	const auto marginal = tracker.marginal();
+	BOOST_REQUIRE(marginal.valid);
+	BOOST_CHECK_SMALL(
+		(marginal.mean - jointMean.tail(2)).norm(), 1e-12);
+	BOOST_CHECK_SMALL(
+		(marginal.covariance
+			- jointCovariance.bottomRightCorner(2, 2)).norm(), 1e-12);
+	BOOST_CHECK_SMALL(
+		(tracker.crossCovariance()
+			- jointCovariance.bottomLeftCorner(2, 2)).norm(), 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(targeted_besd_tracker_carries_only_target_schur_boundary)
+{
+	VectorXd stateMean(3);
+	stateMean << 1, 2, 3;
+	MatrixXd stateCovariance = MatrixXd::Identity(3, 3);
+	MatrixXd targets(2, 3);
+	targets << 1, 0, -1,
+		0, 2, 1;
+	ZhangTargetedBesdTracker tracker;
+	BOOST_REQUIRE(tracker.initialise(
+		{"old", "new"}, targets, VectorXd::Zero(2),
+		stateMean, stateCovariance));
+
+	MatrixXd transition(2, 3);
+	transition << 1, 0, 0,
+		0, 1, 1;
+	const MatrixXd expectedCross =
+		tracker.crossCovariance() * transition.transpose();
+	const auto before = tracker.marginal();
+	BOOST_REQUIRE(tracker.advanceState(transition));
+	const auto after = tracker.marginal();
+	BOOST_REQUIRE(after.valid);
+	BOOST_CHECK_EQUAL(tracker.targetCount(), 2);
+	BOOST_CHECK_EQUAL(tracker.currentStateDimension(), 2);
+	BOOST_CHECK_SMALL((after.mean - before.mean).norm(), 1e-15);
+	BOOST_CHECK_SMALL(
+		(after.covariance - before.covariance).norm(), 1e-15);
+	BOOST_CHECK_SMALL(
+		(tracker.crossCovariance() - expectedCross).norm(), 1e-15);
+
+	// A malformed update fails closed and leaves no usable marginal.
+	BOOST_CHECK(!tracker.updateAcceptedMeasurement(
+		MatrixXd::Identity(3, 3), MatrixXd::Zero(1, 3),
+		MatrixXd::Identity(1, 1), VectorXd::Zero(1)));
+	BOOST_CHECK(!tracker.isActive());
+	BOOST_CHECK(!tracker.marginal().valid);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_score_is_reliability_lexicographic)
+{
+	ZhangProductRelationLexicographicScore unreliable;
+	unreliable.componentCoverageGain = 100;
+	unreliable.productInformationGain = 1;
+	ZhangProductRelationLexicographicScore reliable;
+	reliable.reliabilityPassed = true;
+	reliable.componentCoverageGain = 1;
+	reliable.productInformationGain = 1e-6;
+	BOOST_CHECK(unreliable < reliable);
+
+	ZhangProductRelationLexicographicScore moreCoverage = reliable;
+	moreCoverage.componentCoverageGain = 2;
+	BOOST_CHECK(reliable < moreCoverage);
+
+	ProductParBranch lowerGain;
+	lowerGain.reliabilityPassed = true;
+	lowerGain.componentCoverageGain = 2;
+	lowerGain.productInformationGain = 0.2;
+	ProductParBranch higherGain = lowerGain;
+	higherGain.productInformationGain = 0.3;
+	BOOST_CHECK(zhangProductParScore(lowerGain) <
+		zhangProductParScore(higherGain));
+
+	ProductParBranch weakUnreliable;
+	weakUnreliable.integerRank = 20;
+	weakUnreliable.rawPartialFixedRank = 3;
+	weakUnreliable.partialFixFraction = 0.15;
+	weakUnreliable.componentCoverageGain = 20;
+	weakUnreliable.productInformationGain = 1;
+	ProductParBranch fixableUnreliable = weakUnreliable;
+	fixableUnreliable.integerRank = 6;
+	fixableUnreliable.rawPartialFixedRank = 5;
+	fixableUnreliable.partialFixFraction = 5.0 / 6.0;
+	fixableUnreliable.componentCoverageGain = 6;
+	fixableUnreliable.productInformationGain = 0.2;
+	BOOST_CHECK(zhangProductParScore(weakUnreliable) <
+		zhangProductParScore(fixableUnreliable));
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_named_ordering_is_semantic)
+{
+	const SatSys g01("G01");
+	const SatSys g02("G02");
+	const SatSys g03("G03");
+	ZhangProductRelationBasis first;
+	first.mappableNamedIndices = {0, 1};
+	first.namedRelations.resize(2);
+	first.namedRelations[0].satellite = g02;
+	first.namedRelations[0].referenceSatellite = g01;
+	first.namedRelations[1].satellite = g03;
+	first.namedRelations[1].referenceSatellite = g01;
+	ZhangProductRelationBasis second = first;
+	BOOST_CHECK(zhangProductNamedOrderingMatches(first, second));
+
+	// Equal numeric indices do not rescue a semantic L1/L2 row swap.
+	std::swap(second.namedRelations[0].satellite,
+		second.namedRelations[1].satellite);
+	BOOST_CHECK(!zhangProductNamedOrderingMatches(first, second));
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_wl_gain_uses_joint_cross_covariance)
+{
+	MatrixXd jointCovariance(2, 2);
+	jointCovariance << 4, 3,
+		3, 4;
+	ZhangIarFunctional wideLane(1, 2);
+	wideLane.insert(0, 0) = 1;
+	wideLane.insert(0, 1) = -1;
+	wideLane.makeCompressed();
+	const double gain = zhangNamedProductInformationGain(
+		jointCovariance, wideLane);
+	BOOST_CHECK_CLOSE(gain, 0.125, 1e-10);
+
+	// This is Q11+Q22-Q12-Q21 = 2, not the cross-covariance-free value 8.
+	const MatrixXd wideLaneCovariance = wideLane * jointCovariance *
+		wideLane.transpose();
+	BOOST_CHECK_CLOSE(wideLaneCovariance(0, 0), 2.0, 1e-10);
+}
+
+BOOST_AUTO_TEST_CASE(product_gain_spectrum_separates_rank_and_search_failures)
+{
+	BOOST_CHECK_EQUAL(
+		zhangProductGainSpectrumDiagnosis(0.82, 0.03),
+		"INTEGER_CANDIDATE_SUBSPACE_MISALIGNED");
+	BOOST_CHECK_EQUAL(
+		zhangProductGainSpectrumDiagnosis(0.08, 0.03),
+		"REAL_RANK_CEILING_LOW_INCREASE_RANK");
+	BOOST_CHECK_EQUAL(
+		zhangProductGainSpectrumDiagnosis(0.82, 0.50),
+		"INTEGER_SUBSET_USES_REAL_CEILING_EFFICIENTLY");
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_wl_l1_transform_is_unimodular)
+{
+	ZhangExactMatrix transform = {
+		{1, 0, -1, 0},
+		{0, 1, 0, -1},
+		{1, 0, 0, 0},
+		{0, 1, 0, 0}
+	};
+	const auto smith = zhangIntegerRowLatticeContains(
+		transform, ZhangExactVector(4));
+	BOOST_REQUIRE_EQUAL(smith.smithInvariants.size(), 4);
+	for (const auto& invariant : smith.smithInvariants)
+	{
+		BOOST_CHECK_EQUAL(invariant, 1);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_partial_decorrelated_rows_are_not_certificate)
+{
+	const auto none = zhangRecoverCertifiedNamedProductSubset(
+		{{1, 1}}, {7}, 2);
+	BOOST_CHECK(none.empty());
+
+	const auto certifiedPartial = zhangRecoverCertifiedNamedProductSubset(
+		{{1, 1, 0}, {0, 1, 0}}, {7, 3}, 3);
+	BOOST_REQUIRE_EQUAL(certifiedPartial.size(), 2);
+	BOOST_CHECK_EQUAL(certifiedPartial.at(0), 4);
+	BOOST_CHECK_EQUAL(certifiedPartial.at(1), 3);
+	BOOST_CHECK(!certifiedPartial.contains(2));
+
+	const auto partial = zhangRecoverCompleteNamedProductSubset(
+		{{1, 1}}, {7}, 2);
+	BOOST_CHECK(partial.empty());
+
+	const auto complete = zhangRecoverCompleteNamedProductSubset(
+		{{1, 1}, {0, 1}}, {7, 3}, 2);
+	BOOST_REQUIRE_EQUAL(complete.size(), 2);
+	BOOST_CHECK_EQUAL(complete.at(0), 4);
+	BOOST_CHECK_EQUAL(complete.at(1), 3);
+}
+
+BOOST_AUTO_TEST_CASE(
+	product_relation_named_rows_inherit_accepted_parent_lattice_certificate)
+{
+	const ZhangExactMatrix parentRows = {
+		{1, 1, 0},
+		{0, 1, 0}
+	};
+	const ZhangExactVector parentValues = {7, 3};
+	const auto accepted = zhangPromoteNamedCertificateFromAcceptedParent(
+		parentRows, parentValues, 3, true);
+	BOOST_REQUIRE(accepted.exact);
+	BOOST_CHECK_EQUAL(accepted.parentFixedRank, 2);
+	BOOST_REQUIRE_EQUAL(accepted.values.size(), 2);
+	BOOST_CHECK(accepted.values.at(0) == 4);
+	BOOST_CHECK(accepted.values.at(1) == 3);
+	BOOST_CHECK(!accepted.values.contains(2));
+
+	// Exact algebra alone cannot bypass the statistical parent gate.
+	const auto rejected = zhangPromoteNamedCertificateFromAcceptedParent(
+		parentRows, parentValues, 3, false);
+	BOOST_CHECK(!rejected.exact);
+	BOOST_CHECK(rejected.values.empty());
+
+	// A non-primitive row does not determine a named integer coordinate.
+	const auto unsaturated = zhangPromoteNamedCertificateFromAcceptedParent(
+		{{2}}, {6}, 1, true);
+	BOOST_CHECK(!unsaturated.exact);
+	BOOST_CHECK(unsaturated.values.empty());
+}
+
+BOOST_AUTO_TEST_CASE(
+	product_relation_mixed_lattice_recovers_pair_without_star_coordinate)
+{
+	// u=z0-z1 is a directly named satellite-pair edge, although neither z0
+	// nor z1 relative to the canonical reference is determined.
+	const auto pairs = zhangRecoverCertifiedPairRelations(
+		{{1, -1, 0}}, {4}, 3, true);
+	BOOST_REQUIRE_EQUAL(pairs.size(), 1);
+	BOOST_CHECK_EQUAL(pairs.front().firstNode, 0);
+	BOOST_CHECK_EQUAL(pairs.front().secondNode, 1);
+	BOOST_CHECK(pairs.front().value == 4);
+	const auto stars = zhangPromoteNamedCertificateFromAcceptedParent(
+		{{1, -1, 0}}, {4}, 3, true);
+	BOOST_CHECK(stars.values.empty());
+
+	// Statistical rejection dominates exact membership.
+	BOOST_CHECK(zhangRecoverCertifiedPairRelations(
+		{{1, -1, 0}}, {4}, 3, false).empty());
+	// A higher-order combination is conditioning evidence, not a pair edge.
+	BOOST_CHECK(zhangRecoverCertifiedPairRelations(
+		{{1, 1, 1}}, {9}, 3, true).empty());
+}
+
+BOOST_AUTO_TEST_CASE(
+	product_relation_reliability_forest_uses_only_passed_independent_edges)
+{
+	std::vector<ZhangPairReliabilityEdge> edges = {
+		{0, 1, 1e-5, 0.01},
+		{1, 2, 2e-5, 0.02},
+		{0, 2, 3e-5, 0.03}, // reliable but closes a cycle
+		{2, 3, 2e-3, 0.001}, // precise-looking but fails Perr
+		{0, 3, 5e-4, 0.04}
+	};
+	const auto forest = zhangPairReliabilityForest(4, edges, 1e-3);
+	BOOST_REQUIRE_EQUAL(forest.size(), 3);
+	BOOST_CHECK_EQUAL(forest[0].firstNode, 0);
+	BOOST_CHECK_EQUAL(forest[0].secondNode, 1);
+	BOOST_CHECK_EQUAL(forest[1].firstNode, 1);
+	BOOST_CHECK_EQUAL(forest[1].secondNode, 2);
+	BOOST_CHECK_EQUAL(forest[2].firstNode, 0);
+	BOOST_CHECK_EQUAL(forest[2].secondNode, 3);
+}
+
+BOOST_AUTO_TEST_CASE(
+	product_relation_all_pair_gain_is_reference_invariant)
+{
+	MatrixXd q(3, 3);
+	q << 0.4, 0.1, 0.05,
+		 0.1, 0.3, 0.02,
+		 0.05, 0.02, 0.2;
+	const MatrixXd d = zhangAllPairIncidence(3);
+	BOOST_REQUIRE_EQUAL(d.rows(), 6);
+	BOOST_REQUIRE_EQUAL(d.cols(), 3);
+	const double trace = zhangReferenceInvariantPairTrace(q);
+	BOOST_CHECK_CLOSE(trace, (d * q * d.transpose()).trace(), 1e-10);
+
+	// Change star reference from implicit node 3 to node 0.  The new named
+	// coordinates are [K1-K0,K2-K0,K3-K0].
+	MatrixXd transform(3, 3);
+	transform << -1, 1, 0,
+		-1, 0, 1,
+		-1, 0, 0;
+	const MatrixXd changed = transform * q * transform.transpose();
+	BOOST_CHECK_CLOSE(trace, zhangReferenceInvariantPairTrace(changed), 1e-9);
+}
+
+BOOST_AUTO_TEST_CASE(
+	product_relation_exact_conditioning_reports_reference_free_gain)
+{
+	VectorXd mean(3); mean << 1.1, 2.2, 3.3;
+	MatrixXd q = MatrixXd::Identity(3, 3);
+	MatrixXd rows(1, 3); rows << 1, -1, 0;
+	VectorXd integer(1); integer << -1;
+	const auto conditioned = zhangConditionExactProductRows(
+		mean, q, rows, integer);
+	BOOST_REQUIRE(conditioned.valid);
+	BOOST_CHECK_EQUAL(conditioned.effectiveRank, 1);
+	BOOST_CHECK_SMALL((rows * conditioned.covariance).norm(), 1e-12);
+	BOOST_CHECK_SMALL((rows * conditioned.mean - integer).norm(), 1e-12);
+	BOOST_CHECK(zhangReferenceInvariantPairTrace(conditioned.covariance) <
+		zhangReferenceInvariantPairTrace(q));
+}
+
+BOOST_AUTO_TEST_CASE(component_bridge_gls_aggregates_correlated_edges)
+{
+	VectorXd edges(3); edges << 4.15, 3.90, 4.05;
+	MatrixXd q = MatrixXd::Identity(3, 3) * 0.09;
+	const auto bridge = zhangComponentBridgeGls(edges, q);
+	BOOST_REQUIRE(bridge.valid);
+	BOOST_CHECK_CLOSE(bridge.mean, edges.mean(), 1e-10);
+	BOOST_CHECK_CLOSE(bridge.variance, 0.03, 1e-10);
+	BOOST_CHECK_EQUAL(bridge.effectiveRank, 3);
+	BOOST_CHECK(bridge.residualNis > 0);
+}
+
+BOOST_AUTO_TEST_CASE(
+	temporal_component_integer_basis_removes_common_gauge_and_is_reference_invariant)
+{
+	const auto g02 = zhangComponentRelativeGaugeBasis(5, 0);
+	const auto g03 = zhangComponentRelativeGaugeBasis(5, 1);
+	BOOST_REQUIRE_EQUAL(g02.size(), 4);
+	BOOST_REQUIRE_EQUAL(g03.size(), 4);
+	const ZhangExactVector common(5, 1);
+	BOOST_CHECK(zhangExactMatrixTimesColumn(g02, common) ==
+		ZhangExactVector(4));
+	BOOST_CHECK(zhangExactMatrixTimesColumn(g03, common) ==
+		ZhangExactVector(4));
+	const auto hnf02 = zhangExactRowHermiteNormalForm(g02);
+	const auto hnf03 = zhangExactRowHermiteNormalForm(g03);
+	BOOST_REQUIRE(hnf02.consistent);
+	BOOST_REQUIRE(hnf03.consistent);
+	BOOST_CHECK(hnf02.basis == hnf03.basis);
+	const auto primitive = zhangIntegerRowLatticeContains(
+		g02, ZhangExactVector(5));
+	BOOST_REQUIRE_EQUAL(primitive.smithInvariants.size(), 4);
+	for (const auto& invariant : primitive.smithInvariants)
+	{
+		BOOST_CHECK(zhangExactAbs(invariant) == 1);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_named_backward_search_reaches_low_rank)
+{
+	const std::vector<int> full = {0, 1, 2, 3, 4, 5};
+	const auto withSeed = zhangProductNamedBackwardChildren(
+		full, {1, 4}, 5, 1);
+	BOOST_REQUIRE_EQUAL(withSeed.size(), 1);
+	const std::vector<int> expectedSeed = {1, 4};
+	BOOST_CHECK_EQUAL_COLLECTIONS(
+		withSeed.front().begin(), withSeed.front().end(),
+		expectedSeed.begin(), expectedSeed.end());
+
+	std::vector<int> path = full;
+	int evaluations = 1;
+	while (path.size() > 1)
+	{
+		const auto children = zhangProductNamedBackwardChildren(
+			path, {}, static_cast<int>(path.size()) - 1, 1);
+		BOOST_REQUIRE_EQUAL(children.size(), 1);
+		path = children.front();
+		evaluations++;
+	}
+	BOOST_CHECK_EQUAL(path.size(), 1);
+	BOOST_CHECK_EQUAL(evaluations, 6);
+}
+
+BOOST_AUTO_TEST_CASE(integer_support_quality_fails_closed_without_residuals)
+{
+	ZhangIntegerArcQuality quality;
+	quality.ageEpochs = 100;
+	quality.observations = 100;
+	const auto missing = zhangEvaluateIntegerSupportQuality(
+		quality, ZhangIntegerSupportQualityGates{});
+	BOOST_CHECK(!missing.eligibleForIntegerSupport);
+	BOOST_CHECK_EQUAL(missing.failureReason, "PHASE_RMS_GATE_FAILED");
+
+	quality.phaseResidualRms = 0.01;
+	quality.codeResidualRms = 1;
+	quality.phaseResidualMad = 0.01;
+	quality.codeResidualMad = 1;
+	quality.elevationScore = 0.5;
+	quality.whitenedResidualScore = 1;
+	const auto accepted = zhangEvaluateIntegerSupportQuality(
+		quality, ZhangIntegerSupportQualityGates{});
+	BOOST_CHECK(accepted.eligibleForIntegerSupport);
+	BOOST_CHECK_EQUAL(accepted.failureReason, "ELIGIBLE");
 }

@@ -158,7 +158,13 @@ struct ZhangSatelliteDatumStatus
     int         phaseSegment = 0;
     int         discontinuityCounter = 0;
     int         datumVersion = 0;
+    int         componentVersion = 0;
+    int         alignmentGeneration = 0;
     std::size_t componentSize = 0;
+    std::size_t componentRank = 0;
+    std::size_t certifiedRelationCount = 0;
+    std::size_t redundantRelationCount = 0;
+    bool        cycleClosureValid = true;
     std::string componentId = "UNRESOLVED";
 };
 
@@ -199,6 +205,41 @@ struct ZhangSatelliteDatumComponent
     std::string      id;
     std::set<SatSys> satellites;
     std::set<SatSys> alignedSatellites;
+};
+
+struct ZhangSatelliteDatumManagerCheckpoint
+{
+	E_Sys system = E_Sys::NONE;
+	E_ObsCode observable = E_ObsCode::NONE;
+	std::map<SatSys, int> currentSegments;
+	std::map<SatSys, int> discontinuityCounters;
+	std::map<SatSys, int> datumVersions;
+	std::map<ZhangSatellitePhaseSegment, long long> alignmentCycles;
+	std::set<ZhangSatellitePhaseSegment> alignmentKnown;
+	std::set<ZhangSatellitePhaseSegment> precisionValid;
+	std::vector<ZhangSatelliteDatumRelation> relations;
+	std::vector<ZhangSatelliteDatumRelation> redundantRelations;
+	std::map<ZhangProductRelationEventType, std::size_t> eventCounts;
+	std::size_t conflictCount = 0;
+	int topologyVersion = 0;
+	int alignmentGeneration = 0;
+};
+
+struct ZhangFrontendGaugeInitialisation
+{
+	bool        accepted = false;
+	std::size_t satelliteCount = 0;
+	std::size_t relationCount = 0;
+	std::string reason = "NOT_ATTEMPTED";
+};
+
+struct ZhangCertifiedTemporalAlignmentResult
+{
+	bool        accepted = false;
+	std::size_t requestedSatellites = 0;
+	std::size_t restoredSatellites = 0;
+	std::size_t affectedComponents = 0;
+	std::string reason = "NOT_ATTEMPTED";
 };
 
 inline const char* zhangProductRelationEventName(
@@ -259,6 +300,159 @@ public:
         E_ObsCode observable = E_ObsCode::NONE
     ) : system(system), observable(observable) {}
 
+	ZhangSatelliteDatumManagerCheckpoint checkpointState() const
+	{
+		return {
+			system, observable, currentSegments, discontinuityCounters,
+			datumVersions, alignmentCycles, alignmentKnown, precisionValid,
+			relations, redundantRelations, eventCounts, conflictCount, topologyVersion,
+			alignmentGeneration};
+	}
+
+	bool restoreCheckpointState(
+		const ZhangSatelliteDatumManagerCheckpoint& snapshot,
+		std::string* failureReason = nullptr)
+	{
+		auto fail = [&](const std::string& reason)
+		{
+			if (failureReason)
+			{
+				*failureReason = reason;
+			}
+			return false;
+		};
+		if (snapshot.system == E_Sys::NONE
+		 || snapshot.observable == E_ObsCode::NONE)
+		{
+			return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_IDENTITY");
+		}
+		auto validSatellite = [&](const SatSys& satellite)
+		{
+			return snapshot.system != E_Sys::NONE
+				&& satellite.sys == snapshot.system && satellite.prn > 0;
+		};
+		for (const auto& [satellite, segment] : snapshot.currentSegments)
+		{
+			if (!validSatellite(satellite) || segment < 0)
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_CURRENT_SEGMENT");
+			}
+		}
+		for (const auto& [satellite, counter] : snapshot.discontinuityCounters)
+		{
+			if (!validSatellite(satellite) || counter < 0)
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_COUNTER");
+			}
+		}
+		for (const auto& [satellite, version] : snapshot.datumVersions)
+		{
+			if (!validSatellite(satellite) || version < 0)
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_VERSION");
+			}
+		}
+
+		IntegerPotentialUnionFind<ZhangSatellitePhaseSegment> rebuilt;
+		for (const auto& [satellite, segment] : snapshot.currentSegments)
+		{
+			rebuilt.add({satellite, segment});
+		}
+		auto validNode = [&](const ZhangSatellitePhaseSegment& node)
+		{
+			return validSatellite(node.satellite) && node.segment >= 0;
+		};
+		for (const auto& [node, ignored] : snapshot.alignmentCycles)
+		{
+			if (!validNode(node))
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_ALIGNMENT_NODE");
+			}
+			rebuilt.add(node);
+		}
+		for (const auto& node : snapshot.alignmentKnown)
+		{
+			if (!validNode(node)
+			 || snapshot.alignmentCycles.find(node) ==
+				snapshot.alignmentCycles.end())
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_UNKNOWN_ALIGNMENT");
+			}
+			rebuilt.add(node);
+		}
+		for (const auto& node : snapshot.precisionValid)
+		{
+			if (!validNode(node)
+			 || snapshot.alignmentCycles.find(node) ==
+				snapshot.alignmentCycles.end())
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_UNKNOWN_PRECISION_NODE");
+			}
+			rebuilt.add(node);
+		}
+		for (const auto& relation : snapshot.relations)
+		{
+			if (!validNode(relation.a) || !validNode(relation.b)
+			 || relation.a == relation.b)
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_RELATION");
+			}
+			rebuilt.add(relation.a);
+			rebuilt.add(relation.b);
+			if (!rebuilt.relate(
+				relation.a, relation.b, relation.difference))
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_CONFLICTING_RELATION");
+			}
+		}
+		for (const auto& relation : snapshot.redundantRelations)
+		{
+			long long existing = 0;
+			if (!validNode(relation.a) || !validNode(relation.b)
+			 || relation.a == relation.b
+			 || !rebuilt.difference(relation.a, relation.b, existing)
+			 || existing != relation.difference)
+			{
+				return fail(
+					"SATELLITE_DATUM_CHECKPOINT_INVALID_REDUNDANT_RELATION");
+			}
+		}
+		for (const auto& [type, ignored] : snapshot.eventCounts)
+		{
+			if (type < ZhangProductRelationEventType::PENDING_CONFIRMATION
+			 || type > ZhangProductRelationEventType::CONFLICT_REJECTED)
+			{
+				return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_EVENT_TYPE");
+			}
+		}
+		if (snapshot.topologyVersion < 0 || snapshot.alignmentGeneration < 0)
+		{
+			return fail("SATELLITE_DATUM_CHECKPOINT_INVALID_GENERATION");
+		}
+
+		ZhangSatelliteDatumManager candidate(
+			snapshot.system, snapshot.observable);
+		candidate.forest = std::move(rebuilt);
+		candidate.currentSegments = snapshot.currentSegments;
+		candidate.discontinuityCounters = snapshot.discontinuityCounters;
+		candidate.datumVersions = snapshot.datumVersions;
+		candidate.alignmentCycles = snapshot.alignmentCycles;
+		candidate.alignmentKnown = snapshot.alignmentKnown;
+		candidate.precisionValid = snapshot.precisionValid;
+		candidate.relations = snapshot.relations;
+		candidate.redundantRelations = snapshot.redundantRelations;
+		candidate.eventCounts = snapshot.eventCounts;
+		candidate.conflictCount = snapshot.conflictCount;
+		candidate.topologyVersion = snapshot.topologyVersion;
+		candidate.alignmentGeneration = snapshot.alignmentGeneration;
+		*this = std::move(candidate);
+		if (failureReason)
+		{
+			failureReason->clear();
+		}
+		return true;
+	}
+
     ZhangSatellitePhaseSegment currentNode(const SatSys& satellite)
     {
         int& segment = currentSegments[satellite];
@@ -266,6 +460,75 @@ public:
         ensure(node);
         return node;
     }
+
+	/** Define the integer gauge at the birth of a frontend product segment.
+	 *
+	 * This is a coordinate definition, not an ambiguity fix: kappa_s=0 for
+	 * every satellite present at t0.  It is therefore exact and must not pass
+	 * through the statistical promotion-confirmation gate.  Estimator warm-up
+	 * may advance physical segments before the frontend is born, so segment or
+	 * generation zero is not required.  Once any persistent frontend relation
+	 * exists this operation is deliberately unavailable; subsequent component
+	 * bridges must be compiled from the fixed integer lattice.
+	 */
+	ZhangFrontendGaugeInitialisation initialiseFrontendGaugeComponent(
+		const std::set<SatSys>& satellites,
+		const std::string&      provenance =
+			"FRONTEND_INTEGER_GAUGE_KAPPA_ZERO")
+	{
+		ZhangFrontendGaugeInitialisation result;
+		result.satelliteCount = satellites.size();
+		if (satellites.size() < 2)
+		{
+			result.reason = "INSUFFICIENT_SATELLITES";
+			return result;
+		}
+		if (provenance.empty())
+		{
+			result.reason = "EMPTY_PROVENANCE";
+			return result;
+		}
+		if (!relations.empty() || !redundantRelations.empty())
+		{
+			result.reason = "FRONTEND_GAUGE_ALREADY_INITIALISED";
+			return result;
+		}
+		for (const auto& satellite : satellites)
+		{
+			if (satellite.sys != system || satellite.prn <= 0)
+			{
+				result.reason = "INVALID_SATELLITE_IDENTITY";
+				return result;
+			}
+		}
+
+		const auto before = checkpointState();
+		const SatSys anchor = *satellites.begin();
+		for (const auto& satellite : satellites)
+		{
+			if (satellite == anchor)
+			{
+				currentNode(satellite);
+				continue;
+			}
+			const auto event = promoteRelationDetailed(
+				anchor, satellite, 0, provenance, true);
+			if (!event.accepted)
+			{
+				std::string ignored;
+				restoreCheckpointState(before, &ignored);
+				result.relationCount = 0;
+				result.reason = "INITIAL_RELATION_REJECTED";
+				return result;
+			}
+			result.relationCount++;
+		}
+		result.accepted = result.relationCount + 1 == satellites.size();
+		result.reason = result.accepted
+			? "FRONTEND_INTEGER_GAUGE_KAPPA_ZERO"
+			: "INITIAL_RELATION_COUNT_MISMATCH";
+		return result;
+	}
 
     bool promoteRelation(
         const SatSys&      a,
@@ -313,6 +576,45 @@ public:
             }
             precisionValid.insert(nodeA);
             precisionValid.insert(nodeB);
+			auto canonicalA = nodeA;
+			auto canonicalB = nodeB;
+			long long canonicalDifference = difference;
+			if (canonicalB < canonicalA)
+			{
+				std::swap(canonicalA, canonicalB);
+				canonicalDifference = -canonicalDifference;
+			}
+			const bool primaryAlreadyRecorded = std::any_of(
+				relations.begin(), relations.end(),
+				[&](const auto& relation)
+				{
+					auto relationA = relation.a;
+					auto relationB = relation.b;
+					long long relationDifference = relation.difference;
+					if (relationB < relationA)
+					{
+						std::swap(relationA, relationB);
+						relationDifference = -relationDifference;
+					}
+					return relationA == canonicalA
+						&& relationB == canonicalB
+						&& relationDifference == canonicalDifference;
+				});
+			const bool alreadyRecorded = primaryAlreadyRecorded || std::any_of(
+				redundantRelations.begin(), redundantRelations.end(),
+				[&](const auto& relation)
+				{
+					return relation.a == canonicalA
+						&& relation.b == canonicalB
+						&& relation.difference == canonicalDifference;
+				});
+			if (!alreadyRecorded)
+			{
+				redundantRelations.push_back({
+					canonicalA, canonicalB, canonicalDifference,
+					promoted, provenance});
+				topologyVersion++;
+			}
             // Confirming an already-known persistent relation must not also
             // change current alpha alignment.  Current-state recovery is a
             // separately gated operation (realignRelation), which keeps the
@@ -331,6 +633,7 @@ public:
             return event;
         }
         relations.push_back({nodeA, nodeB, difference, promoted, provenance});
+		topologyVersion++;
         precisionValid.insert(nodeA);
         precisionValid.insert(nodeB);
         // Preserve the established (normally larger) component's alpha
@@ -416,6 +719,7 @@ public:
 
         alignmentKnown.erase(suspect);
         precisionValid.erase(suspect);
+		alignmentGeneration++;
         event.type =
             ZhangProductRelationEventType::CURRENT_ALIGNMENT_QUARANTINED;
         event.quarantinedSatellite = suspect.satellite;
@@ -445,6 +749,10 @@ public:
             }
             precisionValid.erase(node);
         }
+		if (quarantined > 0)
+		{
+			alignmentGeneration++;
+		}
         return quarantined;
     }
 
@@ -489,6 +797,7 @@ public:
             alignmentKnown.insert(satelliteNode);
         }
         precisionValid.insert(satelliteNode);
+		alignmentGeneration++;
         event.type = ZhangProductRelationEventType::CURRENT_REALIGNMENT;
         event.accepted = true;
         eventCounts[event.type]++;
@@ -511,6 +820,17 @@ public:
                 relation.difference += cycleShift;
             }
         }
+		for (auto& relation : redundantRelations)
+		{
+			if (relation.a == node)
+			{
+				relation.difference -= cycleShift;
+			}
+			if (relation.b == node)
+			{
+				relation.difference += cycleShift;
+			}
+		}
         rebuildForest();
     }
 
@@ -528,6 +848,7 @@ public:
     )
     {
         std::map<SatSys, bool> preserved;
+		bool alignmentLost = false;
         std::set<ZhangSatellitePhaseSegment> visited;
         for (const auto& [satellite, ignored] : cycleChanges)
         {
@@ -566,6 +887,7 @@ public:
                     // that the satellite can subsequently be relinked to a
                     // valid anchor in the same product component.
                     alignmentKnown.erase(member);
+					alignmentLost = true;
                     preserved[member.satellite] = false;
                     continue;
                 }
@@ -580,12 +902,107 @@ public:
                 preserved[memberSatellite] = true;
             }
         }
+		if (alignmentLost)
+		{
+			alignmentGeneration++;
+		}
         return preserved;
     }
+
+	/** Restore quarantined current alignments from a transactionally certified
+	 * old-to-new product-functional integer shift.  The input is new-minus-old
+	 * raw product cycles.  One still-aligned member anchors each component's
+	 * unobservable common integer gauge; all relative shifts are then applied
+	 * atomically with the opposite sign so raw+lambda*kappa stays invariant. */
+	ZhangCertifiedTemporalAlignmentResult applyCertifiedTemporalTransform(
+		const std::map<SatSys, long long>& rawProductChanges)
+	{
+		ZhangCertifiedTemporalAlignmentResult result;
+		result.requestedSatellites = rawProductChanges.size();
+		if (rawProductChanges.empty())
+		{
+			result.reason = "NO_CERTIFIED_TEMPORAL_SHIFTS";
+			return result;
+		}
+		const auto before = checkpointState();
+		for (const auto& [satellite, ignored] : rawProductChanges)
+		{
+			if (currentSegments.find(satellite) == currentSegments.end())
+			{
+				std::string ignoredReason;
+				restoreCheckpointState(before, &ignoredReason);
+				result.reason = "SATELLITE_HAS_NO_CURRENT_PHASE_SEGMENT";
+				return result;
+			}
+		}
+
+		std::set<ZhangSatellitePhaseSegment> visited;
+		for (const auto& [satellite, ignored] : rawProductChanges)
+		{
+			auto node = currentNode(satellite);
+			if (visited.count(node))
+			{
+				continue;
+			}
+			auto members = forest.component(node);
+			visited.insert(members.begin(), members.end());
+			std::vector<ZhangSatellitePhaseSegment> affected;
+			for (const auto& member : members)
+			{
+				if (rawProductChanges.count(member.satellite))
+				{
+					affected.push_back(member);
+				}
+			}
+			if (affected.empty())
+			{
+				continue;
+			}
+			auto anchor = std::find_if(
+				members.begin(), members.end(),
+				[&](const auto& member)
+				{
+					return alignmentKnown.count(member) > 0;
+				});
+			if (anchor == members.end())
+			{
+				std::string ignoredReason;
+				restoreCheckpointState(before, &ignoredReason);
+				result.reason = "NO_ALIGNED_COMPONENT_ANCHOR";
+				return result;
+			}
+			const auto anchorChange = rawProductChanges.find(anchor->satellite);
+			const long long commonRawChange = anchorChange == rawProductChanges.end()
+				? 0 : anchorChange->second;
+			for (const auto& member : affected)
+			{
+				const bool wasAligned = alignmentKnown.count(member) > 0;
+				const long long relativeRawChange =
+					rawProductChanges.at(member.satellite) - commonRawChange;
+				if (relativeRawChange != 0)
+				{
+					applyDynamicTreeShift(member.satellite, -relativeRawChange);
+				}
+				auto current = currentNode(member.satellite);
+				alignmentKnown.insert(current);
+				precisionValid.insert(current);
+				result.restoredSatellites += !wasAligned;
+			}
+			result.affectedComponents++;
+		}
+		if (result.restoredSatellites > 0)
+		{
+			alignmentGeneration++;
+		}
+		result.accepted = true;
+		result.reason = "CERTIFIED_TEMPORAL_ALIGNMENT_COMMITTED";
+		return result;
+	}
 
     /** A dynamic local reset does not erase promoted satellite facts. */
     void markDynamicAlignmentUnknown(const std::set<SatSys>& satellites)
     {
+		bool alignmentLost = false;
         for (const auto& satellite : satellites)
         {
             auto node = currentNode(satellite);
@@ -600,14 +1017,19 @@ public:
             );
             if (!hasPromotedFact)
             {
-                alignmentKnown.erase(node);
+				alignmentLost = alignmentKnown.erase(node) > 0 || alignmentLost;
             }
         }
+		if (alignmentLost)
+		{
+			alignmentGeneration++;
+		}
     }
 
     /** Remove only provisional support bridges crossing a detached set. */
     void retireUnprovedBridges(const std::set<SatSys>& detached)
     {
+		const auto oldSize = relations.size();
         relations.erase(
             std::remove_if(
                 relations.begin(), relations.end(),
@@ -621,6 +1043,11 @@ public:
             relations.end()
         );
         rebuildForest();
+		if (relations.size() != oldSize)
+		{
+			topologyVersion++;
+			alignmentGeneration++;
+		}
     }
 
     void recordSatelliteDiscontinuity(const SatSys& satellite)
@@ -629,6 +1056,8 @@ public:
         segment++;
         discontinuityCounters[satellite]++;
         datumVersions[satellite]++;
+		topologyVersion++;
+		alignmentGeneration++;
         ensure({satellite, segment});
     }
 
@@ -653,7 +1082,28 @@ public:
         result.phaseSegment = node.segment;
         result.discontinuityCounter = discontinuityCounters[satellite];
         result.datumVersion = datumVersions[satellite];
+		result.componentVersion = topologyVersion;
+		result.alignmentGeneration = alignmentGeneration;
         result.componentSize = members.size();
+		result.componentRank = members.empty() ? 0 : members.size() - 1;
+		for (const auto& relation : relations)
+		{
+			if (members.find(relation.a) != members.end()
+			 && members.find(relation.b) != members.end())
+			{
+				result.certifiedRelationCount++;
+			}
+		}
+		for (const auto& relation : redundantRelations)
+		{
+			if (members.find(relation.a) != members.end()
+			 && members.find(relation.b) != members.end())
+			{
+				result.redundantRelationCount++;
+			}
+		}
+		result.certifiedRelationCount += result.redundantRelationCount;
+		result.cycleClosureValid = true;
         if (members.size() >= 2)
         {
             const auto& anchor = *members.begin();
@@ -795,6 +1245,9 @@ private:
     std::set<ZhangSatellitePhaseSegment> alignmentKnown;
     std::set<ZhangSatellitePhaseSegment> precisionValid;
     std::vector<ZhangSatelliteDatumRelation> relations;
+	std::vector<ZhangSatelliteDatumRelation> redundantRelations;
     std::map<ZhangProductRelationEventType, std::size_t> eventCounts;
     std::size_t conflictCount = 0;
+	int topologyVersion = 0;
+	int alignmentGeneration = 0;
 };

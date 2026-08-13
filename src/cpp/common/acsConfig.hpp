@@ -603,6 +603,7 @@ struct ZhangFullRankSystemOptions
     int            state_edge_grace_epochs = 0;
     bool           prefer_historical_edges = false;
     bool           core_skeleton = false;
+    int            product_core_min_satellite_support = 0;
     vector<string> reference_receiver_candidates;
     vector<string> reference_satellite_candidates;
 };
@@ -635,11 +636,17 @@ struct ZhangPppArOptions
 {
     bool   output_products    = false;
     bool   user_adapter       = false;
+    // Deprecated compatibility key.  It no longer authorises ambiguity
+    // fixing; non-certified products remain FLOAT_ONLY.
+    bool   user_accept_experimental_product_for_ar = false;
     bool   output_diagnostics = true;
     string product_filename;
     string product_covariance_filename;
     string product_solution = "FIXED";
 	string product_mode = "SATELLITE_TARGET_DATUM";
+	string hou_product_coordinate = "PRODUCT_TREE";
+	string besd_capture_policy = "OFF";
+	bool   temporal_product_transition_shadow = false;
     string integer_strategy = "JOINT";
     bool   component_bridge_targeting = false;
     bool   current_state_relinking = false;
@@ -655,6 +662,9 @@ struct ZhangPppArOptions
     bool   fixed_lag_factor_capture_shadow = false;
     int    fixed_lag_factor_capture_max_events = 2000;
     int    fixed_lag_factor_capture_evaluation_stride = 1;
+	bool   targeted_besd_capture_shadow = false;
+	int    targeted_besd_min_lag_epochs = 30;
+	int    targeted_besd_max_lag_epochs = 60;
     int    whitened_wl_prediction_gate_min_observations = 3;
     double whitened_wl_prediction_gate_sigma = 4;
     int    promotion_confirmation_epochs = 1;
@@ -665,9 +675,66 @@ struct ZhangPppArOptions
     int    initial_discontinuity_counter = 0;
     bool   transactional_integer_fixing = true;
     double held_constraint_nis_alpha = 1e-6;
+    string l1_candidate_shadow_ablation = "NONE";
+    vector<string> l1_candidate_shadow_satellites;
+    vector<string> l1_candidate_shadow_receivers;
+    int    l1_candidate_shadow_random_seed = 2104;
+    bool   l1_measurement_replay_shadow = false;
+    string l1_measurement_replay_target_epoch;
+    string l1_measurement_replay_receiver = "MELI";
+    string l1_measurement_replay_satellite = "G25";
+    bool   l1_multibranch_par_shadow = false;
+    int    l1_multibranch_core_max_dimension = 80;
+    int    l1_multibranch_reserve_dimension = 40;
+    int    l1_multibranch_branch_factor = 4;
+    int    l1_multibranch_beam_width = 12;
+    int    l1_multibranch_maximum_depth = 10;
+    int    l1_multibranch_minimum_rank = 3;
+    bool   l1_multibranch_evaluate_all_tiers = false;
+    string l1_multibranch_product_objective = "ABSOLUTE";
+    bool   l1_canonical_physical_search = false;
+    bool   l1_iar_gain_audit_shadow = false;
+    string l1_iar_gain_audit_target_epoch;
+    bool   l1_product_gain_spectrum_shadow = false;
+    vector<string> l1_product_gain_spectrum_epochs;
+    bool   product_relation_l1_par_shadow = false;
+    string product_relation_solver_mode = "OFF";
+    int    product_relation_beam_width = 12;
+    int    product_relation_minimum_rank = 1;
+    int    product_relation_maximum_evaluations = 256;
+    bool   product_relation_pair_audit_shadow = false;
+    vector<string> product_relation_pair_audit_epochs;
+    int    product_relation_pair_audit_best_edge_count = 20;
+    bool   product_relation_admission_shadow = false;
+    bool   product_relation_feedback = false;
+    bool   e29_real_math_closure_shadow = false;
+    string e29_real_math_closure_target_epoch;
+    bool   canonical_theory_regression_shadow = false;
+    string canonical_theory_regression_target_epoch;
+    vector<string> canonical_theory_regression_receivers;
+    int    canonical_theory_regression_min_common_satellites = 2;
+    bool   l1_subset_oracle_shadow = false;
+    int    l1_subset_oracle_pool_dimension = 10;
+    int    l1_subset_oracle_minimum_rank = 3;
+    int    l1_subset_oracle_maximum_rank = 5;
+    int    l1_subset_oracle_maximum_subsets = 5000;
+    string l1_subset_oracle_target_epoch;
     bool   product_target_named_rounding = false;
+    bool   canonical_user_target_feedback = false;
+    int    canonical_user_target_min_named_wl = 5;
+    double canonical_user_target_max_perr = 1e-3;
+    bool   user_use_full_product_covariance = false;
+    double user_phase_product_temporal_sigma_m = 0;
     double maximum_pppar_correction_sigma_m = 0;
     double maximum_product_residual_step_m = 1000;
+
+	// Infra-0 v1 deterministic checkpointing is deliberately scoped to the
+	// frozen E29 GPS L1C/L2W Zhang full-rank experiment.
+	bool deterministic_checkpoint = false;
+	string checkpoint_runtime_id = "E29-NETWORK";
+	string checkpoint_output_directory;
+	vector<string> checkpoint_capture_epochs;
+	string checkpoint_restore_path;
 
     map<E_Sys, vector<E_ObsCode>> baseline_observables;
 };

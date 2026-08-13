@@ -77,6 +77,26 @@ struct ZhangPersistentProductDatumObservation
 	std::string failureReason;
 };
 
+struct ZhangPersistentProductDatumCheckpointState
+{
+	E_Sys system = E_Sys::NONE;
+	E_ObsCode observable = E_ObsCode::NONE;
+	ZhangCanonicalSatelliteRelation relation;
+	bool initialised = false;
+	int version = 0;
+	int anchorPhaseSegment = 0;
+	int satellitePhaseSegment = 0;
+	int anchorDatumVersion = 0;
+	int satelliteDatumVersion = 0;
+};
+
+struct ZhangPersistentProductDatumCheckpoint
+{
+	std::map<E_Sys, std::vector<ZhangCanonicalSatelliteRelation>>
+		canonicalRelations;
+	std::vector<ZhangPersistentProductDatumCheckpointState> datumStates;
+};
+
 /** Persistent E18 product coordinates.
  *
  * The satellite relation set is established once per constellation and is
@@ -89,6 +109,102 @@ struct ZhangPersistentProductDatumObservation
 class ZhangPersistentProductDatumRegistry
 {
 public:
+	ZhangPersistentProductDatumCheckpoint checkpointState() const
+	{
+		ZhangPersistentProductDatumCheckpoint result;
+		result.canonicalRelations = canonicalRelations;
+		for (const auto& [key, state] : datumStates)
+		{
+			result.datumStates.push_back({
+				key.system, key.observable, key.relation,
+				state.initialised, state.version,
+				state.anchorPhaseSegment, state.satellitePhaseSegment,
+				state.anchorDatumVersion, state.satelliteDatumVersion});
+		}
+		return result;
+	}
+
+	bool restoreCheckpointState(
+		const ZhangPersistentProductDatumCheckpoint& snapshot,
+		std::string* failureReason = nullptr)
+	{
+		auto fail = [&](const std::string& reason)
+		{
+			if (failureReason)
+			{
+				*failureReason = reason;
+			}
+			return false;
+		};
+		ZhangPersistentProductDatumRegistry candidate;
+		candidate.canonicalRelations = snapshot.canonicalRelations;
+		for (const auto& [system, relations] : candidate.canonicalRelations)
+		{
+			std::set<ZhangCanonicalSatelliteRelation> unique;
+			for (const auto& relation : relations)
+			{
+				if (system == E_Sys::NONE
+				 || relation.anchor.sys != system
+				 || relation.satellite.sys != system
+				 || relation.anchor.prn <= 0
+				 || relation.satellite.prn <= 0
+				 || relation.anchor == relation.satellite
+				 || relation != ZhangCanonicalSatelliteRelation::ordered(
+					relation.anchor, relation.satellite)
+				 || !unique.insert(relation).second)
+				{
+					return fail("E18_CHECKPOINT_INVALID_CANONICAL_RELATION");
+				}
+			}
+		}
+		for (const auto& value : snapshot.datumStates)
+		{
+			auto canonical = candidate.canonicalRelations.find(value.system);
+			const bool relationIsCanonical =
+				canonical != candidate.canonicalRelations.end()
+				&& std::find(
+					canonical->second.begin(), canonical->second.end(),
+					value.relation) != canonical->second.end();
+			if (value.system == E_Sys::NONE
+			 || value.observable == E_ObsCode::NONE
+			 || value.relation.anchor.sys != value.system
+			 || value.relation.satellite.sys != value.system
+			 || value.relation.anchor.prn <= 0
+			 || value.relation.satellite.prn <= 0
+			 || value.relation.anchor == value.relation.satellite
+			 || !relationIsCanonical
+			 || value.relation != ZhangCanonicalSatelliteRelation::ordered(
+				value.relation.anchor, value.relation.satellite)
+			 || value.version < 0 || value.anchorPhaseSegment < 0
+			 || value.satellitePhaseSegment < 0
+			 || value.anchorDatumVersion < 0
+			 || value.satelliteDatumVersion < 0
+			 || (!value.initialised
+				 && (value.version != 0 || value.anchorPhaseSegment != 0
+					 || value.satellitePhaseSegment != 0
+					 || value.anchorDatumVersion != 0
+					 || value.satelliteDatumVersion != 0)))
+			{
+				return fail("E18_CHECKPOINT_INVALID_DATUM_STATE");
+			}
+			DatumKey key{value.system, value.observable, value.relation};
+			DatumState state{
+				value.initialised, value.version,
+				value.anchorPhaseSegment, value.satellitePhaseSegment,
+				value.anchorDatumVersion, value.satelliteDatumVersion};
+			if (!candidate.datumStates.emplace(key, state).second)
+			{
+				return fail("E18_CHECKPOINT_DUPLICATE_DATUM_STATE");
+			}
+		}
+		*this = std::move(candidate);
+		if (failureReason)
+		{
+			failureReason->clear();
+		}
+		return true;
+	}
+
 	ZhangCanonicalRelationSelection selectRelations(
 		E_Sys system,
 		const std::vector<ZhangCanonicalSatelliteRelation>& bootstrapCandidates,
