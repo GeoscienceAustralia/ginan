@@ -47,7 +47,9 @@ struct ZhangProductRelationFixResult
 	double productInformationGain = 0;
 	double realSubspaceUpperBoundAtSelectedRank =
 		std::numeric_limits<double>::quiet_NaN();
-	double integerSearchEfficiency =
+	// Ratio to the unconstrained real-subspace relaxation.  This is not an
+	// integer-search efficiency until an integer-constrained frontier exists.
+	double relaxedRealUpperBoundCapture =
 		std::numeric_limits<double>::quiet_NaN();
 	double realIntegerGainGap =
 		std::numeric_limits<double>::quiet_NaN();

@@ -36,6 +36,7 @@
 #include "common/zhangIfUser.hpp"
 #include "common/zhangIfWideLane.hpp"
 #include "common/zhangProductGaugeCompiler.hpp"
+#include "common/zhangQuotientIntegerLattice.hpp"
 #include "common/zhangIntegerConditioner.hpp"
 #include "common/zhangHybridUserModel.hpp"
 #include "common/zhangHybridService.hpp"
@@ -8878,4 +8879,69 @@ BOOST_AUTO_TEST_CASE(integer_support_quality_fails_closed_without_residuals)
 		quality, ZhangIntegerSupportQualityGates{});
 	BOOST_CHECK(accepted.eligibleForIntegerSupport);
 	BOOST_CHECK_EQUAL(accepted.failureReason, "ELIGIBLE");
+}
+
+BOOST_AUTO_TEST_CASE(exact_held_quotient_separates_certified_and_unresolved_rank)
+{
+	// Target is the full four-dimensional integer lattice.  Held evidence
+	// certifies two primitive target directions plus one unrelated ambient row.
+	const ZhangExactMatrix target = {
+		{1, 0, 0, 0, 0},
+		{0, 1, 0, 0, 0},
+		{0, 0, 1, 0, 0},
+		{0, 0, 0, 1, 0}};
+	const ZhangExactMatrix held = {
+		{1, 0, 0, 0, 0},
+		{0, 1, 0, 0, 0},
+		{0, 0, 0, 0, 1}};
+	const ZhangExactVector values = {7, -3, 99};
+
+	const auto audit = zhangExactHeldQuotientAudit(target, held, values);
+	BOOST_REQUIRE(audit.valid);
+	BOOST_CHECK_EQUAL(audit.targetRank, 4);
+	BOOST_CHECK_EQUAL(audit.heldIntersectionRank, 2);
+	BOOST_CHECK_EQUAL(audit.quotientRank, 2);
+	BOOST_CHECK(audit.heldIntersectionPrimitiveInTarget);
+	BOOST_CHECK(audit.exactClosure);
+	BOOST_REQUIRE_EQUAL(audit.heldIntersectionValues.size(), 2);
+	BOOST_CHECK_EQUAL(audit.heldIntersectionValues[0], 7);
+	BOOST_CHECK_EQUAL(audit.heldIntersectionValues[1], -3);
+}
+
+BOOST_AUTO_TEST_CASE(exact_held_quotient_rejects_nonprimitive_intersection)
+{
+	const ZhangExactMatrix target = {{1, 0}, {0, 1}};
+	const ZhangExactMatrix held = {{2, 0}};
+	const auto audit = zhangExactHeldQuotientAudit(target, held, {4});
+	BOOST_CHECK(!audit.valid);
+	BOOST_CHECK_EQUAL(
+		audit.failureReason, "HELD_INTERSECTION_NOT_PRIMITIVE_IN_TARGET");
+}
+
+BOOST_AUTO_TEST_CASE(exact_certified_union_recomputes_rank_and_target_equality)
+{
+	const ZhangExactMatrix target = {
+		{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+	const ZhangExactMatrix held = {{1, 0, 0}};
+	const ZhangExactVector heldValues = {5};
+	const ZhangExactMatrix partialFixed = {{0, 1, 0}};
+	const ZhangExactVector partialValues = {-2};
+	const auto partial = zhangExactCertifiedUnionAudit(
+		target, held, heldValues, partialFixed, partialValues);
+	BOOST_CHECK(partial.consistent);
+	BOOST_CHECK_EQUAL(partial.targetRank, 3);
+	BOOST_CHECK_EQUAL(partial.heldRank, 1);
+	BOOST_CHECK_EQUAL(partial.newlyFixedRank, 1);
+	BOOST_CHECK_EQUAL(partial.combinedCertifiedRank, 2);
+	BOOST_CHECK(!partial.exactTargetEquality);
+	BOOST_CHECK_EQUAL(
+		partial.failureReason, "TARGET_LATTICE_NOT_FULLY_CERTIFIED");
+
+	const ZhangExactMatrix completeFixed = {{0, 1, 0}, {0, 0, 1}};
+	const ZhangExactVector completeValues = {-2, 8};
+	const auto complete = zhangExactCertifiedUnionAudit(
+		target, held, heldValues, completeFixed, completeValues);
+	BOOST_CHECK(complete.consistent);
+	BOOST_CHECK_EQUAL(complete.combinedCertifiedRank, 3);
+	BOOST_CHECK(complete.exactTargetEquality);
 }

@@ -51,6 +51,7 @@
 #include "common/zhangIntegerCandidateNis.hpp"
 #include "common/zhangLambdaBeam.hpp"
 #include "common/zhangProductRelationBasis.hpp"
+#include "common/zhangQuotientIntegerLattice.hpp"
 #include "common/zhangProductRelationSolver.hpp"
 #include "common/zhangProductRelationAdmission.hpp"
 #include "common/zhangTheoryRegression.hpp"
@@ -9243,7 +9244,113 @@ struct ZhangProductPairFloatMetric
 	int receiverSupportCount = 0;
 	int commonReceiverSupportCount = 0;
 	long long cycleL1Norm = 0;
+	bool exactHeldConsequence = false;
+	long long exactHeldValue = 0;
 };
+
+struct ZhangComponentQuotientInput
+{
+	ZhangExactMatrix targetPhysicalRows;
+	ZhangExactMatrix heldPhysicalRows;
+	ZhangExactVector heldValues;
+	bool valid = false;
+	string failureReason;
+};
+
+static ZhangComponentQuotientInput zhangBuildComponentQuotientInput(
+	const KFState& state,
+	const ZhangProductRelationBasis& basis,
+	const ZhangProductRelationBasis* subtractBasis,
+	const ZhangExactMatrix& targetNamedRows)
+{
+	ZhangComponentQuotientInput result;
+	ZhangGraphIntegerContext context;
+	if (!zhangGraphIntegerContext(state, basis.system, context))
+	{
+		result.failureReason = "NO_GRAPH_INTEGER_CONTEXT";
+		return result;
+	}
+	const string runtimeId = zhangAmbresRuntimeId(state);
+	auto held = zhangPersistentHeldLattices.find({runtimeId, basis.system});
+	if (!validZhangAmbresRuntimeId(runtimeId))
+	{
+		result.failureReason = "CHECKPOINT_RUNTIME_ID_UNBOUND";
+		return result;
+	}
+	if (held != zhangPersistentHeldLattices.end() && !held->second.consistent)
+	{
+		result.failureReason = "INCONSISTENT_HELD_LATTICE";
+		return result;
+	}
+	set<ZhangPhysicalIntegerArc> columnSet;
+	vector<map<ZhangPhysicalIntegerArc, ZhangExactInteger>> targetSparse;
+	for (const auto& namedRow : targetNamedRows)
+	{
+		if (namedRow.size() != static_cast<size_t>(basis.mappableTargetRank))
+		{
+			result.failureReason = "TARGET_NAMED_ROW_DIMENSION_MISMATCH";
+			return result;
+		}
+		map<ZhangPhysicalIntegerArc, ZhangExactInteger> sparse;
+		for (int local = 0; local < basis.mappableTargetRank; local++)
+		{
+			if (namedRow[local] == 0) continue;
+			const int namedIndex = basis.mappableNamedIndices.at(local);
+			auto addPhysical = [&](const ZhangProductRelationBasis& source,
+				const ZhangExactInteger& sign)
+			{
+				const int sourceNamedIndex = source.mappableNamedIndices.at(local);
+				for (const auto& [edge, coefficient] :
+					 source.namedRelations.at(sourceNamedIndex).physicalArcCoefficients)
+				{
+					auto version = context.arcVersions.find(edge);
+					if (version == context.arcVersions.end())
+					{
+						result.failureReason = "TARGET_PHYSICAL_ARC_VERSION_MISSING";
+						return false;
+					}
+					ZhangPhysicalIntegerArc arc{source.observable, edge, version->second};
+					sparse[arc] += sign * namedRow[local] * coefficient;
+				}
+				return true;
+			};
+			if (!addPhysical(basis, 1) ||
+				(subtractBasis && !addPhysical(*subtractBasis, -1))) return result;
+		}
+		for (auto iterator = sparse.begin(); iterator != sparse.end();)
+		{
+			if (iterator->second == 0) iterator = sparse.erase(iterator);
+			else { columnSet.insert(iterator->first); ++iterator; }
+		}
+		targetSparse.push_back(std::move(sparse));
+	}
+	if (held != zhangPersistentHeldLattices.end())
+	for (const auto& row : held->second.rows)
+	for (const auto& [arc, coefficient] : row.coefficients)
+		if (coefficient != 0) columnSet.insert(arc);
+	vector<ZhangPhysicalIntegerArc> columns(columnSet.begin(), columnSet.end());
+	map<ZhangPhysicalIntegerArc, size_t> columnIndex;
+	for (size_t column = 0; column < columns.size(); column++)
+		columnIndex[columns[column]] = column;
+	for (const auto& sparse : targetSparse)
+	{
+		ZhangExactVector row(columns.size());
+		for (const auto& [arc, coefficient] : sparse)
+			row[columnIndex.at(arc)] = coefficient;
+		result.targetPhysicalRows.push_back(std::move(row));
+	}
+	if (held != zhangPersistentHeldLattices.end())
+	for (const auto& heldRow : held->second.rows)
+	{
+		ZhangExactVector row(columns.size());
+		for (const auto& [arc, coefficient] : heldRow.coefficients)
+			row[columnIndex.at(arc)] = coefficient;
+		result.heldPhysicalRows.push_back(std::move(row));
+		result.heldValues.push_back(heldRow.value);
+	}
+	result.valid = true;
+	return result;
+}
 
 static double zhangMedian(std::vector<double> values)
 {
@@ -9261,7 +9368,9 @@ static double zhangMedian(std::vector<double> values)
  * e_s-e_t search edge in that ambient space.  It is diagnostics-only. */
 static void traceZhangProductPairAudit(
 	Trace& trace,
+	const KFState& state,
 	const ZhangProductRelationBasis& basis,
+	const ZhangProductRelationBasis& secondBasis,
 	const VectorXd& wideLaneMean,
 	const MatrixXd& wideLaneCovariance,
 	const GinAR_opt& options,
@@ -9364,6 +9473,27 @@ static void traceZhangProductPairAudit(
 		}
 		for (const auto& coefficient : cycles)
 			metric.cycleL1Norm += zhangExactAbs(coefficient).convert_to<long long>();
+		const int targetNamedCount = basis.mappableTargetRank;
+		ZhangExactVector exactNamedRow(targetNamedCount);
+		if (first < targetNamedCount) exactNamedRow[first] += 1;
+		if (second < targetNamedCount) exactNamedRow[second] -= 1;
+		const auto exactInput = zhangBuildComponentQuotientInput(
+			state, basis, &secondBasis, ZhangExactMatrix{exactNamedRow});
+		if (exactInput.valid && !exactInput.targetPhysicalRows.empty())
+		{
+			const auto membership = zhangIntegerRowLatticeContains(
+				exactInput.heldPhysicalRows, exactInput.targetPhysicalRows.front());
+			metric.exactHeldConsequence = membership.contained &&
+				membership.combination.size() == exactInput.heldValues.size();
+			if (metric.exactHeldConsequence)
+			{
+				ZhangExactInteger exactValue = 0;
+				for (size_t row = 0; row < membership.combination.size(); row++)
+					exactValue += membership.combination[row] * exactInput.heldValues[row];
+				try { metric.exactHeldValue = exactValue.convert_to<long long>(); }
+				catch (...) { metric.exactHeldConsequence = false; }
+			}
+		}
 		metrics.push_back(metric);
 		reliabilityEdges.push_back({first, second, metric.perr,
 			metric.variance});
@@ -9397,8 +9527,11 @@ static void traceZhangProductPairAudit(
 			  << " cycle_l1_norm=" << metric.cycleL1Norm
 			  << " canonical_star_edge=" << (metric.second == rank)
 			  << " evidence_source="
-			  << (metric.variance > deterministicTolerance
-				? "CURRENT_FLOAT" : "EXACT_DERIVED_OR_HELD")
+			  << (metric.exactHeldConsequence
+				? "EXACT_HELD_CONSEQUENCE"
+				: metric.variance <= deterministicTolerance
+					? "ZERO_VARIANCE_NUMERICAL" : "CURRENT_FLOAT")
+			  << " exact_held_value=" << metric.exactHeldValue
 			  << " feedback=0";
 	}
 	const double maximumPerr =
@@ -9408,7 +9541,13 @@ static void traceZhangProductPairAudit(
 	std::vector<ZhangPairReliabilityEdge> freshReliabilityEdges;
 	for (const auto& edge : reliabilityEdges)
 	{
-		if (edge.variance > deterministicTolerance)
+		const auto metric = std::find_if(metrics.begin(), metrics.end(),
+			[&](const auto& item)
+			{
+				return item.first == edge.firstNode && item.second == edge.secondNode;
+			});
+		if (edge.variance > deterministicTolerance &&
+			(metric == metrics.end() || !metric->exactHeldConsequence))
 			freshReliabilityEdges.push_back(edge);
 	}
 	const auto freshForest = zhangPairReliabilityForest(
@@ -9503,6 +9642,8 @@ static void traceZhangProductPairAudit(
 	}
 	std::vector<MatrixXd> certifiedRows(components.size());
 	std::vector<VectorXd> certifiedValues(components.size());
+	std::vector<ZhangExactMatrix> certifiedExactNamedRows(components.size());
+	std::vector<ZhangExactVector> certifiedExactValues(components.size());
 	std::vector<bool> certified(components.size(), false);
 	std::vector<std::map<int, double>> componentPotentials(components.size());
 	for (int id = 0; id < static_cast<int>(components.size()); id++)
@@ -9520,79 +9661,262 @@ static void traceZhangProductPairAudit(
 			if (component[edge.firstNode] == id && component[edge.secondNode] == id)
 				tree.push_back(edge);
 		MatrixXd rows = MatrixXd::Zero(tree.size(), rank);
+		ZhangExactMatrix exactNamedRows;
 		for (int row = 0; row < static_cast<int>(tree.size()); row++)
 		{
 			if (tree[row].firstNode < rank) rows(row, tree[row].firstNode) += 1;
 			if (tree[row].secondNode < rank) rows(row, tree[row].secondNode) -= 1;
+			ZhangExactVector exactRow(rank);
+			if (tree[row].firstNode < rank) exactRow[tree[row].firstNode] += 1;
+			if (tree[row].secondNode < rank) exactRow[tree[row].secondNode] -= 1;
+			exactNamedRows.push_back(std::move(exactRow));
 		}
+		const auto quotientInput = zhangBuildComponentQuotientInput(
+			state, basis, &secondBasis, exactNamedRows);
+		const auto quotient = quotientInput.valid
+			? zhangExactHeldQuotientAudit(
+				quotientInput.targetPhysicalRows,
+				quotientInput.heldPhysicalRows,
+				quotientInput.heldValues)
+			: ZhangHeldQuotientAudit{};
+		if (!quotientInput.valid || !quotient.valid)
+		{
+			trace << "\nZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR time="
+				  << time.to_string(0) << " component=" << id
+				  << " size=" << nodes.size()
+				  << " target_rank=" << tree.size()
+				  << " held_rank=0 quotient_rank=0 quotient_covariance_rank=0"
+				  << " newly_fixed_rank=0 combined_certified_rank=0"
+				  << " certified=0 status=QUOTIENT_AUDIT_REJECTED reason="
+				  << (quotientInput.valid ? quotient.failureReason
+					: quotientInput.failureReason) << " feedback=0";
+			continue;
+		}
+		MatrixXd quotientCoordinates = MatrixXd::Zero(
+			quotient.quotientRank, quotient.targetRank);
+		for (int row = 0; row < quotient.quotientRank; row++)
+		for (int column = 0; column < quotient.targetRank; column++)
+			quotientCoordinates(row, column) =
+				quotient.quotientTargetCoordinates[row][column].convert_to<double>();
+		const MatrixXd quotientRows = quotientCoordinates * rows;
 		GinAR_mtx joint;
-		joint.aflt = rows * wideLaneMean;
-		joint.Paflt = rows * symmetric * rows.transpose();
+		joint.aflt = quotientRows * wideLaneMean;
+		joint.Paflt = quotientRows * symmetric * quotientRows.transpose();
+		Eigen::SelfAdjointEigenSolver<MatrixXd> quotientEigen(joint.Paflt);
+		int quotientCovarianceRank = 0;
+		if (quotientEigen.info() == Eigen::Success &&
+			quotientEigen.eigenvalues().allFinite() && quotient.quotientRank > 0)
+		{
+			const double largest = std::max(
+				0.0, quotientEigen.eigenvalues().maxCoeff());
+			const double tolerance = std::max(1e-14, 1e-12 * largest);
+			quotientCovarianceRank = std::count_if(
+				quotientEigen.eigenvalues().data(),
+				quotientEigen.eigenvalues().data() + quotientEigen.eigenvalues().size(),
+				[tolerance](double value) { return value > tolerance; });
+		}
+		if (quotientCovarianceRank != quotient.quotientRank)
+		{
+			trace << "\nZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR time="
+				  << time.to_string(0) << " component=" << id
+				  << " size=" << nodes.size()
+				  << " target_rank=" << quotient.targetRank
+				  << " held_rank=" << quotient.heldIntersectionRank
+				  << " quotient_rank=" << quotient.quotientRank
+				  << " quotient_covariance_rank=" << quotientCovarianceRank
+				  << " newly_fixed_rank=0 combined_certified_rank="
+				  << quotient.heldIntersectionRank
+				  << " certified=0 status=UNTRACKED_DETERMINISTIC_RELATION"
+				  << " reason=QUOTIENT_COVARIANCE_RANK_DEFICIENT feedback=0";
+			continue;
+		}
 		GinAR_opt jointOptions = options;
 		jointOptions.min_lambda_fix_count = 1;
-		const int fixed = rankAwareGnssAr(
+		const int fixed = quotient.quotientRank > 0 ? rankAwareGnssAr(
 			trace, joint, jointOptions, time,
-			"PRODUCT_COMPONENT_JOINT_WL_SHADOW", true);
-		const bool accepted = fixed == static_cast<int>(tree.size()) &&
-			joint.lambda_candidate_nis_valid &&
-			joint.lambda_candidate_nis <= joint.lambda_candidate_nis_threshold;
-		trace << "\nZHANG_PRODUCT_COMPONENT_JOINT_IAR time=" << time.to_string(0)
+			"PRODUCT_COMPONENT_QUOTIENT_WL_SHADOW", true) : 0;
+		const bool statisticallyAccepted = quotient.quotientRank == 0 ||
+			(fixed > 0 && joint.lambda_candidate_nis_valid &&
+			 joint.lambda_candidate_nis <= joint.lambda_candidate_nis_threshold);
+		ZhangExactMatrix newPhysicalRows;
+		ZhangExactMatrix newNamedRows;
+		ZhangExactVector newValues;
+		if (statisticallyAccepted && fixed > 0 &&
+			joint.Ztrs.cols() == quotient.quotientRank &&
+			joint.Ztrs.rows() == joint.zfix.size())
+		{
+			for (int fixedRow = 0; fixedRow < joint.Ztrs.rows(); fixedRow++)
+			{
+				ZhangExactVector quotientCombination(quotient.quotientRank);
+				for (int column = 0; column < quotient.quotientRank; column++)
+				{
+					const long long rounded = std::llround(joint.Ztrs(fixedRow, column));
+					if (std::abs(joint.Ztrs(fixedRow, column) - rounded) > 1e-8)
+					{
+						newPhysicalRows.clear(); newNamedRows.clear(); newValues.clear();
+						break;
+					}
+					quotientCombination[column] = rounded;
+				}
+				if (quotientCombination.empty()) break;
+				ZhangExactVector targetCombination(quotient.targetRank);
+				for (int q = 0; q < quotient.quotientRank; q++)
+				for (int target = 0; target < quotient.targetRank; target++)
+					targetCombination[target] += quotientCombination[q] *
+						quotient.quotientTargetCoordinates[q][target];
+				newPhysicalRows.push_back(zhangExactRowCombination(
+					targetCombination, quotientInput.targetPhysicalRows));
+				newNamedRows.push_back(zhangExactRowCombination(
+					targetCombination, exactNamedRows));
+				newValues.push_back(std::llround(joint.zfix(fixedRow)));
+			}
+		}
+		const auto unionAudit = zhangExactCertifiedUnionAudit(
+			quotientInput.targetPhysicalRows,
+			quotient.heldIntersectionPhysicalBasis,
+			quotient.heldIntersectionValues,
+			newPhysicalRows, newValues);
+		const bool accepted = statisticallyAccepted && unionAudit.exactTargetEquality;
+		trace << "\nZHANG_PRODUCT_COMPONENT_QUOTIENT_IAR time=" << time.to_string(0)
 			  << " component=" << id
 			  << " size=" << nodes.size()
-			  << " target_rank=" << tree.size()
-			  << " fixed_rank=" << fixed
+			  << " target_rank=" << quotient.targetRank
+			  << " held_rank=" << quotient.heldIntersectionRank
+			  << " quotient_rank=" << quotient.quotientRank
+			  << " quotient_covariance_rank=" << quotientCovarianceRank
+			  << " newly_fixed_rank=" << unionAudit.newlyFixedRank
+			  << " combined_certified_rank=" << unionAudit.combinedCertifiedRank
 			  << " nis=" << joint.lambda_candidate_nis
 			  << " nis_threshold=" << joint.lambda_candidate_nis_threshold
 			  << " certified=" << accepted
-			  << " status=" << (accepted ? "CERTIFIED" : "JOINT_IAR_REJECTED")
+			  << " status=" << (accepted ? "CERTIFIED" :
+				(statisticallyAccepted ? unionAudit.failureReason : "QUOTIENT_IAR_REJECTED"))
 			  << " feedback=0";
-		if (!accepted || joint.Ztrs.rows() != static_cast<int>(tree.size())) continue;
-		const MatrixXd exactRows = joint.Ztrs * rows;
-		certifiedRows[id] = exactRows;
-		certifiedValues[id] = joint.zfix;
-		certified[id] = true;
-		const auto promoted = promoteNamedProductCoordinatesFromAcceptedParent(
-			joint, tree.size(), true);
-		if (promoted.values.size() != tree.size())
+		const int combinedRank = unionAudit.combinedCertifiedRank;
+		certifiedRows[id] = MatrixXd::Zero(combinedRank, rank);
+		certifiedValues[id] = VectorXd::Zero(combinedRank);
+		for (int row = 0; row < quotient.heldIntersectionRank; row++)
 		{
-			certified[id] = false;
-			continue;
+			const auto named = zhangExactRowCombination(
+				quotient.heldIntersectionTargetCoordinates[row], exactNamedRows);
+			certifiedExactNamedRows[id].push_back(named);
+			certifiedExactValues[id].push_back(quotient.heldIntersectionValues[row]);
+			for (int column = 0; column < rank; column++)
+				certifiedRows[id](row, column) = named[column].convert_to<double>();
+			certifiedValues[id](row) = quotient.heldIntersectionValues[row].convert_to<double>();
 		}
-		componentPotentials[id][nodes.front()] = 0;
-		bool progress = true;
-		while (progress)
+		for (int row = 0; row < static_cast<int>(newNamedRows.size()); row++)
 		{
-			progress = false;
-			for (int row = 0; row < static_cast<int>(tree.size()); row++)
+			certifiedExactNamedRows[id].push_back(newNamedRows[row]);
+			certifiedExactValues[id].push_back(newValues[row]);
+			for (int column = 0; column < rank; column++)
+				certifiedRows[id](quotient.heldIntersectionRank + row, column) =
+					newNamedRows[row][column].convert_to<double>();
+			certifiedValues[id](quotient.heldIntersectionRank + row) =
+				newValues[row].convert_to<double>();
+		}
+		certified[id] = accepted;
+	}
+
+	// R-Q2: formal components come from exact pair rows contained in the
+	// certified union, never from the marginal-Perr candidate graph.
+	ZhangExactMatrix globalCertifiedNamedRows;
+	ZhangExactVector globalCertifiedValues;
+	for (int id = 0; id < static_cast<int>(components.size()); id++)
+	{
+		globalCertifiedNamedRows.insert(globalCertifiedNamedRows.end(),
+			certifiedExactNamedRows[id].begin(), certifiedExactNamedRows[id].end());
+		globalCertifiedValues.insert(globalCertifiedValues.end(),
+			certifiedExactValues[id].begin(), certifiedExactValues[id].end());
+	}
+	std::vector<ZhangPairReliabilityEdge> certifiedPairEdges;
+	std::map<std::pair<int, int>, double> certifiedPairValues;
+	for (int first = 0; first <= rank; first++)
+	for (int second = first + 1; second <= rank; second++)
+	{
+		ZhangExactVector pairRow(rank);
+		if (first < rank) pairRow[first] += 1;
+		if (second < rank) pairRow[second] -= 1;
+		const auto membership = zhangIntegerRowLatticeContains(
+			globalCertifiedNamedRows, pairRow);
+		if (!membership.contained ||
+			membership.combination.size() != globalCertifiedValues.size()) continue;
+		ZhangExactInteger value = 0;
+		for (size_t row = 0; row < membership.combination.size(); row++)
+			value += membership.combination[row] * globalCertifiedValues[row];
+		certifiedPairEdges.push_back({first, second, 0, 0});
+		certifiedPairValues[{first, second}] = value.convert_to<double>();
+		trace << "\nZHANG_ACTUAL_CERTIFIED_PRODUCT_EDGE time="
+			  << time.to_string(0)
+			  << " satellite=" << zhangProductPairNodeId(basis, first)
+			  << " reference=" << zhangProductPairNodeId(basis, second)
+			  << " integer_value=" << value
+			  << " exact_hnf_membership=1 evidence_source=EXACT_CERTIFIED_DERIVED"
+			  << " feedback=0";
+	}
+	const auto actualCertifiedForest = zhangPairReliabilityForest(
+		rank + 1, certifiedPairEdges, 0);
+	std::vector<std::vector<int>> certifiedAdjacency(rank + 1);
+	for (const auto& edge : actualCertifiedForest)
+	{
+		certifiedAdjacency[edge.firstNode].push_back(edge.secondNode);
+		certifiedAdjacency[edge.secondNode].push_back(edge.firstNode);
+	}
+	std::vector<int> actualComponent(rank + 1, -1);
+	std::vector<std::vector<int>> actualComponents;
+	std::vector<std::map<int, double>> actualPotentials;
+	for (int node = 0; node <= rank; node++)
+	{
+		if (actualComponent[node] >= 0) continue;
+		const int id = actualComponents.size();
+		actualComponents.push_back({});
+		actualPotentials.push_back({{node, 0}});
+		std::vector<int> stack = {node};
+		actualComponent[node] = id;
+		while (!stack.empty())
+		{
+			const int current = stack.back(); stack.pop_back();
+			actualComponents[id].push_back(current);
+			for (int neighbour : certifiedAdjacency[current])
 			{
-				const int a = tree[row].firstNode, b = tree[row].secondNode;
-				const double value = promoted.values.at(row).convert_to<double>();
-				if (componentPotentials[id].contains(a) && !componentPotentials[id].contains(b))
+				const int first = std::min(current, neighbour);
+				const int second = std::max(current, neighbour);
+				const double canonicalValue = certifiedPairValues.at({first, second});
+				const double directedValue = current == first
+					? canonicalValue : -canonicalValue;
+				if (!actualPotentials[id].contains(neighbour))
+					actualPotentials[id][neighbour] =
+						actualPotentials[id].at(current) - directedValue;
+				if (actualComponent[neighbour] < 0)
 				{
-					componentPotentials[id][b] = componentPotentials[id][a] - value;
-					progress = true;
-				}
-				else if (componentPotentials[id].contains(b) && !componentPotentials[id].contains(a))
-				{
-					componentPotentials[id][a] = componentPotentials[id][b] + value;
-					progress = true;
+					actualComponent[neighbour] = id;
+					stack.push_back(neighbour);
 				}
 			}
 		}
 	}
+	trace << "\nZHANG_ACTUAL_CERTIFIED_PRODUCT_GRAPH_SUMMARY time="
+		  << time.to_string(0)
+		  << " certified_integer_rank="
+		  << zhangExactRowHermiteNormalForm(globalCertifiedNamedRows).basis.size()
+		  << " certified_pair_edges=" << certifiedPairEdges.size()
+		  << " certified_pair_graph_rank=" << actualCertifiedForest.size()
+		  << " certified_components=" << actualComponents.size()
+		  << " candidate_graph_rank=" << freshForest.size()
+		  << " component_source=EXACT_CERTIFIED_PAIR_MEMBERSHIP feedback=0";
 
 	MatrixXd combinedRows(0, rank);
 	VectorXd combinedValues(0);
 	int combinedCount = 0;
 	for (int id = 0; id < static_cast<int>(components.size()); id++)
-		if (certified[id]) combinedCount += certifiedRows[id].rows();
+		combinedCount += certifiedRows[id].rows();
 	if (combinedCount > 0)
 	{
 		combinedRows.resize(combinedCount, rank);
 		combinedValues.resize(combinedCount);
 		int offset = 0;
 		for (int id = 0; id < static_cast<int>(components.size()); id++)
-		if (certified[id])
+		if (certifiedRows[id].rows() > 0)
 		{
 			combinedRows.middleRows(offset, certifiedRows[id].rows()) = certifiedRows[id];
 			combinedValues.segment(offset, certifiedValues[id].size()) = certifiedValues[id];
@@ -9601,28 +9925,25 @@ static void traceZhangProductPairAudit(
 	}
 	const auto conditioned = zhangConditionExactProductRows(
 		wideLaneMean, symmetric, combinedRows, combinedValues);
-	// E3/E4: use every correlated cross edge to estimate one relative gauge.
+	// R-Q3: use every correlated cross edge between components of the actual
+	// exact certified graph to estimate one relative component gauge.
 	if (conditioned.valid)
 	for (int firstComponent = 0;
-		 firstComponent < static_cast<int>(components.size()); firstComponent++)
+		 firstComponent < static_cast<int>(actualComponents.size()); firstComponent++)
 	for (int secondComponent = firstComponent + 1;
-		 secondComponent < static_cast<int>(components.size()); secondComponent++)
+		 secondComponent < static_cast<int>(actualComponents.size()); secondComponent++)
 	{
-		if (!certified[firstComponent] && components[firstComponent].size() > 1) continue;
-		if (!certified[secondComponent] && components[secondComponent].size() > 1) continue;
 		std::vector<VectorXd> crossRows;
 		std::vector<double> adjusted;
-		for (int firstNode : components[firstComponent])
-		for (int secondNode : components[secondComponent])
+		for (int firstNode : actualComponents[firstComponent])
+		for (int secondNode : actualComponents[secondComponent])
 		{
 			VectorXd row = VectorXd::Zero(rank);
 			if (firstNode < rank) row(firstNode) += 1;
 			if (secondNode < rank) row(secondNode) -= 1;
 			crossRows.push_back(row);
-			const double firstPotential = componentPotentials[firstComponent].contains(firstNode)
-				? componentPotentials[firstComponent][firstNode] : 0;
-			const double secondPotential = componentPotentials[secondComponent].contains(secondNode)
-				? componentPotentials[secondComponent][secondNode] : 0;
+			const double firstPotential = actualPotentials[firstComponent].at(firstNode);
+			const double secondPotential = actualPotentials[secondComponent].at(secondNode);
 			adjusted.push_back(row.dot(conditioned.mean) -
 				(firstPotential - secondPotential));
 		}
@@ -9644,8 +9965,8 @@ static void traceZhangProductPairAudit(
 		trace << "\nZHANG_PRODUCT_COMPONENT_BRIDGE_GLS time=" << time.to_string(0)
 			  << " component_a=" << firstComponent
 			  << " component_b=" << secondComponent
-			  << " size_a=" << components[firstComponent].size()
-			  << " size_b=" << components[secondComponent].size()
+			  << " size_a=" << actualComponents[firstComponent].size()
+			  << " size_b=" << actualComponents[secondComponent].size()
 			  << " cross_edges=" << crossRows.size()
 			  << " effective_rank=" << bridge.effectiveRank
 			  << " mean_cycles=" << bridge.mean
@@ -9655,8 +9976,9 @@ static void traceZhangProductPairAudit(
 			  << " residual_nis=" << bridge.residualNis
 			  << " residual_nis_threshold=" << threshold
 			  << " accepted=" << accepted
-			  << " scope=" << ((components[firstComponent].size() == 1 ||
-				components[secondComponent].size() == 1) ? "SINGLETON_BRIDGE" : "COMPONENT_BRIDGE")
+			  << " scope=" << ((actualComponents[firstComponent].size() == 1 ||
+				actualComponents[secondComponent].size() == 1) ? "SINGLETON_TO_CERTIFIED_COMPONENT" : "CERTIFIED_COMPONENT_BRIDGE")
+			  << " component_source=EXACT_CERTIFIED_PAIR_GRAPH"
 			  << " feedback=0";
 	}
 	Eigen::SelfAdjointEigenSolver<MatrixXd> eigen(symmetric);
@@ -9742,6 +10064,7 @@ recoverCertifiedPairProductCoordinates(
  * recover its entire original named relation subset exactly. */
 static ZhangProductRelationFixResult solveZhangProductRelations(
 	Trace& trace,
+	const KFState& state,
 	const GinAR_mtx& networkAmbiguities,
 	const ZhangProductRelationBasis& firstBasis,
 	const ZhangProductRelationBasis& secondBasis,
@@ -9800,7 +10123,8 @@ static ZhangProductRelationFixResult solveZhangProductRelations(
 	const MatrixXd fullWideLaneCovariance = fullWideLaneMap *
 		fullJointCovariance * fullWideLaneMap.transpose();
 	traceZhangProductPairAudit(
-		trace, firstBasis, fullWideLaneMean, fullWideLaneCovariance,
+		trace, state, firstBasis, secondBasis,
+		fullWideLaneMean, fullWideLaneCovariance,
 		options, time);
 	for (int local = 0; local < fullRank; local++)
 	{
@@ -10485,7 +10809,7 @@ static ZhangProductRelationFixResult solveZhangProductRelations(
 		result.productInformationGain;
 	if (result.realSubspaceUpperBoundAtSelectedRank > 0)
 	{
-		result.integerSearchEfficiency = result.productInformationGain /
+		result.relaxedRealUpperBoundCapture = result.productInformationGain /
 			result.realSubspaceUpperBoundAtSelectedRank;
 	}
 	result.realSubspaceRank80 = relationGainSpectrum.minimumRankForRho(0.80);
@@ -10848,10 +11172,11 @@ static int resolveLayeredWideLaneL1(
                 relationFirst.rows() == relationRank &&
                 relationSecond.rows() == relationRank;
 
-            const ZhangProductRelationFixResult relationFix =
-                solveZhangProductRelations(
-                    trace,
-                    ambiguityResolution,
+			const ZhangProductRelationFixResult relationFix =
+				solveZhangProductRelations(
+					trace,
+					kfState,
+					ambiguityResolution,
                     relationBasis,
                     secondRelationBasis,
                     options,
@@ -11062,8 +11387,8 @@ static int resolveLayeredWideLaneL1(
                   << " relation_rho20=" << relationFix.relationRho20
                   << " relation_rho40=" << relationFix.relationRho40
                   << " relation_rho80=" << relationFix.relationRho80
-                  << " integer_search_efficiency="
-                  << relationFix.integerSearchEfficiency
+				  << " relaxed_real_upper_bound_capture="
+				  << relationFix.relaxedRealUpperBoundCapture
                   << " real_integer_gain_gap="
                   << relationFix.realIntegerGainGap
                   << " real_subspace_rank80="
