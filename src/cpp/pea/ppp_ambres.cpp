@@ -11459,7 +11459,7 @@ static bool zhangProductConstraintsWithLedgerAsGinAr(
 				held.phaseSegmentFingerprint != currentSegmentFingerprint)
 			{
 				trace << "\nZHANG_PRODUCT_INTEGER_LEDGER_SEGMENT_REJECT time="
-					  << kfState.time.to_string(0)
+					  << time.to_string(0)
 					  << " stored_segment_fingerprint="
 					  << held.phaseSegmentFingerprint
 					  << " current_segment_fingerprint="

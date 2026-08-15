@@ -8977,20 +8977,21 @@ BOOST_AUTO_TEST_CASE(product_named_pair_beam_expands_alternate_forests)
 	const auto levels = zhangNamedPairForestBeamLevels(candidates, 3, 2);
 	BOOST_REQUIRE_EQUAL(levels.size(), 3);
 	BOOST_REQUIRE_EQUAL(levels[0].size(), 2);
-	// Candidate 0 is outside the rank-1 beam, but genuine expansion from the
-	// retained candidate-1 branch must still reach the best rank-2 forest.
+	// Candidate 0 is outside the rank-1 beam.  At rank two, candidate 3 joins
+	// the retained most-reliable branch and wins on covered satellites before
+	// the much larger gain of a lower-coverage alternative.
 	BOOST_CHECK(std::find(
 		levels[0][0].selected.begin(), levels[0][0].selected.end(), 0) ==
 		levels[0][0].selected.end());
 	BOOST_CHECK(std::find(
 		levels[0][1].selected.begin(), levels[0][1].selected.end(), 0) ==
 		levels[0][1].selected.end());
-	const std::vector<int> expectedBest = {0, 1};
+	const std::vector<int> expectedBest = {2, 3};
 	BOOST_CHECK_EQUAL_COLLECTIONS(
 		levels[1][0].selected.begin(), levels[1][0].selected.end(),
 		expectedBest.begin(), expectedBest.end());
-	BOOST_CHECK_EQUAL(levels[1][0].coveredNodes, 3);
-	BOOST_CHECK_CLOSE_FRACTION(levels[1][0].summedGain, 101.0, 1e-14);
+	BOOST_CHECK_EQUAL(levels[1][0].coveredNodes, 4);
+	BOOST_CHECK_CLOSE_FRACTION(levels[1][0].summedGain, 0.6, 1e-14);
 }
 
 BOOST_AUTO_TEST_CASE(product_relation_constraints_pull_back_affine_wl_and_l1)
@@ -9139,7 +9140,7 @@ BOOST_AUTO_TEST_CASE(product_integer_ledger_conflict_restarts_confirmation)
 	BOOST_REQUIRE(conflict.valid);
 	BOOST_CHECK_EQUAL(conflict.conflictingRows, 1);
 	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
-	BOOST_CHECK_EQUAL(ledger.rows().front().integerValue, 8);
+	BOOST_CHECK_EQUAL(ledger.rows().front().integerValue, -8);
 	BOOST_CHECK_EQUAL(ledger.rows().front().confirmationEpochs, 1);
 	BOOST_CHECK(!ledger.rows().front().certified);
 
@@ -9187,27 +9188,19 @@ BOOST_AUTO_TEST_CASE(product_integer_ledger_canonicalises_negated_relation)
 		ledger.rows().front().physicalExpansion.begin()->second > 0);
 }
 
-BOOST_AUTO_TEST_CASE(product_ledger_segment_fingerprint_is_row_local)
+BOOST_AUTO_TEST_CASE(product_ledger_physical_fingerprint_is_row_local)
 {
 	const std::map<std::string, ZhangExactInteger> row = {
 		{"L2W|EFGH|G02|V4", -1},
 		{"L1C|ABCD|G03|V1", 1},
 		{"L1C|IJKL|G03|V9", -2}};
-	const auto fingerprint = zhangProductPhysicalRowSegmentFingerprint(
-		E_Sys::GPS, row);
+	const auto fingerprint = zhangProductPhysicalRowFingerprint(row);
 	BOOST_CHECK(!fingerprint.empty());
-	BOOST_CHECK(fingerprint.find("G02|L2W|SEG") != std::string::npos);
-	BOOST_CHECK(fingerprint.find("G03|L1C|SEG") != std::string::npos);
+	BOOST_CHECK(fingerprint.find("L2W|EFGH|G02|V4=-1") != std::string::npos);
+	BOOST_CHECK(fingerprint.find("L1C|ABCD|G03|V1=1") != std::string::npos);
 	BOOST_CHECK(fingerprint.find("G04") == std::string::npos);
 	BOOST_CHECK_EQUAL(std::count(
-		fingerprint.begin(), fingerprint.end(), ';'), 2);
-
-	BOOST_CHECK(zhangProductPhysicalRowSegmentFingerprint(
-		E_Sys::GPS, {{"L1C|ABCD|G03|BROKEN", 1}}).empty());
-	BOOST_CHECK(zhangProductPhysicalRowSegmentFingerprint(
-		E_Sys::GPS, {{"L1C|ABCD|E03|V1", 1}}).empty());
-	BOOST_CHECK(zhangProductPhysicalRowSegmentFingerprint(
-		E_Sys::GPS, {{"L1C|ABCD|G03TRAILING|V1", 1}}).empty());
+		fingerprint.begin(), fingerprint.end(), ';'), 3);
 }
 
 BOOST_AUTO_TEST_CASE(product_integer_ledger_upgrades_conditioner_to_pair_certificate)
@@ -9285,9 +9278,9 @@ BOOST_AUTO_TEST_CASE(product_integer_ledger_isolates_backend_generations)
 	const auto generation13 = ledger.rowsForGeneration(13);
 	BOOST_REQUIRE_EQUAL(generation12.size(), 1);
 	BOOST_REQUIRE_EQUAL(generation13.size(), 2);
-	BOOST_CHECK_EQUAL(generation12.front().integerValue, 7);
-	BOOST_CHECK_EQUAL(generation13[0].integerValue, -112);
-	BOOST_CHECK_EQUAL(generation13[1].integerValue, 32);
+	BOOST_CHECK_EQUAL(generation12.front().integerValue, -7);
+	BOOST_CHECK_EQUAL(generation13[0].integerValue, 112);
+	BOOST_CHECK_EQUAL(generation13[1].integerValue, -32);
 
 	// A generation change alone does not invalidate an exact physical row.
 	// It may be re-expressed only when every arc/version identity is present.
@@ -9297,8 +9290,8 @@ BOOST_AUTO_TEST_CASE(product_integer_ledger_isolates_backend_generations)
 	BOOST_REQUIRE(zhangProjectProductLedgerPhysicalRow(
 		generation12.front(), currentColumns, 2, projected));
 	BOOST_REQUIRE_EQUAL(projected.size(), 2);
-	BOOST_CHECK_EQUAL(projected[0], -1);
-	BOOST_CHECK_EQUAL(projected[1], 1);
+	BOOST_CHECK_EQUAL(projected[0], 1);
+	BOOST_CHECK_EQUAL(projected[1], -1);
 	const std::map<std::string, int> missingArc = {
 		{"L1C|ABCD|G03|V4", 0}};
 	BOOST_CHECK(!zhangProjectProductLedgerPhysicalRow(

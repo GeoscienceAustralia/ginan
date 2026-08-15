@@ -14,6 +14,7 @@
 #include "common/zhangIntegerAudit.hpp"
 #include "common/zhangIarGainAudit.hpp"
 #include "common/zhangProductRelationBasis.hpp"
+#include "common/zhangQuotientIntegerLattice.hpp"
 
 /** One exact satellite-pair coordinate in a named star ambient lattice.
  * Nodes [0,namedCount) are named satellite-minus-reference coordinates and
