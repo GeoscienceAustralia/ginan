@@ -511,6 +511,7 @@ int lambda_search(
 {
 	const int minimumFixCount = std::max(1, opt.min_lambda_fix_count);
     mtrx.lambda_initial_fix_count       = 0;
+    mtrx.lambda_selected_bootstrap_success = 0;
     mtrx.lambda_candidate_nis           = 0;
     mtrx.lambda_candidate_nis_threshold = 0;
     mtrx.lambda_candidate_nis_valid     = false;
@@ -731,6 +732,8 @@ int lambda_search(
         }
         mtrx.zfix = ablated.zfix;
         mtrx.lambda_initial_fix_count = ablated.lambda_initial_fix_count;
+        mtrx.lambda_selected_bootstrap_success =
+            ablated.lambda_selected_bootstrap_success;
         mtrx.lambda_candidate_nis = ablated.lambda_candidate_nis;
         mtrx.lambda_candidate_nis_threshold =
             ablated.lambda_candidate_nis_threshold;
@@ -966,6 +969,8 @@ int lambda_search(
     mtrx.zfix        = zfix0;
     MatrixXd Z       = mtrx.Ztrs.bottomRows(zsiz);
     mtrx.Ztrs        = Z;
+    mtrx.lambda_selected_bootstrap_success =
+        lambdaSelectedSuffixBootstrapSuccess(mtrx.Dtrs, zsiz);
 
     switch (opt.mode)
     {

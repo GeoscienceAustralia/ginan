@@ -7168,7 +7168,7 @@ bool ACSConfig::parse(
                         zhangPppAr.product_solution,
                         zhang_pppar,
                         {"@ product_solution"},
-                        "Product solution read by the user adapter: FLOAT, WL, or FIXED"
+                        "Product solution read by the user adapter: FLOAT, NETWORK_WL, PRODUCT_FIXED, or legacy WL/FIXED"
                     );
 					tryGetFromYaml(
 						zhangPppAr.product_mode,
@@ -7198,7 +7198,7 @@ bool ACSConfig::parse(
                         zhangPppAr.integer_strategy,
                         zhang_pppar,
                         {"@ integer_strategy"},
-                        "Network/user integer strategy: JOINT, INDEPENDENT_SIGNAL, LAYERED_WL_L1, PRODUCT_TARGET_WL_L1, CANONICAL_USER_SD_WL_L1, or CANONICAL_USER_IF_WL_L1"
+                        "Network/user integer strategy: JOINT, INDEPENDENT_SIGNAL, LAYERED_WL_L1, HYBRID_PRODUCT_WL_L1, PRODUCT_TARGET_WL_L1, CANONICAL_USER_SD_WL_L1, or CANONICAL_USER_IF_WL_L1"
                     );
                     tryGetFromYaml(
                         zhangPppAr.component_bridge_targeting,
@@ -7553,6 +7553,18 @@ bool ACSConfig::parse(
                         zhang_pppar,
                         {"@ product_relation_feedback"},
                         "Feed certified product relations back to the estimator; unsupported in the shadow stage"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.full_product_lattice_oracle_filename,
+                        zhang_pppar,
+                        {"@ full_product_lattice_oracle_filename"},
+                        "Non-causal diagnostic full dual-frequency product-lattice oracle JSON"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.full_product_lattice_oracle_epochs,
+                        zhang_pppar,
+                        {"@ full_product_lattice_oracle_epochs"},
+                        "Optional exact epoch strings at which the full product-lattice oracle is applied"
                     );
                     tryGetFromYaml(
                         zhangPppAr.e29_real_math_closure_shadow,
@@ -10146,9 +10158,24 @@ bool ACSConfig::parse(
         if (zhangPppAr.product_relation_feedback)
         {
             BOOST_LOG_TRIVIAL(error)
-                << "zhang_pppar product_relation_feedback is not yet "
-                << "authorised; keep it false while the product relation "
-                << "solver is shadow-only";
+                << "zhang_pppar product_relation_feedback is the legacy "
+                << "shared-state feedback switch and remains unauthorised; "
+                << "HYBRID_PRODUCT_WL_L1 applies exact constraints only to "
+                << "its private PRODUCT_FIXED branch, so keep this false";
+            valid = false;
+        }
+        if (!zhangPppAr.full_product_lattice_oracle_filename.empty() &&
+            (!boost::iequals(
+                zhangPppAr.integer_strategy, "HYBRID_PRODUCT_WL_L1") ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE") ||
+             !boost::iequals(
+                zhangPppAr.hou_product_coordinate, "HYBRID_STABLE")))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar full product-lattice oracle requires "
+                   "integer_strategy=HYBRID_PRODUCT_WL_L1, "
+                   "product_mode=HOU_OSB_LIKE and "
+                   "hou_product_coordinate=HYBRID_STABLE";
             valid = false;
         }
         if (zhangPppAr.maximum_pppar_correction_sigma_m < 0 ||
@@ -10171,10 +10198,13 @@ bool ACSConfig::parse(
         string solution = zhangPppAr.product_solution;
         boost::to_upper(solution);
         if (solution != "FLOAT" && solution != "WL" &&
-            solution != "FIXED")
+            solution != "NETWORK_WL" && solution != "FIXED" &&
+            solution != "PRODUCT_FIXED")
         {
-            BOOST_LOG_TRIVIAL(error)
-                << "zhang_pppar product_solution must be FLOAT, WL, or FIXED";
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_pppar product_solution must be FLOAT, NETWORK_WL, "
+                    "PRODUCT_FIXED, or PPP-only legacy WL/FIXED; only "
+                    "PRODUCT_FIXED may authorize user PPP-AR";
             valid = false;
         }
         zhangPppAr.product_solution = solution;
@@ -10263,13 +10293,14 @@ bool ACSConfig::parse(
         if (integerStrategy != "JOINT" &&
             integerStrategy != "INDEPENDENT_SIGNAL" &&
             integerStrategy != "LAYERED_WL_L1" &&
+            integerStrategy != "HYBRID_PRODUCT_WL_L1" &&
             integerStrategy != "PRODUCT_TARGET_WL_L1" &&
             integerStrategy != "CANONICAL_USER_SD_WL_L1" &&
             integerStrategy != "CANONICAL_USER_IF_WL_L1")
         {
             BOOST_LOG_TRIVIAL(error)
                 << "zhang_pppar integer_strategy must be JOINT, "
-                   "INDEPENDENT_SIGNAL, LAYERED_WL_L1, or "
+                   "INDEPENDENT_SIGNAL, LAYERED_WL_L1, HYBRID_PRODUCT_WL_L1, or "
                    "PRODUCT_TARGET_WL_L1, CANONICAL_USER_SD_WL_L1, or "
                    "CANONICAL_USER_IF_WL_L1";
             valid = false;
@@ -10278,13 +10309,15 @@ bool ACSConfig::parse(
 		if (productMode == "HOU_OSB_LIKE" &&
 			integerStrategy != "INDEPENDENT_SIGNAL" &&
 			integerStrategy != "LAYERED_WL_L1" &&
+			integerStrategy != "HYBRID_PRODUCT_WL_L1" &&
 			!(zhangPppAr.user_adapter &&
 			  (integerStrategy == "CANONICAL_USER_SD_WL_L1" ||
 			   integerStrategy == "CANONICAL_USER_IF_WL_L1")))
 		{
 			BOOST_LOG_TRIVIAL(error)
 				<< "Hou-style OSB-like products require network cycle-lattice "
-				   "AR via INDEPENDENT_SIGNAL or LAYERED_WL_L1; "
+				   "AR via INDEPENDENT_SIGNAL, LAYERED_WL_L1, or "
+				   "HYBRID_PRODUCT_WL_L1; "
 				   "PRODUCT_TARGET_WL_L1 and opaque JOINT fixing are not valid";
 			valid = false;
 		}

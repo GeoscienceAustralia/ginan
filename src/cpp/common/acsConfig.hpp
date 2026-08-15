@@ -707,6 +707,11 @@ struct ZhangPppArOptions
     int    product_relation_pair_audit_best_edge_count = 20;
     bool   product_relation_admission_shadow = false;
     bool   product_relation_feedback = false;
+    // Explicit non-causal diagnostic control.  The file is accepted only when
+    // it contains a fully proved dual-frequency satellite graph; it never
+    // changes the authoritative network FLOAT state.
+    string full_product_lattice_oracle_filename;
+    vector<string> full_product_lattice_oracle_epochs;
     bool   e29_real_math_closure_shadow = false;
     string e29_real_math_closure_target_epoch;
     bool   canonical_theory_regression_shadow = false;

@@ -20,6 +20,7 @@ struct KFState;
 struct KFKey;
 struct KFMeasEntryList;
 struct ZhangIfWideLaneEstimate;
+struct ZhangProductIntegerConstraintSet;
 struct ReceiverMap;
 enum class ZhangCapturedMeasurementFamily;
 using Trace = std::ostream;
@@ -169,6 +170,30 @@ struct ZhangInternalProduct
     std::string support_segment_fingerprint = "UNAVAILABLE";
     std::string integer_datum_id;
 };
+
+/** Only a product-lattice-conditioned branch may authorize user PPP-AR.
+ * Legacy FIXED and NETWORK_FIXED_DIAGNOSTIC products remain useful as PPP
+ * controls, but network ambiguity fixing alone is not a satellite-product
+ * integer certificate. */
+inline bool zhangFormalPppArProductSolution(const std::string& solution)
+{
+	return solution == "PRODUCT_FIXED";
+}
+
+/** Enforce the consumer-side boundary for historical CSV files.  Returns true
+ * when a non-product-fixed AR claim was present and has been rejected. */
+inline bool zhangRejectNonFormalPppArClaim(ZhangInternalProduct& product)
+{
+	if (zhangFormalPppArProductSolution(product.solution)) return false;
+	const bool rejected = product.pppar_usable || product.ar_valid ||
+		product.dual_frequency_ar_valid;
+	product.pppar_usable = false;
+	product.ar_valid = false;
+	product.dual_frequency_ar_valid = false;
+	if (rejected)
+		product.invalid_reason = "NON_PRODUCT_FIXED_AR_CLAIM_REJECTED";
+	return rejected;
+}
 
 bool zhangPppArUsesObservable(E_Sys sys, E_ObsCode code);
 
@@ -504,6 +529,14 @@ ZhangSatelliteDatumStatus zhangSatelliteDatumStatus(
     const SatSys& satellite
 );
 
+/** Build the segment identity for exactly the physical arcs used by one
+ * product-ledger row.  Unrelated satellite discontinuities must not retire a
+ * valid row; malformed or cross-system physical identities fail closed. */
+std::string zhangProductPhysicalRowSegmentFingerprint(
+    E_Sys system,
+    const std::map<std::string, ZhangExactInteger>& physicalExpansion
+);
+
 bool queryZhangSatelliteProductRelation(
     E_Sys sys,
     E_ObsCode code,
@@ -522,18 +555,22 @@ void recordZhangSatellitePhaseDiscontinuity(
     const std::string&            reason
 );
 
-/** Write both pre-fix and post-feedback internal products. */
+/** Write float, network diagnostic and independently certified product-fixed
+ * products.  productFixedState is the only formal AR-product source when a
+ * productCertification is supplied. */
 void writeZhangInternalProducts(
     Trace&         trace,
     const KFState& integerLedgerState,
     const KFState& floatState,
     const KFState* wideLaneState,
-    const KFState& fixedState,
+    const KFState* networkFixedDiagnosticState,
+    const KFState* productFixedState,
     int            newlyFixed,
     bool           integerDatumComplete,
     bool           wideLaneBranchValid,
     bool           fixedBranchValid,
-    bool           networkIntegerReady
+    bool           networkIntegerReady,
+    const ZhangProductIntegerConstraintSet* productCertification = nullptr
 );
 
 struct ZhangNamedProductIntegerSupport

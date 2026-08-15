@@ -4,6 +4,7 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -43,8 +44,11 @@ struct ZhangIntegerGainFrontier
 {
 	int dimension = 0;
 	int coefficientBound = 0;
+	int maximumEnumerationSupport = 0;
 	std::size_t enumeratedPrimitiveRows = 0;
 	std::size_t reliablePrimitiveRows = 0;
+	std::size_t explicitSeedRowsAdded = 0;
+	std::size_t reliableExplicitSeedRows = 0;
 	double totalProductVariance = 0;
 	std::vector<ZhangIntegerGainFrontierPoint> points;
 	bool valid = false;
@@ -125,11 +129,16 @@ inline ZhangIntegerGainFrontier zhangBoundedIntegerProductGainFrontier(
 	double nisAlpha,
 	int maximumRank,
 	std::size_t beamWidth = 128,
-	double totalProductVarianceOverride = 0)
+	double totalProductVarianceOverride = 0,
+	const ZhangExactMatrix& explicitSeedRows = {},
+	int maximumEnumerationSupport = 0)
 {
 	ZhangIntegerGainFrontier result;
 	result.dimension = mean.size();
 	result.coefficientBound = coefficientBound;
+	result.maximumEnumerationSupport = maximumEnumerationSupport <= 0
+		? result.dimension
+		: std::min(maximumEnumerationSupport, result.dimension);
 	if (mean.size() <= 0 || covariance.rows() != mean.size() ||
 		covariance.cols() != mean.size() ||
 		productQuotientCrossCovariance.cols() != mean.size() ||
@@ -149,25 +158,16 @@ inline ZhangIntegerGainFrontier zhangBoundedIntegerProductGainFrontier(
 	}
 
 	std::vector<ZhangIntegerGainCandidate> candidates;
+	std::set<ZhangExactVector> candidateRows;
 	boost::math::chi_squared scalarDistribution(1);
 	const double scalarNisThreshold = boost::math::quantile(
 		boost::math::complement(scalarDistribution, nisAlpha));
-	ZhangExactVector row(mean.size());
-	std::function<void(int)> enumerate = [&](int column)
+	auto evaluate = [&](ZhangExactVector candidate, bool explicitSeed)
 	{
-		if (column < mean.size())
-		{
-			for (int value = -coefficientBound; value <= coefficientBound; value++)
-			{
-				row[column] = value;
-				enumerate(column + 1);
-			}
-			return;
-		}
-		ZhangExactVector canonical = row;
-		if (!zhangCanonicalPrimitiveIntegerRow(canonical) || canonical != row) return;
-		result.enumeratedPrimitiveRows++;
-		const Eigen::VectorXd numeric = zhangExactRowToDouble(row);
+		if (!zhangCanonicalPrimitiveIntegerRow(candidate)) return;
+		if (!candidateRows.insert(candidate).second) return;
+		if (explicitSeed) result.explicitSeedRowsAdded++;
+		const Eigen::VectorXd numeric = zhangExactRowToDouble(candidate);
 		const double variance = (numeric.transpose() * symmetric * numeric)(0, 0);
 		const double floating = numeric.dot(mean);
 		const double fractional = floating - std::round(floating);
@@ -179,9 +179,36 @@ inline ZhangIntegerGainFrontier zhangBoundedIntegerProductGainFrontier(
 		Eigen::MatrixXd oneRow(1, mean.size()); oneRow.row(0) = numeric.transpose();
 		const double gain = zhangIntegerConstraintProductGain(
 			oneRow, symmetric, productQuotientCrossCovariance);
-		if (gain >= 0) candidates.push_back({row, failure, gain});
+		if (gain >= 0)
+		{
+			candidates.push_back({candidate, failure, gain});
+			if (explicitSeed) result.reliableExplicitSeedRows++;
+		}
 	};
-	enumerate(0);
+	ZhangExactVector row(mean.size());
+	std::function<void(int, int)> enumerate = [&](int column, int nonzeroSupport)
+	{
+		if (column < mean.size())
+		{
+			for (int value = -coefficientBound; value <= coefficientBound; value++)
+			{
+				const int nextSupport = nonzeroSupport + (value != 0);
+				if (nextSupport > result.maximumEnumerationSupport) continue;
+				row[column] = value;
+				enumerate(column + 1, nextSupport);
+			}
+			return;
+		}
+		ZhangExactVector canonical = row;
+		if (!zhangCanonicalPrimitiveIntegerRow(canonical) || canonical != row) return;
+		result.enumeratedPrimitiveRows++;
+		evaluate(row, false);
+	};
+	enumerate(0, 0);
+	for (const auto& seed : explicitSeedRows)
+	{
+		if (seed.size() == static_cast<size_t>(mean.size())) evaluate(seed, true);
+	}
 	result.reliablePrimitiveRows = candidates.size();
 	std::sort(candidates.begin(), candidates.end(), [](const auto& left, const auto& right)
 	{

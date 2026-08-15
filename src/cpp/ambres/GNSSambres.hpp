@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cmath>
 #include <string>
 
 #include "common/algebra.hpp"
@@ -18,6 +19,25 @@ extern bool   AR_VERBO;
 
 struct KFState;
 struct ZhangCheckpointSnapshotReferenceSummary;
+
+/** Bootstrapped success probability for the suffix actually retained by
+ * LAMBDA/PAR.  Keeping this calculation independent of the initial proposal
+ * rank prevents a shrunken NIS-accepted subset from inheriting stale risk. */
+inline double lambdaSelectedSuffixBootstrapSuccess(
+    const VectorXd& conditionalVariances,
+    int selectedCount)
+{
+    if (selectedCount <= 0 || selectedCount > conditionalVariances.size())
+        return 0;
+    double success = 1;
+    for (int index = conditionalVariances.size() - selectedCount;
+         index < conditionalVariances.size(); index++)
+    {
+        if (!(conditionalVariances(index) > 0)) return 0;
+        success *= std::erf(std::sqrt(1 / (8 * conditionalVariances(index))));
+    }
+    return success;
+}
 
 inline constexpr std::uint32_t ZHANG_AMBRES_CHECKPOINT_SCHEMA_VERSION = 2;
 inline constexpr const char* ZHANG_AMBRES_CHECKPOINT_SECTION_NAME =
@@ -91,6 +111,9 @@ struct GinAR_mtx
     MatrixXd Pafix;
 
     int    lambda_initial_fix_count          = 0;
+    /** Bootstrapped success probability of the suffix actually returned by
+     * lambda_search(), after any NIS-driven rank reduction. */
+    double lambda_selected_bootstrap_success = 0;
     double lambda_candidate_nis              = 0;
     double lambda_candidate_nis_threshold    = 0;
     bool   lambda_candidate_nis_valid        = false;
@@ -243,6 +266,11 @@ struct GinAR_lambda_subset_oracle_result
 };
 
 int GNSS_AR(Trace& trace, GinAR_mtx& mtrx, GinAR_opt opt);
+
+/** Expose the unimodular LAMBDA decorrelation rows for diagnostics and
+ * bounded shadow candidate dictionaries.  Calling this function does not
+ * perform fixing or estimator feedback. */
+int Ztrans_reduction(Trace& trace, GinAR_mtx& mtrx);
 
 GinAR_lambda_beam_result GNSS_AR_LAMBDA_BEAM_SHADOW(
     Trace&                         trace,

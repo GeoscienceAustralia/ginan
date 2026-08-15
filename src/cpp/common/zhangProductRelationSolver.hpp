@@ -2,9 +2,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <map>
 #include <numeric>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -12,6 +14,74 @@
 #include "common/zhangIntegerAudit.hpp"
 #include "common/zhangIarGainAudit.hpp"
 #include "common/zhangProductRelationBasis.hpp"
+
+/** One exact satellite-pair coordinate in a named star ambient lattice.
+ * Nodes [0,namedCount) are named satellite-minus-reference coordinates and
+ * node namedCount is the canonical reference satellite. */
+struct ZhangCertifiedPairRelation
+{
+	int firstNode = -1;
+	int secondNode = -1;
+	ZhangExactInteger value = 0;
+	ZhangExactVector parentCombination;
+	std::string coordinate = "UNKNOWN";
+	// True only when at least one of the WL/L1 coordinates forming this
+	// dual-frequency edge came from a previously certified ledger row that
+	// survived the current private-branch joint-NIS admission.
+	bool fromTemporalLedger = false;
+};
+
+/** Exact product-lattice constraints returned by the product IAR solver.
+ *
+ * Product rows are expressed in the complete mappable product coordinate,
+ * not in a transient named-subset or LAMBDA-reduced suffix.  networkRows and
+ * networkIntegers are the exact affine pull-back to the ambiguity coordinates
+ * consumed by GinAR_mtx.  Mixed rows remain valid conditioning information
+ * even when they contain no individually recoverable satellite-pair edge. */
+struct ZhangProductIntegerConstraintSet
+{
+	bool reliable = false;
+	bool exactNetworkMapping = false;
+	E_Sys system = E_Sys::NONE;
+	E_ObsCode firstObservable = E_ObsCode::NONE;
+	E_ObsCode secondObservable = E_ObsCode::NONE;
+	SatSys referenceSatellite;
+	// Node i of every product row denotes coordinateSatellites[i] minus
+	// referenceSatellite.  The reference itself is graph node N.
+	std::vector<SatSys> coordinateSatellites;
+	int productCoordinateDimension = 0;
+	int networkAmbiguityDimension = 0;
+
+	ZhangExactMatrix wideLaneProductRows;
+	ZhangExactVector wideLaneIntegers;
+	ZhangExactMatrix firstSignalProductRows;
+	ZhangExactVector firstSignalIntegers;
+
+	ZhangExactMatrix networkRows;
+	ZhangExactVector networkIntegers;
+	// Joint [z1,z2] rows corresponding one-to-one with networkRows.
+	ZhangExactMatrix jointProductRows;
+	// Immutable current physical-arc identities, populated by AMBRES after the
+	// solver returns because only it owns the KF ambiguity map and arc versions.
+	std::vector<std::map<std::string, ZhangExactInteger>> physicalNetworkRows;
+	std::string phaseSegmentFingerprint;
+	std::uint64_t backendBasisGeneration = 0;
+
+	std::vector<ZhangCertifiedPairRelation> certifiedPairs;
+	// Pair relations proved by both WL and conditional-L1.  These, and only
+	// these, are allowed to form the dual-frequency broadcast certificate graph.
+	std::vector<ZhangCertifiedPairRelation> dualFrequencyCertifiedPairs;
+	ZhangExactMatrix conditioningOnlyRows;
+	ZhangExactVector conditioningOnlyIntegers;
+
+	int conditioningRank = 0;
+	int certifiedPairRank = 0;
+	double jointNis = std::numeric_limits<double>::quiet_NaN();
+	double jointNisThreshold = std::numeric_limits<double>::quiet_NaN();
+	double failureProbability = 1;
+	double referenceInvariantProductGain = 0;
+	std::string failureReason = "NOT_EVALUATED";
+};
 
 /** Result boundary for the direct satellite-product integer solver.
  *
@@ -72,6 +142,7 @@ struct ZhangProductRelationFixResult
 	std::string wideLaneCertificateSource = "NONE";
 	bool namedOrderingValid = false;
 	bool namedSubsetCertificate = false;
+	ZhangProductIntegerConstraintSet constraints;
 	std::string status = "NOT_EVALUATED";
 	std::string failureReason = "NONE";
 };
@@ -172,6 +243,104 @@ inline ZhangProductRelationLexicographicScore zhangProductParScore(
 	};
 }
 
+/** One named satellite edge proposed to the product-aware forest beam. */
+struct ZhangNamedPairBeamCandidate
+{
+	ZhangExactVector row;
+	double perr = 1;
+	double gain = 0;
+	double variance = std::numeric_limits<double>::infinity();
+	std::vector<int> nodes;
+};
+
+struct ZhangNamedPairBeamBranch
+{
+	std::vector<int> selected;
+	double maximumPerr = 0;
+	double summedGain = 0;
+	double summedVariance = 0;
+	int coveredNodes = 0;
+};
+
+/** Retain alternate primitive named-edge forests at every rank.
+ *
+ * This is deliberately an expansion beam, not deletion from one greedy tree:
+ * an edge excluded from the first high-gain forest remains reachable through
+ * another branch.  Ordering is the requested reliability -> satellite
+ * coverage -> product gain lexicographic order. */
+inline std::vector<std::vector<ZhangNamedPairBeamBranch>>
+zhangNamedPairForestBeamLevels(
+	const std::vector<ZhangNamedPairBeamCandidate>& candidates,
+	int dimension,
+	int beamWidth)
+{
+	std::vector<std::vector<ZhangNamedPairBeamBranch>> levels;
+	if (dimension <= 0 || beamWidth <= 0 || candidates.empty()) return levels;
+	auto quality = [&](const std::vector<int>& selected)
+	{
+		ZhangNamedPairBeamBranch branch;
+		branch.selected = selected;
+		std::set<int> nodes;
+		for (int index : selected)
+		{
+			if (index < 0 || index >= static_cast<int>(candidates.size()))
+				return ZhangNamedPairBeamBranch{};
+			branch.maximumPerr = std::max(
+				branch.maximumPerr, candidates[index].perr);
+			branch.summedGain += candidates[index].gain;
+			branch.summedVariance += candidates[index].variance;
+			nodes.insert(candidates[index].nodes.begin(),
+				candidates[index].nodes.end());
+		}
+		branch.coveredNodes = nodes.size();
+		return branch;
+	};
+	auto better = [](const auto& left, const auto& right)
+	{
+		if (left.maximumPerr != right.maximumPerr)
+			return left.maximumPerr < right.maximumPerr;
+		if (left.coveredNodes != right.coveredNodes)
+			return left.coveredNodes > right.coveredNodes;
+		if (left.summedGain != right.summedGain)
+			return left.summedGain > right.summedGain;
+		if (left.summedVariance != right.summedVariance)
+			return left.summedVariance < right.summedVariance;
+		return left.selected < right.selected;
+	};
+
+	std::vector<ZhangNamedPairBeamBranch> frontier = {
+		ZhangNamedPairBeamBranch{}};
+	for (int targetRank = 1;
+		targetRank <= dimension && !frontier.empty(); targetRank++)
+	{
+		std::map<std::vector<int>, ZhangNamedPairBeamBranch> unique;
+		for (const auto& parent : frontier)
+		for (int index = 0; index < static_cast<int>(candidates.size()); index++)
+		{
+			if (std::binary_search(
+				parent.selected.begin(), parent.selected.end(), index)) continue;
+			auto selected = parent.selected;
+			selected.push_back(index);
+			std::sort(selected.begin(), selected.end());
+			ZhangExactMatrix rows;
+			for (int selectedIndex : selected)
+				rows.push_back(candidates[selectedIndex].row);
+			int exactRank = 0;
+			if (!zhangExactPrimitiveRowLattice(rows, dimension, &exactRank) ||
+				exactRank != static_cast<int>(rows.size())) continue;
+			unique.try_emplace(selected, quality(selected));
+		}
+		frontier.clear();
+		for (auto& [selected, branch] : unique)
+			frontier.push_back(std::move(branch));
+		std::sort(frontier.begin(), frontier.end(), better);
+		if (frontier.size() > static_cast<std::size_t>(beamWidth))
+			frontier.resize(beamWidth);
+		if (!frontier.empty()) levels.push_back(frontier);
+	}
+	return levels;
+}
+
 /** Prove that L1 and L2 use the same named satellite-minus-reference rows.
  * Numeric row indices alone are insufficient because two independently
  * compiled bases can assign the same index to different satellites. */
@@ -203,6 +372,100 @@ inline bool zhangProductNamedOrderingMatches(
 			return false;
 		}
 	}
+	return true;
+}
+
+/** Exact affine pull-back of product WL and first-signal integer rows.
+ *
+ * For Fw(z1-z2)=nw and F1 z1=n1 this produces
+ * [Fw(G1-G2); F1 G1] a =
+ * [nw-Fw(c1-c2); n1-F1 c1].  Numeric basis matrices are accepted only when
+ * every coefficient is exactly integral within the representation tolerance. */
+inline bool zhangPullBackProductIntegerConstraints(
+	const ZhangProductRelationBasis& firstBasis,
+	const ZhangProductRelationBasis& secondBasis,
+	const ZhangExactMatrix& wideLaneRows,
+	const ZhangExactVector& wideLaneIntegers,
+	const ZhangExactMatrix& firstSignalRows,
+	const ZhangExactVector& firstSignalIntegers,
+	ZhangExactMatrix& networkRows,
+	ZhangExactVector& networkIntegers,
+	std::string& failureReason)
+{
+	networkRows.clear();
+	networkIntegers.clear();
+	const int productRank = firstBasis.mappableTargetRank;
+	const int networkDimension = firstBasis.transform.cols();
+	if (productRank <= 0 || networkDimension <= 0 ||
+		secondBasis.mappableTargetRank != productRank ||
+		secondBasis.transform.cols() != networkDimension ||
+		firstBasis.transform.rows() != productRank ||
+		secondBasis.transform.rows() != productRank ||
+		firstBasis.affineOffsets.size() != static_cast<std::size_t>(productRank) ||
+		secondBasis.affineOffsets.size() != static_cast<std::size_t>(productRank) ||
+		wideLaneRows.size() != wideLaneIntegers.size() ||
+		firstSignalRows.size() != firstSignalIntegers.size())
+	{
+		failureReason = "PRODUCT_CONSTRAINT_DIMENSION_MISMATCH";
+		return false;
+	}
+	auto exactBasisCoefficient = [](const MatrixXd& transform,
+		int row, int column, ZhangExactInteger& coefficient)
+	{
+		const long long rounded = std::llround(transform(row, column));
+		if (std::abs(transform(row, column) - rounded) > 1e-8) return false;
+		coefficient = rounded;
+		return true;
+	};
+	auto append = [&](const ZhangExactVector& productRow,
+		const ZhangExactInteger& integer, bool wideLane)
+	{
+		if (productRow.size() != static_cast<std::size_t>(productRank))
+			return false;
+		ZhangExactVector networkRow(networkDimension);
+		ZhangExactInteger rhs = integer;
+		for (int product = 0; product < productRank; product++)
+		{
+			const ZhangExactInteger multiplier = productRow[product];
+			if (multiplier == 0) continue;
+			for (int column = 0; column < networkDimension; column++)
+			{
+				ZhangExactInteger first = 0;
+				ZhangExactInteger second = 0;
+				if (!exactBasisCoefficient(firstBasis.transform,
+					product, column, first) ||
+					!exactBasisCoefficient(secondBasis.transform,
+					product, column, second)) return false;
+				networkRow[column] += multiplier *
+					(wideLane ? first - second : first);
+			}
+			const ZhangExactInteger offset = wideLane
+				? firstBasis.affineOffsets.at(product) -
+					secondBasis.affineOffsets.at(product)
+				: firstBasis.affineOffsets.at(product);
+			rhs -= multiplier * offset;
+		}
+		networkRows.push_back(std::move(networkRow));
+		networkIntegers.push_back(std::move(rhs));
+		return true;
+	};
+	for (std::size_t row = 0; row < wideLaneRows.size(); row++)
+	{
+		if (!append(wideLaneRows[row], wideLaneIntegers[row], true))
+		{
+			failureReason = "WL_PRODUCT_TO_NETWORK_MAPPING_FAILED";
+			return false;
+		}
+	}
+	for (std::size_t row = 0; row < firstSignalRows.size(); row++)
+	{
+		if (!append(firstSignalRows[row], firstSignalIntegers[row], false))
+		{
+			failureReason = "L1_PRODUCT_TO_NETWORK_MAPPING_FAILED";
+			return false;
+		}
+	}
+	failureReason = "NONE";
 	return true;
 }
 
@@ -257,17 +520,6 @@ struct ZhangInheritedNamedCertificate
 	bool exact = false;
 	int parentFixedRank = 0;
 	std::map<std::size_t, ZhangExactInteger> values;
-};
-
-/** One exact satellite-pair coordinate in a named star ambient lattice.
- * Nodes [0,namedCount) are named satellite-minus-reference coordinates and
- * node namedCount is the canonical reference satellite. */
-struct ZhangCertifiedPairRelation
-{
-	int firstNode = -1;
-	int secondNode = -1;
-	ZhangExactInteger value = 0;
-	ZhangExactVector parentCombination;
 };
 
 /** Recover every directly named satellite-pair edge contained in an accepted
@@ -422,6 +674,125 @@ struct ZhangComponentBridgeGls
 	double residualNis = std::numeric_limits<double>::quiet_NaN();
 	double maximumNullResidual = 0;
 };
+
+struct ZhangComponentGaugeGls
+{
+	bool valid = false;
+	int measurementRank = 0;
+	int gaugeRank = 0;
+	Eigen::VectorXd mean;
+	Eigen::MatrixXd covariance;
+	double residualNis = std::numeric_limits<double>::quiet_NaN();
+	double maximumNullResidual = 0;
+};
+
+struct ZhangComponentGaugeProductRow
+{
+	bool valid = false;
+	ZhangExactVector row;
+	ZhangExactInteger value = 0;
+};
+
+/** Map one fixed datum-free component-gauge row back to the named satellite
+ * product lattice, including the already-certified within-component offsets.
+ * An anchor equal to namedDimension denotes the implicit canonical reference
+ * and therefore contributes no explicit coordinate column. */
+inline ZhangComponentGaugeProductRow zhangComponentGaugeToProductRow(
+	const ZhangExactVector& gaugeCombination,
+	const std::vector<int>& componentAnchors,
+	const ZhangExactVector& componentAnchorPotentials,
+	int namedDimension,
+	const ZhangExactInteger& gaugeIntegerValue)
+{
+	ZhangComponentGaugeProductRow result;
+	if (namedDimension <= 0 || componentAnchors.size() < 2 ||
+		componentAnchors.size() != componentAnchorPotentials.size() ||
+		gaugeCombination.size() + 1 != componentAnchors.size()) return result;
+	if (std::any_of(componentAnchors.begin(), componentAnchors.end(),
+		[namedDimension](int anchor)
+		{ return anchor < 0 || anchor > namedDimension; })) return result;
+	result.row = ZhangExactVector(namedDimension);
+	result.value = gaugeIntegerValue;
+	const int datumAnchor = componentAnchors.front();
+	for (int gauge = 0; gauge < static_cast<int>(gaugeCombination.size()); gauge++)
+	{
+		const auto& coefficient = gaugeCombination[gauge];
+		const int componentAnchor = componentAnchors[gauge + 1];
+		if (componentAnchor < namedDimension)
+			result.row[componentAnchor] += coefficient;
+		if (datumAnchor < namedDimension)
+			result.row[datumAnchor] -= coefficient;
+		result.value += coefficient *
+			(componentAnchorPotentials[gauge + 1] -
+			 componentAnchorPotentials.front());
+	}
+	result.valid = std::any_of(result.row.begin(), result.row.end(),
+		[](const auto& value) { return value != 0; });
+	return result;
+}
+
+/** Joint GLS reduction of all correlated cross-component observations
+ *
+ *     y = D_C c + e,  c in Z^(K-1).
+ *
+ * The measurement covariance may be singular because the complete set of
+ * satellite-pair edges is deliberately retained.  The returned gauge
+ * covariance is usable for ILS/PAR only when every datum-free component gauge
+ * is estimable.  Null-space disagreement fails closed instead of being
+ * discarded by the pseudo inverse.
+ */
+inline ZhangComponentGaugeGls zhangComponentGaugeGls(
+	const Eigen::VectorXd& measurements,
+	const Eigen::MatrixXd& covariance,
+	const Eigen::MatrixXd& design)
+{
+	ZhangComponentGaugeGls result;
+	const int count = measurements.size();
+	const int gauges = design.cols();
+	if (count == 0 || gauges == 0 || design.rows() != count ||
+		covariance.rows() != count || covariance.cols() != count ||
+		!measurements.allFinite() || !design.allFinite() ||
+		!covariance.allFinite()) return result;
+
+	const Eigen::MatrixXd symmetric =
+		0.5 * (covariance + covariance.transpose());
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen(symmetric);
+	if (eigen.info() != Eigen::Success || !eigen.eigenvalues().allFinite())
+		return result;
+	const double largest = std::max(0.0, eigen.eigenvalues().maxCoeff());
+	const double tolerance = std::max(1e-14, 1e-12 * largest);
+	Eigen::VectorXd inverse = Eigen::VectorXd::Zero(count);
+	for (int index = 0; index < count; index++)
+	{
+		if (eigen.eigenvalues()(index) <= tolerance) continue;
+		inverse(index) = 1 / eigen.eigenvalues()(index);
+		result.measurementRank++;
+	}
+	const Eigen::MatrixXd pseudoInverse =
+		eigen.eigenvectors() * inverse.asDiagonal() *
+		eigen.eigenvectors().transpose();
+	const Eigen::MatrixXd information =
+		design.transpose() * pseudoInverse * design;
+	Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd> informationSolver(
+		information);
+	result.gaugeRank = informationSolver.rank();
+	if (result.gaugeRank != gauges) return result;
+	result.covariance = informationSolver.solve(
+		Eigen::MatrixXd::Identity(gauges, gauges));
+	result.covariance = 0.5 *
+		(result.covariance + result.covariance.transpose());
+	result.mean = result.covariance * design.transpose() *
+		pseudoInverse * measurements;
+	const Eigen::VectorXd residual = measurements - design * result.mean;
+	result.residualNis = residual.dot(pseudoInverse * residual);
+	const Eigen::VectorXd nullResidual =
+		residual - symmetric * pseudoInverse * residual;
+	result.maximumNullResidual = nullResidual.lpNorm<Eigen::Infinity>();
+	result.valid = result.mean.allFinite() && result.covariance.allFinite() &&
+		std::isfinite(result.residualNis) &&
+		result.maximumNullResidual <= 1e-7;
+	return result;
+}
 
 /** GLS estimate of one shared relative integer gauge from correlated cross-
  * component edge measurements y=1*d+e. */

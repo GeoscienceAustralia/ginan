@@ -6,7 +6,9 @@
 #include <functional>
 #include <numeric>
 #include <random>
+#include <sstream>
 #include <tuple>
+#include "ambres/GNSSambres.hpp"
 #include "common/eigenIncluder.hpp"
 #include "common/receiver.hpp"
 #include "common/zhangCheckpoint.hpp"
@@ -14,6 +16,9 @@
 #include "common/zhangIarGainAudit.hpp"
 #include "common/zhangProductRelationBasis.hpp"
 #include "common/zhangProductRelationAdmission.hpp"
+#include "common/zhangProductIntegerLedger.hpp"
+#include "common/zhangProductIntegerCandidateGenerator.hpp"
+#include "common/zhangFullProductLatticeOracle.hpp"
 #include "common/zhangProductRelationSolver.hpp"
 #include "common/zhangIntegerSupportQuality.hpp"
 #include "common/zhangTargetedBesdTracker.hpp"
@@ -41,6 +46,7 @@
 #include "common/zhangIntegerConditioner.hpp"
 #include "common/zhangHybridUserModel.hpp"
 #include "common/zhangHybridService.hpp"
+#include "pea/zhangPppAr.hpp"
 
 namespace
 {
@@ -8684,6 +8690,43 @@ BOOST_AUTO_TEST_CASE(product_relation_partial_decorrelated_rows_are_not_certific
 	BOOST_CHECK_EQUAL(complete.at(1), 3);
 }
 
+BOOST_AUTO_TEST_CASE(only_product_fixed_is_a_formal_pppar_product)
+{
+	BOOST_CHECK(zhangFormalPppArProductSolution("PRODUCT_FIXED"));
+	BOOST_CHECK(!zhangFormalPppArProductSolution("FIXED"));
+	BOOST_CHECK(!zhangFormalPppArProductSolution(
+		"NETWORK_FIXED_DIAGNOSTIC"));
+	BOOST_CHECK(!zhangFormalPppArProductSolution("NETWORK_WL"));
+	BOOST_CHECK(!zhangFormalPppArProductSolution("FLOAT"));
+}
+
+BOOST_AUTO_TEST_CASE(user_rejects_legacy_network_fixed_ar_claim)
+{
+	ZhangInternalProduct legacy;
+	legacy.solution = "FIXED";
+	legacy.ppp_usable = true;
+	legacy.pppar_usable = true;
+	legacy.ar_valid = true;
+	legacy.dual_frequency_ar_valid = true;
+	BOOST_CHECK(zhangRejectNonFormalPppArClaim(legacy));
+	BOOST_CHECK(legacy.ppp_usable);
+	BOOST_CHECK(!legacy.pppar_usable);
+	BOOST_CHECK(!legacy.ar_valid);
+	BOOST_CHECK(!legacy.dual_frequency_ar_valid);
+	BOOST_CHECK_EQUAL(legacy.invalid_reason,
+		"NON_PRODUCT_FIXED_AR_CLAIM_REJECTED");
+
+	ZhangInternalProduct formal;
+	formal.solution = "PRODUCT_FIXED";
+	formal.pppar_usable = true;
+	formal.ar_valid = true;
+	formal.dual_frequency_ar_valid = true;
+	BOOST_CHECK(!zhangRejectNonFormalPppArClaim(formal));
+	BOOST_CHECK(formal.pppar_usable);
+	BOOST_CHECK(formal.ar_valid);
+	BOOST_CHECK(formal.dual_frequency_ar_valid);
+}
+
 BOOST_AUTO_TEST_CASE(
 	product_relation_named_rows_inherit_accepted_parent_lattice_certificate)
 {
@@ -8809,6 +8852,70 @@ BOOST_AUTO_TEST_CASE(component_bridge_gls_aggregates_correlated_edges)
 	BOOST_CHECK(bridge.residualNis > 0);
 }
 
+BOOST_AUTO_TEST_CASE(component_gauge_gls_jointly_recovers_all_component_gauges)
+{
+	// Three certified components, component zero is the integer datum.  The
+	// observations contain redundant correlated edges for c1, c2 and c1-c2.
+	MatrixXd design(5, 2);
+	design << 1, 0,
+		1, 0,
+		0, 1,
+		0, 1,
+		1, -1;
+	VectorXd measurements(5);
+	measurements << 3.02, 2.98, -1.01, -0.99, 4.01;
+	MatrixXd covariance = MatrixXd::Identity(5, 5) * 0.01;
+	covariance(0, 1) = covariance(1, 0) = 0.002;
+	covariance(2, 3) = covariance(3, 2) = 0.002;
+	const auto result = zhangComponentGaugeGls(
+		measurements, covariance, design);
+	BOOST_REQUIRE(result.valid);
+	BOOST_CHECK_EQUAL(result.gaugeRank, 2);
+	BOOST_CHECK_EQUAL(result.measurementRank, 5);
+	BOOST_REQUIRE_EQUAL(result.mean.size(), 2);
+	BOOST_CHECK_SMALL(result.mean(0) - 3, 0.03);
+	BOOST_CHECK_SMALL(result.mean(1) + 1, 0.03);
+	BOOST_CHECK(result.covariance(0, 0) > 0);
+	BOOST_CHECK(result.covariance(1, 1) > 0);
+	BOOST_CHECK(result.residualNis >= 0);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_gls_rejects_unestimable_gauge)
+{
+	VectorXd measurements(2); measurements << 2, 2;
+	MatrixXd covariance = MatrixXd::Identity(2, 2);
+	MatrixXd design = MatrixXd::Zero(2, 2);
+	design.col(0).setOnes();
+	const auto result = zhangComponentGaugeGls(
+		measurements, covariance, design);
+	BOOST_CHECK(!result.valid);
+	BOOST_CHECK_EQUAL(result.gaugeRank, 1);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_product_row_includes_certified_offsets)
+{
+	// Component anchors have internal potentials [2,-3,5] relative to their
+	// own component gauges.  Fixed row 2*(c1-c0)-(c2-c0)=7 implies
+	// 2*K1-K2-K0 = 7 + 2*(-3-2) - (5-2) = -6.
+	const auto mapped = zhangComponentGaugeToProductRow(
+		{2, -1}, {0, 2, 3}, {2, -3, 5}, 4, 7);
+	BOOST_REQUIRE(mapped.valid);
+	const ZhangExactVector expected = {-1, 0, 2, -1};
+	BOOST_CHECK(mapped.row == expected);
+	BOOST_CHECK_EQUAL(mapped.value, -6);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_product_row_supports_implicit_reference)
+{
+	// Datum anchor is the implicit canonical reference at index dimension.
+	const auto mapped = zhangComponentGaugeToProductRow(
+		{1}, {3, 1}, {0, 4}, 3, -2);
+	BOOST_REQUIRE(mapped.valid);
+	const ZhangExactVector expected = {0, 1, 0};
+	BOOST_CHECK(mapped.row == expected);
+	BOOST_CHECK_EQUAL(mapped.value, 2);
+}
+
 BOOST_AUTO_TEST_CASE(
 	temporal_component_integer_basis_removes_common_gauge_and_is_reference_invariant)
 {
@@ -8858,6 +8965,446 @@ BOOST_AUTO_TEST_CASE(product_relation_named_backward_search_reaches_low_rank)
 	}
 	BOOST_CHECK_EQUAL(path.size(), 1);
 	BOOST_CHECK_EQUAL(evaluations, 6);
+}
+
+BOOST_AUTO_TEST_CASE(product_named_pair_beam_expands_alternate_forests)
+{
+	const std::vector<ZhangNamedPairBeamCandidate> candidates = {
+		{{1, 0, 0}, 1e-5, 1.0, 0.2, {0, 3}},
+		{{0, 1, 0}, 1e-5, 100.0, 0.2, {1, 3}},
+		{{0, 0, 1}, 1e-6, 0.1, 0.1, {2, 3}},
+		{{1, -1, 0}, 1e-5, 0.5, 0.2, {0, 1}}};
+	const auto levels = zhangNamedPairForestBeamLevels(candidates, 3, 2);
+	BOOST_REQUIRE_EQUAL(levels.size(), 3);
+	BOOST_REQUIRE_EQUAL(levels[0].size(), 2);
+	// Candidate 0 is outside the rank-1 beam, but genuine expansion from the
+	// retained candidate-1 branch must still reach the best rank-2 forest.
+	BOOST_CHECK(std::find(
+		levels[0][0].selected.begin(), levels[0][0].selected.end(), 0) ==
+		levels[0][0].selected.end());
+	BOOST_CHECK(std::find(
+		levels[0][1].selected.begin(), levels[0][1].selected.end(), 0) ==
+		levels[0][1].selected.end());
+	const std::vector<int> expectedBest = {0, 1};
+	BOOST_CHECK_EQUAL_COLLECTIONS(
+		levels[1][0].selected.begin(), levels[1][0].selected.end(),
+		expectedBest.begin(), expectedBest.end());
+	BOOST_CHECK_EQUAL(levels[1][0].coveredNodes, 3);
+	BOOST_CHECK_CLOSE_FRACTION(levels[1][0].summedGain, 101.0, 1e-14);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_constraints_pull_back_affine_wl_and_l1)
+{
+	ZhangProductRelationBasis first;
+	first.mappableTargetRank = 2;
+	first.transform.resize(2, 3);
+	first.transform << 1, -1, 0,
+		0, 1, -1;
+	first.affineOffsets = {2, -1};
+	ZhangProductRelationBasis second;
+	second.mappableTargetRank = 2;
+	second.transform.resize(2, 3);
+	second.transform << 1, 0, -1,
+		1, -1, 0;
+	second.affineOffsets = {1, 3};
+
+	const ZhangExactMatrix wideLaneRows = {{1, -1}};
+	const ZhangExactVector wideLaneIntegers = {7};
+	const ZhangExactMatrix firstRows = {{2, 1}};
+	const ZhangExactVector firstIntegers = {-4};
+	ZhangExactMatrix networkRows;
+	ZhangExactVector networkIntegers;
+	std::string failure;
+	BOOST_REQUIRE(zhangPullBackProductIntegerConstraints(
+		first, second,
+		wideLaneRows, wideLaneIntegers,
+		firstRows, firstIntegers,
+		networkRows, networkIntegers, failure));
+	BOOST_CHECK_EQUAL(failure, "NONE");
+	BOOST_REQUIRE_EQUAL(networkRows.size(), 2);
+	BOOST_REQUIRE_EQUAL(networkIntegers.size(), 2);
+	BOOST_CHECK(networkRows[0] == ZhangExactVector({1, -3, 2}));
+	BOOST_CHECK_EQUAL(networkIntegers[0], 2);
+	BOOST_CHECK(networkRows[1] == ZhangExactVector({2, -1, -1}));
+	BOOST_CHECK_EQUAL(networkIntegers[1], -7);
+}
+
+BOOST_AUTO_TEST_CASE(product_relation_constraint_pullback_rejects_noninteger_basis)
+{
+	ZhangProductRelationBasis first;
+	first.mappableTargetRank = 1;
+	first.transform = MatrixXd::Constant(1, 1, 0.5);
+	first.affineOffsets = {0};
+	ZhangProductRelationBasis second = first;
+	second.transform(0, 0) = 0;
+	ZhangExactMatrix networkRows;
+	ZhangExactVector networkIntegers;
+	std::string failure;
+	BOOST_CHECK(!zhangPullBackProductIntegerConstraints(
+		first, second, {{1}}, {0}, {}, {},
+		networkRows, networkIntegers, failure));
+	BOOST_CHECK_EQUAL(failure, "WL_PRODUCT_TO_NETWORK_MAPPING_FAILED");
+	BOOST_CHECK(networkRows.empty());
+}
+
+BOOST_AUTO_TEST_CASE(product_integer_ledger_accumulates_exact_physical_rank)
+{
+	ProductIntegerLedger ledger;
+	ProductIntegerLedgerRow first;
+	first.system = E_Sys::GPS;
+	first.firstObservable = E_ObsCode::L1C;
+	first.secondObservable = E_ObsCode::L2W;
+	first.productRow = {1, -1, 0, 0};
+	first.integerValue = 7;
+	first.physicalExpansion = {{"L1C|ABCD|G03|V4", 1},
+		{"L1C|ABCD|G02|V2", -1}};
+	first.phaseSegmentFingerprint = "G02|L1C|SEG1;G03|L1C|SEG1;";
+	first.backendBasisGeneration = 12;
+
+	auto firstEpoch = ledger.observe(100, {first}, 2);
+	BOOST_REQUIRE(firstEpoch.valid);
+	BOOST_CHECK_EQUAL(firstEpoch.activeRankAfter, 0);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK(!ledger.rows().front().certified);
+
+	// Re-observing in the same epoch cannot manufacture a confirmation.
+	auto duplicateEpoch = ledger.observe(100, {first}, 2);
+	BOOST_REQUIRE(duplicateEpoch.valid);
+	BOOST_CHECK_EQUAL(duplicateEpoch.activeRankAfter, 0);
+	BOOST_CHECK_EQUAL(ledger.rows().front().confirmationEpochs, 1);
+
+	auto confirmed = ledger.observe(130, {first}, 2);
+	BOOST_REQUIRE(confirmed.valid);
+	BOOST_CHECK_EQUAL(confirmed.activeRankAfter, 1);
+	BOOST_CHECK(ledger.rows().front().certified);
+
+	auto second = first;
+	second.productRow = {0, 1, -1, 0};
+	second.integerValue = -3;
+	second.physicalExpansion = {{"L1C|EFGH|G08|V1", 1},
+		{"L1C|EFGH|G02|V5", -1}};
+	second.phaseSegmentFingerprint = "G02|L1C|SEG1;G08|L1C|SEG1;";
+	auto secondFirst = ledger.observe(160, {second}, 2);
+	BOOST_REQUIRE(secondFirst.valid);
+	BOOST_CHECK_EQUAL(secondFirst.activeRankAfter, 1);
+	auto secondConfirmed = ledger.observe(190, {second}, 2);
+	BOOST_REQUIRE(secondConfirmed.valid);
+	BOOST_CHECK_EQUAL(secondConfirmed.activeRankAfter, 2);
+}
+
+BOOST_AUTO_TEST_CASE(product_integer_ledger_rejects_nonprimitive_transactionally)
+{
+	ProductIntegerLedger ledger;
+	ProductIntegerLedgerRow good;
+	good.system = E_Sys::GPS;
+	good.productRow = {1};
+	good.integerValue = 4;
+	good.physicalExpansion = {{"L1C|ABCD|G03|V1", 1}};
+	good.phaseSegmentFingerprint = "G03|L1C|SEG1;";
+	BOOST_REQUIRE(ledger.observe(100, {good}, 1).valid);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+
+	auto bad = good;
+	bad.integerValue = 8;
+	bad.physicalExpansion = {{"L1C|EFGH|G05|V1", 2}};
+	const auto rejected = ledger.observe(130, {good, bad}, 1);
+	BOOST_CHECK(!rejected.valid);
+	BOOST_CHECK_EQUAL(rejected.failureReason,
+		"PRODUCT_LEDGER_ROW_NOT_PRIMITIVE");
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK_EQUAL(ledger.rows().front().integerValue, 4);
+}
+
+BOOST_AUTO_TEST_CASE(product_integer_ledger_conflict_restarts_confirmation)
+{
+	ProductIntegerLedger ledger;
+	ProductIntegerLedgerRow row;
+	row.system = E_Sys::GPS;
+	row.firstObservable = E_ObsCode::L1C;
+	row.secondObservable = E_ObsCode::L2W;
+	row.productRow = {1, -1};
+	row.integerValue = 7;
+	row.physicalExpansion = {
+		{"L1C|ABCD|G03|V1", 1}, {"L1C|ABCD|G02|V1", -1}};
+	row.phaseSegmentFingerprint = "G02|L1C|SEG1;G03|L1C|SEG1;";
+	row.backendBasisGeneration = 12;
+	BOOST_REQUIRE(ledger.observe(100, {row}, 2).valid);
+	BOOST_REQUIRE(ledger.observe(130, {row}, 2).valid);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK(ledger.rows().front().certified);
+
+	auto replacement = row;
+	replacement.integerValue = 8;
+	const auto conflict = ledger.observe(160, {replacement}, 2);
+	BOOST_REQUIRE(conflict.valid);
+	BOOST_CHECK_EQUAL(conflict.conflictingRows, 1);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK_EQUAL(ledger.rows().front().integerValue, 8);
+	BOOST_CHECK_EQUAL(ledger.rows().front().confirmationEpochs, 1);
+	BOOST_CHECK(!ledger.rows().front().certified);
+
+	const auto reconfirmed = ledger.observe(190, {replacement}, 2);
+	BOOST_REQUIRE(reconfirmed.valid);
+	BOOST_CHECK_EQUAL(reconfirmed.conflictingRows, 0);
+	BOOST_CHECK(ledger.rows().front().certified);
+	BOOST_CHECK_EQUAL(ledger.rows().front().confirmationEpochs, 2);
+}
+
+BOOST_AUTO_TEST_CASE(product_integer_ledger_canonicalises_negated_relation)
+{
+	ProductIntegerLedger ledger;
+	ProductIntegerLedgerRow row;
+	row.system = E_Sys::GPS;
+	row.firstObservable = E_ObsCode::L1C;
+	row.secondObservable = E_ObsCode::L2W;
+	row.productRow = {1, -1};
+	row.integerValue = 7;
+	row.physicalExpansion = {
+		{"L1C|ABCD|G02|V1", -1}, {"L1C|ABCD|G03|V1", 1}};
+	row.phaseSegmentFingerprint = "segments-v1";
+	row.backendBasisGeneration = 12;
+	row.pairCertificate = true;
+	row.conditioningOnly = false;
+	row.coordinate = "WL";
+	row.firstSatellite = "G03";
+	row.secondSatellite = "G02";
+	BOOST_REQUIRE(ledger.observe(100, {row}, 2).valid);
+
+	auto negated = row;
+	for (auto& coefficient : negated.productRow) coefficient = -coefficient;
+	for (auto& [identity, coefficient] : negated.physicalExpansion)
+		coefficient = -coefficient;
+	negated.integerValue = -negated.integerValue;
+	std::swap(negated.firstSatellite, negated.secondSatellite);
+	const auto update = ledger.observe(130, {negated}, 2);
+	BOOST_REQUIRE(update.valid);
+	BOOST_CHECK_EQUAL(update.freshRows, 0);
+	BOOST_CHECK_EQUAL(update.conflictingRows, 0);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK(ledger.rows().front().certified);
+	BOOST_CHECK_EQUAL(ledger.rows().front().confirmationEpochs, 2);
+	BOOST_CHECK(
+		ledger.rows().front().physicalExpansion.begin()->second > 0);
+}
+
+BOOST_AUTO_TEST_CASE(product_ledger_segment_fingerprint_is_row_local)
+{
+	const std::map<std::string, ZhangExactInteger> row = {
+		{"L2W|EFGH|G02|V4", -1},
+		{"L1C|ABCD|G03|V1", 1},
+		{"L1C|IJKL|G03|V9", -2}};
+	const auto fingerprint = zhangProductPhysicalRowSegmentFingerprint(
+		E_Sys::GPS, row);
+	BOOST_CHECK(!fingerprint.empty());
+	BOOST_CHECK(fingerprint.find("G02|L2W|SEG") != std::string::npos);
+	BOOST_CHECK(fingerprint.find("G03|L1C|SEG") != std::string::npos);
+	BOOST_CHECK(fingerprint.find("G04") == std::string::npos);
+	BOOST_CHECK_EQUAL(std::count(
+		fingerprint.begin(), fingerprint.end(), ';'), 2);
+
+	BOOST_CHECK(zhangProductPhysicalRowSegmentFingerprint(
+		E_Sys::GPS, {{"L1C|ABCD|G03|BROKEN", 1}}).empty());
+	BOOST_CHECK(zhangProductPhysicalRowSegmentFingerprint(
+		E_Sys::GPS, {{"L1C|ABCD|E03|V1", 1}}).empty());
+	BOOST_CHECK(zhangProductPhysicalRowSegmentFingerprint(
+		E_Sys::GPS, {{"L1C|ABCD|G03TRAILING|V1", 1}}).empty());
+}
+
+BOOST_AUTO_TEST_CASE(product_integer_ledger_upgrades_conditioner_to_pair_certificate)
+{
+	ProductIntegerLedger ledger;
+	ProductIntegerLedgerRow conditioner;
+	conditioner.system = E_Sys::GPS;
+	conditioner.firstObservable = E_ObsCode::L1C;
+	conditioner.secondObservable = E_ObsCode::L2W;
+	conditioner.productRow = {1, 0, -1, 0};
+	conditioner.integerValue = 8;
+	conditioner.physicalExpansion = {{"L1C|A|G02|V0", 1},
+		{"L1C|A|G03|V0", -1}};
+	conditioner.phaseSegmentFingerprint = "segments-v1";
+	const auto first = ledger.observe(100, {conditioner}, 2);
+	BOOST_REQUIRE(first.valid);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK(ledger.rows().front().conditioningOnly);
+	BOOST_CHECK(!ledger.rows().front().pairCertificate);
+
+	auto pair = conditioner;
+	pair.source = ZhangProductIntegerLedgerSource::DERIVED_PAIR;
+	pair.conditioningOnly = false;
+	pair.pairCertificate = true;
+	pair.coordinate = "WL";
+	pair.firstSatellite = "G02";
+	pair.secondSatellite = "G03";
+	const auto second = ledger.observe(130, {pair}, 2);
+	BOOST_REQUIRE(second.valid);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 1);
+	BOOST_CHECK(ledger.rows().front().certified);
+	BOOST_CHECK(ledger.rows().front().pairCertificate);
+	BOOST_CHECK(!ledger.rows().front().conditioningOnly);
+	BOOST_CHECK_EQUAL(zhangProductIntegerLedgerSourceName(
+		ledger.rows().front().source), "DERIVED_PAIR");
+	BOOST_CHECK_EQUAL(ledger.rows().front().coordinate, "WL");
+	BOOST_CHECK_EQUAL(ledger.rows().front().firstSatellite, "G02");
+	BOOST_CHECK_EQUAL(ledger.rows().front().secondSatellite, "G03");
+}
+
+BOOST_AUTO_TEST_CASE(product_integer_ledger_isolates_backend_generations)
+{
+	ProductIntegerLedger ledger;
+	ProductIntegerLedgerRow row;
+	row.system = E_Sys::GPS;
+	row.firstObservable = E_ObsCode::L1C;
+	row.secondObservable = E_ObsCode::L2W;
+	row.productRow = {1, -1};
+	row.integerValue = 7;
+	row.physicalExpansion = {
+		{"L1C|ABCD|G03|V4", 1}, {"L1C|ABCD|G02|V2", -1}};
+	row.phaseSegmentFingerprint = "G02|L1C|SEG1;G03|L1C|SEG1;";
+	row.backendBasisGeneration = 12;
+	BOOST_REQUIRE(ledger.observe(100, {row}, 1).valid);
+
+	auto nextGeneration = row;
+	nextGeneration.backendBasisGeneration = 13;
+	nextGeneration.integerValue = -112;
+	const auto update = ledger.observe(130, {nextGeneration}, 1);
+	BOOST_REQUIRE(update.valid);
+	BOOST_CHECK_EQUAL(update.freshRows, 1);
+	BOOST_CHECK_EQUAL(update.conflictingRows, 0);
+
+	auto nextSegment = nextGeneration;
+	nextSegment.phaseSegmentFingerprint =
+		"G02|L1C|SEG2;G03|L1C|SEG2;";
+	nextSegment.integerValue = 32;
+	const auto segmentUpdate = ledger.observe(160, {nextSegment}, 1);
+	BOOST_REQUIRE(segmentUpdate.valid);
+	BOOST_CHECK_EQUAL(segmentUpdate.freshRows, 1);
+	BOOST_CHECK_EQUAL(segmentUpdate.conflictingRows, 0);
+	BOOST_REQUIRE_EQUAL(ledger.rows().size(), 3);
+
+	const auto generation12 = ledger.rowsForGeneration(12);
+	const auto generation13 = ledger.rowsForGeneration(13);
+	BOOST_REQUIRE_EQUAL(generation12.size(), 1);
+	BOOST_REQUIRE_EQUAL(generation13.size(), 2);
+	BOOST_CHECK_EQUAL(generation12.front().integerValue, 7);
+	BOOST_CHECK_EQUAL(generation13[0].integerValue, -112);
+	BOOST_CHECK_EQUAL(generation13[1].integerValue, 32);
+
+	// A generation change alone does not invalidate an exact physical row.
+	// It may be re-expressed only when every arc/version identity is present.
+	ZhangExactVector projected;
+	const std::map<std::string, int> currentColumns = {
+		{"L1C|ABCD|G02|V2", 0}, {"L1C|ABCD|G03|V4", 1}};
+	BOOST_REQUIRE(zhangProjectProductLedgerPhysicalRow(
+		generation12.front(), currentColumns, 2, projected));
+	BOOST_REQUIRE_EQUAL(projected.size(), 2);
+	BOOST_CHECK_EQUAL(projected[0], -1);
+	BOOST_CHECK_EQUAL(projected[1], 1);
+	const std::map<std::string, int> missingArc = {
+		{"L1C|ABCD|G03|V4", 0}};
+	BOOST_CHECK(!zhangProjectProductLedgerPhysicalRow(
+		generation12.front(), missingArc, 1, projected));
+}
+
+BOOST_AUTO_TEST_CASE(product_lattice_failure_probability_respects_decimal_budget)
+{
+	const double configuredBudget = 1e-3;
+	const double configuredSuccess = 0.999;
+	const double bound = zhangProductFailureProbabilityBound(
+		configuredSuccess, configuredBudget);
+	BOOST_CHECK_LE(bound, configuredBudget);
+	BOOST_CHECK(zhangProductFailureProbabilityPassed(
+		bound, configuredBudget));
+
+	const double firstStage = zhangProductFailureProbabilityBound(
+		0.9996, configuredBudget);
+	const double remaining = configuredBudget - firstStage;
+	const double secondStage = zhangProductFailureProbabilityBound(
+		1 - remaining, remaining);
+	BOOST_CHECK(zhangProductFailureProbabilityPassed(
+		firstStage + secondStage, configuredBudget));
+
+	const double unsafe = zhangProductFailureProbabilityBound(
+		0.9, configuredBudget);
+	BOOST_CHECK_CLOSE_FRACTION(unsafe, 0.1, 1e-14);
+	BOOST_CHECK(!zhangProductFailureProbabilityPassed(
+		unsafe, configuredBudget));
+	BOOST_CHECK_EQUAL(
+		zhangProductFailureProbabilityBound(1.01, configuredBudget), 1);
+}
+
+BOOST_AUTO_TEST_CASE(product_candidate_pair_rank_requires_exact_named_edge)
+{
+	BOOST_CHECK(zhangProductCandidateIsNamedPairRow({1, 0, 0}));
+	BOOST_CHECK(zhangProductCandidateIsNamedPairRow({1, -1, 0}));
+	BOOST_CHECK(zhangProductCandidateIsNamedPairRow({-1, 0, 0}));
+	BOOST_CHECK(!zhangProductCandidateIsNamedPairRow({2, -1, 0}));
+	BOOST_CHECK(!zhangProductCandidateIsNamedPairRow({1, 1, 0}));
+	BOOST_CHECK(!zhangProductCandidateIsNamedPairRow({1, -1, 1}));
+}
+
+BOOST_AUTO_TEST_CASE(lambda_reports_selected_suffix_bootstrap_success)
+{
+	VectorXd conditionalVariances(3);
+	conditionalVariances << 4, 0.04, 0.01;
+	const double expected =
+		std::erf(std::sqrt(1 / (8 * 0.04))) *
+		std::erf(std::sqrt(1 / (8 * 0.01)));
+	const double selected = lambdaSelectedSuffixBootstrapSuccess(
+		conditionalVariances, 2);
+	BOOST_CHECK_CLOSE_FRACTION(
+		selected, expected, 1e-14);
+	BOOST_CHECK_GT(selected,
+		lambdaSelectedSuffixBootstrapSuccess(conditionalVariances, 3));
+	BOOST_CHECK_EQUAL(
+		lambdaSelectedSuffixBootstrapSuccess(conditionalVariances, 0), 0);
+}
+
+BOOST_AUTO_TEST_CASE(full_product_lattice_oracle_parser_requires_admissible_complete_rank)
+{
+	const std::string valid = R"json({
+		"status":"FULL_ORACLE_READY",
+		"hard_gate_passed":true,
+		"oracle":{
+			"schema":"ZHANG_FULL_PRODUCT_LATTICE_ORACLE_V1",
+			"system":"GPS",
+			"reference_satellite":"G02",
+			"satellites":["G02","G03","G04"],
+			"dual_frequency_rank":2,
+			"relations":[
+				{"satellite":"G03","reference":"G02",
+				 "wl_satellite_minus_reference":3,
+				 "l1_satellite_minus_reference":8,
+				 "l2_satellite_minus_reference":5},
+				{"satellite":"G04","reference":"G02",
+				 "wl_satellite_minus_reference":1,
+				 "l1_satellite_minus_reference":12,
+				 "l2_satellite_minus_reference":11}
+			]
+		}
+	})json";
+	const auto oracle = parseZhangFullProductLatticeOracle(valid, 2);
+	BOOST_REQUIRE(oracle.valid);
+	BOOST_CHECK_EQUAL(oracle.rank, 2);
+	BOOST_CHECK_EQUAL(oracle.referenceSatellite, "G02");
+	BOOST_REQUIRE_EQUAL(oracle.potentials.size(), 3);
+	BOOST_CHECK(oracle.potentials.at("G03").wideLane == 3);
+	BOOST_CHECK(oracle.potentials.at("G04").secondSignal == 11);
+
+	std::string inadmissible = valid;
+	const auto position = inadmissible.find(
+		"\"l2_satellite_minus_reference\":5");
+	BOOST_REQUIRE(position != std::string::npos);
+	inadmissible.replace(position,
+		std::string("\"l2_satellite_minus_reference\":5").size(),
+		"\"l2_satellite_minus_reference\":6");
+	const auto rejected = parseZhangFullProductLatticeOracle(inadmissible, 2);
+	BOOST_CHECK(!rejected.valid);
+	BOOST_CHECK_EQUAL(rejected.failureReason,
+		"ORACLE_WL_L1_L2_NOT_ADMISSIBLE");
+	const auto incomplete = parseZhangFullProductLatticeOracle(valid);
+	BOOST_CHECK(!incomplete.valid);
+	BOOST_CHECK_EQUAL(incomplete.failureReason,
+		"ORACLE_EXPECTED_FULL_RANK_MISMATCH");
 }
 
 BOOST_AUTO_TEST_CASE(integer_support_quality_fails_closed_without_residuals)
@@ -9002,4 +9549,93 @@ BOOST_AUTO_TEST_CASE(integer_gain_frontier_rejects_fractional_low_variance_rows)
 	BOOST_CHECK_EQUAL(frontier.status, "NO_RELIABLE_PRIMITIVE_ROW");
 	BOOST_CHECK_EQUAL(frontier.reliablePrimitiveRows, 0);
 	BOOST_CHECK(frontier.points.empty());
+}
+
+BOOST_AUTO_TEST_CASE(integer_gain_frontier_keeps_reliable_explicit_seed_beyond_bound)
+{
+	VectorXd mean(2); mean << 0.5, 0;
+	MatrixXd covariance = MatrixXd::Identity(2, 2) * 1e-8;
+	MatrixXd productCross(1, 2); productCross << 1e-8, 0;
+	ZhangExactMatrix seeds = {{2, 1}};
+	const auto frontier = zhangBoundedIntegerProductGainFrontier(
+		mean, covariance, productCross, 1, 1e-3, 1e-6, 1, 64,
+		1e-8, seeds);
+	BOOST_REQUIRE(frontier.valid);
+	BOOST_CHECK_EQUAL(frontier.explicitSeedRowsAdded, 1);
+	BOOST_CHECK_EQUAL(frontier.reliableExplicitSeedRows, 1);
+	BOOST_REQUIRE(!frontier.points.empty());
+	BOOST_REQUIRE_EQUAL(frontier.points.front().rows.size(), 1);
+	BOOST_CHECK_EQUAL(frontier.points.front().rows.front().at(0), 2);
+	BOOST_CHECK_EQUAL(frontier.points.front().rows.front().at(1), 1);
+}
+
+BOOST_AUTO_TEST_CASE(integer_gain_frontier_sparse_support_reaches_high_dimension)
+{
+	VectorXd mean = VectorXd::Zero(12);
+	MatrixXd covariance = MatrixXd::Identity(12, 12) * 1e-4;
+	MatrixXd productCross = MatrixXd::Identity(12, 12) * 1e-4;
+	const auto frontier = zhangBoundedIntegerProductGainFrontier(
+		mean, covariance, productCross, 2, 1e-3, 1e-6, 2, 64,
+		12e-4, {}, 2);
+	BOOST_REQUIRE(frontier.valid);
+	BOOST_CHECK_EQUAL(frontier.dimension, 12);
+	BOOST_CHECK_EQUAL(frontier.maximumEnumerationSupport, 2);
+	BOOST_CHECK(frontier.enumeratedPrimitiveRows > 0);
+	BOOST_CHECK(frontier.enumeratedPrimitiveRows < 10000);
+	BOOST_REQUIRE(!frontier.points.empty());
+	BOOST_CHECK_EQUAL(frontier.points.front().rank, 1);
+}
+
+BOOST_AUTO_TEST_CASE(product_candidate_generator_adds_dense_real_mode_integer_rows)
+{
+	constexpr int dimension = 6;
+	VectorXd mean = VectorXd::Zero(dimension);
+	MatrixXd covariance = MatrixXd::Identity(dimension, dimension) * 1e-4;
+	MatrixXd productCross(1, dimension);
+	productCross.setOnes();
+	productCross *= 1e-2;
+	const auto generated = generateProductIntegerCandidates(
+		mean, covariance, productCross, 1e-3, 1e-6, {}, 1, 8, 256);
+	BOOST_REQUIRE(generated.valid);
+	BOOST_CHECK_EQUAL(generated.failureReason, "NONE");
+	BOOST_CHECK(generated.realModeApproximations > 0);
+	bool foundDense = false;
+	for (const auto& candidate : generated.candidates)
+	{
+		if (candidate.source != "PRODUCT_GAIN_REAL_MODE_APPROXIMATION") continue;
+		int support = 0;
+		for (const auto& coefficient : candidate.row)
+			support += coefficient != 0;
+		if (support > 2 && candidate.reliabilityPassed)
+		{
+			foundDense = true;
+			BOOST_CHECK(candidate.variance > 0);
+			BOOST_CHECK(candidate.perr <= 1e-3);
+			BOOST_CHECK(candidate.incrementalProductGain > 0);
+			break;
+		}
+	}
+	BOOST_CHECK_MESSAGE(foundDense,
+		"real product-gain modes must generate legal dense primitive rows");
+}
+
+BOOST_AUTO_TEST_CASE(product_candidate_generator_orders_reliability_then_graph_then_gain)
+{
+	VectorXd mean(3);
+	mean << 0, 0, 0.25;
+	MatrixXd covariance = MatrixXd::Identity(3, 3) * 1e-6;
+	MatrixXd productCross(1, 3);
+	productCross << 0.01, 0.01, 100;
+	const auto generated = generateProductIntegerCandidates(
+		mean, covariance, productCross, 1e-3, 1e-6, {}, 0, 1, 128);
+	BOOST_REQUIRE(generated.valid);
+	BOOST_REQUIRE(!generated.candidates.empty());
+	BOOST_CHECK(generated.candidates.front().reliabilityPassed);
+	BOOST_CHECK_EQUAL(generated.candidates.front().pairGraphRankGain, 1);
+	bool reachedUnreliable = false;
+	for (const auto& candidate : generated.candidates)
+	{
+		if (!candidate.reliabilityPassed) reachedUnreliable = true;
+		else BOOST_CHECK(!reachedUnreliable);
+	}
 }

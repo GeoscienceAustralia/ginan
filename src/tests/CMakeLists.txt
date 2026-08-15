@@ -130,6 +130,7 @@ target_link_libraries(phase_clock_osb_tests PRIVATE
 )
 
 target_link_libraries(zhang_full_rank_tests PRIVATE
+	Boost::json
     Boost::serialization
     Boost::unit_test_framework
     OpenSSL::Crypto

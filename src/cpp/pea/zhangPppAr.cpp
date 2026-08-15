@@ -36,6 +36,8 @@
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
 #include "common/zhangPhaseContinuity.hpp"
+#include "common/zhangProductIntegerLedger.hpp"
+#include "common/zhangProductRelationSolver.hpp"
 #include "common/zhangProductRelationAdmission.hpp"
 #include "common/zhangCheckpoint.hpp"
 #include "common/zhangIntegerAudit.hpp"
@@ -3044,7 +3046,8 @@ bool loadProducts()
             product.continuity_valid = product.numeric_valid;
             product.ppp_usable = product.numeric_valid;
             product.pppar_usable =
-                product.ppp_usable && product.integer_valid;
+				product.ppp_usable && product.integer_valid &&
+				zhangFormalPppArProductSolution(product.solution);
 			product.ar_valid = product.pppar_usable;
 			product.dual_frequency_ar_valid =
 				product.dual_frequency_ar_valid && product.pppar_usable;
@@ -3057,6 +3060,11 @@ bool loadProducts()
                 ? "LEGACY_PRODUCT"
                 : "LEGACY_NUMERIC_FAILURE";
 		}
+		// Do not trust an historical network-FIXED row merely because its CSV
+		// predates the product-lattice admission gate and claims pppar_usable=1.
+		// Such rows remain valid PPP controls, but only PRODUCT_FIXED may carry
+		// a formal user ambiguity-resolution certificate.
+		zhangRejectNonFormalPppArClaim(product);
 
         ProductLookupKey key{
             static_cast<long int>(std::llround(product.time.bigTime)),
@@ -7284,6 +7292,51 @@ ZhangSatelliteDatumStatus zhangSatelliteDatumStatus(
     return satelliteDatumManager(sys, code).status(satellite, false);
 }
 
+std::string zhangProductPhysicalRowSegmentFingerprint(
+    E_Sys system,
+    const std::map<std::string, ZhangExactInteger>& physicalExpansion)
+{
+	if (system == E_Sys::NONE || physicalExpansion.empty()) return {};
+
+	std::set<std::pair<SatSys, E_ObsCode>> usedSignals;
+	for (const auto& [identity, coefficient] : physicalExpansion)
+	{
+		if (coefficient == 0) continue;
+		std::istringstream stream(identity);
+		std::array<std::string, 4> fields;
+		for (auto& field : fields)
+		{
+			if (!std::getline(stream, field, '|') || field.empty()) return {};
+		}
+		std::string surplus;
+		if (std::getline(stream, surplus, '|')) return {};
+
+		const E_ObsCode observable = string_to_enum<E_ObsCode>(fields[0]);
+		const SatSys satellite(fields[2].c_str());
+		if (observable == E_ObsCode::NONE || satellite.sys != system ||
+			satellite.prn <= 0 || satellite.id() != fields[2] ||
+			enum_to_string(observable) != fields[0] ||
+			fields[3].size() < 2 || fields[3][0] != 'V' ||
+			!std::all_of(fields[3].begin() + 1, fields[3].end(),
+				[](unsigned char value) { return std::isdigit(value); }))
+		{
+			return {};
+		}
+		usedSignals.emplace(satellite, observable);
+	}
+	if (usedSignals.empty()) return {};
+
+	std::ostringstream fingerprint;
+	for (const auto& [satellite, observable] : usedSignals)
+	{
+		const auto status = zhangSatelliteDatumStatus(
+			system, observable, satellite);
+		fingerprint << satellite.id() << '|' << enum_to_string(observable)
+			<< "|SEG" << status.phaseSegment << ';';
+	}
+	return fingerprint.str();
+}
+
 bool queryZhangSatelliteProductRelation(
     E_Sys sys,
     E_ObsCode code,
@@ -8042,20 +8095,30 @@ void writeZhangInternalProducts(
     const KFState& integerLedgerState,
     const KFState& floatState,
     const KFState* wideLaneState,
-    const KFState& fixedState,
+    const KFState* networkFixedDiagnosticState,
+    const KFState* productFixedState,
     int            newlyFixed,
     bool           integerDatumComplete,
     bool           wideLaneBranchValid,
     bool           fixedBranchValid,
-    bool           networkIntegerReady
+    bool           networkIntegerReady,
+    const ZhangProductIntegerConstraintSet* productCertification
 )
 {
+	const bool productFixedMode = productFixedState != nullptr &&
+		productCertification != nullptr;
+	const KFState& fixedState = productFixedMode
+		? *productFixedState
+		: networkFixedDiagnosticState
+			? *networkFixedDiagnosticState : floatState;
     trace << "\nZHANG_PRODUCT_WRITER_ENTRY time="
           << fixedState.time.to_string(0)
           << " output_products=" << acsConfig.zhangPppAr.output_products
           << " product_mode=" << acsConfig.zhangPppAr.product_mode
           << " newly_fixed=" << newlyFixed
-          << " network_integer_ready=" << networkIntegerReady;
+          << " network_integer_ready=" << networkIntegerReady
+		  << " formal_product_source="
+		  << (productFixedMode ? "PRODUCT_FIXED" : "LEGACY_NETWORK_FIXED");
     if (!acsConfig.zhangPppAr.output_products)
     {
         return;
@@ -8245,6 +8308,15 @@ void writeZhangInternalProducts(
     vector<ZhangInternalProduct> epochProducts;
 	vector<ZhangTemporalProductSnapshotRequest> temporalSnapshotRequests;
 	set<string> queuedTemporalSnapshotIdentities;
+	auto isFormalFixedSolution = [](const string& solution)
+	{
+		// A generic network ambiguity fix is only a conditioner/diagnostic.
+		// It does not prove that a user-visible satellite-product integer
+		// relation was fixed.  PRODUCT_FIXED is promoted below only after the
+		// exact product-lattice graph and reference-invariant covariance/mean
+		// effect gates have both passed.
+		return zhangFormalPppArProductSolution(solution);
+	};
     auto writeSolution = [&](const KFState& state, const string& solution)
     {
         for (const auto& [phaseKey, phaseIndex] : state.kfIndexMap)
@@ -8879,7 +8951,7 @@ void writeZhangInternalProducts(
                 product.integer_datum_continuous &&
                 product.integer_precision_valid;
             product.branch_valid = solution == "FLOAT" ||
-                (solution == "WL"
+                (solution == "WL" || solution == "NETWORK_WL"
                     ? wideLaneBranchValid
                     : fixedBranchValid);
             double covarianceScale = std::max(
@@ -8906,7 +8978,8 @@ void writeZhangInternalProducts(
             product.ppp_usable = product.numeric_valid && product.branch_valid &&
 				product.continuity_valid;
             product.pppar_usable =
-                product.ppp_usable && product.integer_valid;
+                product.ppp_usable && product.integer_valid &&
+				isFormalFixedSolution(solution);
             product.invalid_reason = !product.branch_valid
                 ? "FIXED_TRANSACTION_ABORTED"
                 : (!finite
@@ -9031,9 +9104,22 @@ void writeZhangInternalProducts(
     writeSolution(floatState, "FLOAT");
     if (wideLaneState && wideLaneBranchValid)
     {
-        writeSolution(*wideLaneState, "WL");
+        writeSolution(*wideLaneState,
+			productFixedMode ? "NETWORK_WL" : "WL");
     }
-    writeSolution(fixedState, "FIXED");
+	if (productFixedMode)
+	{
+		if (networkFixedDiagnosticState && fixedBranchValid)
+		{
+			writeSolution(*networkFixedDiagnosticState,
+				"NETWORK_FIXED_DIAGNOSTIC");
+		}
+		writeSolution(*productFixedState, "PRODUCT_FIXED");
+	}
+	else if (networkFixedDiagnosticState)
+	{
+		writeSolution(*networkFixedDiagnosticState, "FIXED");
+	}
     if (!temporalSnapshotRequests.empty())
     {
         registerZhangTemporalProductSnapshots(
@@ -9329,10 +9415,503 @@ void writeZhangInternalProducts(
     if (wideLaneState && wideLaneBranchValid)
     {
         appendProductCovariance(
-			*wideLaneState, "WL", fixedState, epochProducts);
+			*wideLaneState, productFixedMode ? "NETWORK_WL" : "WL",
+			fixedState, epochProducts);
     }
-    appendProductCovariance(
-		fixedState, "FIXED", fixedState, epochProducts);
+	if (productFixedMode)
+	{
+		if (networkFixedDiagnosticState && fixedBranchValid)
+		{
+			appendProductCovariance(*networkFixedDiagnosticState,
+				"NETWORK_FIXED_DIAGNOSTIC", fixedState, epochProducts);
+		}
+		appendProductCovariance(*productFixedState,
+			"PRODUCT_FIXED", fixedState, epochProducts);
+	}
+	else if (networkFixedDiagnosticState)
+	{
+		appendProductCovariance(*networkFixedDiagnosticState,
+			"FIXED", fixedState, epochProducts);
+	}
+
+	// Product-fixed admission is derived from the exact dual-frequency product
+	// certificate graph and the actual full-state covariance update.  Network
+	// fixed rank and the legacy satellite datum manager are deliberately not
+	// consulted here: neither proves that a user-visible product difference was
+	// fixed.  Every connected certificate component is evaluated after removal
+	// of its common satellite gauge.
+	if (productFixedMode)
+	{
+		struct ProductEffect
+		{
+			bool valid = false;
+			double floatTrace = std::numeric_limits<double>::quiet_NaN();
+			double wlTrace = std::numeric_limits<double>::quiet_NaN();
+			double networkTrace = std::numeric_limits<double>::quiet_NaN();
+			double productTrace = std::numeric_limits<double>::quiet_NaN();
+			double gain = std::numeric_limits<double>::quiet_NaN();
+			double noncommonMeanUpdateNorm =
+				std::numeric_limits<double>::quiet_NaN();
+		};
+		auto correctionMoments = [](const KFState& state,
+			const vector<SatSys>& satellites, E_ObsCode observable,
+			VectorXd& mean, MatrixXd& covariance)
+		{
+			vector<pair<int, int>> indices;
+			for (const auto& satellite : satellites)
+			{
+				KFKey clockKey;
+				clockKey.type = KF::SAT_CLOCK;
+				clockKey.Sat = satellite;
+				KFKey phaseKey;
+				phaseKey.type = KF::PHASE_BIAS;
+				phaseKey.Sat = satellite;
+				phaseKey.num = static_cast<int>(observable);
+				auto clock = state.kfIndexMap.find(clockKey);
+				auto phase = state.kfIndexMap.find(phaseKey);
+				if (clock == state.kfIndexMap.end() ||
+					phase == state.kfIndexMap.end()) return false;
+				indices.push_back({clock->second, phase->second});
+			}
+			const int dimension = static_cast<int>(indices.size());
+			if (dimension < 2) return false;
+			mean = VectorXd::Zero(dimension);
+			covariance = MatrixXd::Zero(dimension, dimension);
+			for (int row = 0; row < dimension; row++)
+			{
+				const auto [clockRow, phaseRow] = indices[row];
+				mean(row) = state.x(clockRow) - state.x(phaseRow);
+				for (int column = 0; column < dimension; column++)
+				{
+					const auto [clockColumn, phaseColumn] = indices[column];
+					covariance(row, column) =
+						state.P(clockRow, clockColumn)
+						- state.P(clockRow, phaseColumn)
+						- state.P(phaseRow, clockColumn)
+						+ state.P(phaseRow, phaseColumn);
+				}
+			}
+			covariance = 0.5 * (covariance + covariance.transpose());
+			return mean.allFinite() && covariance.allFinite();
+		};
+		auto evaluateEffect = [&](const vector<SatSys>& satellites,
+			E_ObsCode observable)
+		{
+			ProductEffect effect;
+			VectorXd floatMean, wlMean, productMean, networkMean;
+			MatrixXd floatCovariance, wlCovariance, productCovariance,
+				networkCovariance;
+			if (!wideLaneState || !networkFixedDiagnosticState ||
+				!correctionMoments(floatState, satellites, observable,
+					floatMean, floatCovariance) ||
+				!correctionMoments(*wideLaneState, satellites, observable,
+					wlMean, wlCovariance) ||
+				!correctionMoments(*productFixedState, satellites, observable,
+					productMean, productCovariance) ||
+				!correctionMoments(*networkFixedDiagnosticState, satellites,
+					observable, networkMean, networkCovariance)) return effect;
+			const int dimension = static_cast<int>(satellites.size());
+			const MatrixXd projector = MatrixXd::Identity(dimension, dimension) -
+				MatrixXd::Constant(dimension, dimension,
+					1.0 / static_cast<double>(dimension));
+			effect.floatTrace = (projector * floatCovariance * projector).trace();
+			effect.wlTrace = (projector * wlCovariance * projector).trace();
+			effect.networkTrace =
+				(projector * networkCovariance * projector).trace();
+			effect.productTrace =
+				(projector * productCovariance * projector).trace();
+			effect.noncommonMeanUpdateNorm =
+				(projector * (productMean - wlMean)).norm();
+			if (std::isfinite(effect.wlTrace) && effect.wlTrace > 0)
+				effect.gain = 1 - effect.productTrace / effect.wlTrace;
+			const double covarianceTolerance = 1e-10 *
+				std::max(1.0, std::abs(effect.wlTrace));
+			effect.valid = productCertification->reliable &&
+				productCertification->exactNetworkMapping &&
+				std::isfinite(effect.productTrace) && effect.productTrace >= 0 &&
+				std::isfinite(effect.gain) && effect.gain > 1e-10 &&
+				effect.productTrace < effect.wlTrace - covarianceTolerance &&
+				std::isfinite(effect.noncommonMeanUpdateNorm) &&
+				effect.noncommonMeanUpdateNorm > 1e-10;
+			return effect;
+		};
+		vector<SatSys> allProductSatellites =
+			productCertification->coordinateSatellites;
+		allProductSatellites.push_back(
+			productCertification->referenceSatellite);
+		std::sort(allProductSatellites.begin(), allProductSatellites.end());
+		allProductSatellites.erase(std::unique(allProductSatellites.begin(),
+			allProductSatellites.end()), allProductSatellites.end());
+		const ProductEffect overallFirstEffect = evaluateEffect(
+			allProductSatellites, productCertification->firstObservable);
+		const ProductEffect overallSecondEffect = evaluateEffect(
+			allProductSatellites, productCertification->secondObservable);
+		for (const auto& [observable, effect] : std::array<
+			std::pair<E_ObsCode, ProductEffect>, 2>{
+				std::pair{productCertification->firstObservable,
+					overallFirstEffect},
+				std::pair{productCertification->secondObservable,
+					overallSecondEffect}})
+		{
+			trace << "\nZHANG_PRODUCT_FIXED_EFFECT time="
+				  << fixedState.time.to_string(0)
+				  << " system=" << enum_to_string(productCertification->system)
+				  << " observable=" << enum_to_string(observable)
+				  << " component=ALL_MAPPABLE"
+				  << " satellites=" << allProductSatellites.size()
+				  << " product_constraint_rank="
+				  << productCertification->conditioningRank
+				  << " pair_certificate_rank="
+				  << productCertification->certifiedPairRank
+				  << " component_rank="
+				  << std::max(0,
+					static_cast<int>(allProductSatellites.size()) - 1)
+				  << " pair_trace_float=" << effect.floatTrace
+				  << " pair_trace_wl=" << effect.wlTrace
+				  << " pair_trace_network_fixed=" << effect.networkTrace
+				  << " pair_trace_product_fixed=" << effect.productTrace
+				  << " wl_to_product_gain=" << effect.gain
+				  << " noncommon_mean_update_norm="
+				  << effect.noncommonMeanUpdateNorm
+				  << " product_precision_valid=" << effect.valid
+				  << " certificate_role=CONDITIONING_AUDIT"
+				  << " feedback=PRIVATE_PRODUCT_BRANCH";
+		}
+
+		const int coordinateCount = static_cast<int>(
+			productCertification->coordinateSatellites.size());
+		vector<int> parent(coordinateCount + 1);
+		std::iota(parent.begin(), parent.end(), 0);
+		auto root = [&](int node)
+		{
+			int current = node;
+			while (parent[current] != current) current = parent[current];
+			while (parent[node] != node)
+			{
+				const int next = parent[node];
+				parent[node] = current;
+				node = next;
+			}
+			return current;
+		};
+		auto unite = [&](int first, int second)
+		{
+			const int firstRoot = root(first);
+			const int secondRoot = root(second);
+			if (firstRoot != secondRoot) parent[secondRoot] = firstRoot;
+		};
+		int validCertificateEdges = 0;
+		for (const auto& pair :
+			productCertification->dualFrequencyCertifiedPairs)
+		{
+			if (pair.firstNode < 0 || pair.secondNode < 0 ||
+				pair.firstNode > coordinateCount ||
+				pair.secondNode > coordinateCount ||
+				pair.firstNode == pair.secondNode) continue;
+			unite(pair.firstNode, pair.secondNode);
+			validCertificateEdges++;
+		}
+		map<int, vector<int>> componentNodes;
+		for (int node = 0; node <= coordinateCount; node++)
+			componentNodes[root(node)].push_back(node);
+		map<int, int> componentEdgeCounts;
+		for (const auto& pair :
+			productCertification->dualFrequencyCertifiedPairs)
+		{
+			if (pair.firstNode >= 0 && pair.firstNode <= coordinateCount &&
+				pair.secondNode >= 0 && pair.secondNode <= coordinateCount &&
+				root(pair.firstNode) == root(pair.secondNode))
+				componentEdgeCounts[root(pair.firstNode)]++;
+		}
+		map<tuple<int, E_ObsCode>, ProductEffect> effects;
+		map<SatSys, int> satelliteComponents;
+		map<int, bool> componentUsesTemporalLedger;
+		int componentNumber = 0;
+		for (const auto& [componentRoot, nodes] : componentNodes)
+		{
+			if (nodes.size() < 2 || componentEdgeCounts[componentRoot] <
+				static_cast<int>(nodes.size()) - 1) continue;
+			vector<SatSys> satellites;
+			for (int node : nodes)
+			{
+				const SatSys satellite = node == coordinateCount
+					? productCertification->referenceSatellite
+					: productCertification->coordinateSatellites[node];
+				satellites.push_back(satellite);
+				satelliteComponents[satellite] = componentNumber;
+			}
+			std::sort(satellites.begin(), satellites.end());
+			componentUsesTemporalLedger[componentNumber] = std::any_of(
+				productCertification->dualFrequencyCertifiedPairs.begin(),
+				productCertification->dualFrequencyCertifiedPairs.end(),
+				[&](const auto& pair)
+				{
+					return pair.fromTemporalLedger &&
+						pair.firstNode >= 0 && pair.firstNode <= coordinateCount &&
+						pair.secondNode >= 0 && pair.secondNode <= coordinateCount &&
+						root(pair.firstNode) == componentRoot &&
+						root(pair.secondNode) == componentRoot;
+				});
+			for (E_ObsCode observable : {
+				productCertification->firstObservable,
+				productCertification->secondObservable})
+			{
+				const ProductEffect effect = evaluateEffect(satellites, observable);
+				effects[{componentNumber, observable}] = effect;
+				trace << "\nZHANG_PRODUCT_FIXED_EFFECT time="
+					  << fixedState.time.to_string(0)
+					  << " system=" << enum_to_string(productCertification->system)
+					  << " observable=" << enum_to_string(observable)
+					  << " component=" << componentNumber
+					  << " satellites=" << satellites.size()
+					  << " product_constraint_rank="
+					  << productCertification->conditioningRank
+					  << " pair_certificate_rank=" << nodes.size() - 1
+					  << " component_rank=" << nodes.size() - 1
+					  << " pair_trace_float=" << effect.floatTrace
+					  << " pair_trace_wl=" << effect.wlTrace
+					  << " pair_trace_network_fixed=" << effect.networkTrace
+					  << " pair_trace_product_fixed=" << effect.productTrace
+					  << " wl_to_product_gain=" << effect.gain
+					  << " noncommon_mean_update_norm="
+					  << effect.noncommonMeanUpdateNorm
+					  << " product_precision_valid=" << effect.valid
+					  << " persistent_relation_known="
+					  << componentUsesTemporalLedger[componentNumber]
+					  << " feedback=PRIVATE_PRODUCT_BRANCH";
+			}
+			componentNumber++;
+		}
+
+		for (auto& product : epochProducts)
+		{
+			if (product.solution != "PRODUCT_FIXED") continue;
+			product.integer_structure_valid = false;
+			product.integer_datum_continuous = false;
+			product.integer_precision_valid = false;
+			product.integer_valid = false;
+			product.dual_frequency_ar_valid = false;
+			product.pppar_usable = false;
+			product.ar_valid = false;
+			auto component = satelliteComponents.find(product.satellite);
+			if (component == satelliteComponents.end())
+			{
+				product.invalid_reason = "NO_PRODUCT_LATTICE_CERTIFICATE";
+				continue;
+			}
+			const int id = component->second;
+			const auto effect = effects.find({id, product.observable});
+			const auto firstEffect = effects.find(
+				{id, productCertification->firstObservable});
+			const auto secondEffect = effects.find(
+				{id, productCertification->secondObservable});
+			const bool dualPrecision =
+				firstEffect != effects.end() && firstEffect->second.valid &&
+				secondEffect != effects.end() && secondEffect->second.valid;
+			const int componentSize = static_cast<int>(std::count_if(
+				satelliteComponents.begin(), satelliteComponents.end(),
+				[id](const auto& entry) { return entry.second == id; }));
+			product.integer_structure_valid = componentSize >= 2;
+			product.integer_datum_continuous =
+				productCertification->reliable;
+			product.integer_precision_valid = effect != effects.end() &&
+				effect->second.valid;
+			product.integer_valid = product.integer_structure_valid &&
+				product.integer_datum_continuous &&
+				product.integer_precision_valid;
+			product.dual_frequency_ar_valid = product.integer_valid &&
+				dualPrecision;
+			product.integer_component_id = "PRODUCT-" +
+				enum_to_string(productCertification->system) + "-C" +
+				std::to_string(id);
+			product.integer_datum_id = product.integer_component_id +
+				(componentUsesTemporalLedger[id]
+					? "-CURRENT-PLUS-LEDGER-EXACT" : "-CURRENT-EXACT");
+			product.integer_component_size = componentSize;
+			product.integer_component_rank = componentSize - 1;
+			product.certified_relation_count = componentSize - 1;
+			product.cycle_closure_valid = true;
+			product.persistent_relation_known =
+				componentUsesTemporalLedger[id];
+			product.current_alignment_state = "CURRENT_ALIGNMENT_VALID";
+			product.invalid_reason = product.integer_valid
+				? "NONE" : "PRODUCT_FIXED_PRODUCT_IRRELEVANT";
+		}
+		if (validCertificateEdges == 0)
+		{
+			trace << "\nZHANG_PRODUCT_FIXED_EFFECT time="
+				  << fixedState.time.to_string(0)
+				  << " product_constraint_rank="
+				  << productCertification->conditioningRank
+				  << " pair_certificate_rank=0 component_rank=0"
+				  << " product_precision_valid=0"
+				  << " reason=NO_DUAL_FREQUENCY_CERTIFIED_PAIR"
+				  << " feedback=PRIVATE_PRODUCT_BRANCH";
+		}
+
+		const bool ledgerEffectValid = overallFirstEffect.valid &&
+			overallSecondEffect.valid;
+		if (ledgerEffectValid &&
+			productCertification->physicalNetworkRows.size() ==
+				productCertification->networkRows.size() &&
+			productCertification->jointProductRows.size() ==
+				productCertification->networkRows.size())
+		{
+			vector<ProductIntegerLedgerRow> candidates;
+			for (int row = 0; row < static_cast<int>(
+				productCertification->networkRows.size()); row++)
+			{
+				ProductIntegerLedgerRow candidate;
+				candidate.system = productCertification->system;
+				candidate.firstObservable =
+					productCertification->firstObservable;
+				candidate.secondObservable =
+					productCertification->secondObservable;
+				candidate.productRow =
+					productCertification->jointProductRows[row];
+				candidate.integerValue =
+					productCertification->networkIntegers[row];
+				candidate.physicalExpansion =
+					productCertification->physicalNetworkRows[row];
+				candidate.phaseSegmentFingerprint =
+					zhangProductPhysicalRowSegmentFingerprint(
+						candidate.system, candidate.physicalExpansion);
+				candidate.backendBasisGeneration =
+					productCertification->backendBasisGeneration;
+				candidate.source =
+					ZhangProductIntegerLedgerSource::PRODUCT_ILS;
+				candidate.conditioningOnly = true;
+				candidate.pairCertificate = false;
+				candidates.push_back(std::move(candidate));
+			}
+			// Pair certificates are separate ledger objects.  They are exact
+			// consequences of the accepted mixed product lattice, not aliases for
+			// the parent mixed rows.  Retaining the physical expansion makes them
+			// invariant to later product-reference or network-tree changes.
+			const int productDimension =
+				productCertification->productCoordinateDimension;
+			const int wideLaneParentRows = static_cast<int>(
+				productCertification->wideLaneProductRows.size());
+			for (const auto& pair : productCertification->certifiedPairs)
+			{
+				const bool wideLane = pair.coordinate == "WL";
+				const bool firstSignal = pair.coordinate == "L1";
+				const int parentRows = wideLane
+					? wideLaneParentRows
+					: static_cast<int>(
+						productCertification->firstSignalProductRows.size());
+				const int parentOffset = wideLane ? 0 : wideLaneParentRows;
+				if ((!wideLane && !firstSignal) ||
+					pair.parentCombination.size() !=
+						static_cast<std::size_t>(parentRows)) continue;
+				ProductIntegerLedgerRow certificate;
+				certificate.system = productCertification->system;
+				certificate.firstObservable =
+					productCertification->firstObservable;
+				certificate.secondObservable =
+					productCertification->secondObservable;
+				certificate.productRow = ZhangExactVector(2 * productDimension);
+				if (pair.firstNode >= 0 && pair.firstNode < productDimension)
+					certificate.productRow[pair.firstNode] += 1;
+				if (pair.secondNode >= 0 && pair.secondNode < productDimension)
+					certificate.productRow[pair.secondNode] -= 1;
+				if (wideLane)
+				{
+					for (int column = 0; column < productDimension; column++)
+						certificate.productRow[productDimension + column] =
+							-certificate.productRow[column];
+				}
+				certificate.integerValue = pair.value;
+				certificate.coordinate = pair.coordinate;
+				auto nodeSatellite = [&](int node) -> string
+				{
+					if (node >= 0 && node < static_cast<int>(
+						productCertification->coordinateSatellites.size()))
+						return productCertification->coordinateSatellites[node].id();
+					if (node == productDimension)
+						return productCertification->referenceSatellite.id();
+					return "INVALID";
+				};
+				certificate.firstSatellite = nodeSatellite(pair.firstNode);
+				certificate.secondSatellite = nodeSatellite(pair.secondNode);
+				if (certificate.firstSatellite == "INVALID" ||
+					certificate.secondSatellite == "INVALID") continue;
+				for (int parent = 0; parent < parentRows; parent++)
+				{
+					const auto multiplier = pair.parentCombination[parent];
+					if (multiplier == 0) continue;
+					const int physicalRow = parentOffset + parent;
+					if (physicalRow < 0 || physicalRow >= static_cast<int>(
+						productCertification->physicalNetworkRows.size()))
+					{
+						certificate.physicalExpansion.clear();
+						break;
+					}
+					for (const auto& [physical, coefficient] :
+						productCertification->physicalNetworkRows[physicalRow])
+						certificate.physicalExpansion[physical] +=
+							multiplier * coefficient;
+				}
+				for (auto iterator = certificate.physicalExpansion.begin();
+					 iterator != certificate.physicalExpansion.end();)
+				{
+					if (iterator->second == 0)
+						iterator = certificate.physicalExpansion.erase(iterator);
+					else ++iterator;
+				}
+				if (certificate.physicalExpansion.empty()) continue;
+				certificate.phaseSegmentFingerprint =
+					zhangProductPhysicalRowSegmentFingerprint(
+						certificate.system, certificate.physicalExpansion);
+				certificate.backendBasisGeneration =
+					productCertification->backendBasisGeneration;
+				certificate.source =
+					ZhangProductIntegerLedgerSource::DERIVED_PAIR;
+				certificate.conditioningOnly = false;
+				certificate.pairCertificate = true;
+				candidates.push_back(std::move(certificate));
+			}
+			auto& ledger = zhangProductIntegerLedgerRegistry()[
+				{integerLedgerRuntimeId, productCertification->system}];
+			const auto update = ledger.observe(
+				static_cast<long int>(fixedState.time.bigTime), candidates,
+				std::max(1, acsConfig.zhangPppAr.stabilization_epochs));
+			trace << "\nZHANG_PRODUCT_INTEGER_LEDGER time="
+				  << fixedState.time.to_string(0)
+				  << " system=" << enum_to_string(productCertification->system)
+				  << " input_rows=" << update.inputRows
+				  << " fresh_rows=" << update.freshRows
+				  << " confirmed_rows=" << update.confirmedRows
+				  << " conflicting_rows=" << update.conflictingRows
+				  << " active_rank_before=" << update.activeRankBefore
+				  << " active_rank_after=" << update.activeRankAfter
+				  << " status=" << (update.valid ? "UPDATED" : "REJECTED")
+				  << " reason=" << update.failureReason
+				  << " source=PRODUCT_FIXED_EFFECT_GATE";
+			for (const auto& held : ledger.rows())
+			{
+				if (!held.certified || !held.pairCertificate ||
+					held.firstSatellite.empty() || held.secondSatellite.empty())
+					continue;
+				trace << "\nZHANG_PRODUCT_INTEGER_LEDGER_PAIR time="
+					  << fixedState.time.to_string(0)
+					  << " system=" << enum_to_string(held.system)
+					  << " coordinate=" << held.coordinate
+					  << " first=" << held.firstSatellite
+					  << " second=" << held.secondSatellite
+					  << " integer=" << held.integerValue
+					  << " confirmations=" << held.confirmationEpochs
+					  << " first_certified=" << held.firstCertified
+					  << " last_confirmed=" << held.lastConfirmed
+					  << " backend_generation="
+					  << held.backendBasisGeneration
+					  << " phase_segment_fingerprint="
+					  << held.phaseSegmentFingerprint
+					  << " source="
+					  << zhangProductIntegerLedgerSourceName(held.source);
+			}
+		}
+	}
 
     // Reject satellite-dependent correction jumps after removing the robust
     // per-signal common mode.  A common clock-datum change can be absorbed by
@@ -9409,18 +9988,27 @@ void writeZhangInternalProducts(
             product.ppp_usable =
                 product.numeric_valid && product.branch_valid &&
                 product.continuity_valid;
+			const bool formalProductFixed =
+				isFormalFixedSolution(product.solution);
             product.pppar_usable =
-                product.ppp_usable && product.integer_valid;
+                product.ppp_usable && product.integer_valid &&
+				formalProductFixed;
 			product.ar_valid = product.pppar_usable;
 			product.dual_frequency_ar_valid =
 				product.dual_frequency_ar_valid && product.pppar_usable;
+			if (!formalProductFixed &&
+				(product.solution == "FIXED" ||
+				 product.solution == "NETWORK_FIXED_DIAGNOSTIC"))
+			{
+				product.invalid_reason = "NETWORK_FIXED_DIAGNOSTIC_ONLY";
+			}
 			product.discontinuity =
 				product.discontinuity_counter >
 					acsConfig.zhangPppAr.initial_discontinuity_counter
 				&& product.valid_from != GTime::noTime()
 				&& std::abs(
 					(product.time - product.valid_from).to_double()) < 1e-3;
-			if (product.solution != "FIXED")
+			if (!isFormalFixedSolution(product.solution))
 			{
 				product.product_state = "FLOAT_ONLY";
 			}

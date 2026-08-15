@@ -302,9 +302,20 @@ def analyse(trace_path: Path, label: str, category: str) -> dict[str, object]:
         "median_float_fractional_cycle": statistics.median(
             float(record["median_fractional_cycle"]) for record in diagnostics
         ),
+        "median_p68_float_fractional_cycle": statistics.median(
+            float(record.get("p68_fractional_cycle", record["p90_fractional_cycle"]))
+            for record in diagnostics
+        ),
         "p90_float_fractional_cycle": percentile(
             [float(record["p90_fractional_cycle"]) for record in diagnostics],
             0.90,
+        ),
+        "p95_float_fractional_cycle": percentile(
+            [
+                float(record.get("p95_fractional_cycle", record["p90_fractional_cycle"]))
+                for record in diagnostics
+            ],
+            0.95,
         ),
     }
 
