@@ -3,6 +3,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [4.1.3] 2026-08-19
+
+## Added
+
+Ginan core:
+- Added configurable preprocessor frequency selection, allowing more flexible code/frequency priorities in preprocessing workflows.
+- Added a Doppler placeholder path in the preprocessor to support upcoming Doppler-based preprocessing work.
+
+## Changed
+
+Ginan core:
+- Updated broadcast ephemeris IODE selection to support use of the latest suitable ephemeris/IODE in real-time processing.
+- Added a safeguard to wait at least 30 seconds before changing IODE when uploading SSR streams.
+
+## Fixed
+
+Ginan core:
+- Fixed RINEX time parsing when `str2time` reads overflowing fixed-width fields.
+
 # [4.1.2] 2026-06-16
 
 ## Added

@@ -103,11 +103,7 @@ EPHTYPE* selSatEphFromMap(
 {
     //	trace(4,__FUNCTION__ " : time=%s sat=%2d iode=%d\n",time.to_string(3).c_str(),Sat,iode);
 
-    double tdelay = 0;
-    if (acsConfig.simulate_real_time)
-    {
-        tdelay = acsConfig.eph_time_delay[Sat.sys];
-    }
+    double tdelay = acsConfig.eph_time_delay[Sat.sys];
 
     double tmax;
     switch (Sat.sys)
@@ -132,12 +128,12 @@ EPHTYPE* selSatEphFromMap(
             break;
     }
 
-    if (tdelay > tmax)
+    if (tdelay < 0 || tdelay > tmax)
     {
         tracepdeex(
             2,
             trace,
-            "\nSet time delay is larger than time of Validity: tmax=%f, tdelay=%f  ",
+            "\nSet time delay is negative or larger than time of Validity: tmax=%f, tdelay=%f  ",
             tmax,
             tdelay
         );
@@ -145,27 +141,49 @@ EPHTYPE* selSatEphFromMap(
     }
 
     auto& satEphMap = ephMap[Sat][type];
-
-    auto it = satEphMap.lower_bound(time + tmax);
-    if (acsConfig.simulate_real_time  // Ephemeris should be no later than (time - tdelay) when
-                                      // simulating real-time
-        ||
-        iode < 0)  // Start with the last available ephemeris when iode not provided (== ANY_IODE)
+    if (satEphMap.empty())
     {
-        it = satEphMap.lower_bound(time - tdelay);
+        tracepdeex(
+            5,
+            trace,
+            "\nno broadcast ephemeris: sat=%s, type=%s",
+            Sat.id().c_str(),
+            enum_to_string(type)
+        );
+
+        return nullptr;
     }
+
+    // Start with the latest valid ephemeris (can be future ones for post-processing) and go back in
+    // time (forward in map)
+    auto it = satEphMap.lower_bound(time + tmax);
 
     while (it != satEphMap.end())
     {
         auto& [ephTime, eph] = *it;
 
-        if (fabs((eph.toe - time).to_double()) > tmax)
+        if (fabs((ephTime - time).to_double()) >
+            tmax)  // Don't use eph.toe as ephTime can be eph.t0 (for SBAS)
         {
+            // Too old, stop going further back to the past
             break;
         }
 
-        if (iode >= 0 && iode != eph.iode)  // Go one-way back in time (forward in map) from (time +
-                                            // tmax) when iode is provided (>= 0)
+        GTime lookupTime = ephTime;  // Try Looking up ephemeris with toe or t0
+        if (eph.ttm != GTime::noTime() && eph.ttm < ephTime)
+        {
+            // If the ephemeris is advanced, i.e. transmitted ahead of toe (ttm < toe), look up with
+            // transmission time instead - this allows to use the latest ephemeris in real-time
+            // processing
+            lookupTime = eph.ttm;
+        }
+        lookupTime += tdelay;  // Allow to wait some time before switching to next ephemeris when
+                               // IODE changes
+
+        if ((iode < 0 && time < lookupTime)  // When iode not provided (== ANY_IODE), search the
+                                             // latest available/transmitted ephemeris in the past
+            || (iode >= 0 && iode != eph.iode))  // Otherwise when iode is provided (>= 0), search
+                                                 // the matching ephemeris
         {
             it++;
             continue;

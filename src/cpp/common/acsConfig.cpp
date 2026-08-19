@@ -4579,7 +4579,7 @@ bool ACSConfig::parse(
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
         code_priorities[sys] = default_code_priorities;
-        eph_time_delay[sys]  = default_eph_time_delay[sys];
+        eph_time_delay[sys]  = 0;
     }
 
     vector<string> yamlList;
@@ -6972,8 +6972,7 @@ bool ACSConfig::parse(
                         eph_time_delay[sys],
                         sys_options,
                         {"@ eph_time_delay"},
-                        "Time delay for Broadcast Ephmeris when simulating real-time in "
-                        "post-process"
+                        "Time delay before switching to next broadcast ephemeris when IODE changes"
                     );
                 }
             }

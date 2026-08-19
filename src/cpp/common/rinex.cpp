@@ -878,7 +878,7 @@ int decodeObsEpoch(
         if (flag >= 3 && flag <= 5)
             return n;
 
-        if (buff[0] != '>' || str2time(buff, 2, 29, time, tsys))
+        if (buff[0] != '>' || str2time(buff, 2, 27, time, tsys))
         {
             BOOST_LOG_TRIVIAL(debug) << "rinex obs invalid epoch: epoch=" << buff;
             return 0;

@@ -1,6 +1,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "common/linearCombo.hpp"
+#include <array>
 #include "common/acsQC.hpp"
 #include "common/debug.hpp"
 #include "common/navigation.hpp"
@@ -192,15 +193,13 @@ void obs2lc(
     lc_t&  lcBase  ///< Linear combination base object to use
 )
 {
-    E_Sys sys = obs.Sat.sys;
-
     E_FType frq1;
     E_FType frq2;
     E_FType frq3;
 
-    bool pass = satFreqs(obs.Sat.sys, frq1, frq2, frq3);
+    int nf = obsFreqs(obs, frq1, frq2, frq3);
 
-    if (pass == false)
+    if (nf < 2)
         return;
 
     char strprefix[64];
@@ -214,126 +213,249 @@ void obs2lc(
 
     lcPrepareBase(obs, lcBase);
 
-    // iterate pairwise over the frequencies.
-    S_LC& lc12 = getLC(obs, lcBase, frq1, frq2);
-    S_LC& lc15 = getLC(obs, lcBase, frq1, frq3);
-    S_LC& lc25 = getLC(obs, lcBase, frq2, frq3);
+    // frq1/frq2/frq3 are priority-selected observed frequencies, not fixed L1/L2/L5.
+    std::array<S_LC*, 3> lcPairs = {
+        &getLC(obs, lcBase, frq1, frq2),
+        nullptr,
+        nullptr
+    };
+    if (nf >= 3)
+    {
+        lcPairs[1] = &getLC(obs, lcBase, frq1, frq3);
+        lcPairs[2] = &getLC(obs, lcBase, frq2, frq3);
+    }
 
     string frq1Str  = enum_to_string(frq1);
     string frq2Str  = enum_to_string(frq2);
-    string frq3Str  = enum_to_string(frq3);
+    string frq3Str  = (nf >= 3) ? enum_to_string(frq3) : "-";
     string frq12Str = frq1Str + frq2Str;
-    string frq13Str = frq1Str + frq3Str;
-    string frq23Str = frq2Str + frq3Str;
+    string frq13Str = (nf >= 3) ? frq1Str + frq3Str : "-";
+    string frq23Str = (nf >= 3) ? frq2Str + frq3Str : "-";
+    string sig1Str  = enum_to_string(obs.sigs[frq1].code);
+    string sig2Str  = enum_to_string(obs.sigs[frq2].code);
+    string sig3Str  = (nf >= 3) ? enum_to_string(obs.sigs[frq3].code) : "-";
 
-    tracepdeex(
-        3,
-        trace,
-        "%s zd L -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
-        strprefix,
-        frq1Str.c_str(),
-        lcBase.L_m[frq1],
-        frq2Str.c_str(),
-        lcBase.L_m[frq2],
-        frq3Str.c_str(),
-        lcBase.L_m[frq3]
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s zd P -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
-        strprefix,
-        frq1Str.c_str(),
-        lcBase.P[frq1],
-        frq2Str.c_str(),
-        lcBase.P[frq2],
-        frq3Str.c_str(),
-        lcBase.P[frq3]
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s mp P -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
-        strprefix,
-        frq1Str.c_str(),
-        lcBase.mp[frq1],
-        frq2Str.c_str(),
-        lcBase.mp[frq2],
-        frq3Str.c_str(),
-        lcBase.mp[frq3]
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s gf L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
-        strprefix,
-        frq12Str.c_str(),
-        lc12.GF_Phas_m,
-        frq13Str.c_str(),
-        lc15.GF_Phas_m,
-        frq23Str.c_str(),
-        lc25.GF_Phas_m
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s gf P -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
-        strprefix,
-        frq12Str.c_str(),
-        lc12.GF_Code_m,
-        frq13Str.c_str(),
-        lc15.GF_Code_m,
-        frq23Str.c_str(),
-        lc25.GF_Code_m
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s mw L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
-        strprefix,
-        frq12Str.c_str(),
-        lc12.MW_c,
-        frq13Str.c_str(),
-        lc15.MW_c,
-        frq23Str.c_str(),
-        lc25.MW_c
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s wl L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
-        strprefix,
-        frq12Str.c_str(),
-        lc12.WL_Phas_m,
-        frq13Str.c_str(),
-        lc15.WL_Phas_m,
-        frq23Str.c_str(),
-        lc25.WL_Phas_m
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s if L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
-        strprefix,
-        frq12Str.c_str(),
-        lc12.IF_Phas_m,
-        frq13Str.c_str(),
-        lc15.IF_Phas_m,
-        frq23Str.c_str(),
-        lc25.IF_Phas_m
-    );
-    tracepdeex(
-        3,
-        trace,
-        "%s if P -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
-        strprefix,
-        frq12Str.c_str(),
-        lc12.IF_Code_m,
-        frq13Str.c_str(),
-        lc15.IF_Code_m,
-        frq23Str.c_str(),
-        lc25.IF_Code_m
-    );
+    if (nf >= 3)
+    {
+        tracepdeex(
+            3,
+            trace,
+            "%s selected signals -- %-3s = %-5s %-3s = %-5s %-3s = %-5s\n",
+            strprefix,
+            frq1Str.c_str(),
+            sig1Str.c_str(),
+            frq2Str.c_str(),
+            sig2Str.c_str(),
+            frq3Str.c_str(),
+            sig3Str.c_str()
+        );
+    }
+    else
+    {
+        tracepdeex(
+            3,
+            trace,
+            "%s selected signals -- %-3s = %-5s %-3s = %-5s\n",
+            strprefix,
+            frq1Str.c_str(),
+            sig1Str.c_str(),
+            frq2Str.c_str(),
+            sig2Str.c_str()
+        );
+    }
+
+    if (nf >= 3)
+    {
+        tracepdeex(
+            3,
+            trace,
+            "%s zd L -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
+            strprefix,
+            frq1Str.c_str(),
+            lcBase.L_m[frq1],
+            frq2Str.c_str(),
+            lcBase.L_m[frq2],
+            frq3Str.c_str(),
+            lcBase.L_m[frq3]
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s zd P -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
+            strprefix,
+            frq1Str.c_str(),
+            lcBase.P[frq1],
+            frq2Str.c_str(),
+            lcBase.P[frq2],
+            frq3Str.c_str(),
+            lcBase.P[frq3]
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s mp P -- %-3s =%14.4f %-3s =%14.4f %-3s =%14.4f\n",
+            strprefix,
+            frq1Str.c_str(),
+            lcBase.mp[frq1],
+            frq2Str.c_str(),
+            lcBase.mp[frq2],
+            frq3Str.c_str(),
+            lcBase.mp[frq3]
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s gf L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->GF_Phas_m,
+            frq13Str.c_str(),
+            lcPairs[1]->GF_Phas_m,
+            frq23Str.c_str(),
+            lcPairs[2]->GF_Phas_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s gf P -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->GF_Code_m,
+            frq13Str.c_str(),
+            lcPairs[1]->GF_Code_m,
+            frq23Str.c_str(),
+            lcPairs[2]->GF_Code_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s mw L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->MW_c,
+            frq13Str.c_str(),
+            lcPairs[1]->MW_c,
+            frq23Str.c_str(),
+            lcPairs[2]->MW_c
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s wl L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->WL_Phas_m,
+            frq13Str.c_str(),
+            lcPairs[1]->WL_Phas_m,
+            frq23Str.c_str(),
+            lcPairs[2]->WL_Phas_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s if L -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->IF_Phas_m,
+            frq13Str.c_str(),
+            lcPairs[1]->IF_Phas_m,
+            frq23Str.c_str(),
+            lcPairs[2]->IF_Phas_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s if P -- %-6s=%14.4f %-6s=%14.4f %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->IF_Code_m,
+            frq13Str.c_str(),
+            lcPairs[1]->IF_Code_m,
+            frq23Str.c_str(),
+            lcPairs[2]->IF_Code_m
+        );
+    }
+    else
+    {
+        tracepdeex(
+            3,
+            trace,
+            "%s zd L -- %-3s =%14.4f %-3s =%14.4f\n",
+            strprefix,
+            frq1Str.c_str(),
+            lcBase.L_m[frq1],
+            frq2Str.c_str(),
+            lcBase.L_m[frq2]
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s zd P -- %-3s =%14.4f %-3s =%14.4f\n",
+            strprefix,
+            frq1Str.c_str(),
+            lcBase.P[frq1],
+            frq2Str.c_str(),
+            lcBase.P[frq2]
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s mp P -- %-3s =%14.4f %-3s =%14.4f\n",
+            strprefix,
+            frq1Str.c_str(),
+            lcBase.mp[frq1],
+            frq2Str.c_str(),
+            lcBase.mp[frq2]
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s gf L -- %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->GF_Phas_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s gf P -- %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->GF_Code_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s mw L -- %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->MW_c
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s wl L -- %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->WL_Phas_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s if L -- %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->IF_Phas_m
+        );
+        tracepdeex(
+            3,
+            trace,
+            "%s if P -- %-6s=%14.4f\n",
+            strprefix,
+            frq12Str.c_str(),
+            lcPairs[0]->IF_Code_m
+        );
+    }
 
     traceJson(
         5,
