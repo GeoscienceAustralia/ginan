@@ -878,7 +878,7 @@ int decodeObsEpoch(
         if (flag >= 3 && flag <= 5)
             return n;
 
-        if (buff[0] != '>' || str2time(buff, 2, 29, time, tsys))
+        if (buff[0] != '>' || str2time(buff, 2, 27, time, tsys))
         {
             BOOST_LOG_TRIVIAL(debug) << "rinex obs invalid epoch: epoch=" << buff;
             return 0;
@@ -940,13 +940,11 @@ int decodeObsDataRinex2(
     BOOST_LOG_TRIVIAL(debug) << "RINEX2: About to process satellite " << obs.Sat.id() << " with "
                              << codeTypes.size() << " code types, line size: " << line.size();
 
-    // Check for valid line buffer
-    if (line.empty() || line.size() < 16)
-    {
-        BOOST_LOG_TRIVIAL(error) << "RINEX2: Invalid or too short line buffer (size: "
-                                 << line.size() << ")";
-        return 0;
-    }
+    // RINEX 2 observation records are fixed-width, but files may omit trailing
+    // blanks. A completely blank record means this satellite has no values for
+    // this record; it still has to be consumed to keep the epoch aligned.
+    if (line.size() < 80)
+        line.append(80 - line.size(), ' ');
 
     BOOST_LOG_TRIVIAL(debug) << "RINEX2: Accessing receiver options for " << rnxRec.id;
 
@@ -971,9 +969,6 @@ int decodeObsDataRinex2(
     // Stage 1: Collect all observations, storing priority arrays for phase observations
     ObservationStaging staging;
     BOOST_LOG_TRIVIAL(debug) << "RINEX2: Processing observations with priority staging";
-    if (line.size() < 80)
-        line.append(80 - line.size(), ' ');  // Ensure line is at least 80 characters
-
     for (auto& [index, codeType] : codeTypes)
     {
         // RINEX 2: Check for line continuation
@@ -984,13 +979,6 @@ int decodeObsDataRinex2(
             stripCarriageReturn(line);
             if (line.size() < 80)
                 line.append(80 - line.size(), ' ');  // Ensure line is at least 80 characters
-
-            // Validate new line
-            if (line.empty())
-            {
-                BOOST_LOG_TRIVIAL(warning) << "RINEX2: Empty continuation line";
-                break;
-            }
             buff = &line[0];
             j    = 0;
         }

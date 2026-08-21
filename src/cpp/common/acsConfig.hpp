@@ -658,15 +658,6 @@ struct GlobalOptions
     map<E_Sys, string> constrain_phase_bias;
 
     map<E_Sys, double> eph_time_delay;
-    map<E_Sys, double> default_eph_time_delay = {
-        {E_Sys::GPS, -7200.0},
-        {E_Sys::GLO, 0.0},
-        {E_Sys::GAL, 0.0},
-        {E_Sys::QZS, 0.0},
-        {E_Sys::BDS, 0.0},
-        {E_Sys::LEO, 0.0},
-        {E_Sys::SBS, 0.0}
-    };
 
     bool common_sat_pco       = false;
     bool common_rec_pco       = false;

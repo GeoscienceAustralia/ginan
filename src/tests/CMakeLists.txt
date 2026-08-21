@@ -56,6 +56,17 @@ add_executable(trace_file_cache_tests
     unit/test_TraceFileCache.cpp
 )
 
+add_executable(preprocessor_frequency_tests
+    ../cpp/common/constants.cpp
+    ../cpp/common/preprocessorFreqs.cpp
+    unit/test_PreprocessorFreqs.cpp
+)
+
+add_executable(rinex_epoch_tests
+    ../cpp/common/gTime.cpp
+    unit/test_RinexEpoch.cpp
+)
+
 add_sanity_checker_test(config_sanity_manager_tests
     unit/sanityCheckers/test_ConfigSanityManager.cpp
 )
@@ -81,6 +92,8 @@ add_sanity_checker_test(sbas_sanity_checker_tests
 add_custom_target(unit_tests
     DEPENDS receiver_metadata_tests
             trace_file_cache_tests
+            preprocessor_frequency_tests
+            rinex_epoch_tests
             config_sanity_manager_tests
             epoch_tolerance_checker_tests
             ephemeris_time_delay_checker_tests
@@ -99,9 +112,23 @@ target_link_libraries(trace_file_cache_tests PRIVATE
     Boost::unit_test_framework
 )
 
+target_link_libraries(preprocessor_frequency_tests PRIVATE
+    Boost::program_options
+    Boost::unit_test_framework
+)
+
+target_link_libraries(rinex_epoch_tests PRIVATE
+    Boost::log
+    Boost::log_setup
+    Boost::program_options
+    Boost::unit_test_framework
+)
+
 if(WIN32)
     target_link_libraries(receiver_metadata_tests PRIVATE ws2_32 wsock32)
 endif()
 
 configure_unit_test(receiver_metadata_tests)
 configure_unit_test(trace_file_cache_tests)
+configure_unit_test(preprocessor_frequency_tests)
+configure_unit_test(rinex_epoch_tests)

@@ -169,6 +169,7 @@ struct Geph : BrdcEph
     double       taun;                       ///< SV clock bias (s)
     double       gammaN;                     ///< SV relative freq bias
     double       dtaun;                      ///< delay between L1 and L2 (s)
+    GTime        ttm;                        // unused, for templating only
 
     // original messages from stream/rinex for debugging
     double tofs;      ///< TOF (s) within the current day
@@ -234,6 +235,7 @@ struct Seph : BrdcEph
     double       af1  = 0;                   ///< satellite clock-drift (s/s)
     int          iode = -1;                  // unused, for templating only
     GTime        toe;                        // unused, for templating only
+    GTime        ttm;                        // unused, for templating only
 
     double tofs;                             ///< TOF (s) within the week
 };

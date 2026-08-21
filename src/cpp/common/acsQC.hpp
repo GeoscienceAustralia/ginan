@@ -1,7 +1,9 @@
 #pragma once
 
+#include "common/enums.h"
 #include "common/trace.hpp"
 
+struct GObs;
 struct ObsList;
 
 int lsqqc(
@@ -39,3 +41,5 @@ void detslp_gf(ObsList& obsList);
 void detslp_mw(ObsList& obsList);
 
 void detslp_ll(ObsList& obsList);
+
+int obsFreqs(const GObs& obs, E_FType& ft1, E_FType& ft2, E_FType& ft3);

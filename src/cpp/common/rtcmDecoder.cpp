@@ -783,8 +783,10 @@ void RtcmDecoder::decodeEphemeris(vector<unsigned char>& data)  ///< stream data
         RTod tofs = geph.tk_hour * 60 * 60 + geph.tk_min * 60 + geph.tk_sec;
 
         GTime nearTime = rtcmTime();
-        geph.toe       = GTime(toes, nearTime);
-        geph.tof       = GTime(tofs, nearTime);
+
+        geph.ttm = nearTime;
+        geph.toe = GTime(toes, nearTime);
+        geph.tof = GTime(tofs, nearTime);
     }
     else if (sys == E_Sys::BDS)
     {
