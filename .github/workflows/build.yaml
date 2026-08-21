@@ -19,7 +19,7 @@ jobs:
             artifact-name: ginan-linux-x64
             build-dir: linux-Release
             install-root: vcpkg_installed/linux
-            cache-key: vcpkg-linux-v5
+            cache-key: vcpkg-linux-v6
             install-deps: |
               sudo apt-get update
               sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config git gfortran
@@ -31,7 +31,7 @@ jobs:
             artifact-name: ginan-macos-arm64
             build-dir: mac-arm64-Release
             install-root: vcpkg_installed/macos-arm64
-            cache-key: vcpkg-macos-arm64-v5
+            cache-key: vcpkg-macos-arm64-v6
             install-deps: |
               brew install cmake ninja pkg-config libomp gcc
               echo "/opt/homebrew/bin" >> $GITHUB_PATH
@@ -56,7 +56,7 @@ jobs:
             artifact-name: ginan-windows-x64
             build-dir: windows-cross-Release
             install-root: vcpkg_installed/mingw
-            cache-key: vcpkg-windows-cross-v5
+            cache-key: vcpkg-windows-cross-v6
             install-deps: |
               sudo apt-get update
               sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config git mingw-w64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
