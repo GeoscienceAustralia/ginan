@@ -1,0 +1,28 @@
+# Load after zhang_full_rank_europe_stage1.yaml to exercise online reference
+# switching without changing the stage-one observation or stochastic model.
+#
+# G05 leaves the seven-station common-view set during the six-hour interval.
+# The controller waits two unavailable epochs, selects the first usable
+# candidate (or the highest-elevation common satellite), and applies the exact
+# state/covariance S-transform before constructing that epoch's measurements.
+
+outputs:
+  outputs_root: ./outputs/zhang_full_rank_europe_reference_switch
+
+  metadata:
+    config_description: zhang_full_rank_europe_reference_switch
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 300
+
+  gnss_general:
+    zhang_full_rank:
+      sys_options:
+        gps:
+          auto_reference_switch: true
+          reference_outage_epochs: 2
+          reference_receiver_candidates: [ZIM2, MATE, PADO, GANP, MARS, NOT1, FFMJ]
+          reference_satellite_candidates: [G05, G12, G24, G25, G29]

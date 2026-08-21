@@ -1,0 +1,15 @@
+# Five-epoch check for the persistent physical-arc held-lattice path.  The
+# baseline E0 first fixes at 00:15, so the ordinary two-epoch smoke cannot
+# exercise HNF insertion and reapplication.
+processing_options:
+  epoch_control:
+    end_epoch: 2019-07-18 00:20:00
+  gnss_general:
+    zhang_pppar:
+      product_filename: ./outputs/zhang_global_2019199_lattice_smoke/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_lattice_smoke/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_lattice_smoke
+  metadata:
+    config_description: zhang_global_2019199_lattice_smoke

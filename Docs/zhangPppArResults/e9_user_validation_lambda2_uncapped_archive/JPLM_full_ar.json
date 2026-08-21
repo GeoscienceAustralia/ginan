@@ -1,0 +1,40 @@
+{
+  "label": "JPLM_full_ar",
+  "category": "north_america_arctic",
+  "trace": "/home/rx/GINAN/inputData/outputs/zhang_e9_JPLM_full_ar/Network-zhang_e9_JPLM_full_ar-201919900.TRACE",
+  "epochs": 361,
+  "ar_attempt_epochs": 15,
+  "newly_fixed_total": 6,
+  "time_to_first_fix_s": 7200.0,
+  "ambiguity_fix_rate": 0.5,
+  "maximum_held_integer_rank": 3,
+  "fixed_hold_rate_after_ttff": 0.13333333333333333,
+  "raw_ambiguity_integer_like_rate": 0.0,
+  "wrong_fix_position_proxy_count": 2,
+  "wrong_fix_position_proxy_denominator": 2,
+  "wrong_fix_position_proxy_rate": 1.0,
+  "wrong_fix_modal_proxy_count": 0,
+  "wrong_fix_modal_proxy_denominator": 0,
+  "wrong_fix_modal_proxy_rate": null,
+  "datum_change_count": 0,
+  "median_recovery_after_datum_change_s": null,
+  "reference_change_count": 4,
+  "enu_all": {
+    "east_rms_m": 3695632.347778628,
+    "north_rms_m": 1806557.0063282538,
+    "up_rms_m": 2465491.7070199805,
+    "horizontal_p95_m": 5257404.58056064,
+    "up_abs_p95_m": 3149260.0
+  },
+  "enu_after_first_fix": {
+    "east_rms_m": 4523075.52456944,
+    "north_rms_m": 2211040.7665346623,
+    "up_rms_m": 3017509.358785106,
+    "horizontal_p95_m": 5257404.58056064,
+    "up_abs_p95_m": 3149260.0
+  },
+  "convergence_enu_10cm_20cm_s": 3060.0,
+  "convergence_enu_5cm_10cm_s": 4500.0,
+  "median_float_fractional_cycle": 0.339159,
+  "p90_float_fractional_cycle": 0.479976
+}

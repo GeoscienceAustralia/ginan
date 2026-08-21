@@ -312,6 +312,18 @@ The parameters being estimated are
 The main difference between a network solution and a rover solution is that satellite parameters (orbits, clocks, and biases) are estimated.
 Thus included in the `satellites` part of `estimation_parameters`, are satellite clock offset (`clock`), satellite clock drift (`clock_rate`), code bias (`code_bias`) and phase biases (`phase_bias`)
 
+Datum-consistent generation of a baseline-frequency ambiguity-fixed clock with
+matching code and phase OSBs is controlled by
+`processing_options:gnss_general:phase_clock_osb`. See
+[Datum-consistent phase-clock/OSB processing](phaseClockOsb.md) for the datum
+equations, first-stage GPS L1/L2 scope, diagnostics and staged-run requirements.
+
+Structural validation of Zhang's code-plus-phase, ionosphere-float full-rank
+network model is controlled by
+`processing_options:gnss_general:zhang_full_rank`. See
+[Zhang full-rank PPP-RTK stage-one model](zhangFullRank.md) for the state
+interpretation, omitted S-basis states and fixed-reference limitations.
+
 A far simplified POD example is also available in `fit_sp3_pseudoobs.yaml`, which only estimates the satellites orbital and eop parameters `orbit`, `emp_x_y`, `eop`.
 This uses sp3 pseudoobservations as inputs, and does not require calculation of other parameters such as tropospheres and other offsets.
 

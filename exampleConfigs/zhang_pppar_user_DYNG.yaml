@@ -1,0 +1,13 @@
+inputs:
+  gnss_observations:
+    gnss_observations_root: ../data/
+    rnx_inputs: [DYNG00GRC_R_20191990000_01D_30S_MO.rnx]
+
+outputs:
+  outputs_root: ./outputs/zhang_pppar_user_DYNG
+  metadata:
+    config_description: zhang_pppar_user_DYNG
+
+receiver_options:
+  DYNG:
+    exclude: false

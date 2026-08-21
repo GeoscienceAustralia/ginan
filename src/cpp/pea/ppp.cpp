@@ -21,6 +21,7 @@
 #include "common/receiver.hpp"
 #include "common/satStat.hpp"
 #include "common/trace.hpp"
+#include "common/zhangIntegerSupportResidualAudit.hpp"
 #include "orbprop/coordinates.hpp"
 
 using std::vector;
@@ -1209,6 +1210,7 @@ void postFilterChecks(const GTime& time, ReceiverMap& receiverMap, KFState& kfSt
 
     for (int i = 0; i < kfMeas.V.rows(); i++)
     {
+		zhangRecordIntegerSupportPostfitResidual(&kfState, kfMeas, i);
         resetPhaseSignalError(time, kfMeas, i);
         resetIonoSignalOutage(time, kfMeas, i);
     }

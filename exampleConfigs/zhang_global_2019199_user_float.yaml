@@ -1,0 +1,5 @@
+# Disable user ambiguity resolution while retaining the same guarded FIXED
+# satellite product corrections. This is the coordinate-integrity control.
+processing_options:
+  ambiguity_resolution:
+    mode: OFF

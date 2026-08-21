@@ -1,21 +1,29 @@
 // #pragma GCC optimize ("O0")
 
 #include <algorithm>
+#include <array>
 #include <boost/chrono/chrono_io.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/system/error_code.hpp>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <iterator>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <set>
 #include <signal.h>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <vector>
 #include "architectureDocs.hpp"
 #include "common/algebraTrace.hpp"
@@ -39,6 +47,7 @@
 #include "common/summary.hpp"
 #include "common/tcpSocket.hpp"
 #include "common/testUtils.hpp"
+#include "common/zhangCheckpoint.hpp"
 #include "inertial/posProp.hpp"
 #include "iono/ionoModel.hpp"
 #if defined(ENABLE_PARALLELISATION) || defined(_OPENMP)
@@ -50,6 +59,7 @@
 #include "pea/minimumConstraints.hpp"
 #include "pea/peaCommitStrings.hpp"
 #include "pea/preprocessor.hpp"
+#include "pea/zhangCheckpointRuntime.hpp"
 #include "slr/slr.hpp"
 
 using namespace std::literals::chrono_literals;
@@ -94,6 +104,674 @@ int                   epoch  = 0;
 GTime                 tsync  = GTime::noTime();
 map<int, SatIdentity> satIdMap;
 map<string, string>   latestMissingObsStatusByReceiver;
+
+namespace
+{
+struct E29InputFileRecord
+{
+    string       role;
+    string       owner;
+    std::size_t  ordinal = 0;
+    string       canonicalPath;
+    std::uintmax_t size = 0;
+    string       sha256;
+
+    bool operator<(const E29InputFileRecord& other) const
+    {
+        return std::tie(role, owner, ordinal, canonicalPath, size, sha256) <
+               std::tie(
+                   other.role,
+                   other.owner,
+                   other.ordinal,
+                   other.canonicalPath,
+                   other.size,
+                   other.sha256
+               );
+    }
+};
+
+void appendE29LengthPrefixedField(
+    std::ostringstream& output,
+    const string&       name,
+    const string&       value
+)
+{
+    output << name << "=" << value.size() << "\n";
+    output.write(value.data(), static_cast<std::streamsize>(value.size()));
+    output << "\n";
+}
+
+bool readE29RegularFile(
+    const std::filesystem::path& inputPath,
+    std::filesystem::path&       canonicalPath,
+    string*                      bytes,
+    std::uintmax_t&              size,
+    string&                      sha256,
+    string&                      failureReason
+)
+{
+    std::error_code error;
+    canonicalPath = std::filesystem::canonical(inputPath, error);
+    if (error || !std::filesystem::is_regular_file(canonicalPath, error) || error)
+    {
+        failureReason = "E29_PROVENANCE_NOT_A_REGULAR_FILE:" + inputPath.string();
+        return false;
+    }
+
+    size = std::filesystem::file_size(canonicalPath, error);
+    if (error)
+    {
+        failureReason = "E29_PROVENANCE_FILE_SIZE_FAILED:" + canonicalPath.string();
+        return false;
+    }
+
+    const auto modifiedBefore = std::filesystem::last_write_time(canonicalPath, error);
+    if (error)
+    {
+        failureReason = "E29_PROVENANCE_FILE_MTIME_FAILED:" + canonicalPath.string();
+        return false;
+    }
+
+    if (bytes != nullptr)
+    {
+        std::ifstream input(canonicalPath, std::ios::binary);
+        if (!input)
+        {
+            failureReason = "E29_PROVENANCE_FILE_OPEN_FAILED:" + canonicalPath.string();
+            return false;
+        }
+        bytes->assign(
+            std::istreambuf_iterator<char>(input),
+            std::istreambuf_iterator<char>()
+        );
+		// istreambuf_iterator reaches the stream buffer's EOF without being
+		// required to set basic_ios::eofbit.  badbit and the independently
+		// stat-ed byte count are the deterministic read-integrity checks here.
+		if (input.bad() || bytes->size() != size)
+        {
+            failureReason = "E29_PROVENANCE_FILE_READ_FAILED:" + canonicalPath.string();
+            return false;
+        }
+        sha256 = zhangCheckpointSha256(*bytes);
+    }
+    else
+    {
+        string hashFailure;
+        sha256 = zhangCheckpointFileSha256(canonicalPath.string(), &hashFailure);
+        if (sha256.empty())
+        {
+            failureReason = "E29_PROVENANCE_FILE_HASH_FAILED:" +
+                            canonicalPath.string() + ":" + hashFailure;
+            return false;
+        }
+    }
+    if (sha256.empty())
+    {
+        failureReason = "E29_PROVENANCE_CONTENT_HASH_FAILED:" + canonicalPath.string();
+        return false;
+    }
+    const auto sizeAfter = std::filesystem::file_size(canonicalPath, error);
+    if (error)
+    {
+        failureReason = "E29_PROVENANCE_FILE_RESTAT_FAILED:" + canonicalPath.string();
+        return false;
+    }
+    const auto modifiedAfter = std::filesystem::last_write_time(canonicalPath, error);
+    if (error || sizeAfter != size || modifiedAfter != modifiedBefore)
+    {
+        failureReason = "E29_PROVENANCE_FILE_CHANGED_DURING_HASH:" +
+                        canonicalPath.string();
+        return false;
+    }
+    return true;
+}
+
+bool resolveE29ExecutablePath(
+    const char* argv0,
+    string&     executablePath,
+    string&     failureReason
+)
+{
+    std::error_code error;
+    std::filesystem::path resolved;
+#if defined(__linux__)
+    resolved = std::filesystem::canonical("/proc/self/exe", error);
+#endif
+    if (error || resolved.empty())
+    {
+        error.clear();
+        if (argv0 == nullptr || string(argv0).empty())
+        {
+            failureReason = "E29_PROVENANCE_EXECUTABLE_ARGV0_MISSING";
+            return false;
+        }
+        resolved = std::filesystem::canonical(
+            std::filesystem::absolute(argv0, error), error);
+    }
+    if (error || !std::filesystem::is_regular_file(resolved, error) || error)
+    {
+        failureReason = "E29_PROVENANCE_EXECUTABLE_RESOLUTION_FAILED";
+        return false;
+    }
+    executablePath = resolved.string();
+    return true;
+}
+
+bool buildE29CanonicalConfigText(
+    int                 argc,
+    char**              argv,
+    string&             configText,
+    string&             failureReason
+)
+{
+    if (acsConfig.includedFilenames.empty())
+    {
+        failureReason = "E29_PROVENANCE_CONFIG_FILE_INVENTORY_EMPTY";
+        return false;
+    }
+
+    std::ostringstream output;
+    output << "E29_CANONICAL_CONFIG_V1\n";
+
+    std::error_code cwdError;
+    const auto canonicalCwd = std::filesystem::weakly_canonical(
+        std::filesystem::current_path(), cwdError);
+    if (cwdError)
+    {
+        failureReason = "E29_PROVENANCE_CWD_RESOLUTION_FAILED";
+        return false;
+    }
+    appendE29LengthPrefixedField(output, "working_directory", canonicalCwd.string());
+
+    // argv[0] is represented by the separately hashed canonical executable.
+    // Every remaining argument is retained byte-for-byte, including all CLI
+    // overrides, so a restart cannot silently change an effective option.
+    output << "command_argument_count=" << std::max(0, argc - 1) << "\n";
+    for (int index = 1; index < argc; index++)
+    {
+        if (argv[index] == nullptr)
+        {
+            failureReason = "E29_PROVENANCE_NULL_COMMAND_ARGUMENT";
+            return false;
+        }
+        appendE29LengthPrefixedField(
+            output, "command_argument_" + std::to_string(index), argv[index]);
+    }
+
+    output << "config_file_count=" << acsConfig.includedFilenames.size() << "\n";
+    for (std::size_t index = 0; index < acsConfig.includedFilenames.size(); index++)
+    {
+        std::filesystem::path canonicalPath;
+        string bytes;
+        string sha256;
+        std::uintmax_t size = 0;
+        if (!readE29RegularFile(
+                acsConfig.includedFilenames[index], canonicalPath, &bytes,
+                size, sha256, failureReason))
+        {
+            return false;
+        }
+        const string prefix = "config_file_" + std::to_string(index) + "_";
+        appendE29LengthPrefixedField(output, prefix + "path", canonicalPath.string());
+        output << prefix << "size=" << size << "\n";
+        appendE29LengthPrefixedField(output, prefix + "sha256", sha256);
+        appendE29LengthPrefixedField(output, prefix + "bytes", bytes);
+    }
+
+    // Record the effective values that define E29 numerical timing, identity,
+    // and the two append-only product sinks after YAML tags and CLI overrides.
+    output << std::setprecision(17);
+    appendE29LengthPrefixedField(
+        output, "effective_epoch_interval",
+        std::to_string(acsConfig.epoch_interval));
+    appendE29LengthPrefixedField(
+        output, "effective_start_epoch",
+        acsConfig.start_epoch.is_not_a_date_time()
+            ? "NOT_A_DATE_TIME"
+            : boost::posix_time::to_iso_extended_string(acsConfig.start_epoch));
+    appendE29LengthPrefixedField(
+        output, "effective_end_epoch",
+        acsConfig.end_epoch.is_not_a_date_time()
+            ? "NOT_A_DATE_TIME"
+            : boost::posix_time::to_iso_extended_string(acsConfig.end_epoch));
+    appendE29LengthPrefixedField(
+        output, "effective_max_epochs", std::to_string(acsConfig.max_epochs));
+    appendE29LengthPrefixedField(
+        output, "effective_inputs_root", acsConfig.inputs_root);
+    appendE29LengthPrefixedField(
+        output, "effective_outputs_root", acsConfig.outputs_root);
+    appendE29LengthPrefixedField(
+        output, "effective_product_filename",
+        acsConfig.zhangPppAr.product_filename);
+    appendE29LengthPrefixedField(
+        output, "effective_product_covariance_filename",
+        acsConfig.zhangPppAr.product_covariance_filename);
+    appendE29LengthPrefixedField(
+        output, "effective_checkpoint_output_directory",
+        acsConfig.zhangPppAr.checkpoint_output_directory);
+    appendE29LengthPrefixedField(
+        output, "effective_checkpoint_runtime_id",
+        acsConfig.zhangPppAr.checkpoint_runtime_id);
+    output << "effective_capture_epoch_count="
+           << acsConfig.zhangPppAr.checkpoint_capture_epochs.size() << "\n";
+    for (std::size_t index = 0;
+         index < acsConfig.zhangPppAr.checkpoint_capture_epochs.size(); index++)
+    {
+        appendE29LengthPrefixedField(
+            output, "effective_capture_epoch_" + std::to_string(index),
+            acsConfig.zhangPppAr.checkpoint_capture_epochs[index]);
+    }
+    appendE29LengthPrefixedField(
+        output, "effective_checkpoint_restore_path",
+        acsConfig.zhangPppAr.checkpoint_restore_path);
+
+    configText = output.str();
+    return !configText.empty();
+}
+
+bool normaliseE29LocalInputPath(
+    const string& source,
+    std::filesystem::path& path,
+    string& failureReason
+)
+{
+    if (source.empty())
+    {
+        failureReason = "E29_INPUT_MANIFEST_EMPTY_SOURCE";
+        return false;
+    }
+    const auto protocol = source.find("://");
+    if (protocol == string::npos)
+    {
+        path = source;
+        return true;
+    }
+    if (source.substr(0, protocol) != "file")
+    {
+        failureReason = "E29_INPUT_MANIFEST_NONLOCAL_SOURCE_UNSUPPORTED:" + source;
+        return false;
+    }
+    path = source.substr(protocol + 3);
+    if (path.empty())
+    {
+        failureReason = "E29_INPUT_MANIFEST_FILE_URI_EMPTY";
+        return false;
+    }
+    return true;
+}
+
+bool buildE29InputManifestText(string& manifestText, string& failureReason)
+{
+    std::vector<E29InputFileRecord> records;
+    auto addFile = [&](
+        const string& role,
+        const string& owner,
+        std::size_t ordinal,
+        const string& source) -> bool
+    {
+        std::filesystem::path inputPath;
+        if (!normaliseE29LocalInputPath(source, inputPath, failureReason))
+        {
+            return false;
+        }
+        std::filesystem::path canonicalPath;
+        string bytes;
+        string sha256;
+        std::uintmax_t size = 0;
+        if (!readE29RegularFile(
+                inputPath, canonicalPath, nullptr, size, sha256, failureReason))
+        {
+            return false;
+        }
+        records.push_back({role, owner, ordinal, canonicalPath.string(), size, sha256});
+        return true;
+    };
+    auto addVector = [&](const string& role, const auto& values) -> bool
+    {
+        for (std::size_t index = 0; index < values.size(); index++)
+        {
+            if (!addFile(role, "", index, values[index]))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    auto addMap = [&](const string& role, const auto& values) -> bool
+    {
+        for (const auto& [owner, paths] : values)
+        for (std::size_t index = 0; index < paths.size(); index++)
+        {
+            if (!addFile(role, owner, index, paths[index]))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+
+#define ADD_E29_INPUT_VECTOR(field) \
+    if (!addVector(#field, acsConfig.field)) return false
+    ADD_E29_INPUT_VECTOR(atx_files);
+    ADD_E29_INPUT_VECTOR(snx_files);
+    ADD_E29_INPUT_VECTOR(nav_files);
+    ADD_E29_INPUT_VECTOR(ems_files);
+    ADD_E29_INPUT_VECTOR(sp3_files);
+    ADD_E29_INPUT_VECTOR(clk_files);
+    ADD_E29_INPUT_VECTOR(obx_files);
+    ADD_E29_INPUT_VECTOR(sid_files);
+    ADD_E29_INPUT_VECTOR(com_files);
+    ADD_E29_INPUT_VECTOR(crd_files);
+    ADD_E29_INPUT_VECTOR(vmf_files);
+    ADD_E29_INPUT_VECTOR(erp_files);
+    ADD_E29_INPUT_VECTOR(dcb_files);
+    ADD_E29_INPUT_VECTOR(bsx_files);
+    ADD_E29_INPUT_VECTOR(ion_files);
+    ADD_E29_INPUT_VECTOR(igrf_files);
+    ADD_E29_INPUT_VECTOR(egm_files);
+    ADD_E29_INPUT_VECTOR(cmc_files);
+    ADD_E29_INPUT_VECTOR(hfeop_files);
+    ADD_E29_INPUT_VECTOR(gpt2grid_files);
+    ADD_E29_INPUT_VECTOR(orography_files);
+    ADD_E29_INPUT_VECTOR(pseudo_filter_files);
+    ADD_E29_INPUT_VECTOR(atm_reg_definitions);
+    ADD_E29_INPUT_VECTOR(space_weather_files);
+    ADD_E29_INPUT_VECTOR(planetary_ephemeris_files);
+    ADD_E29_INPUT_VECTOR(ocean_tide_potential_files);
+    ADD_E29_INPUT_VECTOR(atmos_tide_potential_files);
+    ADD_E29_INPUT_VECTOR(ocean_tide_loading_blq_files);
+    ADD_E29_INPUT_VECTOR(atmos_tide_loading_blq_files);
+    ADD_E29_INPUT_VECTOR(ocean_pole_tide_loading_files);
+    ADD_E29_INPUT_VECTOR(atmos_ocean_dealiasing_files);
+    ADD_E29_INPUT_VECTOR(ocean_pole_tide_potential_files);
+#undef ADD_E29_INPUT_VECTOR
+
+#define ADD_E29_INPUT_MAP(field) \
+    if (!addMap(#field, acsConfig.field)) return false
+    ADD_E29_INPUT_MAP(rnx_inputs);
+    ADD_E29_INPUT_MAP(ubx_inputs);
+    ADD_E29_INPUT_MAP(sbf_inputs);
+    ADD_E29_INPUT_MAP(custom_inputs);
+    ADD_E29_INPUT_MAP(obs_rtcm_inputs);
+    ADD_E29_INPUT_MAP(pseudo_sp3_inputs);
+    ADD_E29_INPUT_MAP(pseudo_snx_inputs);
+#undef ADD_E29_INPUT_MAP
+
+    if (!addVector("sisnet_inputs", acsConfig.sisnet_inputs)
+        || !addVector("nav_rtcm_inputs", acsConfig.nav_rtcm_inputs)
+        || !addVector("qzs_rtcm_inputs", acsConfig.qzs_rtcm_inputs)
+        || !addMap("slr_observation_streams", slrObsFiles))
+    {
+        return false;
+    }
+
+    // This inventory is derived from live objects as well as ACSConfig so an
+    // indirectly generated or otherwise unlisted stream cannot escape hashing.
+    std::map<string, std::size_t> runtimeOrdinals;
+    for (const auto& [owner, streamParser] : streamParserMultimap)
+    {
+        if (!streamParser)
+        {
+            failureReason = "E29_INPUT_MANIFEST_NULL_RUNTIME_STREAM";
+            return false;
+        }
+        const string ordinalKey = owner + "\n" + streamParser->stream.sourceString;
+        const std::size_t ordinal = runtimeOrdinals[ordinalKey]++;
+        if (!addFile(
+                "runtime_stream", owner, ordinal,
+                streamParser->stream.sourceString))
+        {
+            return false;
+        }
+    }
+
+    std::sort(records.begin(), records.end());
+    std::ostringstream output;
+    output << "E29_LOCAL_INPUT_MANIFEST_V1\n";
+    output << "record_count=" << records.size() << "\n";
+    for (std::size_t index = 0; index < records.size(); index++)
+    {
+        const auto& record = records[index];
+        const string prefix = "record_" + std::to_string(index) + "_";
+        appendE29LengthPrefixedField(output, prefix + "role", record.role);
+        appendE29LengthPrefixedField(output, prefix + "owner", record.owner);
+        output << prefix << "ordinal=" << record.ordinal << "\n";
+        appendE29LengthPrefixedField(
+            output, prefix + "canonical_path", record.canonicalPath);
+        output << prefix << "size=" << record.size << "\n";
+        appendE29LengthPrefixedField(output, prefix + "sha256", record.sha256);
+    }
+    manifestText = output.str();
+    if (manifestText.empty())
+    {
+        failureReason = "E29_INPUT_MANIFEST_SERIALIZATION_EMPTY";
+        return false;
+    }
+    return true;
+}
+
+bool buildE29CheckpointProvenance(
+    int                            argc,
+    char**                         argv,
+    ZhangE29CheckpointProvenance& provenance,
+    string&                        failureReason
+)
+{
+    provenance = {};
+    if (!resolveE29ExecutablePath(
+            argc > 0 ? argv[0] : nullptr,
+            provenance.binaryPath,
+            failureReason)
+        || !buildE29CanonicalConfigText(
+            argc, argv, provenance.configText, failureReason)
+        || !buildE29InputManifestText(
+            provenance.inputManifestText, failureReason))
+    {
+        return false;
+    }
+    provenance.experimentMode = ZHANG_E29_CHECKPOINT_EXPERIMENT_MODE;
+    return true;
+}
+
+bool validateE29AppendOnlyProductFile(
+    const string& filename,
+    const string& expectedHeader,
+    GTime         completedTsync,
+    GTime         resumeTsync,
+    string&       failureReason
+)
+{
+    if (filename.empty())
+    {
+        return true;
+    }
+    std::error_code error;
+    const std::filesystem::path path(filename);
+    if (!std::filesystem::exists(path, error))
+    {
+        if (error)
+        {
+            failureReason = "E29_RESTORE_OUTPUT_STAT_FAILED:" + filename;
+            return false;
+        }
+        return true;
+    }
+    if (!std::filesystem::is_regular_file(path, error) || error)
+    {
+        failureReason = "E29_RESTORE_OUTPUT_NOT_REGULAR_FILE:" + filename;
+        return false;
+    }
+    if (std::filesystem::file_size(path, error) == 0 && !error)
+    {
+        return true;
+    }
+    if (error)
+    {
+        failureReason = "E29_RESTORE_OUTPUT_SIZE_FAILED:" + filename;
+        return false;
+    }
+
+    std::ifstream input(path);
+    string line;
+    if (!input || !std::getline(input, line) || line != expectedHeader)
+    {
+        failureReason = "E29_RESTORE_OUTPUT_HEADER_MISMATCH:" + filename;
+        return false;
+    }
+
+    bool sawData = false;
+    long double previousEpoch = -std::numeric_limits<long double>::infinity();
+    long double maximumEpoch = -std::numeric_limits<long double>::infinity();
+    std::size_t lineNumber = 1;
+    while (std::getline(input, line))
+    {
+        lineNumber++;
+        if (line.empty())
+        {
+            failureReason = "E29_RESTORE_OUTPUT_EMPTY_DATA_ROW:" + filename +
+                            ":" + std::to_string(lineNumber);
+            return false;
+        }
+        const auto comma = line.find(',');
+        if (comma == string::npos || comma == 0)
+        {
+            failureReason = "E29_RESTORE_OUTPUT_EPOCH_FIELD_MISSING:" + filename +
+                            ":" + std::to_string(lineNumber);
+            return false;
+        }
+        const string epochField = line.substr(0, comma);
+        std::size_t consumed = 0;
+        long double dataEpoch = 0;
+        try
+        {
+            dataEpoch = std::stold(epochField, &consumed);
+        }
+        catch (...)
+        {
+            failureReason = "E29_RESTORE_OUTPUT_EPOCH_PARSE_FAILED:" + filename +
+                            ":" + std::to_string(lineNumber);
+            return false;
+        }
+        if (consumed != epochField.size() || !std::isfinite(dataEpoch))
+        {
+            failureReason = "E29_RESTORE_OUTPUT_EPOCH_INVALID:" + filename +
+                            ":" + std::to_string(lineNumber);
+            return false;
+        }
+        if (dataEpoch + 1e-9L < previousEpoch)
+        {
+            failureReason = "E29_RESTORE_OUTPUT_EPOCH_ORDER_INVALID:" + filename +
+                            ":" + std::to_string(lineNumber);
+            return false;
+        }
+        sawData = true;
+        previousEpoch = dataEpoch;
+        maximumEpoch = std::max(maximumEpoch, dataEpoch);
+    }
+    if (!input.eof())
+    {
+        failureReason = "E29_RESTORE_OUTPUT_READ_FAILED:" + filename;
+        return false;
+    }
+    if (!sawData)
+    {
+        return true;
+    }
+    if (maximumEpoch > completedTsync.bigTime + 1e-9L
+        || maximumEpoch >= resumeTsync.bigTime - 1e-9L)
+    {
+        failureReason = "E29_RESTORE_OUTPUT_CONTAINS_FUTURE_EPOCH:" + filename;
+        return false;
+    }
+    return true;
+}
+
+bool validateE29RestoreProductOutputs(
+    GTime completedTsync,
+    GTime resumeTsync,
+    string& failureReason
+)
+{
+    static const string productHeader =
+        "gpst_seconds,solution,satellite,observable,clock_m,clock_sigma_m,"
+        "phase_m,phase_sigma_m,clock_phase_covariance_m2,correction_m,"
+        "correction_sigma_m,discontinuity_counter,integer_shift_cycles,"
+        "fractional_shift_cycles,datum_version,valid_from_gpst_seconds,"
+        "product_iod,reset_reason,persistent_relation_known,"
+        "current_alignment_state,integer_structure_valid,"
+        "integer_datum_continuous,integer_precision_valid,integer_valid,"
+        "integer_component_id,integer_datum_id,"
+        "solution_interval_start_gpst_seconds,"
+        "solution_interval_end_gpst_seconds,numeric_valid,branch_valid,"
+        "continuity_valid,ppp_usable,pppar_usable,invalid_reason";
+    static const string covarianceHeader =
+        "gpst_seconds,solution,row_satellite,row_parameter,row_observable,"
+        "column_satellite,column_parameter,column_observable,covariance_m2";
+    return validateE29AppendOnlyProductFile(
+               acsConfig.zhangPppAr.product_filename,
+               productHeader, completedTsync, resumeTsync, failureReason)
+        && validateE29AppendOnlyProductFile(
+               acsConfig.zhangPppAr.product_covariance_filename,
+               covarianceHeader, completedTsync, resumeTsync, failureReason);
+}
+
+bool canonicaliseE29CaptureEpochs(
+    const std::vector<string>& configured,
+    std::set<string>&          canonical,
+    string&                    failureReason
+)
+{
+    canonical.clear();
+    for (const string& epochText : configured)
+    {
+        try
+        {
+            const auto parsed = boost::posix_time::time_from_string(epochText);
+            const GTime epochTime(parsed);
+            if (epochTime.to_string(0) != epochText)
+            {
+                failureReason = "E29_CAPTURE_EPOCH_NOT_CANONICAL:" + epochText;
+                return false;
+            }
+            const long double interval = acsConfig.epoch_interval;
+            const long double quotient = epochTime.bigTime / interval;
+            if (std::abs(quotient - std::round(quotient)) > 1e-9L)
+            {
+                failureReason = "E29_CAPTURE_EPOCH_NOT_INTERVAL_ALIGNED:" + epochText;
+                return false;
+            }
+        }
+        catch (const std::exception& exception)
+        {
+            failureReason = "E29_CAPTURE_EPOCH_PARSE_FAILED:" + epochText +
+                            ":" + exception.what();
+            return false;
+        }
+        if (!canonical.insert(epochText).second)
+        {
+            failureReason = "E29_CAPTURE_EPOCH_DUPLICATE:" + epochText;
+            return false;
+        }
+    }
+    return true;
+}
+
+string makeE29CheckpointId(const string& runtimeId, int completedEpoch, GTime completedTsync)
+{
+    string compactTime = completedTsync.to_ISOstring(0);
+    compactTime.erase(
+        std::remove_if(
+            compactTime.begin(), compactTime.end(),
+            [](char value)
+            {
+                return value == '-' || value == ':' || value == 'T' || value == ' ';
+            }),
+        compactTime.end());
+    const string runtimeHash = zhangCheckpointSha256(runtimeId);
+    return "E29-" + compactTime + "-e" + std::to_string(completedEpoch) +
+           "-r" + runtimeHash.substr(0, 12);
+}
+}  // namespace
 
 struct ConfiguredStreamState
 {
@@ -824,6 +1502,21 @@ int main(int argc, char** argv)
         pppNet.kfState.stateRejectCallbacks.push_back(relaxState);
         pppNet.kfState.stateRejectCallbacks.push_back(rejectAllMeasByState);
     }
+	if (acsConfig.zhangFullRank.enable || acsConfig.zhangPppAr.user_adapter)
+	{
+		std::string runtimeFailure;
+		if (!bindZhangCheckpointRuntimeId(
+				pppNet.kfState,
+				acsConfig.zhangPppAr.checkpoint_runtime_id,
+				&runtimeFailure))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "Unable to bind Zhang authoritative runtime: "
+				<< runtimeFailure;
+			TcpSocket::ioContext.stop();
+			return EXIT_FAILURE;
+		}
+	}
 
     Network ionNet;
     if (acsConfig.process_ionosphere)
@@ -900,6 +1593,180 @@ int main(int argc, char** argv)
         }
 
         acsConfig.start_epoch = tsync.to_posixTime();
+    }
+
+    const bool e29CheckpointMode = acsConfig.zhangPppAr.deterministic_checkpoint;
+    ZhangE29CheckpointProvenance e29StartupProvenance;
+    string e29StartupBinarySha256;
+    std::set<string> e29PendingCaptureEpochs;
+    string e29LastCheckpointId;
+    std::optional<GTime> e29FirstResumeTsync;
+    bool e29CheckpointFatal = false;
+    string e29CheckpointFatalReason;
+
+    const char* e29RestoreEnvironment = std::getenv("ZHANG_E29_RESTORE_BUNDLE");
+    const string e29RestoreDirectory =
+        e29RestoreEnvironment != nullptr && *e29RestoreEnvironment != '\0'
+            ? string(e29RestoreEnvironment)
+            : acsConfig.zhangPppAr.checkpoint_restore_path;
+    if (!e29CheckpointMode && !e29RestoreDirectory.empty())
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "ZHANG_E29_RESTORE_BUNDLE was requested while "
+               "deterministic_checkpoint is disabled";
+        TcpSocket::ioContext.stop();
+        return EXIT_FAILURE;
+    }
+    if (e29CheckpointMode)
+    {
+        if (acsConfig.start_epoch.is_not_a_date_time())
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "E29 deterministic checkpointing requires an explicit start_epoch";
+            TcpSocket::ioContext.stop();
+            return EXIT_FAILURE;
+        }
+
+        string checkpointFailure;
+        if (!canonicaliseE29CaptureEpochs(
+                acsConfig.zhangPppAr.checkpoint_capture_epochs,
+                e29PendingCaptureEpochs,
+                checkpointFailure)
+            || !buildE29CheckpointProvenance(
+                argc, argv, e29StartupProvenance, checkpointFailure))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "E29 checkpoint provenance initialization failed: "
+                << checkpointFailure;
+            TcpSocket::ioContext.stop();
+            return EXIT_FAILURE;
+        }
+        e29StartupBinarySha256 = zhangCheckpointFileSha256(
+            e29StartupProvenance.binaryPath, &checkpointFailure);
+        if (e29StartupBinarySha256.empty())
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "E29 executable provenance hash failed: "
+                << checkpointFailure;
+            TcpSocket::ioContext.stop();
+            return EXIT_FAILURE;
+        }
+
+        if (!e29RestoreDirectory.empty())
+        {
+            ZhangCheckpointBundle checkpointBundle;
+            auto readResult = readZhangE29CheckpointDirectory(
+                e29RestoreDirectory,
+                e29StartupProvenance,
+                acsConfig.zhangPppAr.checkpoint_runtime_id,
+                checkpointBundle);
+            if (!readResult.valid)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "E29 checkpoint read failed: " << readResult.failureReason;
+                TcpSocket::ioContext.stop();
+                return EXIT_FAILURE;
+            }
+
+            ZhangE29CheckpointRestorePlan restorePlan;
+            auto preflightResult = preflightZhangE29CheckpointBundle(
+                checkpointBundle,
+                e29StartupProvenance,
+                pppNet.kfState,
+                receiverMap,
+                nav,
+                streamParserMultimap,
+                streamDOAMap,
+                acsConfig.epoch_interval,
+                restorePlan);
+            if (!preflightResult.valid)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "E29 checkpoint preflight failed: "
+                    << preflightResult.failureReason;
+                TcpSocket::ioContext.stop();
+                return EXIT_FAILURE;
+            }
+
+            const auto& controller = restorePlan.controller.state;
+            const GTime completedTsync =
+                restoreZhangCheckpointTime(controller.completedTsync);
+            const GTime resumeTsync =
+                restoreZhangCheckpointTime(controller.nextTsync);
+            if (controller.completedEpoch < 1
+                || controller.nextEpoch != controller.completedEpoch + 1
+                || std::abs(
+                    (resumeTsync - completedTsync).to_double()
+                    - acsConfig.epoch_interval) > 1e-9)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "E29 checkpoint controller does not describe an exact next epoch";
+                TcpSocket::ioContext.stop();
+                return EXIT_FAILURE;
+            }
+            if (!validateE29RestoreProductOutputs(
+                    completedTsync, resumeTsync, checkpointFailure))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "E29 checkpoint output safety gate failed: "
+                    << checkpointFailure;
+                TcpSocket::ioContext.stop();
+                return EXIT_FAILURE;
+            }
+
+            // reloadInputFiles() has loaded the full immutable precise inputs.
+            // Reproduce the continuous run's configured culling boundary before
+            // the satellite runtime section is imported.  Mongo state is not a
+            // checkpointed precise input and is deliberately not touched here.
+            if (acsConfig.delete_old_ephemerides)
+            {
+                cullOldEphs(completedTsync);
+                cullOldSSRs(completedTsync);
+                cullOldBiases(completedTsync);
+            }
+
+            ZhangPeaControllerCheckpointState restoredController;
+            auto commitResult = commitZhangE29CheckpointBundle(
+                checkpointBundle,
+                e29StartupProvenance,
+                pppNet.kfState,
+                receiverMap,
+                nav,
+                streamParserMultimap,
+                streamDOAMap,
+                restorePlan,
+                restoredController);
+            if (!commitResult.valid || commitResult.liveStateMayBePartial)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "E29 checkpoint commit failed; process will not continue: "
+                    << commitResult.failureReason
+                    << ", live_state_may_be_partial="
+                    << commitResult.liveStateMayBePartial;
+                TcpSocket::ioContext.stop();
+                return EXIT_FAILURE;
+            }
+
+            epoch = restoredController.completedEpoch;
+            tsync = restoreZhangCheckpointTime(restoredController.completedTsync);
+            e29FirstResumeTsync =
+                restoreZhangCheckpointTime(restoredController.nextTsync);
+            e29LastCheckpointId = commitResult.checkpointId;
+
+            // Discard capture requests already covered by the restored state,
+            // but retain every later request.  An isolated restart output tree
+            // can then republish the later immutable bundles.  Their section
+            // hashes provide a direct continuous-versus-restart equivalence
+            // audit instead of relying only on final product CSVs.
+            e29PendingCaptureEpochs.erase(
+                e29PendingCaptureEpochs.begin(),
+                e29PendingCaptureEpochs.upper_bound(completedTsync.to_string(0)));
+
+            BOOST_LOG_TRIVIAL(info)
+                << "Restored E29 checkpoint " << commitResult.checkpointId
+                << " at completed epoch " << epoch << " (" << tsync
+                << "); first resume epoch is " << *e29FirstResumeTsync;
+        }
     }
 
     createTracefiles(receiverMap, pppNet, ionNet);
@@ -1028,6 +1895,21 @@ int main(int argc, char** argv)
                 // }
             }
 
+            if (e29FirstResumeTsync)
+            {
+                if (tsync != *e29FirstResumeTsync)
+                {
+                    e29CheckpointFatal = true;
+                    e29CheckpointFatalReason =
+                        "E29_FIRST_RESUME_EPOCH_MISMATCH";
+                    break;
+                }
+                BOOST_LOG_TRIVIAL(info)
+                    << "E29 checkpoint resume boundary verified at epoch "
+                    << epoch << " (" << tsync << ")";
+                e29FirstResumeTsync.reset();
+            }
+
             for (auto& [id, rec] : receiverMap)
             {
                 rec.ready = false;
@@ -1100,6 +1982,19 @@ int main(int argc, char** argv)
 
             // load any changes from the config
             bool newConfig = acsConfig.parse();
+
+            // Infra-0 is a frozen-provenance experiment.  ACSConfig::parse()
+            // has already applied a detected file change by the time it
+            // returns true, so continuing would mix two effective
+            // configurations in one supposedly deterministic seed/replay.
+            if (e29CheckpointMode && newConfig)
+            {
+                e29CheckpointFatal = true;
+                e29CheckpointFatalReason =
+                    "E29_RUNTIME_CONFIGURATION_CHANGED";
+                repeat = false;
+                break;
+            }
 
             // make any changes to streams.
             ConfiguredStreamState configuredStreamState;
@@ -1559,6 +2454,11 @@ int main(int argc, char** argv)
             }
         }
 
+        if (e29CheckpointFatal)
+        {
+            break;
+        }
+
         BOOST_LOG_TRIVIAL(debug) << "Epoch data handling done with " << attempt << " attempt(s)\n";
 
         if (complete)
@@ -1769,16 +2669,137 @@ int main(int argc, char** argv)
             BOOST_LOG_TRIVIAL(debug) << missingDiagnostic.str();
         }
 
+        bool processedEpoch = false;
         if (acsConfig.require_obs == false || dataAvailableMap.empty() == false)
         {
             mainOncePerEpoch(pppNet, ionNet, receiverMap, tsync);
+            processedEpoch = true;
 
             if (acsConfig.require_obs && dataAvailableMap.empty() == false)
             {
                 hasProcessedRealtimeEpoch = true;
             }
         }
+
+        if (e29CheckpointMode && processedEpoch)
+        {
+            const string completedEpochText = tsync.to_string(0);
+            auto capture = e29PendingCaptureEpochs.find(completedEpochText);
+            if (capture != e29PendingCaptureEpochs.end())
+            {
+                string checkpointFailure;
+                ZhangE29CheckpointProvenance currentProvenance;
+                if (!buildE29CheckpointProvenance(
+                        argc, argv, currentProvenance, checkpointFailure))
+                {
+                    e29CheckpointFatal = true;
+                    e29CheckpointFatalReason =
+                        "E29_CAPTURE_PROVENANCE_REBUILD_FAILED:" +
+                        checkpointFailure;
+                }
+                else if (
+                    currentProvenance.experimentMode !=
+                        e29StartupProvenance.experimentMode
+                    || currentProvenance.binaryPath !=
+                        e29StartupProvenance.binaryPath
+                    || currentProvenance.configText !=
+                        e29StartupProvenance.configText
+                    || currentProvenance.inputManifestText !=
+                        e29StartupProvenance.inputManifestText)
+                {
+                    e29CheckpointFatal = true;
+                    e29CheckpointFatalReason =
+                        "E29_CAPTURE_PROVENANCE_CHANGED_SINCE_STARTUP";
+                }
+                else
+                {
+                    string binaryHashFailure;
+                    const string currentBinarySha256 =
+                        zhangCheckpointFileSha256(
+                            currentProvenance.binaryPath,
+                            &binaryHashFailure);
+                    if (currentBinarySha256.empty()
+                        || currentBinarySha256 != e29StartupBinarySha256)
+                    {
+                        e29CheckpointFatal = true;
+                        e29CheckpointFatalReason =
+                            "E29_CAPTURE_BINARY_CHANGED_SINCE_STARTUP:" +
+                            binaryHashFailure;
+                    }
+                }
+                if (!e29CheckpointFatal)
+                {
+                    ZhangPeaControllerCheckpointState controller;
+                    auto controllerResult =
+                        makeZhangPeaPostEpochCheckpointState(
+                            epoch,
+                            captureZhangCheckpointTime(tsync),
+                            acsConfig.epoch_interval,
+                            controller);
+                    if (!controllerResult.valid)
+                    {
+                        e29CheckpointFatal = true;
+                        e29CheckpointFatalReason =
+                            "E29_CAPTURE_CONTROLLER_FAILED:" +
+                            controllerResult.failureReason;
+                    }
+                    else
+                    {
+                        ZhangE29CheckpointIdentity identity;
+                        identity.runtimeId =
+                            acsConfig.zhangPppAr.checkpoint_runtime_id;
+                        identity.checkpointId = makeE29CheckpointId(
+                            identity.runtimeId, epoch, tsync);
+                        identity.parentCheckpointId = e29LastCheckpointId;
+                        const auto target =
+                            std::filesystem::path(
+                                acsConfig.zhangPppAr
+                                    .checkpoint_output_directory)
+                            / identity.checkpointId;
+                        auto checkpointResult =
+                            captureAndWriteZhangE29Checkpoint(
+                                target.string(),
+                                pppNet.kfState,
+                                receiverMap,
+                                nav,
+                                streamParserMultimap,
+                                streamDOAMap,
+                                controller,
+                                identity,
+                                currentProvenance);
+                        if (!checkpointResult.valid)
+                        {
+                            e29CheckpointFatal = true;
+                            e29CheckpointFatalReason =
+                                "E29_CAPTURE_WRITE_FAILED:" +
+                                checkpointResult.failureReason;
+                        }
+                        else
+                        {
+                            e29LastCheckpointId =
+                                checkpointResult.checkpointId;
+                            e29PendingCaptureEpochs.erase(capture);
+                            BOOST_LOG_TRIVIAL(info)
+                                << "Published E29 checkpoint "
+                                << checkpointResult.checkpointId
+                                << " at " << completedEpochText
+                                << ", bytes="
+                                << checkpointResult.payloadBytes
+                                << ", sha256="
+                                << checkpointResult.payloadSha256
+                                << ", sections="
+                                << checkpointResult.sectionCount;
+                        }
+                    }
+                }
+            }
+        }
         lastEpochStopTime = timeGet();
+
+        if (e29CheckpointFatal)
+        {
+            break;
+        }
 
         if (atLastEpoch(true))
         {
@@ -1786,6 +2807,22 @@ int main(int argc, char** argv)
         }
 
         nextEpoch = true;
+    }
+
+    if (e29CheckpointMode && !e29PendingCaptureEpochs.empty()
+        && !e29CheckpointFatal)
+    {
+        e29CheckpointFatal = true;
+        e29CheckpointFatalReason =
+            "E29_REQUESTED_CAPTURE_EPOCHS_NOT_REACHED:" +
+            std::to_string(e29PendingCaptureEpochs.size());
+    }
+
+    if (e29CheckpointFatal)
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "E29 deterministic checkpoint run failed: "
+            << e29CheckpointFatalReason;
     }
 
     // Disconnect the downloading clients and stop the io_service for clean shutdown.
@@ -1808,7 +2845,10 @@ int main(int argc, char** argv)
     BOOST_LOG_TRIVIAL(info) << "\n"
                             << "Finalising streams and post processing...";
 
-    mainPostProcessing(pppNet, ionNet, receiverMap);
+    if (!e29CheckpointFatal)
+    {
+        mainPostProcessing(pppNet, ionNet, receiverMap);
+    }
 
     GTime peaStopTime = timeGet();
     BOOST_LOG_TRIVIAL(info) << "\n"
@@ -1820,5 +2860,5 @@ int main(int argc, char** argv)
 
     BOOST_LOG_TRIVIAL(info) << "PEA finished";
 
-    return EXIT_SUCCESS;
+    return e29CheckpointFatal ? EXIT_FAILURE : EXIT_SUCCESS;
 }

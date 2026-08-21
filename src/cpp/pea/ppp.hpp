@@ -163,6 +163,22 @@ bool satQuat(SatPos& satPos, vector<E_Source> attitudeTypes, Quaterniond& quat);
 
 void fixAndHoldAmbiguities(Trace& trace, KFState& kfState);
 
+void captureZhangPppArFloatPrior(const KFState& kfState);
+
+/** Chain a read-only transition-factor tap used to form the R4 prior with
+ * IONO_STEC process covariance removed. */
+void configureZhangL1MeasurementReplayTransitionCapture(KFState& kfState);
+
+/** Build disposable R4 posteriors from the identical predicted state and the
+ * final post-QC measurement weights.  The branches are consumed by the
+ * ambiguity resolver in the same epoch and never feed back to the filter. */
+void captureZhangL1MeasurementReplayPosteriors(
+    Trace&          trace,
+    const KFState&  predictedState,
+    const KFState&  authoritativePosterior,
+    KFMeas&         finalMeasurements
+);
+
 bool queryBiasUC(
     Trace&     trace,
     GTime      time,
@@ -180,6 +196,8 @@ void pseudoRecDcb(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryLi
 void ambgPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList);
 
 void phasePseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList);
+
+void phaseClockOsbPseudoObs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList);
 
 void ionoPseudoObs(
     Trace&           trace,

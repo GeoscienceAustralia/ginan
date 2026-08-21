@@ -1,0 +1,34 @@
+# E18-B five-minute read-only capture smoke.  No integer constraint is fed
+# back; this only records the factors accepted by the authoritative /PPP filter.
+processing_options:
+  epoch_control:
+    end_epoch: 2019-07-18 00:08:00
+    epoch_interval: 60
+    # A 74-station epoch takes longer than 60 s on the current machine.  This
+    # is an offline replay, so wall-clock lateness must not drop data epochs.
+    wait_next_epoch: 3600
+  gnss_general:
+    zhang_full_rank:
+      # Avoid the per-epoch dense pure-observation rank/SVD audit; the
+      # deterministic rank gate is already covered by unit tests.
+      output_diagnostics: false
+    zhang_pppar:
+      output_diagnostics: true
+      fixed_lag_factor_capture_shadow: true
+      fixed_lag_factor_capture_max_events: 2000
+      integer_strategy: PRODUCT_TARGET_WL_L1
+      component_bridge_targeting: true
+      current_state_relinking: true
+      max_topology_targets: 3
+      # Smoke-only acceleration: production E18 remains at five independent
+      # measurement confirmations in the three-hour configuration.
+      promotion_confirmation_epochs: 2
+      multi_epoch_relink_shadow: false
+      whitened_wl_fixed_lag_shadow: false
+      product_filename: ./outputs/zhang_global_2019199_e18_factor_capture_smoke/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e18_factor_capture_smoke/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e18_factor_capture_smoke
+  metadata:
+    config_description: zhang_global_2019199_e18_factor_capture_smoke

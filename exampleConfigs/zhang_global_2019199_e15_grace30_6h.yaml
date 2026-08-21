@@ -1,0 +1,37 @@
+# E15-C1 ablation: retain state edges for 30 epochs before replacement.
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 60
+
+  gnss_general:
+    zhang_full_rank:
+      output_diagnostics: false
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 30
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      output_diagnostics: true
+      integer_strategy: PRODUCT_TARGET_WL_L1
+      component_bridge_targeting: true
+      current_state_relinking: true
+      max_topology_targets: 3
+      deterministic_relink_variance_tolerance_cycles2: 1.0e-10
+      promotion_confirmation_epochs: 5
+      promotion_confirmation_max_gap_seconds: 120
+      conflict_quarantine: true
+      transactional_integer_fixing: true
+      held_constraint_nis_alpha: 1.0e-6
+      product_target_named_rounding: true
+      maximum_pppar_correction_sigma_m: 0.5
+      maximum_product_residual_step_m: 0.5
+      product_filename: ./outputs/zhang_global_2019199_e15_grace30_6h/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e15_grace30_6h/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e15_grace30_6h
+  metadata:
+    config_description: zhang_global_2019199_e15_grace30_6h

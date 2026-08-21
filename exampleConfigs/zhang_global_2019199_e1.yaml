@@ -1,0 +1,19 @@
+# E1: keep the T1 graph policy but resolve L1C and L2W in independent LAMBDA
+# blocks.  No arbitrary decorrelation row may mix the two signals.
+processing_options:
+  gnss_general:
+    zhang_full_rank:
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 2
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      integer_strategy: INDEPENDENT_SIGNAL
+      product_filename: ./outputs/zhang_global_2019199_e1/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e1/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e1
+  metadata:
+    config_description: zhang_global_2019199_e1

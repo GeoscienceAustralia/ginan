@@ -1,0 +1,40 @@
+{
+  "label": "MRO1_full_ar",
+  "category": "australia_pacific",
+  "trace": "/home/rx/GINAN/inputData/outputs/zhang_e9_MRO1_full_ar/Network-zhang_e9_MRO1_full_ar-201919900.TRACE",
+  "epochs": 361,
+  "ar_attempt_epochs": 226,
+  "newly_fixed_total": 21,
+  "time_to_first_fix_s": 1560.0,
+  "ambiguity_fix_rate": 0.5,
+  "maximum_held_integer_rank": 3,
+  "fixed_hold_rate_after_ttff": 0.4469026548672566,
+  "raw_ambiguity_integer_like_rate": 0.0,
+  "wrong_fix_position_proxy_count": 0,
+  "wrong_fix_position_proxy_denominator": 7,
+  "wrong_fix_position_proxy_rate": 0.0,
+  "wrong_fix_modal_proxy_count": 0,
+  "wrong_fix_modal_proxy_denominator": 0,
+  "wrong_fix_modal_proxy_rate": null,
+  "datum_change_count": 0,
+  "median_recovery_after_datum_change_s": null,
+  "reference_change_count": 4,
+  "enu_all": {
+    "east_rms_m": 15301.80844846549,
+    "north_rms_m": 107136.3936095392,
+    "up_rms_m": 75543.44977402494,
+    "horizontal_p95_m": 134634.25719199405,
+    "up_abs_p95_m": 94331.3
+  },
+  "enu_after_first_fix": {
+    "east_rms_m": 15884.514977027344,
+    "north_rms_m": 111216.24314510536,
+    "up_rms_m": 78420.21179754549,
+    "horizontal_p95_m": 134634.25719199405,
+    "up_abs_p95_m": 94331.3
+  },
+  "convergence_enu_10cm_20cm_s": 6840.0,
+  "convergence_enu_5cm_10cm_s": null,
+  "median_float_fractional_cycle": 0.243685,
+  "p90_float_fractional_cycle": 0.444081
+}

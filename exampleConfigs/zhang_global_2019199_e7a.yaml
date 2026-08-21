@@ -1,0 +1,16 @@
+# E7-A: prioritise low-dimensional dual-frequency bridges between persistent
+# satellite components; keep current-state relinking disabled.
+processing_options:
+  gnss_general:
+    zhang_pppar:
+      integer_strategy: PRODUCT_TARGET_WL_L1
+      component_bridge_targeting: true
+      current_state_relinking: false
+      max_topology_targets: 3
+      product_filename: ./outputs/zhang_global_2019199_e7a/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e7a/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e7a
+  metadata:
+    config_description: zhang_global_2019199_e7a_component_bridge

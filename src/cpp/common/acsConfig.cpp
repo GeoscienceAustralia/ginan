@@ -1,6 +1,7 @@
 // #pragma GCC optimize ("O0")
 
 #include "common/acsConfig.hpp"
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
@@ -25,7 +26,9 @@
 #include "common/compare.hpp"
 #include "common/constants.hpp"
 #include "common/debug.hpp"
+#include "common/phaseClockOsb.hpp"
 #include "common/sanityCheckers/ConfigSanityManager.hpp"
+#include "common/zhangFullRank.hpp"
 #include "configurator/htmlFooterTemplate.hpp"
 #include "configurator/htmlHeaderTemplate.hpp"
 #include "pea/inputsOutputs.hpp"
@@ -4575,6 +4578,9 @@ bool ACSConfig::parse(
     obs_rtcm_inputs.clear();
     pseudo_sp3_inputs.clear();
     pseudo_snx_inputs.clear();
+    phaseClockOsb = {};
+    zhangFullRank = {};
+    zhangPppAr    = {};
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
@@ -6893,6 +6899,891 @@ bool ACSConfig::parse(
                     "Maximum satellite clock offset (meters) used in broadcast alignment"
                 );
 
+                {
+                    auto phase_clock_osb = stringsToYamlObject(
+                        general,
+                        {"2@ phase_clock_osb"},
+                        "Datum-consistent staged phase-clock and observable-specific bias estimation"
+                    );
+
+                    tryGetFromYaml(
+                        phaseClockOsb.enable,
+                        phase_clock_osb,
+                        {"0@ enable"},
+                        "Enable staged phase-clock/OSB datum control"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.enforce_code_datum,
+                        phase_clock_osb,
+                        {"@ enforce_code_datum"},
+                        "Constrain the baseline code OSB ionosphere-free combination to zero"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.constrain_reference_receiver_phase,
+                        phase_clock_osb,
+                        {"@ constrain_reference_receiver_phase"},
+                        "Constrain the configured reference receiver phase OSBs to zero"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.baseline_only_ambiguity_resolution,
+                        phase_clock_osb,
+                        {"@ baseline_only_ambiguity_resolution"},
+                        "Use only baseline-frequency ambiguities to generate ambiguity-fixed clocks"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.output_diagnostics,
+                        phase_clock_osb,
+                        {"@ output_diagnostics"},
+                        "Output code datum, clock-bias, ambiguity and frequency closure diagnostics"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.code_datum_sigma,
+                        phase_clock_osb,
+                        {"@ code_datum_sigma"},
+                        "Standard deviation in metres for baseline code OSB datum constraints"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.phase_datum_sigma,
+                        phase_clock_osb,
+                        {"@ phase_datum_sigma"},
+                        "Standard deviation in metres for reference receiver phase OSB constraints"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.datum_identifier,
+                        phase_clock_osb,
+                        {"@ datum_identifier"},
+                        "Identifier written with the clock/code/phase bias datum"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.solution_id,
+                        phase_clock_osb,
+                        {"@ solution_id"},
+                        "Identifier for the generated phase-clock/OSB solution"
+                    );
+                    tryGetFromYaml(
+                        phaseClockOsb.discontinuity_counter,
+                        phase_clock_osb,
+                        {"@ discontinuity_counter"},
+                        "Initial phase-bias discontinuity counter for offline products"
+                    );
+
+                    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+                    {
+                        auto sys_options = stringsToYamlObject(
+                            phase_clock_osb,
+                            {"1@ sys_options", enum_to_string(sys)},
+                            (string) "Phase-clock/OSB datum options for " + enum_to_string(sys)
+                        );
+
+                        auto& opts = phaseClockOsb.sysOpts[sys];
+                        tryGetEnumVec(
+                            opts.baseline_code_observables,
+                            sys_options,
+                            {"@ baseline_code_observables"},
+                            "Two code observables defining the ionosphere-free satellite-clock datum"
+                        );
+                        tryGetEnumVec(
+                            opts.baseline_phase_observables,
+                            sys_options,
+                            {"@ baseline_phase_observables"},
+                            "Two phase observables used for baseline ambiguity resolution"
+                        );
+                        tryGetFromYaml(
+                            opts.phase_reference_receiver,
+                            sys_options,
+                            {"@ phase_reference_receiver"},
+                            "Receiver whose baseline phase OSBs define the phase-bias S-basis"
+                        );
+                    }
+                }
+
+                {
+                    auto zhang_full_rank = stringsToYamlObject(
+                        general,
+                        {"2@ zhang_full_rank"},
+                        "Zhang code-plus-phase ionosphere-float full-rank network model"
+                    );
+
+                    tryGetFromYaml(
+                        zhangFullRank.enable,
+                        zhang_full_rank,
+                        {"0@ enable"},
+                        "Enable the Zhang full-rank UDUC network S-basis"
+                    );
+                    tryGetFromYaml(
+                        zhangFullRank.output_diagnostics,
+                        zhang_full_rank,
+                        {"@ output_diagnostics"},
+                        "Output the configured Zhang S-basis and retained-state diagnostics"
+                    );
+
+                    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+                    {
+                        auto sys_options = stringsToYamlObject(
+                            zhang_full_rank,
+                            {"1@ sys_options", enum_to_string(sys)},
+                            (string) "Zhang full-rank S-basis options for " + enum_to_string(sys)
+                        );
+
+                        auto& opts = zhangFullRank.sysOpts[sys];
+                        tryGetEnumVec(
+                            opts.baseline_observables,
+                            sys_options,
+                            {"@ baseline_observables"},
+                            "Two code/phase observables defining the baseline-frequency S-bases"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_receiver,
+                            sys_options,
+                            {"@ reference_receiver"},
+                            "Receiver defining the clock and receiver phase-bias S-bases"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_satellite,
+                            sys_options,
+                            {"@ reference_satellite"},
+                            "Satellite defining the ambiguity reference column"
+                        );
+                        tryGetFromYaml(
+                            opts.use_spanning_tree,
+                            sys_options,
+                            {"@ use_spanning_tree"},
+                            "Use a stable general spanning-tree ambiguity S-basis for the sparse "
+                            "baseline-observable graph"
+                        );
+                        tryGetFromYaml(
+                            opts.auto_reference_switch,
+                            sys_options,
+                            {"@ auto_reference_switch"},
+                            "Switch the Zhang receiver/satellite S-bases when the active references "
+                            "are unavailable"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_outage_epochs,
+                            sys_options,
+                            {"@ reference_outage_epochs"},
+                            "Number of consecutive unavailable epochs before changing a Zhang "
+                            "reference"
+                        );
+                        tryGetFromYaml(
+                            opts.state_edge_grace_epochs,
+                            sys_options,
+                            {"@ state_edge_grace_epochs"},
+                            "Epochs that an unbroken historical graph edge may remain in the "
+                            "datum-state graph without a current observation"
+                        );
+                        tryGetFromYaml(
+                            opts.prefer_historical_edges,
+                            sys_options,
+                            {"@ prefer_historical_edges"},
+                            "Prefer edges with an existing ambiguity/state representation and "
+                            "longer continuous arcs before root incidence or instantaneous quality"
+                        );
+                        tryGetFromYaml(
+                            opts.core_skeleton,
+                            sys_options,
+                            {"@ core_skeleton"},
+                            "Retain the existing datum skeleton and exclude detached observations "
+                            "instead of reinitialising on an unrepresentable replacement edge"
+                        );
+                        tryGetFromYaml(
+                            opts.product_core_min_satellite_support,
+                            sys_options,
+                            {"@ product_core_min_satellite_support"},
+                            "Build the independent Hou product tree on an automatically selected "
+                            "connected receiver core with this minimum per-satellite receiver support; "
+                            "zero retains the full network graph"
+                        );
+                        tryGetFromYaml(
+                            opts.product_integer_support_core,
+                            sys_options,
+                            {"@ product_integer_support_core"},
+                            "Restrict Product-IAR evidence to the independently quality-audited "
+                            "integer-support core; missing residual/arc-quality evidence is rejected "
+                            "without removing observations from FLOAT"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_receiver_candidates,
+                            sys_options,
+                            {"@ reference_receiver_candidates"},
+                            "Preferred receiver S-bases in descending priority"
+                        );
+                        tryGetFromYaml(
+                            opts.reference_satellite_candidates,
+                            sys_options,
+                            {"@ reference_satellite_candidates"},
+                            "Preferred satellite S-bases in descending priority"
+                        );
+                    }
+                }
+
+                {
+                    auto zhang_pppar = stringsToYamlObject(
+                        general,
+                        {"2@ zhang_pppar"},
+                        "Internal Zhang-product bridge for independent held-out PPP-AR validation"
+                    );
+
+                    tryGetFromYaml(
+                        zhangPppAr.output_products,
+                        zhang_pppar,
+                        {"0@ output_products"},
+                        "Write internal float/fixed Zhang clock-phase products"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_adapter,
+                        zhang_pppar,
+                        {"0@ user_adapter"},
+                        "Read internal Zhang products in an independent PPP user process"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_accept_experimental_product_for_ar,
+                        zhang_pppar,
+                        {"0@ user_accept_experimental_product_for_ar"},
+						"Deprecated compatibility key; numerically usable but uncertified products remain FLOAT_ONLY"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.output_diagnostics,
+                        zhang_pppar,
+                        {"@ output_diagnostics"},
+                        "Output held-out user ambiguity and continuity diagnostics"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_filename,
+                        zhang_pppar,
+                        {"@ product_filename"},
+                        "Internal product CSV filename shared by the network writer and user reader"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_covariance_filename,
+                        zhang_pppar,
+                        {"@ product_covariance_filename"},
+                        "Optional upper-triangular covariance CSV for the complete clock/phase product vector"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_use_full_product_covariance,
+                        zhang_pppar,
+                        {"@ user_use_full_product_covariance"},
+                        "Factor and apply the complete correlated clock/phase product covariance in a user process"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_phase_product_temporal_sigma_m,
+                        zhang_pppar,
+                        {"@ user_phase_product_temporal_sigma_m"},
+                        "Independent per-signal phase-product temporal model sigma added outside the same-epoch formal covariance"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_solution,
+                        zhang_pppar,
+                        {"@ product_solution"},
+                        "Product solution read by the user adapter: FLOAT, NETWORK_WL, PRODUCT_FIXED, or legacy WL/FIXED"
+                    );
+					tryGetFromYaml(
+						zhangPppAr.product_mode,
+						zhang_pppar,
+						{"@ product_mode"},
+						"Internal product coordinate: SATELLITE_TARGET_DATUM or HOU_OSB_LIKE"
+					);
+					tryGetFromYaml(
+						zhangPppAr.hou_product_coordinate,
+						zhang_pppar,
+						{"@ hou_product_coordinate"},
+						"Hou phase-product coordinate: PRODUCT_TREE, PERSISTENT_DYNAMIC, or HYBRID_STABLE"
+					);
+					tryGetFromYaml(
+						zhangPppAr.besd_capture_policy,
+						zhang_pppar,
+						{"@ besd_capture_policy"},
+						"BESD capture policy: OFF, ALL, or TARGETED_PRODUCT_TRANSITIONS"
+					);
+					tryGetFromYaml(
+						zhangPppAr.temporal_product_transition_shadow,
+						zhang_pppar,
+						{"@ temporal_product_transition_shadow"},
+						"Register product-functional changes for next-epoch current-lattice/BESD reliability shadowing"
+					);
+                    tryGetFromYaml(
+                        zhangPppAr.integer_strategy,
+                        zhang_pppar,
+                        {"@ integer_strategy"},
+                        "Network/user integer strategy: JOINT, INDEPENDENT_SIGNAL, LAYERED_WL_L1, HYBRID_PRODUCT_WL_L1, PRODUCT_TARGET_WL_L1, CANONICAL_USER_SD_WL_L1, or CANONICAL_USER_IF_WL_L1"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.component_bridge_targeting,
+                        zhang_pppar,
+                        {"@ component_bridge_targeting"},
+                        "Prioritise dual-frequency integer targets that merge persistent satellite components"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.current_state_relinking,
+                        zhang_pppar,
+                        {"@ current_state_relinking"},
+                        "Resolve low-dimensional targets that relink a current dynamic state to its persistent component"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.max_topology_targets,
+                        zhang_pppar,
+                        {"@ max_topology_targets"},
+                        "Maximum unknown component-bridge targets attempted per constellation and epoch; current relinks of existing persistent relations remain subject to ROUND/NIS but are not truncated by this cap"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.deterministic_relink_variance_tolerance_cycles2,
+                        zhang_pppar,
+                        {"@ deterministic_relink_variance_tolerance_cycles2"},
+                        "Absolute numerical-rank tolerance in cycles squared for integer-closed current relinks; zero retains the covariance-relative tolerance"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow"},
+                        "Audit fixed-lag prior-to-posterior information increments for current relinks without feeding them back"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow_max_epochs,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow_max_epochs"},
+                        "Maximum distinct epoch increments retained by each current-relink shadow accumulator"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow_max_gap_seconds,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow_max_gap_seconds"},
+                        "Maximum gap between consecutive increments in a current-relink shadow accumulator"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.multi_epoch_relink_shadow_information_floor,
+                        zhang_pppar,
+                        {"@ multi_epoch_relink_shadow_information_floor"},
+                        "Minimum positive scalar information increment accepted by current-relink shadow accumulation"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_fixed_lag_shadow,
+                        zhang_pppar,
+                        {"@ whitened_wl_fixed_lag_shadow"},
+                        "Audit independent innovation-equivalent WL observations in a physical-arc fixed-lag window without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_fixed_lag_seconds,
+                        zhang_pppar,
+                        {"@ whitened_wl_fixed_lag_seconds"},
+                        "Time span retained by each whitened WL fixed-lag shadow window"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_fixed_lag_max_observations,
+                        zhang_pppar,
+                        {"@ whitened_wl_fixed_lag_max_observations"},
+                        "Maximum observations retained by each whitened WL fixed-lag shadow window"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.fixed_lag_factor_capture_shadow,
+                        zhang_pppar,
+                        {"@ fixed_lag_factor_capture_shadow"},
+                        "Capture final accepted PPP measurement factors, actual state transitions/process noise, and exact state-coordinate transforms for E18 shadow replay"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.fixed_lag_factor_capture_max_events,
+                        zhang_pppar,
+                        {"@ fixed_lag_factor_capture_max_events"},
+                        "Fail-closed maximum chronological E18 factor events retained before a marginal anchor is required"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.fixed_lag_factor_capture_evaluation_stride,
+                        zhang_pppar,
+                        {"@ fixed_lag_factor_capture_evaluation_stride"},
+                        "Evaluate the expensive full E18 raw-factor marginal every N accepted measurement blocks"
+                    );
+					tryGetFromYaml(
+						zhangPppAr.targeted_besd_capture_shadow,
+						zhang_pppar,
+						{"@ targeted_besd_capture_shadow"},
+						"Carry only old/new target Schur blocks for transitions classified as REQUIRES_BESD; never feed them back to the estimator"
+					);
+					tryGetFromYaml(
+						zhangPppAr.targeted_besd_min_lag_epochs,
+						zhang_pppar,
+						{"@ targeted_besd_min_lag_epochs"},
+						"Minimum post-event epochs before a targeted BESD certificate may be evaluated"
+					);
+					tryGetFromYaml(
+						zhangPppAr.targeted_besd_max_lag_epochs,
+						zhang_pppar,
+						{"@ targeted_besd_max_lag_epochs"},
+						"Maximum post-event epochs retained by a targeted BESD Schur tracker"
+					);
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_prediction_gate_min_observations,
+                        zhang_pppar,
+                        {"@ whitened_wl_prediction_gate_min_observations"},
+                        "Minimum prior WL observations before leave-one-out prediction gating starts"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.whitened_wl_prediction_gate_sigma,
+                        zhang_pppar,
+                        {"@ whitened_wl_prediction_gate_sigma"},
+                        "Absolute normalized leave-one-out WL prediction threshold"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.promotion_confirmation_epochs,
+                        zhang_pppar,
+                        {"@ promotion_confirmation_epochs"},
+                        "Consecutive distinct epochs required before a new persistent satellite relation is promoted"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.promotion_confirmation_max_gap_seconds,
+                        zhang_pppar,
+                        {"@ promotion_confirmation_max_gap_seconds"},
+                        "Maximum time gap between confirmations of a pending persistent satellite relation"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.conflict_quarantine,
+                        zhang_pppar,
+                        {"@ conflict_quarantine"},
+                        "Quarantine current satellite alignment when new integer evidence conflicts with a persistent relation"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.user_max_ambiguities_per_signal,
+                        zhang_pppar,
+                        {"@ user_max_ambiguities_per_signal"},
+                        "Maximum lowest-variance ambiguity candidates per signal for held-out user PAR; zero disables the cap"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.stabilization_epochs,
+                        zhang_pppar,
+                        {"@ stabilization_epochs"},
+                        "Epochs after a phase-datum reset before integer-valid products may resume"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.initial_discontinuity_counter,
+                        zhang_pppar,
+                        {"@ initial_discontinuity_counter"},
+                        "Initial counter for the internal phase-continuity manager"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.transactional_integer_fixing,
+                        zhang_pppar,
+                        {"@ transactional_integer_fixing"},
+                        "Keep the authoritative Zhang filter float and condition integers only on a disposable fixed branch"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.held_constraint_nis_alpha,
+                        zhang_pppar,
+                        {"@ held_constraint_nis_alpha"},
+                        "Upper-tail probability for rejecting incompatible persistent held constraints"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_candidate_shadow_ablation,
+                        zhang_pppar,
+                        {"@ l1_candidate_shadow_ablation"},
+                        "L1 integer-candidate-row sensitivity control: NONE, PHYSICAL_SUPPORT, MATCHED_RANDOM, or legacy CAUSAL_FIVE_GROUP (not a measurement replay)"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_candidate_shadow_satellites,
+                        zhang_pppar,
+                        {"@ l1_candidate_shadow_satellites"},
+                        "Satellite IDs defining support for the L1 integer-candidate-row sensitivity control"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_candidate_shadow_receivers,
+                        zhang_pppar,
+                        {"@ l1_candidate_shadow_receivers"},
+                        "Receiver IDs defining support for the L1 integer-candidate-row sensitivity control"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_candidate_shadow_random_seed,
+                        zhang_pppar,
+                        {"@ l1_candidate_shadow_random_seed"},
+                        "Fixed seed for reproducible reliability-matched random L1 candidate controls"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_measurement_replay_shadow,
+                        zhang_pppar,
+                        {"@ l1_measurement_replay_shadow"},
+                        "Replay the final post-QC measurement update on disposable posterior branches for the R4 L1 NIS diagnosis"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_measurement_replay_target_epoch,
+                        zhang_pppar,
+                        {"@ l1_measurement_replay_target_epoch"},
+                        "Single frozen epoch at which the R4 measurement-update replay is evaluated"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_measurement_replay_receiver,
+                        zhang_pppar,
+                        {"@ l1_measurement_replay_receiver"},
+                        "Receiver whose final accepted physical measurements are removed in the R4 replay"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_measurement_replay_satellite,
+                        zhang_pppar,
+                        {"@ l1_measurement_replay_satellite"},
+                        "Satellite whose final accepted physical measurements are removed in the R4 replay"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_par_shadow,
+                        zhang_pppar,
+                        {"@ l1_multibranch_par_shadow"},
+                        "Run E23a multi-branch L1 primitive-sublattice PAR without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_core_max_dimension,
+                        zhang_pppar,
+                        {"@ l1_multibranch_core_max_dimension"},
+                        "Maximum model-screened L1 integer core dimension entering the E23a beam"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_reserve_dimension,
+                        zhang_pppar,
+                        {"@ l1_multibranch_reserve_dimension"},
+                        "Additional reliable L1 integer directions available for re-entry after each E23a deletion"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_branch_factor,
+                        zhang_pppar,
+                        {"@ l1_multibranch_branch_factor"},
+                        "Number of exact NIS/product-loss row-deletion branches per E23a node"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_beam_width,
+                        zhang_pppar,
+                        {"@ l1_multibranch_beam_width"},
+                        "Maximum E23a primitive sublattices retained at each search depth"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_maximum_depth,
+                        zhang_pppar,
+                        {"@ l1_multibranch_maximum_depth"},
+                        "Maximum number of L1 integer directions removed by the E23a rescue beam"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_minimum_rank,
+                        zhang_pppar,
+                        {"@ l1_multibranch_minimum_rank"},
+                        "Minimum primitive L1 integer sublattice rank accepted by E23a"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_evaluate_all_tiers,
+                        zhang_pppar,
+                        {"@ l1_multibranch_evaluate_all_tiers"},
+                        "Evaluate every configured rank tier instead of stopping at the first feasible E23 sublattice"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_multibranch_product_objective,
+                        zhang_pppar,
+                        {"@ l1_multibranch_product_objective"},
+                        "Product objective used for E23 beam scoring: ABSOLUTE or USER_QUOTIENT"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_canonical_physical_search,
+                        zhang_pppar,
+                        {"@ l1_canonical_physical_search"},
+                        "Canonicalise L1 integer coordinates by exact physical-arc HNF before the E23 beam and disable geometric rank tiers"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_iar_gain_audit_shadow,
+                        zhang_pppar,
+                        {"@ l1_iar_gain_audit_shadow"},
+                        "Run the E24a F0/WL/WL+PAR/WL+FULL covariance gain audit without integer feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_iar_gain_audit_target_epoch,
+                        zhang_pppar,
+                        {"@ l1_iar_gain_audit_target_epoch"},
+                        "Exact epoch string at which the E24a covariance gain audit runs"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_product_gain_spectrum_shadow,
+                        zhang_pppar,
+                        {"@ l1_product_gain_spectrum_shadow"},
+                        "Compute the real-mode L1 user-product gain ceiling without integer feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_product_gain_spectrum_epochs,
+                        zhang_pppar,
+                        {"@ l1_product_gain_spectrum_epochs"},
+                        "Exact epoch strings at which the L1 user-product gain spectrum runs"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_l1_par_shadow,
+                        zhang_pppar,
+                        {"@ product_relation_l1_par_shadow"},
+                        "Resolve the independently proven satellite-product WL/L1 relation lattice in a no-feedback branch"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_solver_mode,
+                        zhang_pppar,
+                        {"@ product_relation_solver_mode"},
+                        "Direct product-relation integer solver mode: OFF or SHADOW"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_beam_width,
+                        zhang_pppar,
+                        {"@ product_relation_beam_width"},
+                        "Maximum retained named-relation subsets per product PAR depth"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_minimum_rank,
+                        zhang_pppar,
+                        {"@ product_relation_minimum_rank"},
+                        "Minimum original named-relation subset rank considered by product PAR"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_maximum_evaluations,
+                        zhang_pppar,
+                        {"@ product_relation_maximum_evaluations"},
+                        "Hard evaluation cap for named-relation product PAR beam search"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_pair_audit_shadow,
+                        zhang_pppar,
+                        {"@ product_relation_pair_audit_shadow"},
+                        "Audit every satellite-pair WL relation, covariance weak modes and exact mixed-lattice pair recovery without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_pair_audit_epochs,
+                        zhang_pppar,
+                        {"@ product_relation_pair_audit_epochs"},
+                        "Exact frozen epoch strings at which the ProductRelation all-pair audit runs"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_pair_audit_best_edge_count,
+                        zhang_pppar,
+                        {"@ product_relation_pair_audit_best_edge_count"},
+                        "Number of lowest-Perr all-pair edges used for the frozen ProductRelation median-sigma diagnostic"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_admission_shadow,
+                        zhang_pppar,
+                        {"@ product_relation_admission_shadow"},
+                        "Transactionally certify new exact and reliable temporal product relations in a frontend-only shadow graph"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_relation_feedback,
+                        zhang_pppar,
+                        {"@ product_relation_feedback"},
+                        "Feed certified product relations back to the estimator; unsupported in the shadow stage"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_solver_mode,
+                        zhang_pppar,
+                        {"@ product_component_gauge_solver_mode"},
+                        "Component-gauge closure mode: OFF, SHADOW, or PRIVATE; PRIVATE affects only PRODUCT_FIXED"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_max_iterations,
+                        zhang_pppar,
+                        {"@ product_component_gauge_max_iterations"},
+                        "Maximum private product component-gauge closure iterations"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_max_perr,
+                        zhang_pppar,
+                        {"@ product_component_gauge_max_perr"},
+                        "Maximum accepted component-gauge integer failure probability"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_nis_alpha,
+                        zhang_pppar,
+                        {"@ product_component_gauge_nis_alpha"},
+                        "Joint component-gauge residual NIS tail probability"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_confirmation_epochs,
+                        zhang_pppar,
+                        {"@ product_component_gauge_confirmation_epochs"},
+                        "Required confirmations when a component-gauge model has no residual redundancy"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_dual_graph_objective,
+                        zhang_pppar,
+                        {"@ product_dual_graph_objective"},
+                        "Rank product candidates by dual-frequency component-graph gain before information gain"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_integer_ledger_enabled,
+                        zhang_pppar,
+                        {"@ product_integer_ledger_enabled"},
+                        "Use prior exact ProductIntegerLedger rows only in private product-search and final-union branches"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_gauge_certificate_ledger,
+                        zhang_pppar,
+                        {"@ product_gauge_certificate_ledger"},
+                        "Maintain stable product-gauge certificates separately from physical conditioning evidence"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_allow_partial_components,
+                        zhang_pppar,
+                        {"@ product_allow_partial_components"},
+                        "Permit certified subcomponents instead of requiring one fully connected product graph"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.full_product_lattice_oracle_filename,
+                        zhang_pppar,
+                        {"@ full_product_lattice_oracle_filename"},
+                        "Non-causal diagnostic full dual-frequency product-lattice oracle JSON"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.full_product_lattice_oracle_epochs,
+                        zhang_pppar,
+                        {"@ full_product_lattice_oracle_epochs"},
+                        "Optional exact epoch strings at which the full product-lattice oracle is applied"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.e29_real_math_closure_shadow,
+                        zhang_pppar,
+                        {"@ e29_real_math_closure_shadow"},
+                        "Run the E29-A2/B2 real-network mathematical closure audit without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.e29_real_math_closure_target_epoch,
+                        zhang_pppar,
+                        {"@ e29_real_math_closure_target_epoch"},
+                        "Exact epoch string at which the E29-A2/B2 real-network closure audit runs"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_theory_regression_shadow,
+                        zhang_pppar,
+                        {"@ canonical_theory_regression_shadow"},
+                        "Run the E24b regional complete-biclique canonical correlation and phase-bias gain regression without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_theory_regression_target_epoch,
+                        zhang_pppar,
+                        {"@ canonical_theory_regression_target_epoch"},
+                        "Exact epoch string at which the E24b canonical theory regression runs"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_theory_regression_receivers,
+                        zhang_pppar,
+                        {"@ canonical_theory_regression_receivers"},
+                        "Receiver IDs required in the E24b regional complete-biclique regression"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_theory_regression_min_common_satellites,
+                        zhang_pppar,
+                        {"@ canonical_theory_regression_min_common_satellites"},
+                        "Minimum common dual-frequency satellites required by the E24b regional regression"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_subset_oracle_shadow,
+                        zhang_pppar,
+                        {"@ l1_subset_oracle_shadow"},
+                        "Run the E23b bounded real-data subset oracle without feedback"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_subset_oracle_pool_dimension,
+                        zhang_pppar,
+                        {"@ l1_subset_oracle_pool_dimension"},
+                        "Number of reliable LAMBDA rows entering the bounded E23b subset dictionary"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_subset_oracle_minimum_rank,
+                        zhang_pppar,
+                        {"@ l1_subset_oracle_minimum_rank"},
+                        "Minimum subset rank enumerated by the E23b bounded oracle"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_subset_oracle_maximum_rank,
+                        zhang_pppar,
+                        {"@ l1_subset_oracle_maximum_rank"},
+                        "Maximum subset rank enumerated by the E23b bounded oracle"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_subset_oracle_maximum_subsets,
+                        zhang_pppar,
+                        {"@ l1_subset_oracle_maximum_subsets"},
+                        "Hard resource cap for E23b bounded subset enumeration"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.l1_subset_oracle_target_epoch,
+                        zhang_pppar,
+                        {"@ l1_subset_oracle_target_epoch"},
+                        "Exact epoch string at which the E23b bounded oracle runs"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_target_named_rounding,
+                        zhang_pppar,
+                        {"@ product_target_named_rounding"},
+                        "Resolve named satellite-product targets directly so committed PAR rows can enter the persistent datum ledger"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_user_target_feedback,
+                        zhang_pppar,
+                        {"@ canonical_user_target_feedback"},
+                        "Enable transactional feedback for the exact named Hou user-target lattice; false keeps the E26 route shadow-only"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_user_target_min_named_wl,
+                        zhang_pppar,
+                        {"@ canonical_user_target_min_named_wl"},
+                        "Minimum number of non-reference named WL product targets required before E26 feedback is permitted"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.canonical_user_target_max_perr,
+                        zhang_pppar,
+                        {"@ canonical_user_target_max_perr"},
+                        "Maximum scalar integer error probability admitted for every named E26 target"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.maximum_pppar_correction_sigma_m,
+                        zhang_pppar,
+                        {"@ maximum_pppar_correction_sigma_m"},
+                        "Maximum correction standard deviation for PPP-AR product use in metres; zero disables the gate"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.maximum_product_residual_step_m,
+                        zhang_pppar,
+                        {"@ maximum_product_residual_step_m"},
+                        "Maximum satellite-dependent epoch correction step after common-mode removal in metres; zero disables the gate"
+                    );
+					tryGetFromYaml(
+						zhangPppAr.deterministic_checkpoint,
+						zhang_pppar,
+						{"@ deterministic_checkpoint"},
+						"Enable the fail-closed Infra-0 v1 E29 deterministic checkpoint bundle"
+					);
+					tryGetFromYaml(
+						zhangPppAr.checkpoint_runtime_id,
+						zhang_pppar,
+						{"@ checkpoint_runtime_id"},
+						"Stable logical runtime identity stored in every Infra-0 checkpoint section"
+					);
+					tryGetFromYaml(
+						zhangPppAr.checkpoint_output_directory,
+						zhang_pppar,
+						{"@ checkpoint_output_directory"},
+						"Directory for immutable Infra-0 checkpoint bundles and manifests"
+					);
+					tryGetFromYaml(
+						zhangPppAr.checkpoint_capture_epochs,
+						zhang_pppar,
+						{"@ checkpoint_capture_epochs"},
+						"Post-epoch UTC checkpoints captured by the E29 seed run"
+					);
+					tryGetFromYaml(
+						zhangPppAr.checkpoint_restore_path,
+						zhang_pppar,
+						{"@ checkpoint_restore_path"},
+						"Immutable Infra-0 bundle restored before resuming at the next epoch"
+					);
+
+                    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+                    {
+                        auto sys_options = stringsToYamlObject(
+                            zhang_pppar,
+                            {"1@ sys_options", enum_to_string(sys)},
+                            (string) "Held-out PPP-AR observables for " + enum_to_string(sys)
+                        );
+
+                        tryGetEnumVec(
+                            zhangPppAr.baseline_observables[sys],
+                            sys_options,
+                            {"@ baseline_observables"},
+                            "Baseline phase observables carried by the internal product"
+                        );
+                    }
+                }
+
                 for (E_Sys sys : magic_enum::enum_values<E_Sys>())
                 {
                     auto sys_options = stringsToYamlObject(
@@ -8728,6 +9619,883 @@ bool ACSConfig::parse(
     {
         int level = commandOpts["yaml-defaults"].as<int>();
         outputDefaultConfiguration(level);
+    }
+
+    if (phaseClockOsb.enable)
+    {
+        bool valid = true;
+
+        if (phaseClockOsb.code_datum_sigma <= 0 || phaseClockOsb.phase_datum_sigma <= 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "phase_clock_osb datum sigmas must be positive (metres)";
+            valid = false;
+        }
+
+        if (pppOpts.ionoOpts.use_if_combo || pppOpts.use_primary_signals)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "phase_clock_osb requires uncombined processing with both baseline signals";
+            valid = false;
+        }
+
+        for (auto& [sys, process] : process_sys)
+        {
+            if (process == false)
+            {
+                continue;
+            }
+
+            auto& opts = phaseClockOsb.sysOpts[sys];
+            if (opts.baseline_code_observables.size() != 2 ||
+                opts.baseline_phase_observables.size() != 2)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb requires exactly two baseline code and phase observables for "
+                    << enum_to_string(sys);
+                valid = false;
+                continue;
+            }
+
+            if (!phaseClockOsbCoefficients(
+                    sys,
+                    opts.baseline_code_observables[0],
+                    opts.baseline_code_observables[1]
+                ))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb baseline code observables must use two distinct, known "
+                       "frequencies for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            if (!phaseClockOsbCoefficients(
+                    sys,
+                    opts.baseline_phase_observables[0],
+                    opts.baseline_phase_observables[1]
+                ))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb baseline phase observables must use two distinct, known "
+                       "frequencies for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            for (E_ObsCode code : opts.baseline_code_observables)
+            {
+                if (std::find(code_priorities[sys].begin(), code_priorities[sys].end(), code) ==
+                    code_priorities[sys].end())
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "phase_clock_osb baseline observable " << enum_to_string(code)
+                        << " is absent from code_priorities for " << enum_to_string(sys);
+                    valid = false;
+                }
+            }
+
+            if (phaseClockOsb.constrain_reference_receiver_phase &&
+                opts.phase_reference_receiver.empty())
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "phase_clock_osb requires phase_reference_receiver for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            if (phaseClockOsb.baseline_only_ambiguity_resolution && solve_amb_for[sys] == false)
+            {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "phase_clock_osb is enabled for " << enum_to_string(sys)
+                    << " but constellation ambiguity_resolution is false; output will remain float";
+            }
+        }
+
+        if (process_orbits)
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "phase_clock_osb first-stage processing should use fixed external precise orbits";
+        }
+
+        if (valid == false)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Disabling phase_clock_osb because its datum definition is incomplete";
+            phaseClockOsb.enable = false;
+        }
+    }
+
+    if (zhangFullRank.enable)
+    {
+        bool valid = true;
+
+        if (phaseClockOsb.enable)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_full_rank and phase_clock_osb are alternative datum controllers";
+            valid = false;
+        }
+
+        if (pppOpts.ionoOpts.use_if_combo || pppOpts.use_primary_signals)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_full_rank requires uncombined processing with both baseline signals";
+            valid = false;
+        }
+
+        for (auto& [sys, process] : process_sys)
+        {
+            if (process == false)
+            {
+                continue;
+            }
+
+            auto& opts = zhangFullRank.sysOpts[sys];
+            if (opts.baseline_observables.size() != 2)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank requires exactly two baseline observables for "
+                    << enum_to_string(sys);
+                valid = false;
+                continue;
+            }
+
+            if (!phaseClockOsbCoefficients(
+                    sys,
+                    opts.baseline_observables[0],
+                    opts.baseline_observables[1]
+                ))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank baseline observables must use two distinct, known "
+                       "frequencies for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            for (E_ObsCode code : opts.baseline_observables)
+            {
+                if (std::find(code_priorities[sys].begin(), code_priorities[sys].end(), code) ==
+                    code_priorities[sys].end())
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "zhang_full_rank baseline observable " << enum_to_string(code)
+                        << " is absent from code_priorities for " << enum_to_string(sys);
+                    valid = false;
+                }
+            }
+
+            if (opts.reference_receiver.empty())
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank requires reference_receiver for " << enum_to_string(sys);
+                valid = false;
+            }
+
+            SatSys referenceSatellite(opts.reference_satellite.c_str());
+            if (!opts.use_spanning_tree &&
+                (opts.reference_satellite.empty() || referenceSatellite.sys != sys ||
+                 referenceSatellite.prn <= 0))
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank requires a valid reference_satellite in "
+                    << enum_to_string(sys) << " (configured '" << opts.reference_satellite << "')";
+                valid = false;
+            }
+
+            if (opts.reference_outage_epochs < 1)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank reference_outage_epochs must be at least one for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            if (opts.state_edge_grace_epochs < 0)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank state_edge_grace_epochs must be non-negative for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+
+            if (opts.product_core_min_satellite_support < 0)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_full_rank product_core_min_satellite_support must be "
+                       "non-negative for " << enum_to_string(sys);
+                valid = false;
+            }
+
+            for (auto& satelliteId : opts.reference_satellite_candidates)
+            {
+                SatSys candidate(satelliteId.c_str());
+                if (candidate.sys != sys || candidate.prn <= 0)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "zhang_full_rank reference satellite candidate '" << satelliteId
+                        << "' is invalid for " << enum_to_string(sys);
+                    valid = false;
+                }
+            }
+
+            if (valid && zhangFullRank.output_diagnostics)
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "ZHANG_FULL_RANK_CONFIG sys=" << enum_to_string(sys)
+                    << " baseline=" << enum_to_string(opts.baseline_observables[0]) << ","
+                    << enum_to_string(opts.baseline_observables[1])
+                    << " reference_receiver=" << opts.reference_receiver
+                    << " reference_satellite=" << opts.reference_satellite
+                    << " use_spanning_tree=" << opts.use_spanning_tree
+                    << " auto_reference_switch=" << opts.auto_reference_switch
+                    << " reference_outage_epochs=" << opts.reference_outage_epochs
+                    << " state_edge_grace_epochs=" << opts.state_edge_grace_epochs
+                    << " prefer_historical_edges=" << opts.prefer_historical_edges
+                    << " core_skeleton=" << opts.core_skeleton
+                    << " product_core_min_satellite_support="
+                    << opts.product_core_min_satellite_support
+                    << " product_integer_support_core="
+                    << opts.product_integer_support_core;
+            }
+        }
+
+        if (valid == false)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Disabling zhang_full_rank because its S-basis definition is incomplete";
+            zhangFullRank.enable = false;
+        }
+    }
+
+    if (zhangPppAr.output_products || zhangPppAr.user_adapter)
+    {
+        bool valid = true;
+
+        if (zhangPppAr.product_filename.empty())
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar requires product_filename in writer and user-adapter modes";
+            valid = false;
+        }
+        if (zhangPppAr.user_use_full_product_covariance &&
+            (!zhangPppAr.user_adapter ||
+             zhangPppAr.product_covariance_filename.empty()))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar user_use_full_product_covariance requires "
+                   "user_adapter=true and product_covariance_filename";
+            valid = false;
+        }
+        if (!std::isfinite(zhangPppAr.user_phase_product_temporal_sigma_m) ||
+            zhangPppAr.user_phase_product_temporal_sigma_m < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar user_phase_product_temporal_sigma_m must be finite and non-negative";
+            valid = false;
+        }
+
+        if (zhangPppAr.output_products && zhangFullRank.enable == false)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar output_products requires zhang_full_rank network processing";
+            valid = false;
+        }
+		if (zhangPppAr.deterministic_checkpoint)
+		{
+			if (!zhangPppAr.output_products || !zhangFullRank.enable ||
+				zhangPppAr.user_adapter ||
+				zhangPppAr.checkpoint_runtime_id.empty() ||
+				zhangPppAr.checkpoint_output_directory.empty() ||
+				(zhangPppAr.checkpoint_capture_epochs.empty() &&
+				 zhangPppAr.checkpoint_restore_path.empty()))
+			{
+				BOOST_LOG_TRIVIAL(error)
+					<< "Infra-0 deterministic_checkpoint requires a Zhang "
+					   "network writer, stable runtime ID, output directory, "
+					   "and capture epochs or a restore path";
+				valid = false;
+			}
+			for (const auto& [system, process] : process_sys)
+			{
+				if (process && system != E_Sys::GPS)
+				{
+					BOOST_LOG_TRIVIAL(error)
+						<< "Infra-0 v1 is restricted to GPS-only E29 processing";
+					valid = false;
+				}
+			}
+			const auto& checkpointCodes =
+				zhangFullRank.sysOpts[E_Sys::GPS].baseline_observables;
+			if (checkpointCodes.size() != 2 ||
+				checkpointCodes[0] != E_ObsCode::L1C ||
+				checkpointCodes[1] != E_ObsCode::L2W ||
+				std::abs(epoch_interval - 60) > 1e-9)
+			{
+				BOOST_LOG_TRIVIAL(error)
+					<< "Infra-0 v1 requires ordered GPS L1C/L2W baselines "
+					   "and a 60 second processing interval";
+				valid = false;
+			}
+		}
+
+        if (zhangPppAr.user_adapter && zhangFullRank.enable)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar user_adapter must run independently of zhang_full_rank";
+            valid = false;
+        }
+
+        if (zhangPppAr.stabilization_epochs < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar stabilization_epochs must be non-negative";
+            valid = false;
+        }
+        if (zhangPppAr.max_topology_targets < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar max_topology_targets must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.deterministic_relink_variance_tolerance_cycles2 < 0 ||
+            zhangPppAr.deterministic_relink_variance_tolerance_cycles2 > 1e-6)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar deterministic_relink_variance_tolerance_cycles2 must be between zero and 1e-6";
+            valid = false;
+        }
+        if (zhangPppAr.multi_epoch_relink_shadow_max_epochs < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar multi_epoch_relink_shadow_max_epochs must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.multi_epoch_relink_shadow_max_gap_seconds < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar multi_epoch_relink_shadow_max_gap_seconds must be non-negative";
+            valid = false;
+        }
+        if (!(zhangPppAr.multi_epoch_relink_shadow_information_floor > 0) ||
+            zhangPppAr.multi_epoch_relink_shadow_information_floor > 1e6)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar multi_epoch_relink_shadow_information_floor must be in (0, 1e6]";
+            valid = false;
+        }
+        if (!(zhangPppAr.whitened_wl_fixed_lag_seconds > 0))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_fixed_lag_seconds must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.whitened_wl_fixed_lag_max_observations < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_fixed_lag_max_observations must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.fixed_lag_factor_capture_max_events < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar fixed_lag_factor_capture_max_events must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.fixed_lag_factor_capture_evaluation_stride < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar fixed_lag_factor_capture_evaluation_stride must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.whitened_wl_prediction_gate_min_observations < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_prediction_gate_min_observations must be positive";
+            valid = false;
+        }
+        if (!(zhangPppAr.whitened_wl_prediction_gate_sigma > 0))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar whitened_wl_prediction_gate_sigma must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.promotion_confirmation_epochs < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar promotion_confirmation_epochs must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.promotion_confirmation_max_gap_seconds < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar promotion_confirmation_max_gap_seconds must be non-negative";
+            valid = false;
+        }
+        if (zhangPppAr.user_max_ambiguities_per_signal < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar user_max_ambiguities_per_signal must be non-negative";
+            valid = false;
+        }
+        if (!(zhangPppAr.held_constraint_nis_alpha > 0) ||
+            !(zhangPppAr.held_constraint_nis_alpha < 1))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar held_constraint_nis_alpha must be between zero and one";
+            valid = false;
+        }
+
+        boost::to_upper(zhangPppAr.l1_candidate_shadow_ablation);
+        if (zhangPppAr.l1_candidate_shadow_ablation != "NONE" &&
+            zhangPppAr.l1_candidate_shadow_ablation != "PHYSICAL_SUPPORT" &&
+            zhangPppAr.l1_candidate_shadow_ablation != "MATCHED_RANDOM" &&
+            zhangPppAr.l1_candidate_shadow_ablation != "CAUSAL_FIVE_GROUP")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Error: processing_options:gnss_general:zhang_pppar:"
+                << "l1_candidate_shadow_ablation must be NONE, "
+                << "PHYSICAL_SUPPORT, MATCHED_RANDOM, or CAUSAL_FIVE_GROUP";
+            valid = false;
+        }
+        if (zhangPppAr.l1_candidate_shadow_ablation != "NONE" &&
+            !zhangPppAr.transactional_integer_fixing)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar L1 candidate shadow ablation requires "
+                << "transactional_integer_fixing=true";
+            valid = false;
+        }
+        if (zhangPppAr.l1_candidate_shadow_ablation != "NONE" &&
+            !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE"))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar L1 candidate shadow ablation is restricted "
+                << "to product_mode=HOU_OSB_LIKE";
+            valid = false;
+        }
+        boost::to_upper(zhangPppAr.l1_measurement_replay_receiver);
+        boost::to_upper(zhangPppAr.l1_measurement_replay_satellite);
+        if (zhangPppAr.l1_measurement_replay_shadow &&
+            (!zhangPppAr.transactional_integer_fixing ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE") ||
+             pppOpts.receiver_chunking ||
+             zhangPppAr.l1_measurement_replay_target_epoch.empty() ||
+             zhangPppAr.l1_measurement_replay_receiver.empty() ||
+             zhangPppAr.l1_measurement_replay_satellite.empty()))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar l1_measurement_replay_shadow requires "
+                   "transactional_integer_fixing=true, product_mode=HOU_OSB_LIKE, "
+                   "receiver_chunking=false, and non-empty target "
+                   "epoch/receiver/satellite";
+            valid = false;
+        }
+        if (zhangPppAr.l1_multibranch_core_max_dimension < 3 ||
+            zhangPppAr.l1_multibranch_reserve_dimension < 0 ||
+            zhangPppAr.l1_multibranch_branch_factor < 1 ||
+            zhangPppAr.l1_multibranch_beam_width < 1 ||
+            zhangPppAr.l1_multibranch_maximum_depth < 1 ||
+            zhangPppAr.l1_multibranch_minimum_rank < 3)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar E23a multi-branch dimensions must be positive "
+                << "and minimum/core rank must be at least three";
+            valid = false;
+        }
+        if (zhangPppAr.l1_multibranch_minimum_rank >
+            zhangPppAr.l1_multibranch_core_max_dimension)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar l1_multibranch_minimum_rank cannot exceed "
+                << "l1_multibranch_core_max_dimension";
+            valid = false;
+        }
+        if (!boost::iequals(
+                zhangPppAr.l1_multibranch_product_objective,
+                "ABSOLUTE") &&
+            !boost::iequals(
+                zhangPppAr.l1_multibranch_product_objective,
+                "USER_QUOTIENT"))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar l1_multibranch_product_objective must be "
+                << "ABSOLUTE or USER_QUOTIENT";
+            valid = false;
+        }
+        if (zhangPppAr.l1_subset_oracle_pool_dimension < 3 ||
+            zhangPppAr.l1_subset_oracle_minimum_rank < 1 ||
+            zhangPppAr.l1_subset_oracle_maximum_rank <
+                zhangPppAr.l1_subset_oracle_minimum_rank ||
+            zhangPppAr.l1_subset_oracle_maximum_rank >
+                zhangPppAr.l1_subset_oracle_pool_dimension ||
+            zhangPppAr.l1_subset_oracle_maximum_subsets < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar E23b subset oracle dimensions are invalid";
+            valid = false;
+        }
+        if (zhangPppAr.l1_multibranch_par_shadow &&
+            (!zhangPppAr.transactional_integer_fixing ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE")))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar E23a multi-branch shadow requires "
+                << "transactional_integer_fixing=true and "
+                << "product_mode=HOU_OSB_LIKE";
+            valid = false;
+        }
+        if (zhangPppAr.l1_product_gain_spectrum_shadow &&
+            (zhangPppAr.l1_product_gain_spectrum_epochs.empty() ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE")))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar L1 product gain spectrum shadow requires "
+                << "product_mode=HOU_OSB_LIKE and at least one target epoch";
+            valid = false;
+        }
+        string productRelationSolverMode =
+            zhangPppAr.product_relation_solver_mode;
+        boost::to_upper(productRelationSolverMode);
+        if (productRelationSolverMode != "OFF" &&
+            productRelationSolverMode != "SHADOW")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product_relation_solver_mode must be "
+                   "OFF or SHADOW";
+            valid = false;
+        }
+        if (zhangPppAr.product_relation_l1_par_shadow &&
+            productRelationSolverMode == "OFF")
+        {
+            // Preserve old configurations while giving the execution path an
+            // explicit module-level mode from this point onward.
+            productRelationSolverMode = "SHADOW";
+        }
+        zhangPppAr.product_relation_solver_mode = productRelationSolverMode;
+        zhangPppAr.product_relation_l1_par_shadow =
+            productRelationSolverMode == "SHADOW";
+        string componentGaugeSolverMode =
+            zhangPppAr.product_component_gauge_solver_mode;
+        boost::to_upper(componentGaugeSolverMode);
+        if (componentGaugeSolverMode != "OFF" &&
+            componentGaugeSolverMode != "SHADOW" &&
+            componentGaugeSolverMode != "PRIVATE")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product_component_gauge_solver_mode must be "
+                   "OFF, SHADOW or PRIVATE";
+            valid = false;
+        }
+        zhangPppAr.product_component_gauge_solver_mode =
+            componentGaugeSolverMode;
+        if (componentGaugeSolverMode == "PRIVATE" &&
+            (!boost::iequals(
+                zhangPppAr.integer_strategy, "HYBRID_PRODUCT_WL_L1") ||
+             !zhangPppAr.transactional_integer_fixing ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE")))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar private component-gauge closure requires "
+                   "integer_strategy=HYBRID_PRODUCT_WL_L1, "
+                   "transactional_integer_fixing=true and "
+                   "product_mode=HOU_OSB_LIKE";
+            valid = false;
+        }
+        if (zhangPppAr.product_component_gauge_max_iterations < 1 ||
+            !(zhangPppAr.product_component_gauge_max_perr > 0) ||
+            !(zhangPppAr.product_component_gauge_max_perr <= 1e-3) ||
+            !(zhangPppAr.product_component_gauge_nis_alpha > 0) ||
+            !(zhangPppAr.product_component_gauge_nis_alpha < 1) ||
+            zhangPppAr.product_component_gauge_confirmation_epochs < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar component-gauge closure gates require "
+                   "positive iterations/confirmations, 0 < max_perr <= 1e-3 "
+                   "and nis_alpha in (0,1)";
+            valid = false;
+        }
+        if (zhangPppAr.product_relation_beam_width < 1 ||
+            zhangPppAr.product_relation_minimum_rank < 1 ||
+            zhangPppAr.product_relation_maximum_evaluations < 1 ||
+            zhangPppAr.product_relation_pair_audit_best_edge_count < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product relation beam dimensions must be positive";
+            valid = false;
+        }
+        if (zhangPppAr.product_relation_pair_audit_shadow &&
+            (zhangPppAr.product_relation_pair_audit_epochs.empty() ||
+             productRelationSolverMode != "SHADOW"))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product relation pair audit requires "
+                   "product_relation_solver_mode=SHADOW and at least one "
+                   "frozen target epoch";
+            valid = false;
+        }
+        if (zhangPppAr.product_relation_l1_par_shadow &&
+            !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE"))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product relation L1 PAR shadow requires "
+                << "product_mode=HOU_OSB_LIKE";
+            valid = false;
+        }
+        if (zhangPppAr.product_relation_admission_shadow &&
+            (!zhangPppAr.temporal_product_transition_shadow ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE") ||
+             !(boost::iequals(
+                    zhangPppAr.hou_product_coordinate, "PERSISTENT_DYNAMIC") ||
+               boost::iequals(
+                    zhangPppAr.hou_product_coordinate, "HYBRID_STABLE"))))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product relation admission shadow requires "
+                   "temporal_product_transition_shadow=true and "
+                   "product_mode=HOU_OSB_LIKE and "
+                   "hou_product_coordinate=PERSISTENT_DYNAMIC or "
+                   "HYBRID_STABLE";
+            valid = false;
+        }
+        if (zhangPppAr.product_relation_feedback)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product_relation_feedback is the legacy "
+                << "shared-state feedback switch and remains unauthorised; "
+                << "HYBRID_PRODUCT_WL_L1 applies exact constraints only to "
+                << "its private PRODUCT_FIXED branch, so keep this false";
+            valid = false;
+        }
+        if (!zhangPppAr.full_product_lattice_oracle_filename.empty() &&
+            (!boost::iequals(
+                zhangPppAr.integer_strategy, "HYBRID_PRODUCT_WL_L1") ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE") ||
+             !boost::iequals(
+                zhangPppAr.hou_product_coordinate, "HYBRID_STABLE")))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar full product-lattice oracle requires "
+                   "integer_strategy=HYBRID_PRODUCT_WL_L1, "
+                   "product_mode=HOU_OSB_LIKE and "
+                   "hou_product_coordinate=HYBRID_STABLE";
+            valid = false;
+        }
+        if (zhangPppAr.maximum_pppar_correction_sigma_m < 0 ||
+            zhangPppAr.maximum_product_residual_step_m < 0)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product precision gates must be non-negative";
+            valid = false;
+        }
+        if (zhangPppAr.canonical_user_target_min_named_wl < 1 ||
+            !(zhangPppAr.canonical_user_target_max_perr > 0) ||
+            !(zhangPppAr.canonical_user_target_max_perr < 1))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar canonical user-target gates require "
+                   "min_named_wl >= 1 and 0 < max_perr < 1";
+            valid = false;
+        }
+
+        string solution = zhangPppAr.product_solution;
+        boost::to_upper(solution);
+        if (solution != "FLOAT" && solution != "WL" &&
+            solution != "NETWORK_WL" && solution != "FIXED" &&
+            solution != "PRODUCT_FIXED")
+        {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_pppar product_solution must be FLOAT, NETWORK_WL, "
+                    "PRODUCT_FIXED, or PPP-only legacy WL/FIXED; only "
+                    "PRODUCT_FIXED may authorize user PPP-AR";
+            valid = false;
+        }
+        zhangPppAr.product_solution = solution;
+
+		string productMode = zhangPppAr.product_mode;
+		boost::to_upper(productMode);
+		if (productMode != "SATELLITE_TARGET_DATUM" &&
+			productMode != "HOU_OSB_LIKE")
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "zhang_pppar product_mode must be "
+				   "SATELLITE_TARGET_DATUM or HOU_OSB_LIKE";
+			valid = false;
+		}
+		zhangPppAr.product_mode = productMode;
+
+		string houProductCoordinate = zhangPppAr.hou_product_coordinate;
+		boost::to_upper(houProductCoordinate);
+		if (houProductCoordinate != "PRODUCT_TREE" &&
+			houProductCoordinate != "PERSISTENT_DYNAMIC" &&
+			houProductCoordinate != "HYBRID_STABLE")
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "zhang_pppar hou_product_coordinate must be "
+				   "PRODUCT_TREE, PERSISTENT_DYNAMIC, or HYBRID_STABLE";
+			valid = false;
+		}
+		zhangPppAr.hou_product_coordinate = houProductCoordinate;
+
+		string besdCapturePolicy = zhangPppAr.besd_capture_policy;
+		boost::to_upper(besdCapturePolicy);
+		if (besdCapturePolicy == "OFF")
+		{
+			// Translate legacy booleans into the new mutually exclusive policy.
+			if (zhangPppAr.targeted_besd_capture_shadow)
+			{
+				besdCapturePolicy = "TARGETED_PRODUCT_TRANSITIONS";
+			}
+			else if (zhangPppAr.fixed_lag_factor_capture_shadow)
+			{
+				besdCapturePolicy = "ALL";
+			}
+		}
+		if (besdCapturePolicy != "OFF" &&
+			besdCapturePolicy != "ALL" &&
+			besdCapturePolicy != "TARGETED_PRODUCT_TRANSITIONS")
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "zhang_pppar besd_capture_policy must be OFF, ALL, or "
+				   "TARGETED_PRODUCT_TRANSITIONS";
+			valid = false;
+		}
+		zhangPppAr.besd_capture_policy = besdCapturePolicy;
+		zhangPppAr.fixed_lag_factor_capture_shadow =
+			besdCapturePolicy == "ALL";
+		zhangPppAr.targeted_besd_capture_shadow =
+			besdCapturePolicy == "TARGETED_PRODUCT_TRANSITIONS";
+		if (zhangPppAr.temporal_product_transition_shadow &&
+			(productMode != "HOU_OSB_LIKE" ||
+			 !zhangPppAr.transactional_integer_fixing))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "temporal_product_transition_shadow requires "
+				   "product_mode=HOU_OSB_LIKE, "
+				   "transactional_integer_fixing=true";
+			valid = false;
+		}
+		if (zhangPppAr.targeted_besd_capture_shadow &&
+			(!zhangPppAr.temporal_product_transition_shadow ||
+			 zhangPppAr.fixed_lag_factor_capture_shadow ||
+			 zhangPppAr.targeted_besd_min_lag_epochs < 1 ||
+			 zhangPppAr.targeted_besd_max_lag_epochs <
+				zhangPppAr.targeted_besd_min_lag_epochs))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "targeted_besd_capture_shadow requires "
+				   "temporal_product_transition_shadow=true, "
+				   "fixed_lag_factor_capture_shadow=false, and "
+				   "1 <= targeted_besd_min_lag_epochs <= "
+				   "targeted_besd_max_lag_epochs";
+			valid = false;
+		}
+
+        string integerStrategy = zhangPppAr.integer_strategy;
+        boost::to_upper(integerStrategy);
+        if (integerStrategy != "JOINT" &&
+            integerStrategy != "INDEPENDENT_SIGNAL" &&
+            integerStrategy != "LAYERED_WL_L1" &&
+            integerStrategy != "HYBRID_PRODUCT_WL_L1" &&
+            integerStrategy != "PRODUCT_TARGET_WL_L1" &&
+            integerStrategy != "CANONICAL_USER_SD_WL_L1" &&
+            integerStrategy != "CANONICAL_USER_IF_WL_L1")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar integer_strategy must be JOINT, "
+                   "INDEPENDENT_SIGNAL, LAYERED_WL_L1, HYBRID_PRODUCT_WL_L1, or "
+                   "PRODUCT_TARGET_WL_L1, CANONICAL_USER_SD_WL_L1, or "
+                   "CANONICAL_USER_IF_WL_L1";
+            valid = false;
+        }
+        zhangPppAr.integer_strategy = integerStrategy;
+		if (productMode == "HOU_OSB_LIKE" &&
+			integerStrategy != "INDEPENDENT_SIGNAL" &&
+			integerStrategy != "LAYERED_WL_L1" &&
+			integerStrategy != "HYBRID_PRODUCT_WL_L1" &&
+			!(zhangPppAr.user_adapter &&
+			  (integerStrategy == "CANONICAL_USER_SD_WL_L1" ||
+			   integerStrategy == "CANONICAL_USER_IF_WL_L1")))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "Hou-style OSB-like products require network cycle-lattice "
+				   "AR via INDEPENDENT_SIGNAL, LAYERED_WL_L1, or "
+				   "HYBRID_PRODUCT_WL_L1; "
+				   "PRODUCT_TARGET_WL_L1 and opaque JOINT fixing are not valid";
+			valid = false;
+		}
+		if (integerStrategy == "CANONICAL_USER_SD_WL_L1" &&
+			(productMode != "HOU_OSB_LIKE" || !zhangPppAr.user_adapter))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "CANONICAL_USER_SD_WL_L1 requires user_adapter=true and "
+				   "product_mode=HOU_OSB_LIKE";
+			valid = false;
+		}
+		const bool diagonalIfFloatControl =
+			integerStrategy == "CANONICAL_USER_IF_WL_L1" &&
+			!zhangPppAr.user_use_full_product_covariance &&
+			ambrOpts.mode == E_ARmode::OFF &&
+			!zhangPppAr.canonical_user_target_feedback;
+		if (diagonalIfFloatControl)
+		{
+			BOOST_LOG_TRIVIAL(warning)
+				<< "CANONICAL_USER_IF_WL_L1 diagonal product covariance is "
+				   "enabled only as a float, feedback-free causal control";
+		}
+		if (integerStrategy == "CANONICAL_USER_IF_WL_L1" &&
+			(productMode != "HOU_OSB_LIKE" || !zhangPppAr.user_adapter ||
+			 !pppOpts.ionoOpts.use_if_combo ||
+			 (!zhangPppAr.user_use_full_product_covariance &&
+			  !diagonalIfFloatControl)))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "CANONICAL_USER_IF_WL_L1 requires user_adapter=true, "
+				   "product_mode=HOU_OSB_LIKE, use_if_combo=true, and "
+				   "user_use_full_product_covariance=true";
+			valid = false;
+		}
+		if (zhangPppAr.canonical_user_target_feedback &&
+			((integerStrategy != "CANONICAL_USER_SD_WL_L1" &&
+			  integerStrategy != "CANONICAL_USER_IF_WL_L1") ||
+			 !zhangPppAr.transactional_integer_fixing))
+		{
+			BOOST_LOG_TRIVIAL(error)
+				<< "canonical_user_target_feedback requires "
+				   "CANONICAL_USER_SD_WL_L1 and transactional fixing";
+			valid = false;
+		}
+
+        for (auto& [sys, process] : process_sys)
+        {
+            if (!process)
+            {
+                continue;
+            }
+
+            auto& codes = zhangPppAr.baseline_observables[sys];
+            if (codes.empty() && zhangFullRank.enable)
+            {
+                codes = zhangFullRank.sysOpts[sys].baseline_observables;
+            }
+
+            if (codes.size() != 2)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "zhang_pppar requires exactly two baseline_observables for "
+                    << enum_to_string(sys);
+                valid = false;
+            }
+        }
+
+        if (!valid)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Disabling zhang_pppar because its internal product definition is incomplete";
+            zhangPppAr.output_products = false;
+            zhangPppAr.user_adapter    = false;
+        }
     }
 
     sanityChecks();

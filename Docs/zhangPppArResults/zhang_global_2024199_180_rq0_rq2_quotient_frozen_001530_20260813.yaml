@@ -1,0 +1,34 @@
+# R-Q0/R-Q1/R-Q2 frozen exact-lattice audit at 00:15:30.
+# No product feedback, temporal transition or workspace mutation is allowed.
+processing_options:
+  epoch_control:
+    start_epoch: 2024-07-17 00:00:00
+    end_epoch: 2024-07-17 00:15:30
+    epoch_interval: 30
+    wait_next_epoch: 3600
+  gnss_general:
+    zhang_pppar:
+      product_mode: HOU_OSB_LIKE
+      hou_product_coordinate: HYBRID_STABLE
+      product_relation_solver_mode: SHADOW
+      product_relation_beam_width: 12
+      product_relation_minimum_rank: 1
+      product_relation_maximum_evaluations: 256
+      product_relation_pair_audit_shadow: true
+      product_relation_pair_audit_epochs:
+        - 2024-07-17 00:15:30
+      product_relation_pair_audit_best_edge_count: 20
+      product_relation_admission_shadow: false
+      product_relation_feedback: false
+      temporal_product_transition_shadow: false
+      fixed_lag_factor_capture_shadow: false
+      output_products: true
+      user_adapter: false
+      output_diagnostics: false
+      product_filename: ./outputs/zhang_global_2024199_180_rq0_rq2_quotient_frozen_001530_20260813/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2024199_180_rq0_rq2_quotient_frozen_001530_20260813/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2024199_180_rq0_rq2_quotient_frozen_001530_20260813
+  metadata:
+    config_description: zhang_global_2024199_180_rq0_rq2_quotient_frozen_001530_20260813

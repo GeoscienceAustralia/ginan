@@ -1,0 +1,13 @@
+inputs:
+  gnss_observations:
+    gnss_observations_root: ../data/
+    rnx_inputs: [MATE00ITA_R_20191990000_01D_30S_MO.rnx]
+
+outputs:
+  outputs_root: ./outputs/zhang_pppar_user_MATE
+  metadata:
+    config_description: zhang_pppar_user_MATE
+
+receiver_options:
+  MATE:
+    exclude: false

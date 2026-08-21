@@ -1,0 +1,21 @@
+# Float-only control for the 03:00 independent receiver restart.
+inputs:
+  gnss_observations:
+    gnss_observations_root: ../data/
+    rnx_inputs: [MATE00ITA_R_20191990000_01D_30S_MO.rnx]
+
+outputs:
+  outputs_root: ./outputs/external_osb_stageA2_MATE_restart_float
+  metadata:
+    config_description: external_osb_user_MATE_restart_float
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 03:00:00
+    end_epoch: 2019-07-18 06:00:00
+  ambiguity_resolution:
+    mode: OFF
+
+receiver_options:
+  MATE:
+    exclude: false

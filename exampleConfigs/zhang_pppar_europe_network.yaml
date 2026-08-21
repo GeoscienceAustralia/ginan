@@ -1,0 +1,33 @@
+# Independent-product writer for the real leave-one-station PPP-AR experiment.
+# Load after osb_wum_fixed_orbit.yaml, zhang_full_rank_europe_stage1.yaml and
+# zhang_full_rank_europe_stage2.yaml.
+
+outputs:
+  outputs_root: ./outputs/zhang_pppar_europe_network
+  metadata:
+    config_description: zhang_pppar_europe_network
+
+# MATE is deliberately withheld from the six-station service solution.  DYNG
+# and NICO are already excluded by the stage-one global receiver policy.
+receiver_options:
+  MATE:
+    exclude: true
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 30
+
+  gnss_general:
+    zhang_pppar:
+      output_products: true
+      user_adapter: false
+      output_diagnostics: true
+      product_filename: ./outputs/zhang_pppar_products/zhang_internal_products.csv
+      product_solution: FIXED
+      stabilization_epochs: 2
+      initial_discontinuity_counter: 0
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]

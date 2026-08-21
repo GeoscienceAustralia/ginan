@@ -1,0 +1,140 @@
+# Independent held-out PPP-AR user.  Load after osb_wum_fixed_orbit.yaml and
+# one station overlay (MATE, DYNG or NICO).  No Zhang network state, ambiguity,
+# covariance or graph object is shared with this process.
+
+outputs:
+  outputs_root: ./outputs/zhang_pppar_europe_user
+  metadata:
+    config_description: zhang_pppar_europe_user
+  trace:
+    level: 3
+    output_receivers: true
+    output_network: true
+    receiver_filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    output_residuals: true
+    output_config: true
+  pos:
+    output: true
+    filename: <RECEIVER>-<CONFIG>-<YYYY><DDD><HH>.POS
+  sinex:
+    output: false
+  clocks:
+    output: false
+  bias_sinex:
+    output: false
+
+satellite_options:
+  global:
+    models:
+      clock:
+        enable: true
+        sources: [PRECISE, BROADCAST]
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+receiver_options:
+  global:
+    exclude: true
+    clock_codes: [L1C]
+    models:
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 30
+    wait_next_epoch: 3600
+    max_rec_latency: 1
+
+  gnss_general:
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: true
+        receiver_amb_pivot: false
+        network_amb_pivot: false
+        reject_eclipse: false
+        code_priorities: [L1C, L2W]
+
+    zhang_full_rank:
+      enable: false
+
+    zhang_pppar:
+      output_products: false
+      user_adapter: true
+      output_diagnostics: true
+      product_filename: ./outputs/zhang_pppar_products/zhang_internal_products.csv
+      product_solution: FIXED
+      stabilization_epochs: 2
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+
+  ppp_filter:
+    ionospheric_components:
+      common_ionosphere: true
+      use_gf_combo: false
+      use_if_combo: false
+      corr_mode: estimate
+    rts:
+      enable: false
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.99
+    solution_ratio_threshold: 3
+    lambda_set_size: 200
+    once_per_epoch: true
+    fix_and_hold: true
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [true]
+        sigma: [100]
+        process_noise: [0]
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [10]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [900]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [1]
+        outage_limit: [900]
+      trop:
+        estimated: [true]
+        sigma: [0.3]
+        process_noise: [0.0001]
+      trop_grads:
+        estimated: [false]
+      code_bias:
+        estimated: [false]
+      phase_bias:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+
+  satellites:
+    global:
+      clock:
+        estimated: [false]
+      code_bias:
+        estimated: [false]
+      phase_bias:
+        estimated: [false]
+      orbit:
+        estimated: [false]

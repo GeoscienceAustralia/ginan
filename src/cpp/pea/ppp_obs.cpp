@@ -15,11 +15,14 @@
 #include "common/receiver.hpp"
 #include "common/tides.hpp"
 #include "common/trace.hpp"
+#include "common/zhangFullRank.hpp"
 #include "inertial/posProp.hpp"
 #include "iono/geomagField.hpp"
 #include "iono/ionoModel.hpp"
 #include "orbprop/coordinates.hpp"
 #include "orbprop/orbitProp.hpp"
+#include "pea/zhangReference.hpp"
+#include "pea/zhangPppAr.hpp"
 #include "trop/tropModels.hpp"
 
 using std::function;
@@ -105,6 +108,30 @@ struct AutoSender
         COMMON_ARG(VectorEcef&) rSat, COMMON_ARG(double&) lambda, COMMON_ARG(SatSys&) sysSat,     \
         COMMON_ARG(AutoSender&) autoSenderTemplate, COMMON_ARG(VectorPos&) pos,                   \
         COMMON_ARG(ERPValues&) erpv, COMMON_ARG(FrameSwapper&) frameSwapper
+
+static const ZhangFullRankSystemOptions* zhangFullRankSystemOptions(
+    E_Sys     sys,
+    E_ObsCode code
+)
+{
+    if (acsConfig.zhangFullRank.enable == false)
+    {
+        return nullptr;
+    }
+
+    auto optionsIt = acsConfig.zhangFullRank.sysOpts.find(sys);
+    if (optionsIt == acsConfig.zhangFullRank.sysOpts.end())
+    {
+        return nullptr;
+    }
+
+    if (!zhangFullRankUsesObservable(code, optionsIt->second.baseline_observables))
+    {
+        return nullptr;
+    }
+
+    return &optionsIt->second;
+}
 
 double relativity2(VectorEcef& rSat, VectorEcef& rRec)
 {
@@ -229,6 +256,18 @@ void eopAdjustment(
 
 inline static void pppRecClocks(COMMON_PPP_ARGS)
 {
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    if (zhangOptions &&
+        zhangFullRankIsReferenceReceiver(rec.id, zhangOptions->reference_receiver))
+    {
+        measEntry.componentsMap[E_Component::REC_CLOCK] = {
+            0,
+            "+ Cdt_r [Zhang reference receiver S-basis]",
+            0
+        };
+        return;
+    }
+
     double recClk_m = rec.aprioriClk;
     double dtRecVar = rec.aprioriClkVar;
 
@@ -288,6 +327,117 @@ inline static void pppRecClocks(COMMON_PPP_ARGS)
 
 inline static void pppSatClocks(COMMON_PPP_ARGS)
 {
+    ZhangInternalProduct internalProduct;
+    if (acsConfig.zhangPppAr.user_adapter &&
+        queryZhangInternalProduct(tsync, Sat, sig.code, internalProduct))
+    {
+        KFKey productKey;
+        productKey.type = KF::SAT_CLOCK;
+        productKey.Sat  = Sat;
+
+        bool phaseMeasurement = measEntry.obsKey.type == KF::PHAS_MEAS;
+        double value = phaseMeasurement
+                           ? internalProduct.correction_m
+                           : internalProduct.clock_m;
+        double variance = SQR(
+            phaseMeasurement
+                ? internalProduct.correction_sigma_m
+                : internalProduct.clock_sigma_m
+        );
+        if (acsConfig.zhangPppAr.user_use_full_product_covariance)
+        {
+            vector<double> factors;
+            int numericalRank = 0;
+            string failureReason;
+            if (!queryZhangInternalProductNoiseFactors(
+                    tsync,
+                    Sat,
+                    sig.code,
+                    phaseMeasurement,
+                    factors,
+                    &numericalRank,
+                    &failureReason))
+            {
+                measEntry.valid = false;
+                if (acsConfig.zhangPppAr.output_diagnostics)
+                {
+                    trace << "\nZHANG_E27_PRODUCT_COVARIANCE time="
+                          << tsync.to_string(0)
+                          << " receiver=" << rec.id
+                          << " satellite=" << Sat.id()
+                          << " observable=" << enum_to_string(sig.code)
+                          << " measurement="
+                          << (phaseMeasurement ? "PHASE" : "CODE")
+                          << " valid=0 reason=" << failureReason;
+                }
+                return;
+            }
+            variance = 0;
+            for (int factor = 0; factor < static_cast<int>(factors.size()); factor++)
+            {
+                const double coefficient = factors[factor];
+                variance += coefficient * coefficient;
+                KFKey factorKey;
+                factorKey.type = KF::SAT_CLOCK;
+                factorKey.str = "ZHANG_PRODUCT_COV_" +
+                    acsConfig.zhangPppAr.product_solution;
+                factorKey.Sat = SatSys(Sat.sys, 0);
+                factorKey.num = factor;
+                measEntry.addNoiseEntry(factorKey, coefficient, 1.0);
+            }
+            const double temporalSigma =
+                acsConfig.zhangPppAr.user_phase_product_temporal_sigma_m;
+            if (phaseMeasurement && temporalSigma > 0)
+            {
+                KFKey temporalKey;
+                temporalKey.type = KF::SAT_CLOCK;
+                temporalKey.str = "ZHANG_PHASE_PRODUCT_TEMPORAL";
+                temporalKey.Sat = Sat;
+                temporalKey.num = static_cast<int>(sig.code);
+                const double temporalVariance = SQR(temporalSigma);
+                measEntry.addNoiseEntry(temporalKey, 1, temporalVariance);
+                variance += temporalVariance;
+            }
+            if (acsConfig.zhangPppAr.output_diagnostics)
+            {
+                trace << "\nZHANG_E27_PRODUCT_COVARIANCE time="
+                      << tsync.to_string(0)
+                      << " receiver=" << rec.id
+                      << " satellite=" << Sat.id()
+                      << " observable=" << enum_to_string(sig.code)
+                      << " measurement="
+                      << (phaseMeasurement ? "PHASE" : "CODE")
+                      << " valid=1 rank=" << numericalRank
+                      << " marginal_variance=" << variance
+                      << " temporal_sigma_m="
+                      << (phaseMeasurement
+                          ? acsConfig.zhangPppAr.user_phase_product_temporal_sigma_m
+                          : 0);
+            }
+        }
+        else
+        {
+            measEntry.addNoiseEntry(productKey, 1, variance);
+        }
+        measEntry.componentsMap[E_Component::SAT_CLOCK] = {
+            -value,
+            phaseMeasurement
+                ? "- (Cdt_s-b_s) [Zhang internal product]"
+                : "- Cdt_s [Zhang internal product]",
+            variance
+        };
+        return;
+    }
+
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        // Never combine a missing/rejected Zhang product with a conventional
+        // satellite clock while suppressing the corresponding phase bias.
+        measEntry.valid = false;
+        return;
+    }
+
     // Don't obliterate obs.satClk in satclk below, we still need the old one for next signal/phase
     SatPos satPos0 = obs;
 
@@ -1296,6 +1446,48 @@ inline static void pppSatPhaseWindup(COMMON_PPP_ARGS)
 
 inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 {
+    if (zhangPppArUserReferenceAmbiguity(
+            kfState,
+            rec.id,
+            Sat,
+            sig.code
+        ))
+    {
+        measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {
+            0,
+            "+ lambda.N [Zhang user ambiguity S-basis]",
+            0
+        };
+        return;
+    }
+
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    bool retainZhangAmbiguity = true;
+    if (zhangOptions)
+    {
+        retainZhangAmbiguity =
+            zhangOptions->use_spanning_tree
+                ? zhangGraphRetainsAmbiguity(kfState, rec.id, Sat, sig.code)
+                : zhangFullRankRetainsAmbiguity(
+                      rec.id,
+                      Sat,
+                      sig.code,
+                      zhangOptions->baseline_observables,
+                      zhangOptions->reference_receiver,
+                      zhangOptions->reference_satellite
+                  );
+    }
+
+    if (zhangOptions && !retainZhangAmbiguity)
+    {
+        measEntry.componentsMap[E_Component::PHASE_AMBIGUITY] = {
+            0,
+            "+ lambda.N [Zhang ambiguity S-basis]",
+            0
+        };
+        return;
+    }
+
     double ambiguity   = 0;
     double ambiguity_m = 0;
     double varAmb      = 0;
@@ -1304,11 +1496,19 @@ inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
     kfKey.type    = KF::AMBIGUITY;
     kfKey.str     = rec.id;
     kfKey.Sat     = obs.Sat;
-    kfKey.num     = static_cast<int>(sig.code);
+    kfKey.num     = zhangPppArUserPhaseCoordinateNumber(Sat.sys, sig.code);
     kfKey.rec_ptr = &rec;
-    kfKey.comment = sigName;
+    kfKey.comment =
+        kfKey.num != static_cast<int>(sig.code)
+            ? "Zhang user IF ambiguity"
+            : zhangOptions
+            ? (zhangOptions->use_spanning_tree ? "Zhang cycle " : "Zhang DD ") + sigName
+            : (acsConfig.zhangPppAr.user_adapter &&
+                       zhangPppArUsesObservable(Sat.sys, sig.code)
+                   ? "Zhang user SD " + sigName
+                   : sigName);
 
-    if (sig.P)
+    if (sig.P && zhangOptions == nullptr)
     {
         ambiguity = sig.L - sig.P / lambda;
     }
@@ -1349,6 +1549,18 @@ inline static void pppIntegerAmbiguity(COMMON_PPP_ARGS)
 
 inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 {
+    auto zhangOptions = zhangFullRankSystemOptions(Sat.sys, sig.code);
+    if (zhangOptions &&
+        zhangFullRankIsReferenceReceiver(rec.id, zhangOptions->reference_receiver))
+    {
+        measEntry.componentsMap[E_Component::REC_PHASE_BIAS] = {
+            0,
+            "+ b_r [Zhang reference receiver S-basis]",
+            0
+        };
+        return;
+    }
+
     double recPhasBias    = recOpts.phaseBiasModel.default_bias;
     double recPhasBiasVar = SQR(recOpts.phaseBiasModel.undefined_sigma);
     bool biasFound = getBias(trace, time, rec.id, Sat, sig.code, PHAS, recPhasBias, recPhasBiasVar);
@@ -1357,9 +1569,10 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
     kfKey.type    = KF::PHASE_BIAS;
     kfKey.str     = rec.id;
     kfKey.Sat     = sysSat;
-    kfKey.num     = static_cast<int>(sig.code);
+    kfKey.num     = zhangPppArUserPhaseCoordinateNumber(Sat.sys, sig.code);
     kfKey.rec_ptr = &rec;
-    kfKey.comment = sigName;
+    kfKey.comment = kfKey.num != static_cast<int>(sig.code)
+        ? "Zhang user IF receiver phase" : sigName;
 
     E_Source found = kfState.getKFValue(kfKey, recPhasBias, &recPhasBiasVar);
 
@@ -1403,6 +1616,19 @@ inline static void pppRecPhasBias(COMMON_PPP_ARGS)
 
 inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 {
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        // The phase measurement already received the full correlated
+        // clock-minus-phase correction in pppSatClocks().
+        measEntry.componentsMap[E_Component::SAT_PHASE_BIAS] = {
+            0,
+            "+ b_s [included in Zhang internal phase correction]",
+            0
+        };
+        return;
+    }
+
     double satPhasBias    = satOpts.phaseBiasModel.default_bias;
     double satPhasBiasVar = SQR(satOpts.phaseBiasModel.undefined_sigma);
     bool   biasFound = getBias(trace, time, Sat, Sat, sig.code, PHAS, satPhasBias, satPhasBiasVar);
@@ -1456,6 +1682,27 @@ inline static void pppSatPhasBias(COMMON_PPP_ARGS)
 
 inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 {
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {
+            0,
+            "+ d_r [Zhang held-out user IF/GF S-basis]",
+            0
+        };
+        return;
+    }
+
+    if (zhangFullRankSystemOptions(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::REC_CODE_BIAS] = {
+            0,
+            "+ d_r [Zhang IF/GF code S-basis]",
+            0
+        };
+        return;
+    }
+
     double recCodeBias    = recOpts.codeBiasModel.default_bias;
     double recCodeBiasVar = SQR(recOpts.codeBiasModel.undefined_sigma);
     bool biasFound = getBias(trace, time, rec.id, Sat, sig.code, CODE, recCodeBias, recCodeBiasVar);
@@ -1498,7 +1745,13 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
         recCodeBiasVar = -1;
 
-        if (Sat.sys == recOpts.receiver_reference_system)
+        auto& phaseClockSysOpts = acsConfig.phaseClockOsb.sysOpts[Sat.sys];
+        bool  useExplicitCodeDatum =
+            acsConfig.phaseClockOsb.enable &&
+            acsConfig.phaseClockOsb.enforce_code_datum &&
+            phaseClockSysOpts.baseline_code_observables.size() == 2;
+
+        if (Sat.sys == recOpts.receiver_reference_system && useExplicitCodeDatum == false)
         {
             auto& recSysOpts = acsConfig.getRecOpts(rec.id, {sysSat.sysName()});
 
@@ -1562,6 +1815,27 @@ inline static void pppRecCodeBias(COMMON_PPP_ARGS)
 
 inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 {
+    if (acsConfig.zhangPppAr.user_adapter &&
+        zhangPppArUsesObservable(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {
+            0,
+            "- d_s [absorbed by Zhang internal satellite clock]",
+            0
+        };
+        return;
+    }
+
+    if (zhangFullRankSystemOptions(Sat.sys, sig.code))
+    {
+        measEntry.componentsMap[E_Component::SAT_CODE_BIAS] = {
+            0,
+            "+ d_s [Zhang IF/GF code S-basis]",
+            0
+        };
+        return;
+    }
+
     double satCodeBias    = satOpts.codeBiasModel.default_bias;
     double satCodeBiasVar = SQR(satOpts.codeBiasModel.undefined_sigma);
     bool   biasFound = getBias(trace, time, Sat, Sat, sig.code, CODE, satCodeBias, satCodeBiasVar);
@@ -1592,42 +1866,51 @@ inline static void pppSatCodeBias(COMMON_PPP_ARGS)
 
         satCodeBiasVar = -1;
 
-        auto& satSysOpts = acsConfig.getSatOpts(obs.Sat);
+        auto& phaseClockSysOpts = acsConfig.phaseClockOsb.sysOpts[Sat.sys];
+        bool  useExplicitCodeDatum =
+            acsConfig.phaseClockOsb.enable &&
+            acsConfig.phaseClockOsb.enforce_code_datum &&
+            phaseClockSysOpts.baseline_code_observables.size() == 2;
 
-        auto thisIt =
-            std::find(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), sig.code);
-        auto autoIt = std::find(
-            satSysOpts.clock_codes.begin(),
-            satSysOpts.clock_codes.end(),
-            E_ObsCode::AUTO
-        );
-        auto freqIt = std::find_if(
-            satSysOpts.clock_codes.begin(),
-            satSysOpts.clock_codes.end(),
-            [&](E_ObsCode code)
-            { return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code]; }
-        );
-
-        bool foundCode = thisIt != satSysOpts.clock_codes.end();
-        bool foundAuto = autoIt != satSysOpts.clock_codes.end();
-        bool foundFreq = freqIt != satSysOpts.clock_codes.end();
-
-        if (foundAuto && foundFreq)
+        if (useExplicitCodeDatum == false)
         {
-            // this frequency is already used in the clock codes, dont use again
-            foundAuto = false;
-        }
+            auto& satSysOpts = acsConfig.getSatOpts(obs.Sat);
 
-        if (foundCode || foundAuto)
-        {
-            // set the bias to zero, and dont let it change
-            init.x = 0;
-            init.P = 0;
-            init.Q = 0;
+            auto thisIt =
+                std::find(satSysOpts.clock_codes.begin(), satSysOpts.clock_codes.end(), sig.code);
+            auto autoIt = std::find(
+                satSysOpts.clock_codes.begin(),
+                satSysOpts.clock_codes.end(),
+                E_ObsCode::AUTO
+            );
+            auto freqIt = std::find_if(
+                satSysOpts.clock_codes.begin(),
+                satSysOpts.clock_codes.end(),
+                [&](E_ObsCode code)
+                { return code2Freq[obs.Sat.sys][code] == code2Freq[obs.Sat.sys][sig.code]; }
+            );
 
-            if (foundCode == false)
+            bool foundCode = thisIt != satSysOpts.clock_codes.end();
+            bool foundAuto = autoIt != satSysOpts.clock_codes.end();
+            bool foundFreq = freqIt != satSysOpts.clock_codes.end();
+
+            if (foundAuto && foundFreq)
             {
-                *autoIt = sig.code;
+                // this frequency is already used in the clock codes, dont use again
+                foundAuto = false;
+            }
+
+            if (foundCode || foundAuto)
+            {
+                // set the bias to zero, and dont let it change
+                init.x = 0;
+                init.P = 0;
+                init.Q = 0;
+
+                if (foundCode == false)
+                {
+                    *autoIt = sig.code;
+                }
             }
         }
 
@@ -1921,6 +2204,20 @@ void receiverUducGnss(
                     auto   sysSat = SatSys(sys);
                     double lambda = obs.satNav_ptr->lamMap[ft];
                     auto   code   = sig.code;
+
+                    auto zhangOptions = zhangFullRankSystemOptions(sys, code);
+                    if (zhangOptions &&
+                        zhangOptions->use_spanning_tree &&
+                        !zhangGraphModelsObservation(kfState, rec.id, Sat, code))
+                    {
+                        tracepdeex(
+                            2,
+                            trace,
+                            "\n%s - outside active Zhang graph component",
+                            measDescription
+                        );
+                        continue;
+                    }
 
                     string recSatId;
                     if (recOpts.sat_id.empty())

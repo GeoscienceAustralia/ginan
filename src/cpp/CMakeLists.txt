@@ -47,6 +47,12 @@ add_executable(pea
 		pea/ppp.cpp
 		pea/ppppp.cpp
 		pea/ppp_obs.cpp
+		pea/zhangReference.cpp
+		pea/zhangPppAr.cpp
+		pea/zhangInputCheckpoint.cpp
+		pea/zhangReceiverCheckpoint.cpp
+		pea/zhangCheckpointRuntime.cpp
+		pea/zhangE29MathClosure.cpp
 		pea/ppp_ambres.cpp
 		pea/ppp_callbacks.cpp
 		pea/ppp_pseudoobs.cpp
@@ -60,6 +66,7 @@ add_executable(pea
 		common/algebra.cpp
 		common/algebra_old.cpp
 		common/algebraTrace.cpp
+		common/zhangCheckpoint.cpp
 		# common/kalmanBlas.cpp
 		common/attitude.cpp
 		common/compare.cpp

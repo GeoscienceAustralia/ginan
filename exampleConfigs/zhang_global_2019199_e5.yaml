@@ -1,0 +1,21 @@
+# E5: directly resolve exact satellite-product target integers.  WL targets
+# are fixed first, followed by L1 targets in the WL-conditioned covariance.
+# Products remain diagnostic-only and integer_valid is not opened by this
+# strategy alone.
+processing_options:
+  gnss_general:
+    zhang_full_rank:
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 2
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      integer_strategy: PRODUCT_TARGET_WL_L1
+      product_filename: ./outputs/zhang_global_2019199_e5/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e5/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e5
+  metadata:
+    config_description: zhang_global_2019199_e5_direct_product_target

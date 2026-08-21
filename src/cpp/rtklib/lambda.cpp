@@ -668,3 +668,78 @@ int lambda(
     free(E);
     return info;
 }
+
+int lambdaWithTransform(
+    Trace&        trace,
+    int           n,
+    int           m,
+    const double* a,
+    const double* Q,
+    double*       F,
+    double*       s,
+    double        Pf,
+    bool&         pass,
+    MatrixXd&     ZMat,
+    MatrixXd&     reducedCovariance,
+    VectorXd&     conditionalVariances,
+    VectorXd&     conditionalSuccessRates,
+    double&       bootstrappedSuccessRate)
+{
+    int info = 0;
+    pass = false;
+    bootstrappedSuccessRate = 0;
+    ZMat.resize(0, 0);
+    reducedCovariance.resize(0, 0);
+    conditionalVariances.resize(0);
+    conditionalSuccessRates.resize(0);
+    if (n <= 0 || m <= 0)
+    {
+        return -1;
+    }
+
+    double* L = zeros(n, n);
+    double* D = mat(n, 1);
+    double* Z = eye(n);
+    double* z = mat(n, 1);
+    double* E = mat(n, m);
+    if (!(info = LD(n, Q, L, D)))
+    {
+        reduction(n, L, D, Z);
+        bootstrappedSuccessRate = 1;
+        for (int i = 0; i < n; i++)
+        {
+            bootstrappedSuccessRate *=
+                2 * normcdfar(0.5 / sqrt(D[i]), 0, 1) - 1;
+        }
+        const double criticalRatio =
+            ffratio(1 - bootstrappedSuccessRate, n, Pf);
+        matmul("TN", n, 1, n, 1, Z, a, 0, z);
+        if (!(info = search(n, m, L, D, z, E, s)))
+        {
+            info = solve("T", Z, E, n, m, F);
+        }
+        if (!info)
+        {
+            const double ratio = s[0] / s[1];
+            pass = ratio <= criticalRatio;
+            ZMat = Eigen::Map<MatrixXd>(Z, n, n);
+            const MatrixXd covariance = Eigen::Map<const MatrixXd>(Q, n, n);
+            reducedCovariance = ZMat.transpose() * covariance * ZMat;
+            reducedCovariance = 0.5
+                * (reducedCovariance + reducedCovariance.transpose());
+            conditionalVariances = Eigen::Map<VectorXd>(D, n);
+            conditionalSuccessRates.resize(n);
+            for (int i = 0; i < n; i++)
+            {
+                conditionalSuccessRates(i) =
+                    2 * normcdfar(0.5 / sqrt(D[i]), 0, 1) - 1;
+            }
+        }
+    }
+    free(L);
+    free(D);
+    free(Z);
+    free(z);
+    free(E);
+    return info;
+}

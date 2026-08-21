@@ -1,0 +1,93 @@
+{
+  "run": {
+    "date": "2026-07-30",
+    "arc": "2019-07-18 00:00:00 to 2019-07-18 06:00:00",
+    "interval_seconds": 300,
+    "epochs": 73,
+    "elapsed": "00:04:46.67"
+  },
+  "verdict": {
+    "structural_product_pass": true,
+    "integer_product_pass": false,
+    "scientific_status": "FLOAT internal clock/phase estimate only"
+  },
+  "network": {
+    "input_sites": 97,
+    "usable_sites": 96,
+    "estimation_sites": 74,
+    "backup_sites": 2,
+    "validation_sites": 20,
+    "estimation_validation_intersection": []
+  },
+  "strict_smoke_rank": [
+    {
+      "time": "2019-07-18 00:00:00",
+      "rows": 2028,
+      "active_columns": 1696,
+      "rank": 1696,
+      "nullity": 0
+    },
+    {
+      "time": "2019-07-18 00:05:00",
+      "rows": 2480,
+      "active_columns": 2035,
+      "rank": 2035,
+      "nullity": 0
+    }
+  ],
+  "graph": {
+    "events": 59,
+    "initialise": 1,
+    "leaf_extension": 1,
+    "tree_exchange": 47,
+    "reinitialise": 10,
+    "phase_datum_discontinuities": 10,
+    "tree_edges_min": 102,
+    "tree_edges_max": 103,
+    "cycles_min": 387,
+    "cycles_max": 561
+  },
+  "ambiguity_resolution": {
+    "epochs": 73,
+    "candidates_min": 810,
+    "candidates_max": 1084,
+    "adop_cycles_min": 0.0321802,
+    "adop_cycles_max": 0.472185,
+    "epochs_with_new_fixes": 10,
+    "newly_fixed_total": 285,
+    "first_new_fix_time": "2019-07-18 00:15:00",
+    "last_new_fix_time": "2019-07-18 05:20:00",
+    "held_integer_rank_max": 147,
+    "held_integer_rank_final": 10
+  },
+  "products": {
+    "columns": 23,
+    "rows": 8760,
+    "satellites_per_epoch_solution": 30,
+    "observables": [
+      "L1C",
+      "L2W"
+    ],
+    "solutions": [
+      "FLOAT",
+      "FIXED"
+    ],
+    "integer_valid_rows": 0,
+    "unresolved_integer_component_rows": 8760,
+    "discontinuity_counter_max": 25,
+    "datum_version_max": 25
+  },
+  "covariance": {
+    "dimension": 90,
+    "epoch_solution_groups": 146,
+    "upper_triangle_rows_per_group": 4095,
+    "rows": 597870,
+    "all_upper_triangles_complete": true
+  },
+  "sha256": {
+    "zhang_internal_products.csv": "1ad96613f7717d9a7a0dff4df9313ab517ca3f1486c7c2481c0b195af868fbdf",
+    "zhang_internal_product_covariance.csv": "dea9e9e0b09c293b4a2400b971314d17f304b64a9203aacc658a7c6c9322b517",
+    "Network-zhang_global_2019199_product-201919900.TRACE": "ab22bbb0473666f17fe3c17a16b672f098d350bc69f5ee1cadb83e37ffd857b0",
+    "zhang_global_2019199_full.log": "d23da01737bbcba635608adda171e03b14c090f338d9ebb73e0306dac39f3594"
+  }
+}

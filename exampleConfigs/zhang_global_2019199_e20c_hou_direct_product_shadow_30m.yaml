@@ -1,0 +1,39 @@
+# E20c acceptance replay for the direct Hou-style OSB-like product route.
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 00:30:00
+    epoch_interval: 60
+    wait_next_epoch: 3600
+  gnss_general:
+    zhang_full_rank:
+      output_diagnostics: false
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 10
+          prefer_historical_edges: true
+          core_skeleton: false
+    zhang_pppar:
+      output_diagnostics: true
+      product_mode: HOU_OSB_LIKE
+      integer_strategy: LAYERED_WL_L1
+      component_bridge_targeting: false
+      current_state_relinking: false
+      multi_epoch_relink_shadow: false
+      whitened_wl_fixed_lag_shadow: false
+      fixed_lag_factor_capture_shadow: false
+      promotion_confirmation_epochs: 5
+      promotion_confirmation_max_gap_seconds: 120
+      conflict_quarantine: true
+      transactional_integer_fixing: true
+      held_constraint_nis_alpha: 1.0e-6
+      product_target_named_rounding: false
+      maximum_pppar_correction_sigma_m: 0.5
+      maximum_product_residual_step_m: 0.5
+      product_filename: ./outputs/zhang_global_2019199_e20c_hou_direct_product_shadow_30m/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_e20c_hou_direct_product_shadow_30m/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_e20c_hou_direct_product_shadow_30m
+  metadata:
+    config_description: zhang_global_2019199_e20c_hou_direct_product_shadow_30m

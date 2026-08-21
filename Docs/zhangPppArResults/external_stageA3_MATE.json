@@ -1,0 +1,216 @@
+{
+  "station": "MATE",
+  "category": "inside",
+  "trace": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\outputs\\external_osb_stageA3_MATE\\Network-external_osb_user_MATE-201919900.TRACE",
+  "pos": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\outputs\\external_osb_stageA3_MATE\\MATE-external_osb_user_MATE-201919900.POS",
+  "signals": [
+    "L1C",
+    "L2W"
+  ],
+  "float_epochs": 721,
+  "ar_attempt_epochs": 721,
+  "ar_accepted_epochs": 0,
+  "ambiguity_epoch_fix_rate": 0.0,
+  "resolved_transform_rate": 0.0,
+  "resolved_total": 0,
+  "candidates_total_at_accepted_epochs": 0,
+  "time_to_first_fix_s": null,
+  "wrong_fix_modal_proxy_count": 0,
+  "wrong_fix_modal_proxy_denominator": 0,
+  "wrong_fix_modal_proxy_rate": null,
+  "wrong_fix_position_proxy_count": 0,
+  "wrong_fix_position_proxy_denominator": 0,
+  "wrong_fix_position_proxy_rate": null,
+  "float_ambiguities": {
+    "reference_satellite": "G15",
+    "reference_usable_epochs": 670,
+    "raw_original_frequency": {
+      "L1C": {
+        "count": 5264,
+        "median_abs_cycle": 0.26706700000000083,
+        "p90_abs_cycle": 0.4490837300000002,
+        "within_0.15_rate": 0.28780395136778114,
+        "within_0.25_rate": 0.4688449848024316,
+        "within_0.01_rate": 0.021846504559270518
+      },
+      "L2W": {
+        "count": 5264,
+        "median_abs_cycle": 0.2451389499999994,
+        "p90_abs_cycle": 0.43055018999999994,
+        "within_0.15_rate": 0.3033814589665654,
+        "within_0.25_rate": 0.5110182370820668,
+        "within_0.01_rate": 0.018427051671732524
+      }
+    },
+    "raw_wide_lane": {
+      "count": 5264,
+      "median_abs_cycle": 0.4352004499999991,
+      "p90_abs_cycle": 0.4814712,
+      "within_0.15_rate": 0.010448328267477203,
+      "within_0.25_rate": 0.023936170212765957,
+      "within_0.01_rate": 0.0007598784194528875
+    },
+    "satellite_single_difference": {
+      "L1C": {
+        "count": 4192,
+        "median_abs_cycle": 0.2671733000000014,
+        "p90_abs_cycle": 0.4511183499999998,
+        "within_0.15_rate": 0.24666030534351144,
+        "within_0.25_rate": 0.45729961832061067,
+        "within_0.01_rate": 0.04866412213740458
+      },
+      "L2W": {
+        "count": 4192,
+        "median_abs_cycle": 0.2596161999999982,
+        "p90_abs_cycle": 0.424643780000002,
+        "within_0.15_rate": 0.32895992366412213,
+        "within_0.25_rate": 0.4532442748091603,
+        "within_0.01_rate": 0.011450381679389313
+      }
+    },
+    "single_difference_wide_lane": {
+      "count": 4192,
+      "median_abs_cycle": 0.0700796999999973,
+      "p90_abs_cycle": 0.211019990000003,
+      "within_0.15_rate": 0.7442748091603053,
+      "within_0.25_rate": 0.9425095419847328,
+      "within_0.01_rate": 0.03864503816793893
+    }
+  },
+  "float_ambiguities_last_hour": {
+    "reference_satellite": "G02",
+    "reference_usable_epochs": 121,
+    "raw_original_frequency": {
+      "L1C": {
+        "count": 1043,
+        "median_abs_cycle": 0.3000351,
+        "p90_abs_cycle": 0.4539129599999995,
+        "within_0.15_rate": 0.20038350910834132,
+        "within_0.25_rate": 0.3604985618408437,
+        "within_0.01_rate": 0.012464046021093002
+      },
+      "L2W": {
+        "count": 1043,
+        "median_abs_cycle": 0.13960099999999898,
+        "p90_abs_cycle": 0.39825951999999964,
+        "within_0.15_rate": 0.5186960690316395,
+        "within_0.25_rate": 0.7046979865771812,
+        "within_0.01_rate": 0.030680728667305847
+      }
+    },
+    "raw_wide_lane": {
+      "count": 1043,
+      "median_abs_cycle": 0.4254092999999983,
+      "p90_abs_cycle": 0.46976020000000107,
+      "within_0.15_rate": 0.0,
+      "within_0.25_rate": 0.0,
+      "within_0.01_rate": 0.0
+    },
+    "satellite_single_difference": {
+      "L1C": {
+        "count": 922,
+        "median_abs_cycle": 0.23978360000000087,
+        "p90_abs_cycle": 0.43831896000000087,
+        "within_0.15_rate": 0.2885032537960954,
+        "within_0.25_rate": 0.517353579175705,
+        "within_0.01_rate": 0.031453362255965296
+      },
+      "L2W": {
+        "count": 922,
+        "median_abs_cycle": 0.24102609999999913,
+        "p90_abs_cycle": 0.4541462399999968,
+        "within_0.15_rate": 0.3297180043383948,
+        "within_0.25_rate": 0.5303687635574837,
+        "within_0.01_rate": 0.0227765726681128
+      }
+    },
+    "single_difference_wide_lane": {
+      "count": 922,
+      "median_abs_cycle": 0.09172954999999838,
+      "p90_abs_cycle": 0.16846518000000435,
+      "within_0.15_rate": 0.7939262472885033,
+      "within_0.25_rate": 1.0,
+      "within_0.01_rate": 0.024945770065075923
+    }
+  },
+  "ar_ambiguities": {
+    "reference_satellite": "G15",
+    "reference_usable_epochs": 0,
+    "raw_original_frequency": {
+      "L1C": {
+        "count": 0,
+        "median_abs_cycle": null,
+        "p90_abs_cycle": null,
+        "within_0.15_rate": null,
+        "within_0.25_rate": null,
+        "within_0.01_rate": null
+      },
+      "L2W": {
+        "count": 0,
+        "median_abs_cycle": null,
+        "p90_abs_cycle": null,
+        "within_0.15_rate": null,
+        "within_0.25_rate": null,
+        "within_0.01_rate": null
+      }
+    },
+    "raw_wide_lane": {
+      "count": 0,
+      "median_abs_cycle": null,
+      "p90_abs_cycle": null,
+      "within_0.15_rate": null,
+      "within_0.25_rate": null,
+      "within_0.01_rate": null
+    },
+    "satellite_single_difference": {
+      "L1C": {
+        "count": 0,
+        "median_abs_cycle": null,
+        "p90_abs_cycle": null,
+        "within_0.15_rate": null,
+        "within_0.25_rate": null,
+        "within_0.01_rate": null
+      },
+      "L2W": {
+        "count": 0,
+        "median_abs_cycle": null,
+        "p90_abs_cycle": null,
+        "within_0.15_rate": null,
+        "within_0.25_rate": null,
+        "within_0.01_rate": null
+      }
+    },
+    "single_difference_wide_lane": {
+      "count": 0,
+      "median_abs_cycle": null,
+      "p90_abs_cycle": null,
+      "within_0.15_rate": null,
+      "within_0.25_rate": null,
+      "within_0.01_rate": null
+    }
+  },
+  "coordinates": {
+    "all": {
+      "epochs": 721,
+      "east_rms_m": 0.02716447190179095,
+      "north_rms_m": 0.033094374140065067,
+      "up_rms_m": 0.07451172027813618,
+      "horizontal_p95_m": 0.022851444155676463,
+      "up_abs_p95_m": 0.02673
+    },
+    "after_first_fix": {
+      "epochs": 0,
+      "east_rms_m": null,
+      "north_rms_m": null,
+      "up_rms_m": null,
+      "horizontal_p95_m": null,
+      "up_abs_p95_m": null
+    }
+  },
+  "convergence_enu_10cm_20cm_s": 390.0,
+  "convergence_enu_5cm_10cm_s": 990.0,
+  "interpretation": {
+    "wrong_fix_note": "Modal inconsistency is an internal proxy, not external ambiguity truth and is inflated by unlabelled cycle-slip arc resets. The position proxy flags accepted epochs with horizontal error >0.5 m or vertical error >1.0 m; repeated datasets are still required for a scientific wrong-fix rate.",
+    "raw_ambiguity_note": "Raw undifferenced ambiguity fractions are datum-dependent. Satellite single differences and their wide lanes cancel the receiver ambiguity datum."
+  }
+}

@@ -1,0 +1,170 @@
+# Global engineering prototype for the Zhang GPS L1C/L2W internal product.
+#
+# Load in this order:
+#   1. osb_wum_fixed_orbit.yaml
+#   2. zhang_global_2019199/zhang_global_2019199_inputs.yaml
+#   3. this file
+#
+# The input overlay contains 74 estimation stations.  Twenty stations in
+# network_validation.txt are excluded before estimation and two additional
+# stations are retained in network_backup.txt.
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199
+
+  metadata:
+    config_description: zhang_global_2019199_product
+
+  trace:
+    level: 2
+    output_receivers: false
+    output_network: true
+    network_filename: Network-<CONFIG>-<YYYY><DDD><HH>.TRACE
+    output_residuals: true
+    output_config: true
+
+  clocks:
+    output: false
+
+  bias_sinex:
+    output: false
+
+  sinex:
+    output: false
+
+satellite_options:
+  global:
+    models:
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+receiver_options:
+  global:
+    exclude: true
+    models:
+      phase_bias:
+        enable: true
+      code_bias:
+        enable: true
+
+processing_options:
+  epoch_control:
+    start_epoch: 2019-07-18 00:00:00
+    end_epoch: 2019-07-18 06:00:00
+    epoch_interval: 300
+    wait_next_epoch: 3600
+    max_rec_latency: 1
+
+  gnss_general:
+    pivot_receiver: USN7
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: true
+        receiver_amb_pivot: false
+        network_amb_pivot: false
+        reject_eclipse: false
+        code_priorities: [L1C, L2W]
+
+    zhang_full_rank:
+      enable: true
+      # The strict smoke overlay enables the dense SVD gate.  Keeping it off
+      # for the six-hour run avoids an O(n^3) diagnostic at every epoch.
+      output_diagnostics: false
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+          reference_receiver: USN7
+          use_spanning_tree: true
+          auto_reference_switch: false
+          # T1 continuity policy: keep modelled arcs through two transient
+          # gaps and prefer edges already represented in the integer state.
+          state_edge_grace_epochs: 2
+          prefer_historical_edges: true
+          core_skeleton: false
+
+    zhang_pppar:
+      output_products: true
+      user_adapter: false
+      output_diagnostics: true
+      product_filename: ./outputs/zhang_global_2019199_products/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_products/zhang_internal_product_covariance.csv
+      product_solution: FIXED
+      stabilization_epochs: 2
+      initial_discontinuity_counter: 0
+      sys_options:
+        gps:
+          baseline_observables: [L1C, L2W]
+
+  ambiguity_resolution:
+    mode: LAMBDA
+    success_rate_threshold: 0.999
+    solution_ratio_threshold: 3
+    lambda_set_size: 200
+    once_per_epoch: true
+    fix_and_hold: true
+
+  ppp_filter:
+    ionospheric_components:
+      common_ionosphere: true
+      use_gf_combo: false
+      use_if_combo: false
+      corr_mode: estimate
+
+    rts:
+      enable: false
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [false]
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [10]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [900]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [1]
+        outage_limit: [900]
+      trop:
+        estimated: [true]
+        sigma: [0.3]
+        process_noise: [0.0001]
+      trop_grads:
+        estimated: [false]
+      code_bias:
+        estimated: [true]
+        sigma: [20]
+        process_noise: [0]
+      phase_bias:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+
+  satellites:
+    global:
+      clock:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [1]
+        tau: [100]
+      code_bias:
+        estimated: [true]
+        sigma: [20]
+        process_noise: [0]
+      phase_bias:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+
+mongo:
+  enable: none

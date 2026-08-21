@@ -1,0 +1,17 @@
+# T0 ablation: instantaneous observation graph with no historical-edge policy.
+processing_options:
+  gnss_general:
+    zhang_full_rank:
+      sys_options:
+        gps:
+          state_edge_grace_epochs: 0
+          prefer_historical_edges: false
+          core_skeleton: false
+    zhang_pppar:
+      product_filename: ./outputs/zhang_global_2019199_t0/zhang_internal_products.csv
+      product_covariance_filename: ./outputs/zhang_global_2019199_t0/zhang_internal_product_covariance.csv
+
+outputs:
+  outputs_root: ./outputs/zhang_global_2019199_t0
+  metadata:
+    config_description: zhang_global_2019199_t0

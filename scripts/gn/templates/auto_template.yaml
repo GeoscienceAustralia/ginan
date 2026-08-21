@@ -163,6 +163,36 @@ processing_options:
                 process: false
                 reject_eclipse: false
 
+        # Explicit datum controller for staged ambiguity-fixed clock and OSB products.
+        # First-stage use: GPS L1/L2, fixed precise orbit and fixed station coordinates.
+        phase_clock_osb:
+            enable: false
+            enforce_code_datum: true
+            constrain_reference_receiver_phase: true
+            baseline_only_ambiguity_resolution: true
+            output_diagnostics: true
+            code_datum_sigma: 1.0e-6       # metres
+            phase_datum_sigma: 1.0e-6      # metres
+            datum_identifier: GPS_C1W_C2W_IF
+            solution_id: GINAN_PHASE_CLOCK_OSB
+            discontinuity_counter: 0
+            sys_options:
+                gps:
+                    baseline_code_observables: [L1W, L2W]
+                    baseline_phase_observables: [L1W, L2W]
+                    phase_reference_receiver: ""  # Required actual receiver ID when enabled
+
+        # Structural S-basis for Zhang's code-plus-phase,
+        # ionosphere-float full-rank network model.
+        zhang_full_rank:
+            enable: false
+            output_diagnostics: true
+            sys_options:
+                gps:
+                    baseline_observables: [L1C, L2W]
+                    reference_receiver: ""  # Required actual receiver ID when enabled
+                    reference_satellite: "" # Required satellite ID, for example G05
+
     preprocessor:                  # Configurations for the kalman filter and its sub processes
         cycle_slips:               # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
             mw_process_noise:    0    # Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips

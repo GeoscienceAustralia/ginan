@@ -1,8 +1,11 @@
 // #pragma GCC optimize ("O0")
 
 #include "pea/ppp.hpp"
+#include "pea/zhangReference.hpp"
+#include "pea/zhangPppAr.hpp"
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <string>
@@ -32,6 +35,146 @@ using std::map;
 using std::string;
 using std::stringstream;
 using std::tuple;
+
+static void outputZhangPureObservationRank(
+    Trace&           trace,
+    KFState&         kfState,
+    KFMeasEntryList& pureObservationEntries
+)
+{
+    if (!acsConfig.zhangFullRank.enable ||
+        !acsConfig.zhangFullRank.output_diagnostics ||
+        pureObservationEntries.empty())
+    {
+        return;
+    }
+
+    KFMeas pureObservations(kfState, pureObservationEntries, tsync);
+
+    std::vector<int> activeColumns;
+    for (int column = 0; column < pureObservations.H.cols(); column++)
+    {
+        if (pureObservations.H.col(column).squaredNorm() > 1e-24)
+        {
+            activeColumns.push_back(column);
+        }
+    }
+
+    if (activeColumns.empty())
+    {
+        return;
+    }
+
+    MatrixXd activeDesign(pureObservations.H.rows(), activeColumns.size());
+    for (int column = 0; column < activeColumns.size(); column++)
+    {
+        activeDesign.col(column) = pureObservations.H.col(activeColumns[column]);
+
+        double norm = activeDesign.col(column).norm();
+        if (norm > 0)
+        {
+            activeDesign.col(column) /= norm;
+        }
+    }
+
+    Eigen::JacobiSVD<MatrixXd> decomposition(
+        activeDesign,
+        Eigen::ComputeThinU | Eigen::ComputeThinV
+    );
+    VectorXd singularValues = decomposition.singularValues();
+
+    double sigmaMax = singularValues.size() ? singularValues(0) : 0;
+    double threshold = 1e-10 * sigmaMax;
+    int rank = 0;
+    for (double singularValue : singularValues)
+    {
+        if (singularValue > threshold)
+        {
+            rank++;
+        }
+    }
+
+    int nullity = activeDesign.cols() - rank;
+    double sigmaMin =
+        singularValues.size() ? singularValues(singularValues.size() - 1) : 0;
+    double condition =
+        nullity == 0 && sigmaMin > 0
+            ? sigmaMax / sigmaMin
+            : std::numeric_limits<double>::infinity();
+
+    string message =
+        "ZHANG_PURE_OBS_RANK time=" + tsync.to_string(0) +
+        " rows=" + std::to_string(activeDesign.rows()) +
+        " active_cols=" + std::to_string(activeDesign.cols()) +
+        " rank=" + std::to_string(rank) +
+        " nullity=" + std::to_string(nullity) +
+        " sigma_max=" + std::to_string(sigmaMax) +
+        " sigma_min=" + std::to_string(sigmaMin) +
+        " condition=" + std::to_string(condition) +
+        " full_column_rank=" + (nullity == 0 ? "true" : "false");
+
+    trace << "\n" << message;
+    BOOST_LOG_TRIVIAL(info) << message;
+
+    if (nullity > 0 && decomposition.matrixV().cols() == activeDesign.cols())
+    {
+        std::map<int, KFKey> indexKeyMap;
+        for (auto& [key, index] : kfState.kfIndexMap)
+        {
+            indexKeyMap[index] = key;
+        }
+
+        for (int nullIndex = 0; nullIndex < nullity; nullIndex++)
+        {
+            int singularIndex = rank + nullIndex;
+            VectorXd nullVector = decomposition.matrixV().col(singularIndex);
+
+            std::vector<std::pair<double, int>> components;
+            for (int column = 0; column < nullVector.rows(); column++)
+            {
+                components.push_back({std::abs(nullVector(column)), column});
+            }
+            std::sort(
+                components.begin(),
+                components.end(),
+                [](const auto& left, const auto& right)
+                {
+                    return left.first > right.first;
+                }
+            );
+
+            stringstream details;
+            details << "ZHANG_PURE_OBS_NULL_VECTOR index=" << nullIndex
+                    << " sigma=" << singularValues(singularIndex)
+                    << " components=";
+
+            int outputCount = 0;
+            for (auto& [magnitude, activeColumn] : components)
+            {
+                if (outputCount >= 12 || magnitude < 1e-3)
+                {
+                    break;
+                }
+
+                int stateColumn = activeColumns[activeColumn];
+                auto keyIt = indexKeyMap.find(stateColumn);
+                if (keyIt == indexKeyMap.end())
+                {
+                    continue;
+                }
+
+                if (outputCount++)
+                {
+                    details << ";";
+                }
+                details << nullVector(activeColumn) << "*" << keyIt->second;
+            }
+
+            trace << "\n" << details.str();
+            BOOST_LOG_TRIVIAL(info) << details.str();
+        }
+    }
+}
 
 /** Primary estimation and filtering.
  *
@@ -310,6 +453,22 @@ void makeIFLCs(Trace& trace, KFState& kfState, KFMeasEntryList& kfMeasEntryList)
             kfMeasEntryJ.designEntryMap = std::move(newDesignEntryMap);
             kfMeasEntryJ.noiseEntryMap  = std::move(newNoiseEntryMap);
             kfMeasEntryJ.componentsMap  = std::move(newComponentsMap);
+
+            if (acsConfig.zhangPppAr.user_adapter &&
+                acsConfig.zhangPppAr.integer_strategy ==
+                    "CANONICAL_USER_IF_WL_L1")
+            {
+                trace << "\nZHANG_E27_IF_COMBINATION time="
+                      << kfState.time.to_string(0)
+                      << " receiver=" << kfMeasEntryJ.obsKey.str
+                      << " satellite=" << kfMeasEntryJ.obsKey.Sat.id()
+                      << " measurement_type="
+                      << enum_to_string(kfMeasEntryJ.obsKey.type)
+                      << " coefficient_first=" << coeff_j * scalar
+                      << " coefficient_second=" << -coeff_i * scalar
+                      << " ionosphere_coefficient=0"
+                      << " per_signal_product_applied_before_if=1";
+            }
 
             kfState.removeState(ionKey_i);
             break;
@@ -1725,6 +1884,8 @@ void perRecMeasurements(
 
     orbitPseudoObs(trace, rec, kfState, kfMeasEntryList);
     receiverUducGnss(trace, rec, kfState, kfMeasEntryList, remoteState);
+    captureZhangE27WideLaneRawNoiseFactors(
+        kfState, tsync, rec.id, kfMeasEntryList);
     receiverSlr(trace, rec, kfState, kfMeasEntryList);
     receiverPseudoObs(trace, rec, kfState, kfMeasEntryList, receiverMap);
 
@@ -1767,6 +1928,7 @@ void pppPseudoObs(
     initPseudoObs(trace, kfState, kfMeasEntryList);
     satClockPivotPseudoObs(trace, kfState, kfMeasEntryList);
     filterPseudoObs(trace, kfState, kfMeasEntryList);
+    phaseClockOsbPseudoObs(trace, kfState, kfMeasEntryList);
     phasePseudoObs(trace, kfState, kfMeasEntryList);
 }
 
@@ -1780,6 +1942,8 @@ void ppp(
     DOCS_REFERENCE(Main_Filter__);
 
     updateFilter(trace, receiverMap, kfState);
+    configureZhangE18FactorCapture(kfState);
+    configureZhangL1MeasurementReplayTransitionCapture(kfState);
 
     // add process noise and dynamics to existing states as a prediction of current state
     if (kfState.assume_linearity == false)
@@ -1787,6 +1951,9 @@ void ppp(
         BOOST_LOG_TRIVIAL(info) << " ------- DOING STATE TRANSITION       --------" << "\n";
 
         kfState.stateTransition(trace, tsync);
+
+        updateZhangFullRankReferences(trace, receiverMap, kfState);
+        updateZhangPppArUserReferences(trace, receiverMap, kfState);
 
         if (acsConfig.output_predicted_states)
         {
@@ -1846,6 +2013,19 @@ void ppp(
             }
         }
 
+    KFMeasEntryList zhangPureObservationEntries;
+    if (acsConfig.zhangFullRank.enable && acsConfig.zhangFullRank.output_diagnostics)
+    {
+        for (auto& entry : kfMeasEntryList)
+        {
+            if (entry.obsKey.type == KF::CODE_MEAS ||
+                entry.obsKey.type == KF::PHAS_MEAS)
+            {
+                zhangPureObservationEntries.push_back(entry);
+            }
+        }
+    }
+
     pppPseudoObs(trace, receiverMap, kfState, kfMeasEntryList);
 
     if (acsConfig.pppOpts.merge_correlated_states)
@@ -1869,6 +2049,8 @@ void ppp(
              .queue     = acsConfig.mongoOpts.queue_outputs}
         );
     }
+
+    outputZhangPureObservationRank(trace, kfState, zhangPureObservationEntries);
 
     std::sort(
         kfMeasEntryList.begin(),
@@ -1904,7 +2086,27 @@ void ppp(
 
     BOOST_LOG_TRIVIAL(info) << " ------- DOING PPPPP KALMAN FILTER    --------" << "\n";
 
+    const bool captureL1MeasurementReplay =
+        acsConfig.zhangPppAr.l1_measurement_replay_shadow &&
+        acsConfig.zhangPppAr.l1_measurement_replay_target_epoch ==
+            kfState.time.to_string(0);
+    KFState l1MeasurementReplayPrior;
+    if (captureL1MeasurementReplay)
+    {
+        l1MeasurementReplayPrior = kfState;
+    }
+    captureZhangPppArFloatPrior(kfState);
     kfState.filterKalman(trace, kfMeas, "/PPP", true, &filterChunkMap);
+
+    if (captureL1MeasurementReplay)
+    {
+        captureZhangL1MeasurementReplayPosteriors(
+            trace,
+            l1MeasurementReplayPrior,
+            kfState,
+            kfMeas
+        );
+    }
 
     postFilterChecks(tsync, receiverMap, kfState, kfMeas);
 

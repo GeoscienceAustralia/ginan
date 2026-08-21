@@ -1,0 +1,165 @@
+{
+  "products": "\\\\wsl.localhost\\Ubuntu-22.04-G\\home\\rx\\GINAN\\inputData\\outputs\\zhang_global_2019199_e9_60s_guarded\\zhang_internal_products.csv",
+  "solution": "FIXED",
+  "epoch_count": 361,
+  "start_gpst_seconds": 1247443200,
+  "maximum_absolute_correction": {
+    "gpst_seconds": 1247451660,
+    "satellite": "G18",
+    "observable": "L2W",
+    "absolute_correction_m": 9.379428660960157e+39,
+    "integer_valid": true
+  },
+  "maximum_epoch_step": {
+    "gpst_seconds": 1247451720,
+    "satellite": "G18",
+    "observable": "L2W",
+    "step_m": 9.468734071852134e+39,
+    "integer_valid": true,
+    "datum_version": 0,
+    "discontinuity_counter": 0
+  },
+  "maximum_integer_valid_epoch_step": {
+    "gpst_seconds": 1247451720,
+    "satellite": "G18",
+    "observable": "L2W",
+    "step_m": 9.468734071852134e+39,
+    "integer_valid": true,
+    "datum_version": 0,
+    "discontinuity_counter": 0
+  },
+  "thresholds": {
+    "1.0": {
+      "step_count": 1475,
+      "integer_valid_step_count": 647,
+      "first": {
+        "gpst_seconds": 1247443260,
+        "satellite": "G01",
+        "observable": "L2W",
+        "step_m": 1.4634987876270316,
+        "integer_valid": false,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      },
+      "first_integer_valid": {
+        "gpst_seconds": 1247450160,
+        "satellite": "G01",
+        "observable": "L1C",
+        "step_m": 1.9689074485613673,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      }
+    },
+    "10.0": {
+      "step_count": 1371,
+      "integer_valid_step_count": 630,
+      "first": {
+        "gpst_seconds": 1247443500,
+        "satellite": "G19",
+        "observable": "L1C",
+        "step_m": 17.181282752892002,
+        "integer_valid": false,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      },
+      "first_integer_valid": {
+        "gpst_seconds": 1247450640,
+        "satellite": "G01",
+        "observable": "L1C",
+        "step_m": 225451.55725975824,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      }
+    },
+    "1000.0": {
+      "step_count": 827,
+      "integer_valid_step_count": 311,
+      "first": {
+        "gpst_seconds": 1247450640,
+        "satellite": "G01",
+        "observable": "L1C",
+        "step_m": 225451.55725975824,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      },
+      "first_integer_valid": {
+        "gpst_seconds": 1247450640,
+        "satellite": "G01",
+        "observable": "L1C",
+        "step_m": 225451.55725975824,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      }
+    },
+    "1000000.0": {
+      "step_count": 424,
+      "integer_valid_step_count": 114,
+      "first": {
+        "gpst_seconds": 1247450640,
+        "satellite": "G09",
+        "observable": "L1C",
+        "step_m": 9051959.738415873,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      },
+      "first_integer_valid": {
+        "gpst_seconds": 1247450640,
+        "satellite": "G09",
+        "observable": "L1C",
+        "step_m": 9051959.738415873,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      }
+    },
+    "1000000000000.0": {
+      "step_count": 379,
+      "integer_valid_step_count": 91,
+      "first": {
+        "gpst_seconds": 1247451600,
+        "satellite": "G01",
+        "observable": "L2W",
+        "step_m": 4225613928619751.0,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      },
+      "first_integer_valid": {
+        "gpst_seconds": 1247451600,
+        "satellite": "G01",
+        "observable": "L2W",
+        "step_m": 4225613928619751.0,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      }
+    },
+    "1e+30": {
+      "step_count": 337,
+      "integer_valid_step_count": 84,
+      "first": {
+        "gpst_seconds": 1247451660,
+        "satellite": "G01",
+        "observable": "L1C",
+        "step_m": 1.4519577299818618e+34,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      },
+      "first_integer_valid": {
+        "gpst_seconds": 1247451660,
+        "satellite": "G01",
+        "observable": "L1C",
+        "step_m": 1.4519577299818618e+34,
+        "integer_valid": true,
+        "datum_version": 0,
+        "discontinuity_counter": 0
+      }
+    }
+  }
+}

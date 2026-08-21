@@ -1,0 +1,7 @@
+outputs:
+  outputs_root: ./outputs/zhang_pppar_user_float
+
+processing_options:
+  gnss_general:
+    zhang_pppar:
+      product_solution: FLOAT
