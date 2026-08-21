@@ -20,7 +20,9 @@ struct ProductIntegerCandidate
 	double fractional = std::numeric_limits<double>::quiet_NaN();
 	double perr = 1;
 	double incrementalProductGain = 0;
-	int pairGraphRankGain = 0;
+	int dualGraphRankGain = 0;
+	int signalGraphRankGain = 0;
+	int productLatticeRankGain = 1;
 	std::string source = "UNKNOWN";
 	bool reliabilityPassed = false;
 };
@@ -247,8 +249,11 @@ generateProductIntegerCandidates(
 		candidate.fractional = fractional;
 		candidate.perr = perr;
 		candidate.incrementalProductGain = std::max(0.0, gain);
-		candidate.pairGraphRankGain =
+		candidate.signalGraphRankGain =
 			zhangProductCandidateIsNamedPairRow(row) ? 1 : 0;
+		// A candidate cannot create a dual-frequency graph edge on its own;
+		// that rank is evaluated after its WL/L1 partner has been selected.
+		candidate.dualGraphRankGain = 0;
 		candidate.source = source;
 		candidate.reliabilityPassed = std::isfinite(variance) && variance > 0 &&
 			std::isfinite(perr) && perr <= maximumPerr && nis <= scalarThreshold;
@@ -260,8 +265,12 @@ generateProductIntegerCandidates(
 		{
 			if (left.reliabilityPassed != right.reliabilityPassed)
 				return left.reliabilityPassed > right.reliabilityPassed;
-			if (left.pairGraphRankGain != right.pairGraphRankGain)
-				return left.pairGraphRankGain > right.pairGraphRankGain;
+			if (left.dualGraphRankGain != right.dualGraphRankGain)
+				return left.dualGraphRankGain > right.dualGraphRankGain;
+			if (left.signalGraphRankGain != right.signalGraphRankGain)
+				return left.signalGraphRankGain > right.signalGraphRankGain;
+			if (left.productLatticeRankGain != right.productLatticeRankGain)
+				return left.productLatticeRankGain > right.productLatticeRankGain;
 			if (left.incrementalProductGain != right.incrementalProductGain)
 				return left.incrementalProductGain > right.incrementalProductGain;
 			if (left.variance != right.variance)

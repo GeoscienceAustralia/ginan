@@ -604,6 +604,11 @@ struct ZhangFullRankSystemOptions
     bool           prefer_historical_edges = false;
     bool           core_skeleton = false;
     int            product_core_min_satellite_support = 0;
+	// Product-IAR-only gate.  FLOAT continues to use every accepted
+	// observation; when enabled the product core rejects arcs without a full
+	// independent quality audit rather than treating missing residual evidence
+	// as good evidence.
+	bool           product_integer_support_core = false;
     vector<string> reference_receiver_candidates;
     vector<string> reference_satellite_candidates;
 };
@@ -707,6 +712,22 @@ struct ZhangPppArOptions
     int    product_relation_pair_audit_best_edge_count = 20;
     bool   product_relation_admission_shadow = false;
     bool   product_relation_feedback = false;
+    // Component gauges close the remaining datum-free integer rank between
+    // already dual-frequency-certified product components. SHADOW only emits
+    // diagnostics; PRIVATE may only contribute to the disposable
+    // PRODUCT_FIXED branch. Neither mode changes authoritative FLOAT.
+    string product_component_gauge_solver_mode = "OFF";
+    int    product_component_gauge_max_iterations = 3;
+    double product_component_gauge_max_perr = 1e-3;
+    double product_component_gauge_nis_alpha = 1e-3;
+    int    product_component_gauge_confirmation_epochs = 2;
+    bool   product_dual_graph_objective = true;
+    // Physical ProductIntegerLedger rows are optional private-search evidence.
+    // This switch isolates their contribution without changing direct rows or
+    // the independent ProductGauge certificate ledger.
+    bool   product_integer_ledger_enabled = true;
+    bool   product_gauge_certificate_ledger = true;
+    bool   product_allow_partial_components = true;
     // Explicit non-causal diagnostic control.  The file is accepted only when
     // it contains a fully proved dual-frequency satellite graph; it never
     // changes the authoritative network FLOAT state.

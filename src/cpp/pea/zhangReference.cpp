@@ -29,6 +29,7 @@
 #include "common/trace.hpp"
 #include "common/zhangCheckpoint.hpp"
 #include "common/zhangFullRank.hpp"
+#include "common/zhangIntegerSupportResidualAudit.hpp"
 #include "common/zhangIntegerAudit.hpp"
 #include "pea/zhangPppAr.hpp"
 
@@ -2385,6 +2386,7 @@ void updateZhangGraphBasis(
 
     map<ZhangGraphEdge, double> activeQuality;
     map<ZhangGraphEdge, int> persistence;
+	map<ZhangGraphEdge, ZhangIntegerArcQuality> integerSupportQuality;
     for (const auto& edge : stateEdges)
     {
         auto qualityIt = availability.edgeQuality.find(edge);
@@ -2397,18 +2399,43 @@ void updateZhangGraphBasis(
         if (historyIt != runtime.edgeHistory.end())
         {
             persistence[edge] = historyIt->second.continuousEpochs;
+			ZhangIntegerArcQuality audit;
+			audit.ageEpochs = historyIt->second.continuousEpochs;
+			audit.outageCount = historyIt->second.outageEpochs;
+			audit.slipCount = availability.discontinuousEdges.count(edge) ? 1 : 0;
+			auto arcHistory = runtime.arcVersionObservationHistory.find(
+				{edge, historyIt->second.arcVersion});
+			if (arcHistory != runtime.arcVersionObservationHistory.end())
+				audit.observations = arcHistory->second.observationEpochs;
+			auto elevation = availability.edgeQuality.find(edge);
+			if (elevation != availability.edgeQuality.end())
+				audit.elevationScore = elevation->second;
+			const auto residual = zhangIntegerSupportResidualSummary(
+				&kfState, edge);
+			audit.observations = std::min(
+				audit.observations,
+				std::min(residual.phaseSamples, residual.codeSamples));
+			audit.phaseResidualRms = residual.phaseRms;
+			audit.codeResidualRms = residual.codeRms;
+			audit.phaseResidualMad = residual.phaseMad;
+			audit.codeResidualMad = residual.codeMad;
+			audit.whitenedResidualScore =
+				residual.maximumWhitenedResidualScore;
+			integerSupportQuality[edge] = std::move(audit);
         }
     }
 
-    ZhangGraphBasis candidate =
-        zhangBuildSpanningTree(
-            stateEdges,
-            options.reference_receiver,
-            runtime.basis.treeEdges,
-            activeQuality,
-            options.prefer_historical_edges ? modelledEdges : set<ZhangGraphEdge>{},
-            options.prefer_historical_edges ? persistence : map<ZhangGraphEdge, int>{}
-        );
+    // The authoritative FLOAT datum graph must continue to retain every
+    // usable observation.  Risk/quality selection applies only to the
+    // independent Product-IAR tree below, never to this network state graph.
+    ZhangGraphBasis candidate = zhangBuildSpanningTree(
+		stateEdges,
+		options.reference_receiver,
+		runtime.basis.treeEdges,
+		activeQuality,
+		options.prefer_historical_edges ? modelledEdges : set<ZhangGraphEdge>{},
+		options.prefer_historical_edges ? persistence : map<ZhangGraphEdge, int>{}
+	);
 
     if (!candidate.connected)
     {
@@ -2430,13 +2457,38 @@ void updateZhangGraphBasis(
         int productCoreMinimumSatelliteSupport = 0;
         if (options.product_core_min_satellite_support > 0)
         {
-            const auto core = zhangBuildProductReceiverCore(
-                candidate.edges,
-                candidate.rootReceiver,
-                runtime.productCoreReceivers,
-                options.product_core_min_satellite_support,
-                activeQuality,
-                persistence);
+            ZhangProductReceiverCore core;
+			if (options.product_integer_support_core)
+			{
+				const auto auditedCore = zhangBuildIntegerSupportCore(
+					candidate.edges, candidate.rootReceiver,
+					runtime.productCoreReceivers,
+					options.product_core_min_satellite_support,
+					integerSupportQuality, {}, activeQuality, persistence);
+				BOOST_LOG_TRIVIAL(info)
+					<< "ZHANG_INTEGER_SUPPORT_CORE sys=" << enum_to_string(sys)
+					<< " qualified_edges=" << auditedCore.qualifiedEdges.size()
+					<< " rejected_edges=" << auditedCore.rejectedEdges.size()
+					<< " valid=" << auditedCore.valid
+					<< " status=" << auditedCore.failureReason
+					<< " float_graph_edges=" << candidate.edges.size();
+				if (!auditedCore.valid)
+				{
+					BOOST_LOG_TRIVIAL(error)
+						<< "ZHANG_PRODUCT_CORE sys=" << enum_to_string(sys)
+						<< " status=REJECTED reason=" << auditedCore.failureReason;
+					return false;
+				}
+				core = auditedCore.receiverCore;
+			}
+			else
+			{
+				core = zhangBuildProductReceiverCore(
+					candidate.edges, candidate.rootReceiver,
+					runtime.productCoreReceivers,
+					options.product_core_min_satellite_support,
+					activeQuality, persistence);
+			}
             if (!core.connected)
             {
                 BOOST_LOG_TRIVIAL(error)
@@ -2450,20 +2502,27 @@ void updateZhangGraphBasis(
                 core.minimumSatelliteSupport;
         }
         ZhangGraphBasis nextProduct = runtime.productInitialized
-            ? zhangBuildSpanningTree(
+            ? (options.product_integer_support_core
+				? zhangBuildRiskAwareSpanningTree(
+					productEdges, candidate.rootReceiver,
+					runtime.productBasis.treeEdges, integerSupportQuality)
+				: zhangBuildSpanningTree(
                 productEdges,
                 candidate.rootReceiver,
                 runtime.productBasis.treeEdges,
                 activeQuality,
                 modelledEdges,
-                persistence)
-            : zhangBuildRootedProductTree(
+                persistence))
+            : (options.product_integer_support_core
+				? zhangBuildRiskAwareSpanningTree(
+					productEdges, candidate.rootReceiver, {}, integerSupportQuality)
+				: zhangBuildRootedProductTree(
                 productEdges,
                 candidate.rootReceiver,
                 {},
                 activeQuality,
                 modelledEdges,
-                persistence);
+                persistence));
         if (!nextProduct.connected)
         {
             return false;
@@ -3118,13 +3177,17 @@ void updateZhangGraphBasis(
 		bool proposedProductAvailable = true;
 		if (options.product_core_min_satellite_support > 0)
 		{
-			const auto proposedCore = zhangBuildProductReceiverCore(
-				candidate.edges,
-				candidate.rootReceiver,
-				runtime.productCoreReceivers,
-				options.product_core_min_satellite_support,
-				activeQuality,
-				persistence);
+			const auto proposedCore = options.product_integer_support_core
+				? zhangBuildIntegerSupportCore(
+					candidate.edges, candidate.rootReceiver,
+					runtime.productCoreReceivers,
+					options.product_core_min_satellite_support,
+					integerSupportQuality, {}, activeQuality, persistence).receiverCore
+				: zhangBuildProductReceiverCore(
+					candidate.edges, candidate.rootReceiver,
+					runtime.productCoreReceivers,
+					options.product_core_min_satellite_support,
+					activeQuality, persistence);
 			if (proposedCore.connected)
 			{
 				proposedProductEdges = proposedCore.edges;
@@ -3136,21 +3199,29 @@ void updateZhangGraphBasis(
 		}
 		ZhangGraphBasis proposedProduct = proposedProductAvailable &&
 			runtime.productInitialized
-			? zhangBuildSpanningTree(
+			? (options.product_integer_support_core
+				? zhangBuildRiskAwareSpanningTree(
+					proposedProductEdges, candidate.rootReceiver,
+					runtime.productBasis.treeEdges, integerSupportQuality)
+				: zhangBuildSpanningTree(
 				proposedProductEdges,
 				candidate.rootReceiver,
 				runtime.productBasis.treeEdges,
 				activeQuality,
 				modelledEdges,
-				persistence)
+				persistence))
 			: proposedProductAvailable
-			? zhangBuildRootedProductTree(
+			? (options.product_integer_support_core
+				? zhangBuildRiskAwareSpanningTree(
+					proposedProductEdges, candidate.rootReceiver, {},
+					integerSupportQuality)
+				: zhangBuildRootedProductTree(
 				proposedProductEdges,
 				candidate.rootReceiver,
 				{},
 				activeQuality,
 				modelledEdges,
-				persistence)
+				persistence))
 			: ZhangGraphBasis{};
 		if (proposedProductAvailable && proposedProduct.connected)
 		{

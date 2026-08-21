@@ -17,10 +17,12 @@
 #include "common/zhangProductRelationBasis.hpp"
 #include "common/zhangProductRelationAdmission.hpp"
 #include "common/zhangProductIntegerLedger.hpp"
+#include "common/zhangProductGaugeCertificateLedger.hpp"
 #include "common/zhangProductIntegerCandidateGenerator.hpp"
 #include "common/zhangFullProductLatticeOracle.hpp"
 #include "common/zhangProductRelationSolver.hpp"
 #include "common/zhangIntegerSupportQuality.hpp"
+#include "common/zhangIntegerSupportResidualAudit.hpp"
 #include "common/zhangTargetedBesdTracker.hpp"
 #include "common/zhangTheoryRegression.hpp"
 #include "common/zhangPhaseContinuity.hpp"
@@ -50,6 +52,19 @@
 
 namespace
 {
+void makeProductGaugeEvidenceComplete(ProductGaugeCertificate& certificate,
+	bool noResidualDof = false)
+{
+	certificate.wideLaneReliable = true;
+	certificate.firstSignalReliable = true;
+	certificate.exactProductLatticeMembership = true;
+	certificate.jointNisPassed = true;
+	certificate.cycleClosurePassed = true;
+	certificate.temporalAlignmentCertified = true;
+	certificate.noResidualDof = noResidualDof;
+	certificate.independentSupportPaths = noResidualDof ? 0 : 1;
+}
+
 Receiver& checkpointTestReceiver()
 {
 	static Receiver receiver;
@@ -1368,6 +1383,64 @@ BOOST_AUTO_TEST_CASE(product_receiver_core_spans_all_satellites_with_redundancy)
         BOOST_CHECK_GE(support[satellite], 2);
     }
     BOOST_CHECK(zhangBuildSpanningTree(core.edges, "R0").connected);
+}
+
+BOOST_AUTO_TEST_CASE(integer_support_core_excludes_unqualified_arcs_but_keeps_float_graph)
+{
+	const SatSys g1(E_Sys::GPS, 1);
+	const SatSys g2(E_Sys::GPS, 2);
+	const std::set<ZhangGraphEdge> fullFloatEdges = {
+		{"R0", g1}, {"R0", g2}, {"R1", g1}, {"R1", g2}};
+	ZhangIntegerArcQuality good;
+	good.ageEpochs = 20;
+	good.observations = 20;
+	good.phaseResidualRms = 0.01;
+	good.codeResidualRms = 1;
+	good.phaseResidualMad = 0.01;
+	good.codeResidualMad = 1;
+	good.elevationScore = 0.5;
+	good.whitenedResidualScore = 1;
+	std::map<ZhangGraphEdge, ZhangIntegerArcQuality> quality;
+	for (const auto& edge : fullFloatEdges)
+		quality[edge] = good;
+	quality[{"R1", g2}].phaseResidualMad = 1;
+
+	const auto core = zhangBuildIntegerSupportCore(
+		fullFloatEdges, "R0", {}, 1, quality);
+	BOOST_REQUIRE(core.valid);
+	BOOST_CHECK_EQUAL(core.qualifiedEdges.size(), 3);
+	BOOST_CHECK_EQUAL(core.rejectedEdges.at({"R1", g2}),
+		"PHASE_MAD_GATE_FAILED");
+	BOOST_CHECK(core.receiverCore.edges.find({"R1", g2}) ==
+		core.receiverCore.edges.end());
+	// The filtering result is product-only; it must never mutate or redefine
+	// the authoritative FLOAT observation graph.
+	BOOST_CHECK_EQUAL(fullFloatEdges.size(), 4);
+	BOOST_CHECK(zhangBuildSpanningTree(fullFloatEdges, "R0").connected);
+}
+
+BOOST_AUTO_TEST_CASE(risk_aware_s_basis_rejects_bad_integer_support_arc)
+{
+	const SatSys g1(E_Sys::GPS, 1);
+	const SatSys g2(E_Sys::GPS, 2);
+	const std::set<ZhangGraphEdge> edges = {
+		{"R0", g1}, {"R1", g1}, {"R0", g2}, {"R1", g2}};
+	ZhangIntegerArcQuality good;
+	good.ageEpochs = 20; good.observations = 20;
+	good.phaseResidualRms = 0.01; good.codeResidualRms = 0.5;
+	good.phaseResidualMad = 0.01; good.codeResidualMad = 0.5;
+	good.elevationScore = 0.5; good.whitenedResidualScore = 1;
+	auto poor = good;
+	poor.phaseResidualRms = 1; // fails the strict support gate.
+	std::map<ZhangGraphEdge, ZhangIntegerArcQuality> quality;
+	quality[{"R0", g1}] = good;
+	quality[{"R1", g1}] = poor;
+	quality[{"R0", g2}] = good;
+	quality[{"R1", g2}] = good;
+	const auto basis = zhangBuildRiskAwareSpanningTree(
+		edges, "R0", {{"R1", g1}}, quality);
+	BOOST_REQUIRE(basis.connected);
+	BOOST_CHECK(basis.treeEdges.find({"R1", g1}) == basis.treeEdges.end());
 }
 
 BOOST_AUTO_TEST_CASE(rooted_product_tree_limits_nonroot_satellite_path_load)
@@ -8892,6 +8965,57 @@ BOOST_AUTO_TEST_CASE(component_gauge_gls_rejects_unestimable_gauge)
 	BOOST_CHECK_EQUAL(result.gaugeRank, 1);
 }
 
+BOOST_AUTO_TEST_CASE(product_gauge_certificate_requires_segment_stable_confirmation)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.wideLaneInteger = -4;
+	certificate.firstSignalInteger = 17;
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate);
+	ProductGaugeCertificateLedger ledger;
+	const auto first = ledger.observe(100, {certificate}, 2);
+	BOOST_REQUIRE(first.valid);
+	BOOST_CHECK_EQUAL(first.confirmedCertificates, 0);
+	BOOST_REQUIRE_EQUAL(ledger.certificates().size(), 1);
+	BOOST_CHECK(!ledger.certificates().front().active);
+	const auto second = ledger.observe(130, {certificate}, 2);
+	BOOST_REQUIRE(second.valid);
+	BOOST_CHECK_EQUAL(second.confirmedCertificates, 1);
+	BOOST_CHECK(ledger.certificates().front().active);
+	BOOST_CHECK(ledger.certificates().front().currentAlignmentValid);
+}
+
+BOOST_AUTO_TEST_CASE(product_gauge_certificate_retires_on_phase_segment_change)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.wideLaneInteger = 2;
+	certificate.firstSignalInteger = 9;
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate);
+	ProductGaugeCertificateLedger ledger;
+	BOOST_REQUIRE(ledger.observe(100, {certificate}, 1).valid);
+	BOOST_REQUIRE(ledger.certificates().front().active);
+	certificate.satellitePhaseSegments[0] = "G03-L1-B";
+	const auto changed = ledger.observe(130, {certificate}, 1);
+	BOOST_REQUIRE(changed.valid);
+	BOOST_CHECK_EQUAL(changed.retiredSegmentCertificates, 1);
+	BOOST_REQUIRE_EQUAL(ledger.certificates().size(), 2);
+	BOOST_CHECK(!ledger.certificates().front().active);
+	BOOST_CHECK(ledger.certificates().back().active);
+}
+
 BOOST_AUTO_TEST_CASE(component_gauge_product_row_includes_certified_offsets)
 {
 	// Component anchors have internal potentials [2,-3,5] relative to their
@@ -8914,6 +9038,388 @@ BOOST_AUTO_TEST_CASE(component_gauge_product_row_supports_implicit_reference)
 	const ZhangExactVector expected = {0, 1, 0};
 	BOOST_CHECK(mapped.row == expected);
 	BOOST_CHECK_EQUAL(mapped.value, 2);
+}
+
+BOOST_AUTO_TEST_CASE(dual_component_gauge_wl_l1_is_exact)
+{
+	// [WL,L1] -> [L1,L2] is unimodular: L2=L1-WL, with no rounding.
+	const ZhangExactInteger wl = -7;
+	const ZhangExactInteger l1 = 19;
+	const ZhangExactInteger l2 = l1 - wl;
+	BOOST_CHECK_EQUAL(l2, 26);
+	BOOST_CHECK_EQUAL(l1 - l2, wl);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_rows_map_exactly_to_product_lattice)
+{
+	const auto mapped = zhangComponentGaugeToProductRow(
+		{1, -1}, {0, 2, 4}, {3, -2, 5}, 5, 11);
+	BOOST_REQUIRE(mapped.valid);
+	BOOST_CHECK(zhangExactPrimitiveRowLattice({mapped.row}, 5));
+	BOOST_CHECK(zhangIntegerRowLatticeContains(
+		zhangExactIdentityMatrix(5), mapped.row).contained);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_union_increases_exact_rank)
+{
+	const ZhangExactMatrix target = zhangExactIdentityMatrix(3);
+	const auto unionAudit = zhangExactCertifiedUnionAudit(
+		target, {{1, 0, 0}}, {4}, {{0, 1, 0}}, {-2});
+	BOOST_REQUIRE(unionAudit.consistent);
+	BOOST_CHECK_EQUAL(unionAudit.heldRank, 1);
+	BOOST_CHECK_EQUAL(unionAudit.newlyFixedRank, 1);
+	BOOST_CHECK_EQUAL(unionAudit.combinedCertifiedRank, 2);
+}
+
+BOOST_AUTO_TEST_CASE(redundant_component_edge_does_not_increase_rank)
+{
+	const ZhangExactMatrix target = zhangExactIdentityMatrix(2);
+	const auto unionAudit = zhangExactCertifiedUnionAudit(
+		target, {{1, -1}}, {3}, {{2, -2}}, {6});
+	BOOST_REQUIRE(unionAudit.consistent);
+	BOOST_CHECK_EQUAL(unionAudit.heldRank, 1);
+	BOOST_CHECK_EQUAL(unionAudit.newlyFixedRank, 0);
+	BOOST_CHECK_EQUAL(unionAudit.combinedCertifiedRank, 1);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_joint_covariance_uses_l1_l2_cross_terms)
+{
+	MatrixXd design = MatrixXd::Identity(2, 2);
+	VectorXd measurement(2); measurement << 3, -1;
+	MatrixXd correlated(2, 2); correlated << 1, 0.4, 0.4, 1;
+	MatrixXd independent = MatrixXd::Identity(2, 2);
+	const auto joint = zhangComponentGaugeGls(measurement, correlated, design);
+	const auto diagonal = zhangComponentGaugeGls(measurement, independent, design);
+	BOOST_REQUIRE(joint.valid);
+	BOOST_REQUIRE(diagonal.valid);
+	BOOST_CHECK_SMALL((joint.covariance - correlated).norm(), 1e-12);
+	BOOST_CHECK_SMALL((diagonal.covariance - independent).norm(), 1e-12);
+	BOOST_CHECK_SMALL((joint.covariance - diagonal.covariance)(0, 1) - 0.4, 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_residual_conflict_fails_closed)
+{
+	// Equal deterministic observations with unequal values contain a true null
+	// space contradiction; no tolerance may convert it into an integer row.
+	MatrixXd design(2, 1); design << 1, 1;
+	VectorXd measurement(2); measurement << 2, 3;
+	MatrixXd covariance(2, 2); covariance << 1, 1, 1, 1;
+	const auto gls = zhangComponentGaugeGls(measurement, covariance, design);
+	BOOST_CHECK(!gls.valid);
+	BOOST_CHECK(!gls.nullModes.empty());
+	const std::vector<ZhangComponentEdgeId> edges = {{0, 1, 0, 1}, {0, 1, 0, 2}};
+	const auto conflicts = zhangLocalizeNullConflicts(gls, edges,
+		{E_ObsCode::L1C, E_ObsCode::L1C});
+	BOOST_CHECK(!conflicts.empty());
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_rank_deficiency_keeps_maximal_integer_forest)
+{
+	// Gauge 0 has both frequency coordinates; gauge 1 has only L1 support.
+	// The primitive forest must retain gauge 0 instead of returning rank zero.
+	MatrixXd information = MatrixXd::Zero(4, 4);
+	information(0, 0) = 1;
+	information(2, 2) = 1;
+	information(1, 1) = 1;
+	const auto forest = zhangMaxEstimableDualGaugeForest(information, 2);
+	BOOST_REQUIRE_EQUAL(forest.size(), 1);
+	BOOST_CHECK_EQUAL(forest.front(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_block_forest_uses_estimable_incidence_edges)
+{
+	// Four components have two independent dual-frequency bridges: 0-1 and
+	// 2-3.  The latter is not a datum-star coordinate, so a global rank test or
+	// a star-only fallback would wrongly lose it.  The result must retain both
+	// primitive e_a-e_b rows and leave the two blocks independent.
+	constexpr int componentCount = 4;
+	constexpr int gauges = componentCount - 1;
+	MatrixXd information = MatrixXd::Zero(2 * gauges, 2 * gauges);
+	auto addDualIncidence = [&information](const VectorXd& incidence)
+	{
+		information.topLeftCorner(3, 3) += incidence * incidence.transpose();
+		information.bottomRightCorner(3, 3) += incidence * incidence.transpose();
+	};
+	VectorXd zeroOne = VectorXd::Zero(gauges); zeroOne(0) = 1;
+	VectorXd twoThree = VectorXd::Zero(gauges); twoThree(1) = 1; twoThree(2) = -1;
+	addDualIncidence(zeroOne);
+	addDualIncidence(twoThree);
+	const std::vector<ZhangComponentEdgeId> candidates = {
+		{0, 1, 0, 1}, {0, 2, 0, 2}, {2, 3, 2, 3}};
+	const auto forest = zhangMaximumEstimableDualComponentForest(
+		information, componentCount, candidates);
+	BOOST_REQUIRE_EQUAL(forest.size(), 2);
+	std::set<std::pair<int, int>> pairs;
+	for (const auto& edge : forest)
+		pairs.insert(std::minmax(edge.firstComponent, edge.secondComponent));
+	BOOST_CHECK(pairs.contains({0, 1}));
+	BOOST_CHECK(pairs.contains({2, 3}));
+	BOOST_CHECK(!pairs.contains({0, 2}));
+	const auto blocks = zhangDualComponentSupportBlocks(componentCount, forest);
+	BOOST_REQUIRE_EQUAL(blocks.size(), 2);
+	BOOST_CHECK((blocks[0] == std::vector<int>{0, 1}));
+	BOOST_CHECK((blocks[1] == std::vector<int>{2, 3}));
+}
+
+BOOST_AUTO_TEST_CASE(component_gauge_real_null_direction_never_becomes_integer_row)
+{
+	// Only e1-e2 is estimable.  The individual e1 coordinate has a real
+	// projection onto that line but is not itself estimable and cannot become
+	// a product integer constraint.
+	MatrixXd information = MatrixXd::Zero(4, 4);
+	VectorXd incidence(2); incidence << 1, -1;
+	information.topLeftCorner(2, 2) = incidence * incidence.transpose();
+	information.bottomRightCorner(2, 2) = incidence * incidence.transpose();
+	VectorXd star = VectorXd::Zero(4); star(0) = 1;
+	VectorXd edge = VectorXd::Zero(4); edge(0) = 1; edge(1) = -1;
+	BOOST_CHECK(!zhangComponentGaugeFunctionalEstimable(information, star));
+	BOOST_CHECK(zhangComponentGaugeFunctionalEstimable(information, edge));
+}
+
+BOOST_AUTO_TEST_CASE(product_closure_final_union_equals_single_conditioning)
+{
+	VectorXd mean(2); mean << 2.3, -1.7;
+	MatrixXd covariance(2, 2); covariance << 2, 0.3, 0.3, 1;
+	MatrixXd first(1, 2); first << 1, 0;
+	MatrixXd second(1, 2); second << 0, 1;
+	VectorXd firstInteger(1); firstInteger << 2;
+	VectorXd secondInteger(1); secondInteger << -2;
+	const auto once = zhangConditionExactProductRows(mean, covariance,
+		(MatrixXd(2, 2) << 1, 0, 0, 1).finished(),
+		(VectorXd(2) << 2, -2).finished());
+	const auto stage1 = zhangConditionExactProductRows(mean, covariance, first, firstInteger);
+	BOOST_REQUIRE(once.valid);
+	BOOST_REQUIRE(stage1.valid);
+	const auto stage2 = zhangConditionExactProductRows(stage1.mean, stage1.covariance,
+		second, secondInteger);
+	BOOST_REQUIRE(stage2.valid);
+	BOOST_CHECK_SMALL((once.mean - stage2.mean).norm(), 1e-12);
+	BOOST_CHECK_SMALL((once.covariance - stage2.covariance).norm(), 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(product_closure_is_not_gated_on_fresh_wide_lane)
+{
+	BOOST_CHECK(!zhangShouldRunProductClosure(false, false, false, false, false));
+	BOOST_CHECK( zhangShouldRunProductClosure(true,  false, false, false, false));
+	BOOST_CHECK( zhangShouldRunProductClosure(false, true,  false, false, false));
+	BOOST_CHECK( zhangShouldRunProductClosure(false, false, true,  false, false));
+	BOOST_CHECK( zhangShouldRunProductClosure(false, false, false, true,  false));
+	BOOST_CHECK( zhangShouldRunProductClosure(false, false, false, false, true));
+}
+
+BOOST_AUTO_TEST_CASE(component_null_conflict_quarantine_uses_evidence_order)
+{
+	BOOST_CHECK_GT(zhangComponentEvidenceTrust("PRODUCT_GAUGE_CERTIFICATE"),
+		zhangComponentEvidenceTrust("CURRENT_GENERATION_EXACT_PAIR"));
+	BOOST_CHECK_GT(zhangComponentEvidenceTrust("CURRENT_GENERATION_EXACT_PAIR"),
+		zhangComponentEvidenceTrust("CROSS_GENERATION_PROJECTED_LEDGER"));
+	BOOST_CHECK_GT(zhangComponentEvidenceTrust("CROSS_GENERATION_PROJECTED_LEDGER"),
+		zhangComponentEvidenceTrust("TEMPORAL_RECERTIFIED"));
+	BOOST_CHECK_GT(zhangComponentEvidenceTrust("TEMPORAL_RECERTIFIED"),
+		zhangComponentEvidenceTrust("BESD_CANDIDATE"));
+}
+
+BOOST_AUTO_TEST_CASE(product_closure_runs_without_new_network_wl)
+{
+	BOOST_CHECK(zhangShouldRunProductClosure(false, true, false, false, false));
+}
+
+BOOST_AUTO_TEST_CASE(ledger_selected_subset_is_exactly_independent)
+{
+	const auto hnf = zhangExactRowHermiteNormalForm(
+		{{1, 0, 0}, {2, 0, 0}, {0, 1, 0}}, {4, 8, -3});
+	BOOST_REQUIRE(hnf.consistent);
+	BOOST_CHECK_EQUAL(hnf.basis.size(), 2);
+}
+
+BOOST_AUTO_TEST_CASE(ledger_hnf_reduction_preserves_integer_values)
+{
+	const auto before = zhangExactRowHermiteNormalForm({{1, 1}, {1, -1}}, {5, 1});
+	const auto after  = zhangExactRowHermiteNormalForm(before.basis, before.values);
+	BOOST_REQUIRE(before.consistent && after.consistent);
+	BOOST_CHECK(before.basis == after.basis);
+	BOOST_CHECK(before.values == after.values);
+}
+
+BOOST_AUTO_TEST_CASE(ledger_exact_rank_equals_numeric_rank)
+{
+	const auto hnf = zhangExactRowHermiteNormalForm({{1, 0, 1}, {0, 1, -1}}, {2, -4});
+	BOOST_REQUIRE(hnf.consistent);
+	MatrixXd rows(2, 3); rows << 1,0,1, 0,1,-1;
+	BOOST_CHECK_EQUAL(rows.fullPivHouseholderQr().rank(), hnf.basis.size());
+}
+
+BOOST_AUTO_TEST_CASE(partial_component_block_survives_other_block_failure)
+{
+	MatrixXd information = MatrixXd::Zero(6, 6);
+	information(0,0) = information(3,3) = 1; // first dual block estimable
+	const auto forest = zhangMaxEstimableDualGaugeForest(information, 3);
+	BOOST_REQUIRE_EQUAL(forest.size(), 1);
+	BOOST_CHECK_EQUAL(forest.front(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(null_conflict_localizes_bad_relation_group)
+{
+	MatrixXd design(2, 1); design << 1, 1;
+	VectorXd measurement(2); measurement << 2, 3;
+	MatrixXd covariance(2, 2); covariance << 1, 1, 1, 1;
+	const auto gls = zhangComponentGaugeGls(measurement, covariance, design);
+	const auto conflicts = zhangLocalizeNullConflicts(gls,
+		{{0,1,0,1}, {0,1,0,2}}, {E_ObsCode::L1C, E_ObsCode::L1C},
+		{101, 202}, {"SEG-A", "SEG-B"},
+		{"CURRENT_GENERATION_EXACT_PAIR", "BESD_PROVISIONAL"}, {4, -9});
+	BOOST_REQUIRE(!conflicts.empty());
+	BOOST_CHECK(!conflicts.front().dominantEdges.empty());
+	BOOST_CHECK(std::isfinite(conflicts.front().nullResidual));
+	BOOST_REQUIRE_EQUAL(conflicts.front().contributions.size(),
+		conflicts.front().dominantEdges.size());
+	BOOST_REQUIRE_EQUAL(conflicts.front().affineOffsets.size(),
+		conflicts.front().dominantEdges.size());
+	BOOST_CHECK_EQUAL(conflicts.front().backendGenerations.front(), 101U);
+}
+
+BOOST_AUTO_TEST_CASE(product_gauge_certificate_fails_closed_without_joint_evidence)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate);
+	certificate.jointNisPassed = false;
+	ProductGaugeCertificateLedger ledger;
+	const auto update = ledger.observe(100, {certificate}, 1);
+	BOOST_REQUIRE(update.valid);
+	BOOST_CHECK_EQUAL(update.rejectedCandidates, 1);
+	BOOST_CHECK_EQUAL(ledger.activeRank(), 0);
+	BOOST_CHECK(ledger.certificates().empty());
+}
+
+BOOST_AUTO_TEST_CASE(product_gauge_square_bridge_requires_multi_epoch_confirmation)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate, true);
+	ProductGaugeCertificateLedger ledger;
+	const auto rejected = ledger.observe(100, {certificate}, 1);
+	BOOST_REQUIRE(rejected.valid);
+	BOOST_CHECK_EQUAL(rejected.rejectedCandidates, 1);
+	BOOST_CHECK(ledger.certificates().empty());
+	BOOST_REQUIRE(ledger.observe(130, {certificate}, 2).valid);
+	BOOST_REQUIRE_EQUAL(ledger.certificates().size(), 1);
+	BOOST_CHECK_EQUAL(ledger.certificates().front().state,
+		ProductGaugeCertificateState::CONFIRMING);
+	BOOST_REQUIRE(ledger.observe(160, {certificate}, 2).valid);
+	BOOST_CHECK_EQUAL(ledger.certificates().front().state,
+		ProductGaugeCertificateState::ACTIVE);
+}
+
+BOOST_AUTO_TEST_CASE(conditioning_only_row_never_becomes_pair_certificate)
+{
+	ZhangProductIntegerConstraintSet constraints;
+	constraints.conditioningOnlyRows = {{1, 1, -2}};
+	constraints.conditioningOnlyIntegers = {0};
+	BOOST_CHECK(constraints.dualFrequencyCertifiedPairs.empty());
+	BOOST_CHECK_EQUAL(constraints.certifiedPairRank, 0);
+}
+
+BOOST_AUTO_TEST_CASE(strict_dual_graph_drives_pppar_usable)
+{
+	ZhangProductIntegerConstraintSet constraints;
+	constraints.reliable = true;
+	constraints.conditioningRank = 4;
+	constraints.certifiedPairRank = 0;
+	BOOST_CHECK(!(constraints.reliable && constraints.certifiedPairRank > 0));
+	constraints.certifiedPairRank = 1;
+	BOOST_CHECK(constraints.reliable && constraints.certifiedPairRank > 0);
+}
+
+BOOST_AUTO_TEST_CASE(final_product_constraints_are_conditioned_once)
+{
+	VectorXd mean(2); mean << 1.3, -2.2;
+	MatrixXd covariance(2,2); covariance << 2, .2, .2, 1;
+	MatrixXd rows(2,2); rows << 1,0, 0,1;
+	VectorXd integers(2); integers << 1, -2;
+	const auto fixed = zhangConditionExactProductRows(mean, covariance, rows, integers);
+	BOOST_REQUIRE(fixed.valid);
+	BOOST_CHECK_SMALL((rows * fixed.mean - integers).lpNorm<Eigen::Infinity>(), 1e-9);
+	BOOST_CHECK_SMALL((rows * fixed.covariance * rows.transpose()).lpNorm<Eigen::Infinity>(), 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(product_gauge_certificate_survives_backend_generation)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate);
+	ProductGaugeCertificateLedger ledger;
+	BOOST_REQUIRE(ledger.observe(100, {certificate}, 1).valid);
+	certificate.componentVersion = 99; // backend generation/version is not identity
+	BOOST_REQUIRE(ledger.observe(130, {certificate}, 1).valid);
+	BOOST_REQUIRE_EQUAL(ledger.certificates().size(), 1);
+	BOOST_CHECK(ledger.certificates().front().active);
+}
+
+BOOST_AUTO_TEST_CASE(product_gauge_certificate_requires_exact_current_segments)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate);
+	ProductGaugeCertificateLedger ledger;
+	BOOST_REQUIRE(ledger.observe(100, {certificate}, 1).valid);
+	const auto& active = ledger.certificates().front();
+	BOOST_REQUIRE(active.state == ProductGaugeCertificateState::ACTIVE);
+	BOOST_REQUIRE(active.active);
+	BOOST_REQUIRE(active.currentAlignmentValid);
+	BOOST_REQUIRE(active.firstObservable == E_ObsCode::L1C);
+	BOOST_REQUIRE(active.secondObservable == E_ObsCode::L2W);
+	BOOST_CHECK(zhangProductGaugeCertificateMatchesCurrentSegments(active,
+		E_ObsCode::L1C, E_ObsCode::L2W,
+		active.satellitePhaseSegments, active.referencePhaseSegments));
+	BOOST_CHECK(!zhangProductGaugeCertificateMatchesCurrentSegments(active,
+		E_ObsCode::L1C, E_ObsCode::L2W,
+		{active.satellitePhaseSegments[0], "CHANGED_SEGMENT"},
+		active.referencePhaseSegments));
+}
+
+BOOST_AUTO_TEST_CASE(product_gauge_certificate_dies_on_phase_segment_change)
+{
+	ProductGaugeCertificate certificate;
+	certificate.system = E_Sys::GPS;
+	certificate.firstObservable = E_ObsCode::L1C;
+	certificate.secondObservable = E_ObsCode::L2W;
+	certificate.satellite = SatSys(E_Sys::GPS, 3);
+	certificate.reference = SatSys(E_Sys::GPS, 2);
+	certificate.satellitePhaseSegments = {"G03-L1-A", "G03-L2-A"};
+	certificate.referencePhaseSegments = {"G02-L1-A", "G02-L2-A"};
+	makeProductGaugeEvidenceComplete(certificate);
+	ProductGaugeCertificateLedger ledger;
+	BOOST_REQUIRE(ledger.observe(100, {certificate}, 1).valid);
+	certificate.satellitePhaseSegments[1] = "G03-L2-B";
+	const auto update = ledger.observe(130, {certificate}, 1);
+	BOOST_REQUIRE(update.valid);
+	BOOST_CHECK_EQUAL(update.retiredSegmentCertificates, 1);
+	BOOST_CHECK(!ledger.certificates().front().active);
 }
 
 BOOST_AUTO_TEST_CASE(
@@ -8994,6 +9500,42 @@ BOOST_AUTO_TEST_CASE(product_named_pair_beam_expands_alternate_forests)
 	BOOST_CHECK_CLOSE_FRACTION(levels[1][0].summedGain, 0.6, 1e-14);
 }
 
+BOOST_AUTO_TEST_CASE(product_named_pair_beam_uses_selected_set_conditional_gain)
+{
+	const std::vector<ZhangNamedPairBeamCandidate> candidates = {
+		{{1, 0}, 1e-5, 100.0, 0.2, {0, 2}},
+		{{0, 1}, 1e-5,   1.0, 0.2, {1, 2}}};
+	const auto levels = zhangNamedPairForestBeamLevels(
+		candidates, 2, 1,
+		[](const std::vector<int>& selected)
+		{
+			// Candidate 0 has the larger independent gain, but the product
+			// objective says the selected set containing candidate 1 is better.
+			return std::find(selected.begin(), selected.end(), 1) != selected.end()
+				? 10.0 : 0.0;
+		});
+	BOOST_REQUIRE(!levels.empty());
+	BOOST_REQUIRE(!levels.front().empty());
+	BOOST_REQUIRE_EQUAL(levels.front().front().selected.size(), 1U);
+	BOOST_CHECK_EQUAL(levels.front().front().selected.front(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(product_named_pair_beam_honours_construction_expansion_cap)
+{
+	const std::vector<ZhangNamedPairBeamCandidate> candidates = {
+		{{1, 0, 0}, 1e-5, 4.0, 0.2, {0, 3}},
+		{{0, 1, 0}, 1e-5, 3.0, 0.2, {1, 3}},
+		{{0, 0, 1}, 1e-5, 2.0, 0.2, {2, 3}},
+		{{1, -1, 0}, 1e-5, 1.0, 0.2, {0, 1}}};
+	bool capped = false;
+	const auto levels = zhangNamedPairForestBeamLevels(
+		candidates, 3, 2, {}, 1, &capped);
+	BOOST_CHECK(capped);
+	BOOST_REQUIRE(!levels.empty());
+	BOOST_REQUIRE_EQUAL(levels.front().size(), 1U);
+	BOOST_CHECK_EQUAL(levels.front().front().selected.front(), 0);
+}
+
 BOOST_AUTO_TEST_CASE(product_relation_constraints_pull_back_affine_wl_and_l1)
 {
 	ZhangProductRelationBasis first;
@@ -9028,6 +9570,29 @@ BOOST_AUTO_TEST_CASE(product_relation_constraints_pull_back_affine_wl_and_l1)
 	BOOST_CHECK_EQUAL(networkIntegers[0], 2);
 	BOOST_CHECK(networkRows[1] == ZhangExactVector({2, -1, -1}));
 	BOOST_CHECK_EQUAL(networkIntegers[1], -7);
+
+	// M0: prove the affine pullback, rather than merely its hand-computed
+	// coefficients.  For this integer ambiguity vector the product-space WL
+	// and L1 equations and the two returned network equations have identical
+	// residuals, exactly in Z (no floating-point comparison involved).
+	const ZhangExactVector ambiguity = {3, 1, -2};
+	auto exactDot = [](const ZhangExactVector& row, const ZhangExactVector& value)
+	{
+		ZhangExactInteger result = 0;
+		for (size_t index = 0; index < row.size(); index++)
+		{
+			result += row[index] * value[index];
+		}
+		return result;
+	};
+	const ZhangExactInteger z1_0 = exactDot({1, -1, 0}, ambiguity) + 2;
+	const ZhangExactInteger z1_1 = exactDot({0, 1, -1}, ambiguity) - 1;
+	const ZhangExactInteger z2_0 = exactDot({1, 0, -1}, ambiguity) + 1;
+	const ZhangExactInteger z2_1 = exactDot({1, -1, 0}, ambiguity) + 3;
+	BOOST_CHECK_EQUAL(exactDot(networkRows[0], ambiguity) - networkIntegers[0],
+		((z1_0 - z1_1) - (z2_0 - z2_1)) - wideLaneIntegers[0]);
+	BOOST_CHECK_EQUAL(exactDot(networkRows[1], ambiguity) - networkIntegers[1],
+		2 * z1_0 + z1_1 - firstIntegers[0]);
 }
 
 BOOST_AUTO_TEST_CASE(product_relation_constraint_pullback_rejects_noninteger_basis)
@@ -9422,6 +9987,32 @@ BOOST_AUTO_TEST_CASE(integer_support_quality_fails_closed_without_residuals)
 	BOOST_CHECK_EQUAL(accepted.failureReason, "ELIGIBLE");
 }
 
+BOOST_AUTO_TEST_CASE(integer_support_residual_audit_uses_postfit_phase_and_code_rows)
+{
+	int ownerToken = 0;
+	KFMeas measurements;
+	measurements.obsKeys.resize(2);
+	measurements.obsKeys[0].type = KF::PHAS_MEAS;
+	measurements.obsKeys[0].str = "R0";
+	measurements.obsKeys[0].Sat = SatSys(E_Sys::GPS, 3);
+	measurements.obsKeys[1].type = KF::CODE_MEAS;
+	measurements.obsKeys[1].str = "R0";
+	measurements.obsKeys[1].Sat = SatSys(E_Sys::GPS, 3);
+	measurements.VV.resize(2);
+	measurements.VV << 0.01, 0.8;
+	measurements.postfitRatios.resize(2);
+	measurements.postfitRatios << 0.5, 1.5;
+	zhangRecordIntegerSupportPostfitResidual(&ownerToken, measurements, 0);
+	zhangRecordIntegerSupportPostfitResidual(&ownerToken, measurements, 1);
+	const auto summary = zhangIntegerSupportResidualSummary(
+		&ownerToken, {"R0", SatSys(E_Sys::GPS, 3)});
+	BOOST_CHECK_EQUAL(summary.phaseSamples, 1);
+	BOOST_CHECK_EQUAL(summary.codeSamples, 1);
+	BOOST_CHECK_CLOSE(summary.phaseRms, 0.01, 1e-10);
+	BOOST_CHECK_CLOSE(summary.codeRms, 0.8, 1e-10);
+	BOOST_CHECK_CLOSE(summary.maximumWhitenedResidualScore, 1.5, 1e-10);
+}
+
 BOOST_AUTO_TEST_CASE(exact_held_quotient_separates_certified_and_unresolved_rank)
 {
 	// Target is the full four-dimensional integer lattice.  Held evidence
@@ -9612,7 +10203,7 @@ BOOST_AUTO_TEST_CASE(product_candidate_generator_adds_dense_real_mode_integer_ro
 		"real product-gain modes must generate legal dense primitive rows");
 }
 
-BOOST_AUTO_TEST_CASE(product_candidate_generator_orders_reliability_then_graph_then_gain)
+BOOST_AUTO_TEST_CASE(product_candidate_generator_orders_reliability_then_signal_graph_then_gain)
 {
 	VectorXd mean(3);
 	mean << 0, 0, 0.25;
@@ -9624,7 +10215,11 @@ BOOST_AUTO_TEST_CASE(product_candidate_generator_orders_reliability_then_graph_t
 	BOOST_REQUIRE(generated.valid);
 	BOOST_REQUIRE(!generated.candidates.empty());
 	BOOST_CHECK(generated.candidates.front().reliabilityPassed);
-	BOOST_CHECK_EQUAL(generated.candidates.front().pairGraphRankGain, 1);
+	// The generator has no paired L1/WL certificate at this stage.  Its
+	// graph contribution is therefore signal-specific; dual-frequency rank is
+	// assigned only after the WL and conditional-L1 certificates are united.
+	BOOST_CHECK_EQUAL(generated.candidates.front().dualGraphRankGain, 0);
+	BOOST_CHECK_EQUAL(generated.candidates.front().signalGraphRankGain, 1);
 	bool reachedUnreliable = false;
 	for (const auto& candidate : generated.candidates)
 	{

@@ -7095,6 +7095,14 @@ bool ACSConfig::parse(
                             "zero retains the full network graph"
                         );
                         tryGetFromYaml(
+                            opts.product_integer_support_core,
+                            sys_options,
+                            {"@ product_integer_support_core"},
+                            "Restrict Product-IAR evidence to the independently quality-audited "
+                            "integer-support core; missing residual/arc-quality evidence is rejected "
+                            "without removing observations from FLOAT"
+                        );
+                        tryGetFromYaml(
                             opts.reference_receiver_candidates,
                             sys_options,
                             {"@ reference_receiver_candidates"},
@@ -7553,6 +7561,60 @@ bool ACSConfig::parse(
                         zhang_pppar,
                         {"@ product_relation_feedback"},
                         "Feed certified product relations back to the estimator; unsupported in the shadow stage"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_solver_mode,
+                        zhang_pppar,
+                        {"@ product_component_gauge_solver_mode"},
+                        "Component-gauge closure mode: OFF, SHADOW, or PRIVATE; PRIVATE affects only PRODUCT_FIXED"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_max_iterations,
+                        zhang_pppar,
+                        {"@ product_component_gauge_max_iterations"},
+                        "Maximum private product component-gauge closure iterations"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_max_perr,
+                        zhang_pppar,
+                        {"@ product_component_gauge_max_perr"},
+                        "Maximum accepted component-gauge integer failure probability"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_nis_alpha,
+                        zhang_pppar,
+                        {"@ product_component_gauge_nis_alpha"},
+                        "Joint component-gauge residual NIS tail probability"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_component_gauge_confirmation_epochs,
+                        zhang_pppar,
+                        {"@ product_component_gauge_confirmation_epochs"},
+                        "Required confirmations when a component-gauge model has no residual redundancy"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_dual_graph_objective,
+                        zhang_pppar,
+                        {"@ product_dual_graph_objective"},
+                        "Rank product candidates by dual-frequency component-graph gain before information gain"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_integer_ledger_enabled,
+                        zhang_pppar,
+                        {"@ product_integer_ledger_enabled"},
+                        "Use prior exact ProductIntegerLedger rows only in private product-search and final-union branches"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_gauge_certificate_ledger,
+                        zhang_pppar,
+                        {"@ product_gauge_certificate_ledger"},
+                        "Maintain stable product-gauge certificates separately from physical conditioning evidence"
+                    );
+                    tryGetFromYaml(
+                        zhangPppAr.product_allow_partial_components,
+                        zhang_pppar,
+                        {"@ product_allow_partial_components"},
+                        "Permit certified subcomponents instead of requiring one fully connected product graph"
                     );
                     tryGetFromYaml(
                         zhangPppAr.full_product_lattice_oracle_filename,
@@ -9793,7 +9855,9 @@ bool ACSConfig::parse(
                     << " prefer_historical_edges=" << opts.prefer_historical_edges
                     << " core_skeleton=" << opts.core_skeleton
                     << " product_core_min_satellite_support="
-                    << opts.product_core_min_satellite_support;
+                    << opts.product_core_min_satellite_support
+                    << " product_integer_support_core="
+                    << opts.product_integer_support_core;
             }
         }
 
@@ -10112,6 +10176,46 @@ bool ACSConfig::parse(
         zhangPppAr.product_relation_solver_mode = productRelationSolverMode;
         zhangPppAr.product_relation_l1_par_shadow =
             productRelationSolverMode == "SHADOW";
+        string componentGaugeSolverMode =
+            zhangPppAr.product_component_gauge_solver_mode;
+        boost::to_upper(componentGaugeSolverMode);
+        if (componentGaugeSolverMode != "OFF" &&
+            componentGaugeSolverMode != "SHADOW" &&
+            componentGaugeSolverMode != "PRIVATE")
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar product_component_gauge_solver_mode must be "
+                   "OFF, SHADOW or PRIVATE";
+            valid = false;
+        }
+        zhangPppAr.product_component_gauge_solver_mode =
+            componentGaugeSolverMode;
+        if (componentGaugeSolverMode == "PRIVATE" &&
+            (!boost::iequals(
+                zhangPppAr.integer_strategy, "HYBRID_PRODUCT_WL_L1") ||
+             !zhangPppAr.transactional_integer_fixing ||
+             !boost::iequals(zhangPppAr.product_mode, "HOU_OSB_LIKE")))
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar private component-gauge closure requires "
+                   "integer_strategy=HYBRID_PRODUCT_WL_L1, "
+                   "transactional_integer_fixing=true and "
+                   "product_mode=HOU_OSB_LIKE";
+            valid = false;
+        }
+        if (zhangPppAr.product_component_gauge_max_iterations < 1 ||
+            !(zhangPppAr.product_component_gauge_max_perr > 0) ||
+            !(zhangPppAr.product_component_gauge_max_perr <= 1e-3) ||
+            !(zhangPppAr.product_component_gauge_nis_alpha > 0) ||
+            !(zhangPppAr.product_component_gauge_nis_alpha < 1) ||
+            zhangPppAr.product_component_gauge_confirmation_epochs < 1)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "zhang_pppar component-gauge closure gates require "
+                   "positive iterations/confirmations, 0 < max_perr <= 1e-3 "
+                   "and nis_alpha in (0,1)";
+            valid = false;
+        }
         if (zhangPppAr.product_relation_beam_width < 1 ||
             zhangPppAr.product_relation_minimum_rank < 1 ||
             zhangPppAr.product_relation_maximum_evaluations < 1 ||

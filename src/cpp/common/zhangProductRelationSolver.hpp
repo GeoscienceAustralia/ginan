@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <functional>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -8,6 +9,7 @@
 #include <numeric>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "common/eigenIncluder.hpp"
@@ -15,6 +17,38 @@
 #include "common/zhangIarGainAudit.hpp"
 #include "common/zhangProductRelationBasis.hpp"
 #include "common/zhangQuotientIntegerLattice.hpp"
+
+/** Product closure is a private inference operation.  A fresh network-WL
+ * fix is one admissible source of evidence, but it is not the only one: a
+ * held physical lattice, a product-integer ledger, a frontend gauge
+ * certificate, or pending certified temporal work must also keep the
+ * closure branch alive. */
+inline bool zhangShouldRunProductClosure(
+	bool hasNewNetworkWl,
+	bool hasHeldNetworkIntegers,
+	bool hasActiveProductLedger,
+	bool hasActiveGaugeCertificates,
+	bool hasPendingTemporalWork)
+{
+	return hasNewNetworkWl
+		|| hasHeldNetworkIntegers
+		|| hasActiveProductLedger
+		|| hasActiveGaugeCertificates
+		|| hasPendingTemporalWork;
+}
+
+/** Ordering used only to quarantine an inconsistent duplicate/cycle.  It is
+ * intentionally not a reliability waiver: a lower-trust group is removed and
+ * the remaining integer incidence block is solved again under the same gates. */
+inline int zhangComponentEvidenceTrust(const std::string& source)
+{
+	if (source == "PRODUCT_GAUGE_CERTIFICATE") return 5;
+	if (source == "CURRENT_GENERATION_EXACT_PAIR") return 4;
+	if (source == "CROSS_GENERATION_PROJECTED_LEDGER") return 3;
+	if (source == "TEMPORAL_RECERTIFIED") return 2;
+	if (source == "BESD_CANDIDATE") return 1;
+	return 0;
+}
 
 /** One exact satellite-pair coordinate in a named star ambient lattice.
  * Nodes [0,namedCount) are named satellite-minus-reference coordinates and
@@ -30,6 +64,10 @@ struct ZhangCertifiedPairRelation
 	// dual-frequency edge came from a previously certified ledger row that
 	// survived the current private-branch joint-NIS admission.
 	bool fromTemporalLedger = false;
+	// A frontend product-gauge certificate has a different lifetime from a
+	// physical-arc ledger row.  It is keyed by satellite phase segments and
+	// remains valid across a backend S-basis change.
+	bool fromProductGaugeLedger = false;
 };
 
 /** Exact product-lattice constraints returned by the product IAR solver.
@@ -57,9 +95,24 @@ struct ZhangProductIntegerConstraintSet
 	ZhangExactVector wideLaneIntegers;
 	ZhangExactMatrix firstSignalProductRows;
 	ZhangExactVector firstSignalIntegers;
+	// A no-residual-DOF component-gauge solution is deliberately not a
+	// constraint.  These rows are only observations for the independent
+	// ProductGaugeCertificateLedger multi-epoch confirmation path.
+	ZhangExactMatrix provisionalWideLaneProductRows;
+	ZhangExactVector provisionalWideLaneIntegers;
+	ZhangExactMatrix provisionalFirstSignalProductRows;
+	ZhangExactVector provisionalFirstSignalIntegers;
 
 	ZhangExactMatrix networkRows;
 	ZhangExactVector networkIntegers;
+	// Complete current [z1,z2] product coordinate pulled back to the network
+	// ambiguity state.  This is intentionally separate from jointProductRows:
+	// the latter contains only accepted direct constraints, whereas this matrix
+	// is the exact coordinate chart used to re-express a physical Ledger row in
+	// the current product lattice after a backend basis-generation change.
+	ZhangExactMatrix fullJointProductNetworkRows;
+	ZhangExactVector fullJointProductAffineOffsets;
+	bool fullJointProductMappingExact = false;
 	// Joint [z1,z2] rows corresponding one-to-one with networkRows.
 	ZhangExactMatrix jointProductRows;
 	// Immutable current physical-arc identities, populated by AMBRES after the
@@ -111,6 +164,12 @@ struct ZhangProductRelationFixResult
 	double selectedPartialFixFraction = 0;
 	int componentCoverageGain = 0;
 	int certifiedJointIntegerRank = 0;
+	// Private component-gauge diagnostics.  These are copied out of the
+	// shadow/private solver so a frozen-posterior closure audit can report the
+	// dual graph rank and component count at every iteration.
+	int componentGaugeComponentsBefore = 0;
+	int componentGaugeComponentsAfter = 0;
+	int componentGaugeNewDualGraphRank = 0;
 	double maximumWideLanePerr = 1;
 	double maximumWideLaneMarginalRoundPerr = 1;
 	double wideLaneParentFailureProbabilityBound = 1;
@@ -147,6 +206,102 @@ struct ZhangProductRelationFixResult
 	std::string status = "NOT_EVALUATED";
 	std::string failureReason = "NONE";
 };
+
+/** Private dual-frequency closure of the remaining component gauges.
+ *
+ * Direct product IAR first certifies within-component satellite differences.
+ * This result represents only the K-1 datum-free gauges between those
+ * components.  WL is resolved first; L1 is resolved conditional on the
+ * accepted WL lattice.  The rows remain product-lattice rows until the caller
+ * completes the final exact union and one-shot PRODUCT_FIXED conditioning. */
+struct ZhangDualComponentGaugeFixResult
+{
+	bool valid = false;
+	bool reliable = false;
+	int componentsBefore = 0;
+	int componentsAfter = 0;
+	int gaugeTargetRank = 0;
+	int wlGaugeFixedRank = 0;
+	int firstSignalGaugeFixedRank = 0;
+	int combinedCertifiedRank = 0;
+	int newDualGraphRank = 0;
+	int measurementRank = 0;
+	int estimableGaugeRank = 0;
+	std::vector<int> estimableGaugeColumns;
+	int residualDof = 0;
+	bool confirmationRequired = false;
+	double residualNis = std::numeric_limits<double>::quiet_NaN();
+	double residualNisThreshold = std::numeric_limits<double>::quiet_NaN();
+	double maximumNullResidual = std::numeric_limits<double>::quiet_NaN();
+	double wlFailureProbability = 1;
+	double firstSignalFailureProbability = 1;
+	ZhangExactMatrix wideLaneProductRows;
+	ZhangExactVector wideLaneIntegers;
+	ZhangExactMatrix firstSignalProductRows;
+	ZhangExactVector firstSignalIntegers;
+	std::vector<ZhangCertifiedPairRelation> newDualPairCertificates;
+	std::string failureReason = "NOT_EVALUATED";
+};
+
+/** One independently admitted connected component-gauge block.
+ *
+ * A block never borrows an integer decision from another block.  Its rows are
+ * exact product-lattice rows and may therefore be unioned by the caller
+ * without converting a real SVD/QR direction into an integer constraint.
+ */
+struct ZhangComponentGaugeBlockResult
+{
+	std::vector<int> componentIds;
+	int targetRank = 0;
+	int estimableRank = 0;
+	int measurementRank = 0;
+	double residualNis = std::numeric_limits<double>::quiet_NaN();
+	double residualNisThreshold = std::numeric_limits<double>::quiet_NaN();
+	double maximumNullResidual = std::numeric_limits<double>::quiet_NaN();
+	ZhangExactMatrix wlRows;
+	ZhangExactVector wlIntegers;
+	ZhangExactMatrix l1Rows;
+	ZhangExactVector l1Integers;
+	int newDualRank = 0;
+	bool reliable = false;
+	bool confirmationRequired = false;
+	double wlFailureProbability = 1;
+	double l1FailureProbability = 1;
+	std::string failureReason = "NOT_EVALUATED";
+	// Only rows admitted by this block.  This is intentionally distinct from
+	// conditioning-only ledger rows and from the caller's final global union.
+	ZhangProductIntegerConstraintSet constraints;
+};
+
+/** Provenance for one component support edge.  Integer rows are always built
+ * from this incidence provenance; real null vectors are diagnostic only. */
+struct ZhangComponentEdgeId
+{
+	int firstComponent = -1;
+	int secondComponent = -1;
+	int firstNode = -1;
+	int secondNode = -1;
+};
+
+/** A failed covariance-nullspace consistency equation.  The coefficients are
+ * a locator for quarantine, never an integer row to be fixed. */
+struct ZhangNullSpaceConflict
+{
+	double nullResidual = std::numeric_limits<double>::quiet_NaN();
+	std::vector<ZhangComponentEdgeId> dominantEdges;
+	// c_k,i = u_0,k,i * r_i.  These are the quantities used for local
+	// quarantine, rather than the bare null-vector coefficients.
+	std::vector<double> contributions;
+	// Kept for trace compatibility only; never use this field for ranking.
+	std::vector<double> coefficients;
+	std::vector<E_ObsCode> signals;
+	std::vector<uint64_t> backendGenerations;
+	std::vector<std::string> phaseSegments;
+	std::vector<std::string> sources;
+	std::vector<ZhangExactInteger> affineOffsets;
+};
+
+using ZhangNullConflict = ZhangNullSpaceConflict;
 
 /** One product-aware PAR beam state.
  *
@@ -258,6 +413,7 @@ struct ZhangNamedPairBeamBranch
 {
 	std::vector<int> selected;
 	double maximumPerr = 0;
+	double conditionalProductGain = 0;
 	double summedGain = 0;
 	double summedVariance = 0;
 	int coveredNodes = 0;
@@ -273,9 +429,13 @@ inline std::vector<std::vector<ZhangNamedPairBeamBranch>>
 zhangNamedPairForestBeamLevels(
 	const std::vector<ZhangNamedPairBeamCandidate>& candidates,
 	int dimension,
-	int beamWidth)
+	int beamWidth,
+	const std::function<double(const std::vector<int>&)>& conditionalGain = {},
+	int maximumExpansionsPerLevel = std::numeric_limits<int>::max(),
+	bool* expansionCapped = nullptr)
 {
 	std::vector<std::vector<ZhangNamedPairBeamBranch>> levels;
+	if (expansionCapped) *expansionCapped = false;
 	if (dimension <= 0 || beamWidth <= 0 || candidates.empty()) return levels;
 	auto quality = [&](const std::vector<int>& selected)
 	{
@@ -294,6 +454,9 @@ zhangNamedPairForestBeamLevels(
 				candidates[index].nodes.end());
 		}
 		branch.coveredNodes = nodes.size();
+		branch.conditionalProductGain = conditionalGain
+			? conditionalGain(selected)
+			: branch.summedGain;
 		return branch;
 	};
 	auto better = [](const auto& left, const auto& right)
@@ -302,8 +465,8 @@ zhangNamedPairForestBeamLevels(
 			return left.maximumPerr < right.maximumPerr;
 		if (left.coveredNodes != right.coveredNodes)
 			return left.coveredNodes > right.coveredNodes;
-		if (left.summedGain != right.summedGain)
-			return left.summedGain > right.summedGain;
+		if (left.conditionalProductGain != right.conditionalProductGain)
+			return left.conditionalProductGain > right.conditionalProductGain;
 		if (left.summedVariance != right.summedVariance)
 			return left.summedVariance < right.summedVariance;
 		return left.selected < right.selected;
@@ -315,9 +478,21 @@ zhangNamedPairForestBeamLevels(
 		targetRank <= dimension && !frontier.empty(); targetRank++)
 	{
 		std::map<std::vector<int>, ZhangNamedPairBeamBranch> unique;
+		int expanded = 0;
+		bool cappedThisLevel = false;
 		for (const auto& parent : frontier)
 		for (int index = 0; index < static_cast<int>(candidates.size()); index++)
 		{
+			// The LAMBDA evaluation cap must also bound the preceding exact
+			// forest construction.  Otherwise a large all-pair dictionary can
+			// allocate and score thousands of temporary HNF/gain candidates before
+			// the later evaluation loop ever sees its cap.
+			if (expanded >= maximumExpansionsPerLevel)
+			{
+				cappedThisLevel = true;
+				break;
+			}
+			expanded++;
 			if (std::binary_search(
 				parent.selected.begin(), parent.selected.end(), index)) continue;
 			auto selected = parent.selected;
@@ -331,6 +506,7 @@ zhangNamedPairForestBeamLevels(
 				exactRank != static_cast<int>(rows.size())) continue;
 			unique.try_emplace(selected, quality(selected));
 		}
+		if (cappedThisLevel && expansionCapped) *expansionCapped = true;
 		frontier.clear();
 		for (auto& [selected, branch] : unique)
 			frontier.push_back(std::move(branch));
@@ -683,6 +859,9 @@ struct ZhangComponentGaugeGls
 	int gaugeRank = 0;
 	Eigen::VectorXd mean;
 	Eigen::MatrixXd covariance;
+	Eigen::MatrixXd information;
+	Eigen::VectorXd residual;
+	std::vector<Eigen::VectorXd> nullModes;
 	double residualNis = std::numeric_limits<double>::quiet_NaN();
 	double maximumNullResidual = 0;
 };
@@ -774,6 +953,7 @@ inline ZhangComponentGaugeGls zhangComponentGaugeGls(
 		eigen.eigenvectors().transpose();
 	const Eigen::MatrixXd information =
 		design.transpose() * pseudoInverse * design;
+	result.information = information;
 	Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd> informationSolver(
 		information);
 	result.gaugeRank = informationSolver.rank();
@@ -785,14 +965,285 @@ inline ZhangComponentGaugeGls zhangComponentGaugeGls(
 	result.mean = result.covariance * design.transpose() *
 		pseudoInverse * measurements;
 	const Eigen::VectorXd residual = measurements - design * result.mean;
+	result.residual = residual;
 	result.residualNis = residual.dot(pseudoInverse * residual);
 	const Eigen::VectorXd nullResidual =
 		residual - symmetric * pseudoInverse * residual;
 	result.maximumNullResidual = nullResidual.lpNorm<Eigen::Infinity>();
+	for (int mode = 0; mode < eigen.eigenvalues().size(); mode++)
+	{
+		if (eigen.eigenvalues()(mode) <= tolerance)
+		{
+			const auto& vector = eigen.eigenvectors().col(mode);
+			if (std::abs(vector.dot(residual)) > tolerance)
+				result.nullModes.push_back(vector);
+		}
+	}
 	result.valid = result.mean.allFinite() && result.covariance.allFinite() &&
 		std::isfinite(result.residualNis) &&
 		result.maximumNullResidual <= 1e-7;
 	return result;
+}
+
+/** Select a largest paired L1/L2 coordinate sublattice supported by the
+ * information matrix.  QR/COD is used only to decide whether the *named
+ * incidence coordinates* add rank; the returned coordinates are unit rows of
+ * the component forest and hence primitive integer functions. */
+inline std::vector<int> zhangMaxEstimableDualGaugeForest(
+	const Eigen::MatrixXd& information,
+	int gaugeCount)
+{
+	std::vector<int> selected;
+	if (gaugeCount <= 0 || information.rows() != 2 * gaugeCount ||
+		information.cols() != 2 * gaugeCount || !information.allFinite())
+		return selected;
+	auto matrixRank = [](const Eigen::MatrixXd& matrix)
+	{
+		if (matrix.size() == 0) return 0;
+		Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd> cod(matrix);
+		return static_cast<int>(cod.rank());
+	};
+	int rank = 0;
+	for (int gauge = 0; gauge < gaugeCount; gauge++)
+	{
+		std::vector<int> columns;
+		for (const int existing : selected)
+		{
+			columns.push_back(existing);
+			columns.push_back(gaugeCount + existing);
+		}
+		columns.push_back(gauge);
+		columns.push_back(gaugeCount + gauge);
+		Eigen::MatrixXd candidate(columns.size(), columns.size());
+		for (int row = 0; row < static_cast<int>(columns.size()); row++)
+		for (int column = 0; column < static_cast<int>(columns.size()); column++)
+			candidate(row, column) = information(columns[row], columns[column]);
+		const int candidateRank = matrixRank(candidate);
+		if (candidateRank >= rank + 2)
+		{
+			selected.push_back(gauge);
+			rank = candidateRank;
+		}
+	}
+	return selected;
+}
+
+/** Test whether one named datum-free component-incidence functional belongs
+ * to the real estimable space of I.  This is an estimability diagnostic only:
+ * callers still use the original integer incidence row as their constraint.
+ */
+inline bool zhangComponentGaugeFunctionalEstimable(
+	const Eigen::MatrixXd& information,
+	const Eigen::VectorXd& functional,
+	double tolerance = 1e-8)
+{
+	if (information.rows() == 0 || information.rows() != information.cols() ||
+		functional.size() != information.cols() || !information.allFinite() ||
+		!functional.allFinite()) return false;
+	const Eigen::MatrixXd symmetric =
+		0.5 * (information + information.transpose());
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen(symmetric);
+	if (eigen.info() != Eigen::Success || !eigen.eigenvalues().allFinite())
+		return false;
+	const double largest = std::max(0.0, eigen.eigenvalues().maxCoeff());
+	const double cutoff = std::max(1e-14, 1e-12 * largest);
+	Eigen::VectorXd inverse = Eigen::VectorXd::Zero(information.rows());
+	for (int index = 0; index < inverse.size(); index++)
+		if (eigen.eigenvalues()(index) > cutoff)
+			inverse(index) = 1 / eigen.eigenvalues()(index);
+	const Eigen::MatrixXd pseudoInverse = eigen.eigenvectors() *
+		inverse.asDiagonal() * eigen.eigenvectors().transpose();
+	const Eigen::VectorXd unestimable = functional -
+		symmetric * pseudoInverse * functional;
+	return unestimable.norm() <= tolerance * std::max(1.0, functional.norm());
+}
+
+/** Return a maximum-information forest of dual-frequency estimable component
+ * differences.  QR/eigen analysis here is never converted to an integer row:
+ * every returned edge is the primitive incidence e_a-e_b, for both signals.
+ */
+inline std::vector<ZhangComponentEdgeId>
+zhangMaximumEstimableDualComponentForest(
+	const Eigen::MatrixXd& information,
+	int componentCount,
+	const std::vector<ZhangComponentEdgeId>& candidates,
+	double estimabilityTolerance = 1e-8)
+{
+	std::vector<ZhangComponentEdgeId> forest;
+	const int gauges = componentCount - 1;
+	if (componentCount <= 1 || information.rows() != 2 * gauges ||
+		information.cols() != 2 * gauges) return forest;
+
+	const Eigen::MatrixXd symmetric =
+		0.5 * (information + information.transpose());
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigen(symmetric);
+	if (eigen.info() != Eigen::Success || !eigen.eigenvalues().allFinite())
+		return forest;
+	const double largest = std::max(0.0, eigen.eigenvalues().maxCoeff());
+	const double cutoff = std::max(1e-14, 1e-12 * largest);
+	Eigen::VectorXd inverse = Eigen::VectorXd::Zero(2 * gauges);
+	for (int index = 0; index < inverse.size(); index++)
+		if (eigen.eigenvalues()(index) > cutoff)
+			inverse(index) = 1 / eigen.eigenvalues()(index);
+	const Eigen::MatrixXd pseudoInverse = eigen.eigenvectors() *
+		inverse.asDiagonal() * eigen.eigenvectors().transpose();
+
+	struct WeightedEdge
+	{
+		ZhangComponentEdgeId edge;
+		double score = 0;
+	};
+	std::map<std::pair<int, int>, WeightedEdge> best;
+	for (const auto& candidate : candidates)
+	{
+		const int first = candidate.firstComponent;
+		const int second = candidate.secondComponent;
+		if (first < 0 || second < 0 || first >= componentCount ||
+			second >= componentCount || first == second) continue;
+		Eigen::VectorXd firstSignal = Eigen::VectorXd::Zero(2 * gauges);
+		Eigen::VectorXd secondSignal = Eigen::VectorXd::Zero(2 * gauges);
+		if (first > 0)
+		{
+			firstSignal(first - 1) += 1;
+			secondSignal(gauges + first - 1) += 1;
+		}
+		if (second > 0)
+		{
+			firstSignal(second - 1) -= 1;
+			secondSignal(gauges + second - 1) -= 1;
+		}
+		if (!zhangComponentGaugeFunctionalEstimable(
+			information, firstSignal, estimabilityTolerance) ||
+			!zhangComponentGaugeFunctionalEstimable(
+				information, secondSignal, estimabilityTolerance)) continue;
+		const double firstVariance =
+			(firstSignal.transpose() * pseudoInverse * firstSignal)(0, 0);
+		const double secondVariance =
+			(secondSignal.transpose() * pseudoInverse * secondSignal)(0, 0);
+		if (!std::isfinite(firstVariance) || !std::isfinite(secondVariance) ||
+			firstVariance < -cutoff || secondVariance < -cutoff) continue;
+		const auto key = std::minmax(first, second);
+		const WeightedEdge weighted{candidate,
+			1 / std::max(1e-20, firstVariance + secondVariance)};
+		auto existing = best.find(key);
+		if (existing == best.end() || weighted.score > existing->second.score)
+			best[key] = weighted;
+	}
+	std::vector<WeightedEdge> ordered;
+	for (const auto& [_, edge] : best) ordered.push_back(edge);
+	std::sort(ordered.begin(), ordered.end(), [](const auto& left, const auto& right)
+		{ return left.score > right.score; });
+	std::vector<int> parent(componentCount);
+	std::iota(parent.begin(), parent.end(), 0);
+	auto root = [&parent](int node)
+	{
+		int value = node;
+		while (parent[value] != value)
+		{
+			parent[value] = parent[parent[value]];
+			value = parent[value];
+		}
+		return value;
+	};
+	for (const auto& weighted : ordered)
+	{
+		const int left = root(weighted.edge.firstComponent);
+		const int right = root(weighted.edge.secondComponent);
+		if (left == right) continue;
+		parent[right] = left;
+		forest.push_back(weighted.edge);
+	}
+	return forest;
+}
+
+/** Partition a dual-frequency component support graph.  A support edge is
+ * admitted only when it has simultaneous L1 and L2 evidence; a missing edge
+ * cannot make a different block fail. */
+inline std::vector<std::vector<int>> zhangDualComponentSupportBlocks(
+	int componentCount,
+	const std::vector<ZhangComponentEdgeId>& dualSupportEdges)
+{
+	std::vector<std::vector<int>> blocks;
+	if (componentCount <= 0) return blocks;
+	std::vector<int> parent(componentCount);
+	std::iota(parent.begin(), parent.end(), 0);
+	auto root = [&](int node)
+	{
+		int value = node;
+		while (parent[value] != value)
+		{
+			parent[value] = parent[parent[value]];
+			value = parent[value];
+		}
+		return value;
+	};
+	for (const auto& edge : dualSupportEdges)
+	{
+		if (edge.firstComponent < 0 || edge.secondComponent < 0 ||
+			edge.firstComponent >= componentCount ||
+			edge.secondComponent >= componentCount ||
+			edge.firstComponent == edge.secondComponent) continue;
+		const int left = root(edge.firstComponent);
+		const int right = root(edge.secondComponent);
+		if (left != right) parent[right] = left;
+	}
+	std::map<int, std::vector<int>> grouped;
+	for (int component = 0; component < componentCount; component++)
+		grouped[root(component)].push_back(component);
+	for (auto& [_, block] : grouped)
+	{
+		std::sort(block.begin(), block.end());
+		blocks.push_back(std::move(block));
+	}
+	return blocks;
+}
+
+/** Map an exact covariance-nullspace contradiction back to the observations
+ * that dominate it.  This performs localization only; callers must quarantine
+ * the reported edge group rather than relax a numerical tolerance. */
+inline std::vector<ZhangNullConflict> zhangLocalizeNullConflicts(
+	const ZhangComponentGaugeGls& gls,
+	const std::vector<ZhangComponentEdgeId>& edges,
+	const std::vector<E_ObsCode>& signals = {},
+	const std::vector<uint64_t>& generations = {},
+	const std::vector<std::string>& segments = {},
+	const std::vector<std::string>& sources = {},
+	const std::vector<ZhangExactInteger>& affineOffsets = {})
+{
+	std::vector<ZhangNullConflict> conflicts;
+	if (gls.residual.size() != static_cast<int>(edges.size())) return conflicts;
+	for (const auto& mode : gls.nullModes)
+	{
+		if (mode.size() != gls.residual.size()) continue;
+		ZhangNullConflict conflict;
+		conflict.nullResidual = mode.dot(gls.residual);
+		std::vector<int> order(mode.size());
+		std::iota(order.begin(), order.end(), 0);
+		std::sort(order.begin(), order.end(), [&mode, &gls](int left, int right)
+			{ return std::abs(mode(left) * gls.residual(left)) >
+				std::abs(mode(right) * gls.residual(right)); });
+		for (const int index : order)
+		{
+			const double contribution = mode(index) * gls.residual(index);
+			if (std::abs(contribution) <= 1e-10) break;
+			conflict.dominantEdges.push_back(edges[index]);
+			conflict.contributions.push_back(contribution);
+			conflict.coefficients.push_back(mode(index));
+			if (index < static_cast<int>(signals.size()))
+				conflict.signals.push_back(signals[index]);
+			if (index < static_cast<int>(generations.size()))
+				conflict.backendGenerations.push_back(generations[index]);
+			if (index < static_cast<int>(segments.size()))
+				conflict.phaseSegments.push_back(segments[index]);
+			if (index < static_cast<int>(sources.size()))
+				conflict.sources.push_back(sources[index]);
+			if (index < static_cast<int>(affineOffsets.size()))
+				conflict.affineOffsets.push_back(affineOffsets[index]);
+			if (conflict.dominantEdges.size() == 8) break;
+		}
+		if (!conflict.dominantEdges.empty()) conflicts.push_back(std::move(conflict));
+	}
+	return conflicts;
 }
 
 /** GLS estimate of one shared relative integer gauge from correlated cross-

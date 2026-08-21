@@ -37,6 +37,7 @@
 #include "common/trace.hpp"
 #include "common/zhangPhaseContinuity.hpp"
 #include "common/zhangProductIntegerLedger.hpp"
+#include "common/zhangProductGaugeCertificateLedger.hpp"
 #include "common/zhangProductRelationSolver.hpp"
 #include "common/zhangProductRelationAdmission.hpp"
 #include "common/zhangCheckpoint.hpp"
@@ -9580,6 +9581,201 @@ void writeZhangInternalProducts(
 
 		const int coordinateCount = static_cast<int>(
 			productCertification->coordinateSatellites.size());
+		// Promote only a dual WL+L1 edge into the frontend gauge ledger.  The
+		// physical ProductIntegerLedger remains the provenance/audit layer; this
+		// ledger is deliberately keyed by satellite phase-product segments so a
+		// backend tree or S-basis change cannot erase a valid product relation.
+		using ProductEdge = std::pair<int, int>;
+		auto canonicalProductEdge = [](int first, int second,
+			ZhangExactInteger value)
+		{
+			if (second < first)
+			{
+				std::swap(first, second);
+				value = -value;
+			}
+			return std::tuple<ProductEdge, ZhangExactInteger>{
+				{first, second}, value};
+		};
+		std::map<ProductEdge, ZhangExactInteger> currentWideLanePairs;
+		std::map<ProductEdge, ZhangExactInteger> currentFirstSignalPairs;
+		std::set<ProductEdge> provisionalWideLanePairs;
+		std::set<ProductEdge> provisionalFirstSignalPairs;
+		auto insertCandidatePair = [&](const ZhangCertifiedPairRelation& pair,
+			bool provisional)
+		{
+			if (pair.firstNode < 0 || pair.secondNode < 0 ||
+				pair.firstNode > coordinateCount ||
+				pair.secondNode > coordinateCount ||
+				pair.firstNode == pair.secondNode) return;
+			if (pair.coordinate != "WL" && pair.coordinate != "L1") return;
+			auto [edge, value] = canonicalProductEdge(
+				pair.firstNode, pair.secondNode, pair.value);
+			auto& stage = pair.coordinate == "WL"
+				? currentWideLanePairs : currentFirstSignalPairs;
+			auto& provisionalStage = pair.coordinate == "WL"
+				? provisionalWideLanePairs : provisionalFirstSignalPairs;
+			auto existing = stage.find(edge);
+			if (existing == stage.end())
+			{
+				stage[edge] = value;
+				if (provisional) provisionalStage.insert(edge);
+			}
+			else if (existing->second != value)
+			{
+				stage.erase(existing);
+				provisionalStage.erase(edge);
+			}
+			else if (!provisional)
+			{
+				// A current exact pair supersedes a square-block observation.
+				provisionalStage.erase(edge);
+			}
+		};
+		for (const auto& pair : productCertification->certifiedPairs)
+			insertCandidatePair(pair, false);
+		auto insertProvisionalRows = [&](const ZhangExactMatrix& rows,
+			const ZhangExactVector& values, const std::string& coordinate)
+		{
+			for (const auto& pair : zhangRecoverCertifiedPairRelations(
+				rows, values, coordinateCount, true))
+			{
+				ZhangCertifiedPairRelation candidate = pair;
+				candidate.coordinate = coordinate;
+				insertCandidatePair(candidate, true);
+			}
+		};
+		// Square bridge solutions enter this path only as observations for the
+		// multi-epoch product-gauge ledger.  They are not current certificates.
+		insertProvisionalRows(
+			productCertification->provisionalWideLaneProductRows,
+			productCertification->provisionalWideLaneIntegers, "WL");
+		insertProvisionalRows(
+			productCertification->provisionalFirstSignalProductRows,
+			productCertification->provisionalFirstSignalIntegers, "L1");
+		std::map<SatSys, std::array<string, 2>> currentSegments;
+		for (const auto& product : epochProducts)
+		{
+			if (product.solution != "PRODUCT_FIXED" ||
+				product.satellite.sys != productCertification->system) continue;
+			const int signal = product.observable ==
+				productCertification->firstObservable ? 0 :
+				product.observable == productCertification->secondObservable ? 1 : -1;
+			if (signal >= 0)
+				currentSegments[product.satellite][signal] =
+					product.phase_product_segment_id;
+		}
+		auto nodeSatellite = [&](int node) -> SatSys
+		{
+			return node == coordinateCount
+				? productCertification->referenceSatellite
+				: productCertification->coordinateSatellites.at(node);
+		};
+		std::vector<ProductGaugeCertificate> gaugeCandidates;
+		for (const auto& [edge, wideLaneInteger] : currentWideLanePairs)
+		{
+			auto first = currentFirstSignalPairs.find(edge);
+			if (first == currentFirstSignalPairs.end()) continue;
+			const SatSys satellite = nodeSatellite(edge.first);
+			const SatSys reference = nodeSatellite(edge.second);
+			auto satelliteSegments = currentSegments.find(satellite);
+			auto referenceSegments = currentSegments.find(reference);
+			if (satelliteSegments == currentSegments.end() ||
+				referenceSegments == currentSegments.end()) continue;
+			ProductGaugeCertificate candidate;
+			candidate.system = productCertification->system;
+			candidate.firstObservable = productCertification->firstObservable;
+			candidate.secondObservable = productCertification->secondObservable;
+			candidate.satellite = satellite;
+			candidate.reference = reference;
+			candidate.wideLaneInteger = wideLaneInteger;
+			candidate.firstSignalInteger = first->second;
+			candidate.satellitePhaseSegments = satelliteSegments->second;
+			candidate.referencePhaseSegments = referenceSegments->second;
+			candidate.wideLaneReliable = true;
+			candidate.firstSignalReliable = true;
+			candidate.exactProductLatticeMembership =
+				productCertification->exactNetworkMapping;
+			candidate.jointNisPassed = std::isfinite(productCertification->jointNis) &&
+				std::isfinite(productCertification->jointNisThreshold) &&
+				productCertification->jointNis <= productCertification->jointNisThreshold;
+			candidate.cycleClosurePassed = true;
+			candidate.temporalAlignmentCertified = true;
+			candidate.noResidualDof =
+				provisionalWideLanePairs.count(edge) > 0 ||
+				provisionalFirstSignalPairs.count(edge) > 0;
+			candidate.independentSupportPaths = candidate.noResidualDof ? 0 : 1;
+			gaugeCandidates.push_back(std::move(candidate));
+		}
+		ProductGaugeCertificateLedgerUpdate gaugeLedgerUpdate;
+		std::vector<ZhangCertifiedPairRelation> dualCertificates =
+			productCertification->dualFrequencyCertifiedPairs;
+		std::map<ProductEdge, int> gaugeCertificateVersions;
+		if (acsConfig.zhangPppAr.product_gauge_certificate_ledger)
+		{
+			auto& gaugeLedger = zhangProductGaugeCertificateLedgerRegistry()[
+				{integerLedgerRuntimeId, productCertification->system}];
+			gaugeLedgerUpdate = gaugeLedger.observe(
+				static_cast<long>(fixedState.time.bigTime), gaugeCandidates,
+				acsConfig.zhangPppAr.product_component_gauge_confirmation_epochs);
+			std::set<ProductEdge> currentEdges;
+			for (const auto& pair : dualCertificates)
+			{
+				if (pair.firstNode < 0 || pair.secondNode < 0) continue;
+				auto [edge, ignored] = canonicalProductEdge(
+					pair.firstNode, pair.secondNode, pair.value);
+				currentEdges.insert(edge);
+			}
+			for (const auto& certificate : gaugeLedger.certificates())
+			{
+				if (!certificate.active || !certificate.currentAlignmentValid ||
+					certificate.firstObservable != productCertification->firstObservable ||
+					certificate.secondObservable != productCertification->secondObservable)
+					continue;
+				auto satelliteSegments = currentSegments.find(certificate.satellite);
+				auto referenceSegments = currentSegments.find(certificate.reference);
+				if (satelliteSegments == currentSegments.end() ||
+					referenceSegments == currentSegments.end() ||
+					satelliteSegments->second != certificate.satellitePhaseSegments ||
+					referenceSegments->second != certificate.referencePhaseSegments)
+					continue;
+				int firstNode = -1;
+				int secondNode = -1;
+				for (int node = 0; node <= coordinateCount; node++)
+				{
+					const SatSys nodeSat = nodeSatellite(node);
+					if (nodeSat == certificate.satellite) firstNode = node;
+					if (nodeSat == certificate.reference) secondNode = node;
+				}
+				if (firstNode < 0 || secondNode < 0 || firstNode == secondNode) continue;
+				auto [edge, canonicalValue] = canonicalProductEdge(
+					firstNode, secondNode, certificate.firstSignalInteger);
+				if (!currentEdges.insert(edge).second) continue;
+				ZhangCertifiedPairRelation pair;
+				pair.firstNode = edge.first;
+				pair.secondNode = edge.second;
+				pair.value = canonicalValue;
+				pair.coordinate = "L1_AND_WL";
+				pair.fromProductGaugeLedger = true;
+				dualCertificates.push_back(std::move(pair));
+				gaugeCertificateVersions[edge] = certificate.componentVersion;
+			}
+			trace << "\nZHANG_PRODUCT_GAUGE_CERTIFICATE_LEDGER time="
+				  << fixedState.time.to_string(0)
+				  << " system=" << enum_to_string(productCertification->system)
+				  << " input=" << gaugeLedgerUpdate.inputCertificates
+				  << " fresh=" << gaugeLedgerUpdate.freshCertificates
+				  << " confirmed=" << gaugeLedgerUpdate.confirmedCertificates
+				  << " conflicts=" << gaugeLedgerUpdate.conflicts
+				  << " suspended=" << gaugeLedgerUpdate.suspendedCertificates
+				  << " revoked=" << gaugeLedgerUpdate.revokedCertificates
+				  << " rejected=" << gaugeLedgerUpdate.rejectedCandidates
+				  << " retired_segments="
+				  << gaugeLedgerUpdate.retiredSegmentCertificates
+				  << " active_total=" << gaugeLedger.activeRank()
+				  << " status=" << gaugeLedgerUpdate.failureReason
+				  << " feedback=PRIVATE_PRODUCT_BRANCH";
+		}
 		vector<int> parent(coordinateCount + 1);
 		std::iota(parent.begin(), parent.end(), 0);
 		auto root = [&](int node)
@@ -9601,8 +9797,7 @@ void writeZhangInternalProducts(
 			if (firstRoot != secondRoot) parent[secondRoot] = firstRoot;
 		};
 		int validCertificateEdges = 0;
-		for (const auto& pair :
-			productCertification->dualFrequencyCertifiedPairs)
+		for (const auto& pair : dualCertificates)
 		{
 			if (pair.firstNode < 0 || pair.secondNode < 0 ||
 				pair.firstNode > coordinateCount ||
@@ -9615,8 +9810,7 @@ void writeZhangInternalProducts(
 		for (int node = 0; node <= coordinateCount; node++)
 			componentNodes[root(node)].push_back(node);
 		map<int, int> componentEdgeCounts;
-		for (const auto& pair :
-			productCertification->dualFrequencyCertifiedPairs)
+		for (const auto& pair : dualCertificates)
 		{
 			if (pair.firstNode >= 0 && pair.firstNode <= coordinateCount &&
 				pair.secondNode >= 0 && pair.secondNode <= coordinateCount &&
@@ -9626,6 +9820,7 @@ void writeZhangInternalProducts(
 		map<tuple<int, E_ObsCode>, ProductEffect> effects;
 		map<SatSys, int> satelliteComponents;
 		map<int, bool> componentUsesTemporalLedger;
+		map<int, int> componentGaugeCertificateVersion;
 		int componentNumber = 0;
 		for (const auto& [componentRoot, nodes] : componentNodes)
 		{
@@ -9642,16 +9837,29 @@ void writeZhangInternalProducts(
 			}
 			std::sort(satellites.begin(), satellites.end());
 			componentUsesTemporalLedger[componentNumber] = std::any_of(
-				productCertification->dualFrequencyCertifiedPairs.begin(),
-				productCertification->dualFrequencyCertifiedPairs.end(),
+				dualCertificates.begin(), dualCertificates.end(),
 				[&](const auto& pair)
 				{
-					return pair.fromTemporalLedger &&
+					return (pair.fromTemporalLedger ||
+						pair.fromProductGaugeLedger) &&
 						pair.firstNode >= 0 && pair.firstNode <= coordinateCount &&
 						pair.secondNode >= 0 && pair.secondNode <= coordinateCount &&
 						root(pair.firstNode) == componentRoot &&
 						root(pair.secondNode) == componentRoot;
 				});
+			for (const auto& pair : dualCertificates)
+			{
+				const ProductEdge edge{std::min(pair.firstNode, pair.secondNode),
+					std::max(pair.firstNode, pair.secondNode)};
+				auto version = gaugeCertificateVersions.find(edge);
+				if (version != gaugeCertificateVersions.end() &&
+					root(pair.firstNode) == componentRoot &&
+					root(pair.secondNode) == componentRoot)
+				{
+					componentGaugeCertificateVersion[componentNumber] = std::max(
+						componentGaugeCertificateVersion[componentNumber], version->second);
+				}
+			}
 			for (E_ObsCode observable : {
 				productCertification->firstObservable,
 				productCertification->secondObservable})
@@ -9724,6 +9932,9 @@ void writeZhangInternalProducts(
 			product.integer_component_id = "PRODUCT-" +
 				enum_to_string(productCertification->system) + "-C" +
 				std::to_string(id);
+			product.integer_component_version = std::max(
+				product.integer_component_version,
+				componentGaugeCertificateVersion[id]);
 			product.integer_datum_id = product.integer_component_id +
 				(componentUsesTemporalLedger[id]
 					? "-CURRENT-PLUS-LEDGER-EXACT" : "-CURRENT-EXACT");
@@ -10202,6 +10413,10 @@ void updateZhangPppArUserReferences(
                 map<SatSys, double> dualCandidates;
 				map<SatSys, string> dualIntegerComponents;
 				map<string, int> dualIntegerComponentSizes;
+				map<SatSys, bool> dualStateBacked;
+				map<string, int> dualIntegerComponentStateSupport;
+				UserDualReferenceKey dualKey{runtimeId, receiverId, sys};
+				auto& retained = userDualReferenceMap[dualKey];
                 for (const auto& obs : only<GObs>(receiver.obsList))
                 {
                     if (obs.Sat.sys != sys ||
@@ -10238,22 +10453,45 @@ void updateZhangPppArUserReferences(
 							secondProduct.integer_component_id;
 						dualIntegerComponents[obs.Sat] = component;
 						dualIntegerComponentSizes[component]++;
+						const bool stateBacked =
+							kfState.kfIndexMap.count(userAmbiguityKey(
+								receiverId, obs.Sat, observables.front())) > 0;
+						dualStateBacked[obs.Sat] = stateBacked;
+						dualIntegerComponentStateSupport[component] += stateBacked;
 					}
                 }
                 if (!dualCandidates.empty())
                 {
 					string preferredIntegerComponent;
-					int preferredIntegerComponentSize = 1;
-					for (const auto& [component, size] :
-						 dualIntegerComponentSizes)
+					int preferredIntegerComponentSize = 0;
+					int preferredIntegerComponentStateSupport = 0;
+					for (const auto& [component, size] : dualIntegerComponentSizes)
 					{
-						if (size > preferredIntegerComponentSize
-						 || (size == preferredIntegerComponentSize
-							 && !preferredIntegerComponent.empty()
-							 && component < preferredIntegerComponent))
+						const int stateSupport =
+							dualIntegerComponentStateSupport[component];
+						const bool retainedInComponent =
+							retained.prn > 0 &&
+							dualIntegerComponents.count(retained) > 0 &&
+							dualIntegerComponents.at(retained) == component;
+						// A reference with no ambiguity state is legitimate only when
+						// there is a distinct state-backed satellite in the same exact
+						// certified component.  Otherwise forcing it would erase the
+						// only usable AR coordinate before the solver is called.
+						const bool arReferenceReady = retainedInComponent
+							? stateSupport >= 1
+							: stateSupport >= 2;
+						if (arReferenceReady &&
+							(stateSupport > preferredIntegerComponentStateSupport
+							 || (stateSupport == preferredIntegerComponentStateSupport &&
+								 size > preferredIntegerComponentSize)
+							 || (stateSupport == preferredIntegerComponentStateSupport &&
+								 size == preferredIntegerComponentSize &&
+								 !preferredIntegerComponent.empty() &&
+								 component < preferredIntegerComponent)))
 						{
 							preferredIntegerComponent = component;
 							preferredIntegerComponentSize = size;
+							preferredIntegerComponentStateSupport = stateSupport;
 						}
 					}
 					map<SatSys, double> referenceCandidates = dualCandidates;
@@ -10265,7 +10503,9 @@ void updateZhangPppArUserReferences(
 							auto component = dualIntegerComponents.find(
 								candidate->first);
 							if (component == dualIntegerComponents.end()
-							 || component->second != preferredIntegerComponent)
+							 || component->second != preferredIntegerComponent
+							 || (!dualStateBacked[candidate->first] &&
+								 candidate->first != retained))
 							{
 								candidate = referenceCandidates.erase(candidate);
 							}
@@ -10275,10 +10515,7 @@ void updateZhangPppArUserReferences(
 							}
 						}
 					}
-                    UserDualReferenceKey dualKey{
-						runtimeId, receiverId, sys};
-                    auto& retained = userDualReferenceMap[dualKey];
-                    if (retained.prn > 0 &&
+					if (retained.prn > 0 &&
 						referenceCandidates.count(retained))
                     {
                         forcedDualReference = retained;
@@ -10303,9 +10540,13 @@ void updateZhangPppArUserReferences(
                               << " new=" << forcedDualReference.id()
 							  << " integer_component_size="
 							  << preferredIntegerComponentSize
+							  << " integer_component_state_support="
+							  << preferredIntegerComponentStateSupport
 							  << " integer_component="
 							  << (preferredIntegerComponent.empty()
 								  ? "NONE" : preferredIntegerComponent)
+							  << " ar_reference_ready="
+							  << !preferredIntegerComponent.empty()
                               << " exact_integer_transform="
                               << (retained.prn > 0);
                         retained = forcedDualReference;
@@ -10739,12 +10980,21 @@ void traceZhangPppArUserDiagnostics(
 
         for (const auto& [key, index] : kfState.kfIndexMap)
         {
+            const auto configured =
+                acsConfig.zhangPppAr.baseline_observables.find(key.Sat.sys);
+            E_ObsCode code = static_cast<E_ObsCode>(key.num);
+            E_ObsCode secondCode = E_ObsCode::NONE;
+            const bool sharedIfCoordinate =
+                configured != acsConfig.zhangPppAr.baseline_observables.end() &&
+                configured->second.size() == 2 &&
+                key.num == userPhaseCoordinateNumber(
+                    key.Sat.sys,
+                    configured->second.front()
+                );
             if (key.type != KF::AMBIGUITY ||
                 key.str != receiverId ||
-                !zhangPppArUsesObservable(
-                    key.Sat.sys,
-                    static_cast<E_ObsCode>(key.num)
-                ))
+                (!sharedIfCoordinate &&
+                 !zhangPppArUsesObservable(key.Sat.sys, code)))
             {
                 continue;
             }
@@ -10753,7 +11003,11 @@ void traceZhangPppArUserDiagnostics(
             double value = kfState.x(index);
             fractions.push_back(std::abs(value - std::round(value)));
 
-            E_ObsCode code = static_cast<E_ObsCode>(key.num);
+            if (sharedIfCoordinate)
+            {
+                code = configured->second.front();
+                secondCode = configured->second.back();
+            }
             ZhangInternalProduct product;
             if (queryZhangInternalProduct(
                     kfState.time,
@@ -10778,6 +11032,16 @@ void traceZhangPppArUserDiagnostics(
                 key.Sat,
                 code
             );
+            if (sharedIfCoordinate)
+            {
+                integerValid = integerValid &&
+                    zhangPppArUserAmbiguityIntegerValid(
+                        kfState,
+                        receiverId,
+                        key.Sat,
+                        secondCode
+                    );
+            }
             integerValidCount += integerValid;
 
             UserReferenceKey referenceKey{
@@ -10796,7 +11060,11 @@ void traceZhangPppArUserDiagnostics(
             trace << "\nZHANG_USER_AMBIGUITY time=" << kfState.time.to_string(0)
                   << " receiver=" << receiverId
                   << " satellite=" << key.Sat.id()
-                  << " observable=" << enum_to_string(code)
+                  << " observable="
+                  << (sharedIfCoordinate
+                          ? enum_to_string(code) + "-" +
+                                enum_to_string(secondCode)
+                          : enum_to_string(code))
                   << " reference=" << reference
                   << " value_cycles=" << value
                   << " rounded_cycles=" << std::llround(value)

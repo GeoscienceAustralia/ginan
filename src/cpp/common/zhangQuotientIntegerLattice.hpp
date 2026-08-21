@@ -330,8 +330,12 @@ inline ZhangCertifiedUnionAudit zhangExactCertifiedUnionAudit(
 	const auto unionHnf = zhangExactRowHermiteNormalForm(rows, values);
 	result.targetRank = targetHnf.basis.size();
 	result.heldRank = heldHnf.basis.size();
-	result.newlyFixedRank = fixedHnf.basis.size();
 	result.combinedCertifiedRank = unionHnf.basis.size();
+	// This is the *incremental* certified rank, not the standalone rank of
+	// the proposed batch.  Reporting fixedHnf here made a duplicate component
+	// edge look like a new certificate and could inflate a closure audit.
+	result.newlyFixedRank = std::max(
+		0, result.combinedCertifiedRank - result.heldRank);
 	result.consistent = targetHnf.consistent && heldHnf.consistent &&
 		fixedHnf.consistent && unionHnf.consistent;
 	if (!result.consistent)

@@ -10,6 +10,7 @@
 #include <vector>
 #include "common/enums.h"
 #include "common/satSys.hpp"
+#include "common/zhangIntegerSupportQuality.hpp"
 
 /** One receiver-satellite edge in the Zhang phase/ambiguity bipartite graph. */
 struct ZhangGraphEdge
@@ -426,6 +427,18 @@ struct ZhangProductReceiverCore
     std::set<ZhangGraphEdge> edges;
 };
 
+/** Integer-support core selected from a quality-audited subset of the full
+ * FLOAT graph.  The rejected edges remain available to the estimator; this
+ * object is only an admission boundary for Product-IAR evidence. */
+struct ZhangIntegerSupportCore
+{
+	ZhangProductReceiverCore receiverCore;
+	std::set<ZhangGraphEdge> qualifiedEdges;
+	std::map<ZhangGraphEdge, std::string> rejectedEdges;
+	bool valid = false;
+	std::string failureReason = "NOT_EVALUATED";
+};
+
 /** Build a small connected receiver subgraph that still spans every current
  * satellite.  The configured support is a target, clipped per satellite to
  * the support physically present in the input graph.  Previously selected
@@ -661,6 +674,107 @@ inline ZhangProductReceiverCore zhangBuildProductReceiverCore(
     result.connected = spanning.connected
         && spanning.satellites == result.satellites;
     return result;
+}
+
+/** Build the Product-IAR core only from arcs that have independently passed
+ * the dual-frequency/arc-age/QC/residual quality gates.  Missing quality is
+ * a rejection, never an implicit pass.  The ordinary full network graph is
+ * deliberately not altered. */
+inline ZhangIntegerSupportCore zhangBuildIntegerSupportCore(
+	const std::set<ZhangGraphEdge>& edges,
+	const std::string& rootReceiver,
+	const std::set<std::string>& previousReceivers,
+	int requestedSatelliteSupport,
+	const std::map<ZhangGraphEdge, ZhangIntegerArcQuality>& qualityByEdge,
+	const ZhangIntegerSupportQualityGates& gates = {},
+	const std::map<ZhangGraphEdge, double>& treeQuality = {},
+	const std::map<ZhangGraphEdge, int>& persistence = {})
+{
+	ZhangIntegerSupportCore result;
+	for (const auto& edge : edges)
+	{
+		auto quality = qualityByEdge.find(edge);
+		if (quality == qualityByEdge.end())
+		{
+			result.rejectedEdges[edge] = "INTEGER_SUPPORT_QUALITY_MISSING";
+			continue;
+		}
+		const auto evaluated = zhangEvaluateIntegerSupportQuality(
+			quality->second, gates);
+		if (!evaluated.eligibleForIntegerSupport)
+		{
+			result.rejectedEdges[edge] = evaluated.failureReason;
+			continue;
+		}
+		result.qualifiedEdges.insert(edge);
+	}
+	if (result.qualifiedEdges.empty())
+	{
+		result.failureReason = "NO_QUALITY_AUDITED_INTEGER_SUPPORT_EDGES";
+		return result;
+	}
+	result.receiverCore = zhangBuildProductReceiverCore(
+		result.qualifiedEdges, rootReceiver, previousReceivers,
+		requestedSatelliteSupport, treeQuality, persistence);
+	result.valid = result.receiverCore.connected;
+	result.failureReason = result.valid ? "NONE" :
+		"QUALITY_AUDITED_INTEGER_SUPPORT_CORE_DISCONNECTED";
+	return result;
+}
+
+/** Weights for the integer-support S-basis objective.  The construction is a
+ * deterministic Kruskal approximation: an exact global tree optimisation is
+ * unnecessary here, but every selected edge is scored from the documented
+ * arc-failure, residual and reparameterisation terms rather than elevation
+ * alone. */
+struct ZhangSBasisRiskWeights
+{
+	double arcFailure = 1;
+	double residual = 1;
+	double treeChange = 1;
+	double age = 1;
+};
+
+inline double zhangIntegerSupportEdgeRisk(
+	const ZhangIntegerArcQuality& quality,
+	bool wasInPreviousTree,
+	const ZhangSBasisRiskWeights& weights = {})
+{
+	const double agePenalty = quality.ageEpochs > 0
+		? 1.0 / quality.ageEpochs : std::numeric_limits<double>::infinity();
+	const double failurePenalty = quality.slipCount + quality.outageCount;
+	const double residualPenalty = std::max({
+		std::abs(quality.phaseResidualRms), std::abs(quality.codeResidualRms),
+		std::abs(quality.phaseResidualMad), std::abs(quality.codeResidualMad),
+		std::abs(quality.whitenedResidualScore)});
+	return weights.arcFailure * failurePenalty +
+		weights.residual * residualPenalty + weights.age * agePenalty +
+		weights.treeChange * (wasInPreviousTree ? 0 : 1);
+}
+
+inline ZhangGraphBasis zhangBuildRiskAwareSpanningTree(
+	const std::set<ZhangGraphEdge>& edges,
+	const std::string& rootReceiver,
+	const std::set<ZhangGraphEdge>& previousTree,
+	const std::map<ZhangGraphEdge, ZhangIntegerArcQuality>& qualityByEdge,
+	const ZhangSBasisRiskWeights& weights = {})
+{
+	std::map<ZhangGraphEdge, double> score;
+	for (const auto& edge : edges)
+	{
+		auto quality = qualityByEdge.find(edge);
+		if (quality == qualityByEdge.end())
+			continue;
+		const auto evaluated = zhangEvaluateIntegerSupportQuality(
+			quality->second, {});
+		if (!evaluated.eligibleForIntegerSupport)
+			continue;
+		score[edge] = -zhangIntegerSupportEdgeRisk(evaluated,
+			previousTree.count(edge) > 0, weights);
+	}
+	std::set<ZhangGraphEdge> qualified;
+	for (const auto& [edge, ignored] : score) qualified.insert(edge);
+	return zhangBuildSpanningTree(qualified, rootReceiver, {}, score, {}, {});
 }
 
 /** Integer coefficients of the fundamental cycle formed by nonTreeEdge.
