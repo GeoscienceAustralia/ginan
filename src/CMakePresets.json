@@ -54,7 +54,7 @@
         "rhs": "Darwin"
       },
       "cacheVariables": {
-        "BLA_VENDOR": "OpenBLAS"
+        "BLA_VENDOR": "Apple"
       }
     },
     {
@@ -64,7 +64,6 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "arm64-osx",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
-        "OpenBLAS_DIR": "/opt/homebrew/opt/openblas/lib/cmake/openblas",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain/clang_mac_arm64.cmake",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/macos-arm64"
       }
@@ -76,7 +75,6 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-osx",
         "CMAKE_OSX_ARCHITECTURES": "x86_64",
-        "OpenBLAS_DIR": "/usr/local/opt/openblas/lib/cmake/openblas",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain/clang_mac_x64.cmake",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/macos-x64"
       }

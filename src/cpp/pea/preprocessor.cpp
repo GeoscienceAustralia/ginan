@@ -94,6 +94,7 @@ struct ObservationRecord
     E_ObsCode   code;
     double      P      = 0;
     double      L      = 0;
+    double      D      = 0;
     double      snr    = 0;
     double      el_deg = 0;
     double      az_deg = 0;
@@ -113,9 +114,10 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
     bool hasSnr =
         (rec.status == E_ObsStatus::OBSERVED || rec.status == E_ObsStatus::CODE_ONLY ||
          rec.status == E_ObsStatus::PHASE_ONLY);
+    bool hasDoppler = (rec.D != 0);
 
     // Format values as strings (without width specifiers - will be applied in tracepdeex format)
-    char pStr[32], lStr[32], sStr[32];
+    char pStr[32], lStr[32], dStr[32], sStr[32];
     if (hasCode)
         snprintf(pStr, sizeof(pStr), "%.6f", rec.P);
     else
@@ -126,6 +128,11 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
     else
         snprintf(lStr, sizeof(lStr), "%s", "NaN");
 
+    if (hasDoppler)
+        snprintf(dStr, sizeof(dStr), "%.6f", rec.D);
+    else
+        snprintf(dStr, sizeof(dStr), "%s", "NaN");
+
     if (hasSnr)
         snprintf(sStr, sizeof(sStr), "%.2f", rec.snr);
     else
@@ -134,7 +141,7 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
     tracepdeex(
         0,
         trace,
-        "\n%s: epoch= %s sat= %5s sig= %5s P= %16s L= %16s S= %8s el= %6.2f az= %6.2f block= %12s "
+        "\n%s: epoch= %s sat= %5s sig= %5s P= %16s L= %16s D= %16s S= %8s el= %6.2f az= %6.2f block= %12s "
         "status= %s",
         __FUNCTION__,
         rec.time.to_string().c_str(),
@@ -142,6 +149,7 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
         enum_to_string(rec.code).c_str(),
         pStr,
         lStr,
+        dStr,
         sStr,
         rec.el_deg,
         rec.az_deg,
@@ -161,7 +169,7 @@ void obsRec(Trace& trace, Trace& jsonTrace, const ObservationRecord& rec)
         {{"SNR", hasSnr ? rec.snr : std::nan("")},
          {"L", hasPhase ? rec.L : std::nan("")},
          {"P", hasCode ? rec.P : std::nan("")},
-         {"D", 0.0},  // Not stored in record currently
+         {"D", hasDoppler ? rec.D : std::nan("")},
          {"el", rec.el_deg},
          {"az", rec.az_deg},
          {"blockType", rec.blockType},
@@ -202,6 +210,7 @@ void classifySignals(
             rec.code   = sig.code;
             rec.P      = sig.P;
             rec.L      = sig.L;
+            rec.D      = sig.D;
             rec.snr    = sig.snr;
             rec.el_deg = el_deg;
             rec.az_deg = az_deg;

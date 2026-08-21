@@ -57,6 +57,7 @@ add_executable(pea
 		common/api.cpp
 		common/ntripBroadcast.cpp
 		common/acsQC.cpp
+		common/preprocessorFreqs.cpp
 		common/algebra.cpp
 		common/algebra_old.cpp
 		common/algebraTrace.cpp

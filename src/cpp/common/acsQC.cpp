@@ -1,13 +1,13 @@
 // #pragma GCC optimize ("O0")
 
 #include "common/acsQC.hpp"
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <vector>
 #include "common/acsConfig.hpp"
 #include "common/algebra.hpp"
 #include "common/common.hpp"
-#include "common/constants.hpp"
 #include "common/enums.h"
 #include "common/navigation.hpp"
 #include "common/observations.hpp"
@@ -155,147 +155,6 @@ double lomThreshold(int dof)
         return 0;
 
     return chisqr_arr[dof - 1] / dof;
-}
-
-/** Select up to three configured frequency bands for a satellite system.
- *
- * This is the legacy frequency selector used by several modelling paths outside
- * slip detection.  It follows `acsConfig.code_priorities[sys]` and converts the
- * first unique codes into frequency bands, but it does not inspect a particular
- * observation to confirm that measurements are present.
- *
- * The outputs retain historical defaults (`F1`, `F2`, `F5`) when priorities are
- * incomplete.  Do not use this helper when the algorithm must know which
- * frequencies are actually observed at the current epoch; use `obsFreqs()` for
- * slip detection.
- *
- * @param[in]  sys Satellite system.
- * @param[out] ft1 First configured frequency band.
- * @param[out] ft2 Second configured frequency band.
- * @param[out] ft3 Third configured frequency band.
- *
- * @return false only when no code priorities exist for `sys`; true otherwise.
- */
-bool satFreqs(E_Sys sys, E_FType& ft1, E_FType& ft2, E_FType& ft3)
-{
-    bool ft1Ready = false;
-    bool ft2Ready = false;
-
-    ft1 = F1;
-    ft2 = F2;
-    ft3 = F5;
-
-    if (acsConfig.code_priorities.find(sys) == acsConfig.code_priorities.end())
-        return false;
-
-    for (auto& code : acsConfig.code_priorities[sys])
-    {
-        E_FType ft = code2Freq[sys][code];
-
-        if (ft1Ready == false)
-        {
-            ft1      = ft;
-            ft1Ready = true;
-            continue;
-        }
-
-        if (ft == ft1)
-            continue;
-
-        if (ft2Ready == false)
-        {
-            ft2      = ft;
-            ft2Ready = true;
-            continue;
-        }
-
-        if (ft == ft2)
-            continue;
-
-        {
-            ft3 = ft;
-            break;
-        }
-    }
-
-    return true;
-}
-
-/** Select observed frequency bands that are usable for slip detection.
- *
- * This helper is intentionally stricter than `satFreqs()`: it still honours
- * configured code priorities, but only returns frequency bands that are present
- * in the current observation, have a non-zero representative phase measurement,
- * and have a non-zero wavelength available in the satellite navigation data.
- *
- * This prevents GF/MW/PDE slip checks from evaluating assumed frequency bands
- * when an epoch is missing one of the configured signals.
- *
- * @param[in]  obs Observation to inspect.
- * @param[out] ft1 First observed usable frequency, or `NONE`.
- * @param[out] ft2 Second observed usable frequency, or `NONE`.
- * @param[out] ft3 Third observed usable frequency, or `NONE`.
- *
- * @return Number of usable observed frequencies written to the output
- *         parameters, from 0 to 3.
- */
-int obsFreqs(const GObs& obs, E_FType& ft1, E_FType& ft2, E_FType& ft3)
-{
-    ft1 = NONE;
-    ft2 = NONE;
-    ft3 = NONE;
-
-    E_Sys sys = obs.Sat.sys;
-    if (acsConfig.code_priorities.find(sys) == acsConfig.code_priorities.end())
-        return 0;
-
-    if (obs.satNav_ptr == nullptr)
-        return 0;
-
-    auto sysCodeIt = code2Freq.find(sys);
-    if (sysCodeIt == code2Freq.end())
-        return 0;
-
-    int count = 0;
-
-    for (auto& code : acsConfig.code_priorities[sys])
-    {
-        auto codeIt = sysCodeIt->second.find(code);
-        if (codeIt == sysCodeIt->second.end())
-            continue;
-
-        E_FType ft = codeIt->second;
-        if (ft == NONE || ft == ft1 || ft == ft2 || ft == ft3)
-            continue;
-
-        auto sigIt = obs.sigs.find(ft);
-        if (sigIt == obs.sigs.end() || sigIt->second.L == 0)
-            continue;
-
-        auto lamIt = obs.satNav_ptr->lamMap.find(ft);
-        if (lamIt == obs.satNav_ptr->lamMap.end() || lamIt->second == 0)
-            continue;
-
-        if (count == 0)
-        {
-            ft1 = ft;
-            count++;
-            continue;
-        }
-        if (count == 1)
-        {
-            ft2 = ft;
-            count++;
-            continue;
-        }
-        {
-            ft3 = ft;
-            count++;
-            break;
-        }
-    }
-
-    return count;
 }
 
 struct SlipNoise
@@ -1185,19 +1044,24 @@ void cycleslip3(
     if (nf < 3)
         return;
 
-    auto&  lam  = obs.satNav_ptr->lamMap;
-    double lam1 = lam[frq1];
-    double lam2 = lam[frq2];
-    double lam5 = lam[frq3];
+    auto& lam = obs.satNav_ptr->lamMap;
+
+    std::array<E_FType, 3> selectedFreqs = {frq1, frq2, frq3};
+    std::array<double, 3>  wavelengths   = {lam[frq1], lam[frq2], lam[frq3]};
+    std::array<std::pair<int, int>, 3> pairIndexes = {
+        std::pair<int, int>{0, 1},
+        std::pair<int, int>{0, 2},
+        std::pair<int, int>{1, 2}
+    };
 
     /* TD MW noise (m) */
-    double lamew = lam2 * lam5 / (lam5 - lam2);
-    if (lamew < 0)
-        lamew *= -1;
+    double lamExtraWide =
+        wavelengths[1] * wavelengths[2] / (wavelengths[2] - wavelengths[1]);
+    if (lamExtraWide < 0)
+        lamExtraWide *= -1;
 
-    E_FType   freqs[] = {frq1, frq2, frq3};
     SlipNoise noise;
-    if (!slipNoise(obs, freqs, 3, noise))
+    if (!slipNoise(obs, selectedFreqs.data(), 3, noise))
     {
         traceSlipEvent(trace, "PDE", obs, "skipped", frq1, frq2, frq3, 0, 0, 0, noise.reason);
         return;
@@ -1206,61 +1070,63 @@ void cycleslip3(
     double sigmaCode  = noise.sigmaCode;
     double sigmaPhase = noise.sigmaPhase;
 
-    double mwNoise12 = mwnoise(sigmaCode, sigmaPhase, lam1, lam2);
-    double mwNoise15 = mwnoise(sigmaCode, sigmaPhase, lam1, lam5);
-    double mwNoise25 = mwnoise(sigmaCode, sigmaPhase, lam2, lam5);
+    std::array<double, 3> mwNoises = {};
+    std::array<S_LC, 3>   lcNew    = {};
+    std::array<S_LC, 3>   lcPre    = {};
+    for (int i = 0; i < pairIndexes.size(); i++)
+    {
+        auto [freqA, freqB] = pairIndexes[i];
+
+        mwNoises[i] = mwnoise(sigmaCode, sigmaPhase, wavelengths[freqA], wavelengths[freqB]);
+        lcNew[i]    = getLC(lc, selectedFreqs[freqA], selectedFreqs[freqB]);
+        lcPre[i]    = getLC(satStat.lc_pre, selectedFreqs[freqA], selectedFreqs[freqB]);
+    }
 
     double sigmaGF = 2 * sigmaPhase; /* TD GF noise */
-
-    S_LC lc25new = getLC(lc, frq2, frq3);
-    S_LC lc25pre = getLC(satStat.lc_pre, frq2, frq3);
 
     /* averaged EMW measurement and noise */
     double fNew;
     // 	double sigmaEMW;
     if (acsConfig.preprocOpts.mw_proc_noise)
     {
-        fNew = lc25new.MW_c - satStat.emwSlip.mean;
+        fNew = lcNew[2].MW_c - satStat.emwSlip.mean;
     }
     else
     {
-        fNew = lc25new.MW_c - lc25pre.MW_c;
+        fNew = lcNew[2].MW_c - lcPre[2].MW_c;
     } /* Eq (13) in TN */
 
-    double deltaGF25 = lc25new.GF_Phas_m - lc25pre.GF_Phas_m;
+    double deltaGF23 = lcNew[2].GF_Phas_m - lcPre[2].GF_Phas_m;
 
     /* clock jump */
-    if (fabs(fNew * lamew) > 10e-3 * CLIGHT)
+    if (fabs(fNew * lamExtraWide) > 10e-3 * CLIGHT)
     {
         fprintf(stdout, "Potential clock jump rather than cycle slip -cs3\n");
         return;
     }
 
-    /* ionosphere coefficient for L2 & L5 */
-    double coef1 =
-        SQR(CLIGHT / lam1) / SQR(CLIGHT / lam5) - SQR(CLIGHT / lam1) / SQR(CLIGHT / lam2);
+    /* ionosphere coefficient for selected frequencies 2 and 3 */
+    double coef1 = SQR(CLIGHT / wavelengths[0]) / SQR(CLIGHT / wavelengths[2]) -
+                   SQR(CLIGHT / wavelengths[0]) / SQR(CLIGHT / wavelengths[1]);
     if (coef1 < 0)
         coef1 = -coef1;
 
-    S_LC lcNew = getLC(lc, frq1, frq2);
-    S_LC lcPre = getLC(satStat.lc_pre, frq1, frq2);
+    double lamw = wavelengths[0] * wavelengths[1] / (wavelengths[1] - wavelengths[0]);
 
-    double lamw = lam1 * lam2 / (lam2 - lam1);
-
-    double coef = SQR(lam2) / SQR(lam1) - 1;  // ionosphere coefficient for L1 & LX
+    double coef = SQR(wavelengths[1]) / SQR(wavelengths[0]) - 1;
 
     /* averaged MW measurement and noise */
     double fNw;
     if (acsConfig.preprocOpts.mw_proc_noise)
     {
-        fNw = lcNew.MW_c - satStat.mwSlip.mean;
+        fNw = lcNew[0].MW_c - satStat.mwSlip.mean;
     }
     else
     {
-        fNw = lcNew.MW_c - lcPre.MW_c;
+        fNw = lcNew[0].MW_c - lcPre[0].MW_c;
     } /* Eq (6) in TN */
 
-    double deltaGF = lcNew.GF_Phas_m - lcPre.GF_Phas_m;
+    double deltaGF = lcNew[0].GF_Phas_m - lcPre[0].GF_Phas_m;
 
     tracepdeex(
         2,
@@ -1273,8 +1139,8 @@ void cycleslip3(
         deltaGF,
         fNw,
         sigmaGF,
-        lamew,
-        deltaGF25,
+        lamExtraWide,
+        deltaGF23,
         fNew
     );
 
@@ -1438,21 +1304,21 @@ void detectslip(
         if (satStat.sigStatMap[ft2string(frq1)].slip.any == 0 &&
             satStat.sigStatMap[ft2string(frq2)].slip.any == 0)
         {
-            S_LC& lc12 = getLC(lc_new, frq1, frq2);
-            lowPassFilter(satStat.mwSlip, lc12.MW_c, acsConfig.preprocOpts.mw_proc_noise);
+            S_LC& lcPair12 = getLC(lc_new, frq1, frq2);
+            lowPassFilter(satStat.mwSlip, lcPair12.MW_c, acsConfig.preprocOpts.mw_proc_noise);
         }
         else
         {
             satStat.mwSlip = {};
         }
     }
-    /* track L5 again */
+    /* track selected third frequency again */
     else if (
         nf >= 3 && lc_new.L_m[frq1] != 0 && lc_new.L_m[frq2] != 0 && lc_new.L_m[frq3] != 0 &&
         lc_old.L_m[frq1] != 0 && lc_old.L_m[frq2] != 0 && lc_old.L_m[frq3] == 0
     )  // was zero, now not.
     {
-        /* set slip flag for L5 (introduce new ambiguity for L5) */
+        /* set slip flag for the selected third frequency and introduce a new ambiguity */
         satStat.sigStatMap[ft2string(frq3)].slip.retrack      = true;
         satStat.sigStatMap[ft2string(frq3)].savedSlip.retrack = true;
         traceSlipEvent(
@@ -1474,8 +1340,8 @@ void detectslip(
         if (satStat.sigStatMap[ft2string(frq1)].slip.any == 0 &&
             satStat.sigStatMap[ft2string(frq2)].slip.any == 0)
         {
-            S_LC& lc12 = getLC(lc_new, frq1, frq2);
-            lowPassFilter(satStat.mwSlip, lc12.MW_c, acsConfig.preprocOpts.mw_proc_noise);
+            S_LC& lcPair12 = getLC(lc_new, frq1, frq2);
+            lowPassFilter(satStat.mwSlip, lcPair12.MW_c, acsConfig.preprocOpts.mw_proc_noise);
         }
         else
         {
@@ -1514,13 +1380,13 @@ void detectslip(
             }
         }
 
-        /*update averaged MW25 noise when no cycle slip */
+        /* update averaged MW noise for selected frequencies 2 and 3 when no cycle slip */
         if (satStat.sigStatMap[ft2string(frq1)].slip.any == 0 &&
             satStat.sigStatMap[ft2string(frq2)].slip.any == 0 &&
             satStat.sigStatMap[ft2string(frq3)].slip.any == 0)
         {
-            S_LC& lc25 = getLC(lc_new, frq2, frq3);
-            lowPassFilter(satStat.emwSlip, lc25.MW_c, acsConfig.preprocOpts.mw_proc_noise);
+            S_LC& lcPair23 = getLC(lc_new, frq2, frq3);
+            lowPassFilter(satStat.emwSlip, lcPair23.MW_c, acsConfig.preprocOpts.mw_proc_noise);
         }
         else
         {
@@ -1639,8 +1505,8 @@ void detectslips(
         trace,
         "\nPDE-CS GPST       epoch                   prn  el   lamw    gf12    mw12     siggf  "
         "sigmw  "
-        "lamew     gf25    mw25   "
-        "            LC                   N1   N2   N5\n"
+        "lamew     gf23    mw23   "
+        "            LC                   N1   N2   N3\n"
     );
 
     for (auto& obs : only<GObs>(obsList))

@@ -3,44 +3,63 @@
 #include "common/acsConfig.hpp"
 #include "common/sanityCheckers/EphemerisTimeDelayChecker.hpp"
 
-BOOST_AUTO_TEST_CASE(resets_ephemeris_time_delay_outside_real_time)
+BOOST_AUTO_TEST_CASE(returns_false_to_warn_when_eph_time_delay_is_below_30_for_any_uploading_stream)
 {
     ACSConfig config;
-    config.simulate_real_time = false;
+    config.netOpts.uploadingStreamData["TEST"].rtcmMsgOptsMap[RtcmMessageType::GPS_SSR_COMB_CORR] =
+        RtcmMsgTypeOpts();
+    config.netOpts.uploadingStreamData["TEST"].rtcmMsgOptsMap[RtcmMessageType::GLO_SSR_COMB_CORR] =
+        RtcmMsgTypeOpts();
+    config.netOpts.uploadingStreamData["TEST"].rtcmMsgOptsMap[RtcmMessageType::GAL_SSR_COMB_CORR] =
+        RtcmMsgTypeOpts();
+    config.process_sys[E_Sys::GPS] = true;
+    config.process_sys[E_Sys::GLO] = true;
+    config.process_sys[E_Sys::GAL] = true;
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
-        config.default_eph_time_delay[sys] = 12.5;
-        config.eph_time_delay[sys]         = 99.0;
+        config.eph_time_delay[sys] = 20.0;
     }
 
     EphemerisTimeDelayChecker checker;
 
-    BOOST_CHECK(checker.check(config));
-
-    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
-    {
-        BOOST_CHECK_EQUAL(config.eph_time_delay[sys], config.default_eph_time_delay[sys]);
-    }
+    BOOST_CHECK(!checker.check(config));
 }
 
-BOOST_AUTO_TEST_CASE(does_not_reset_ephemeris_time_delay_in_real_time)
+BOOST_AUTO_TEST_CASE(passes_when_eph_time_delay_is_at_least_30_for_all_uploading_streams)
 {
     ACSConfig config;
-    config.simulate_real_time = true;
+    config.netOpts.uploadingStreamData["TEST"].rtcmMsgOptsMap[RtcmMessageType::GPS_SSR_COMB_CORR] =
+        RtcmMsgTypeOpts();
+    config.netOpts.uploadingStreamData["TEST"].rtcmMsgOptsMap[RtcmMessageType::GLO_SSR_COMB_CORR] =
+        RtcmMsgTypeOpts();
+    config.netOpts.uploadingStreamData["TEST"].rtcmMsgOptsMap[RtcmMessageType::GAL_SSR_COMB_CORR] =
+        RtcmMsgTypeOpts();
+    config.process_sys[E_Sys::GPS] = true;
+    config.process_sys[E_Sys::GLO] = true;
+    config.process_sys[E_Sys::GAL] = true;
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
-        config.default_eph_time_delay[sys] = 12.5;
-        config.eph_time_delay[sys]         = 99.0;
+        config.eph_time_delay[sys] = 30.0;
     }
 
     EphemerisTimeDelayChecker checker;
 
     BOOST_CHECK(checker.check(config));
+}
+
+BOOST_AUTO_TEST_CASE(is_noop_when_there_is_no_uploading_stream)
+{
+    ACSConfig config;
+    config.netOpts.uploadingStreamData.clear();
 
     for (E_Sys sys : magic_enum::enum_values<E_Sys>())
     {
-        BOOST_CHECK_EQUAL(config.eph_time_delay[sys], 99.0);
+        config.eph_time_delay[sys] = 10.0;
     }
+
+    EphemerisTimeDelayChecker checker;
+
+    BOOST_CHECK(checker.check(config));
 }

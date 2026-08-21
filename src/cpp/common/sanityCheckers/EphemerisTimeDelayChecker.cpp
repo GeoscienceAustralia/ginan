@@ -3,17 +3,32 @@
 
 bool EphemerisTimeDelayChecker::check(ACSConfig& config)
 {
-    if (config.simulate_real_time)
+    if (config.netOpts.uploadingStreamData.empty())
     {
         return true;
     }
 
-    for (E_Sys sys : magic_enum::enum_values<E_Sys>())
+    bool pass = true;
+
+    for (auto [sys, proc] : config.process_sys)
     {
-        config.eph_time_delay[sys] = config.default_eph_time_delay[sys];
+        if (proc == false)
+            continue;
+
+        double time_delay = config.eph_time_delay[sys];
+
+        if (time_delay < 30)
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "`sys_options:" << enum_to_string(sys) << ":eph_time_delay` is set to "
+                << time_delay
+                << ". A value of at least 30 seconds is recommended for uploading SSR streams";
+
+            pass = false;
+        }
     }
 
-    return true;
+    return pass;
 }
 
 std::string EphemerisTimeDelayChecker::name() const
