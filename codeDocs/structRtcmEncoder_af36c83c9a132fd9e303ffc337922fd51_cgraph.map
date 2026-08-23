@@ -1,0 +1,14 @@
+<map id="RtcmEncoder::encodeEphemeris" name="RtcmEncoder::encodeEphemeris">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#af36c83c9a132fd9e303ffc337922fd51" title="encode GLO ephemeris messages" alt="" coords="5,81,237,107"/>
+<area shape="rect" id="Node000002" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="334,5,421,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,79,339,33,340,38,193,84"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="146,79,227,51,320,25,321,30,229,56,147,84"/>
+<area shape="rect" id="Node000004" href="$enums_8h.html#a086e24a48120638b582c9b860c16f0eb" title=" " alt="" coords="517,107,724,132"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="238,87,350,86,470,91,545,102,545,107,469,97,350,91,238,92"/>
+<area shape="rect" id="Node000005" href="$rtcmEncoder_8cpp.html#af93a14942ffca49c6609e270b9071926" title="increasingly set sign&#45;magnitude bits applied in GLO nav messages" alt="" coords="334,107,421,132"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="175,104,320,119,320,124,175,109"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="238,94,321,104,320,109,237,99"/>
+<area shape="rect" id="Node000007" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="285,156,469,181"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="164,104,286,141,318,150,316,155,285,146,163,109"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="440,153,543,132,544,137,441,159"/>
+</map>

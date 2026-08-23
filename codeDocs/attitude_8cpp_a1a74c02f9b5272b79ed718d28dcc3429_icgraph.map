@@ -1,0 +1,11 @@
+<map id="rotBasisMat" name="rotBasisMat">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a1a74c02f9b5272b79ed718d28dcc3429" title="Converts coords of frame A (expressed in frame G) into transformation matrix from A to G E...." alt="" coords="193,80,293,105"/>
+<area shape="rect" id="Node000002" href="$antenna_8cpp.html#a803e19596e682a54b66749c4ef3f8b16" title="find and interpolate antenna pcv" alt="" coords="42,5,109,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,76,144,44,108,31,110,26,146,40,209,71"/>
+<area shape="rect" id="Node000004" href="$ppp__obs_8cpp.html#a2a01ea8204bc0ae172ffc50a28623f9e" title=" " alt="" coords="5,55,145,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="180,86,145,81,146,75,180,81"/>
+<area shape="rect" id="Node000010" href="$attitude_8cpp.html#a8163a079ffc016054e8f4a324ff45da6" title="Satellite attitude &#45; calculates attitude of satellite as a quaternion (ECEF) Also transforms coordina..." alt="" coords="39,104,112,129"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="180,104,113,114,112,109,179,99"/>
+<area shape="rect" id="Node000014" href="$attitude_8cpp.html#af213faee69eab1e3eb2f3955c2ab9233" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="21,153,129,179"/>
+<area shape="poly" id="edge4_Node000001_Node000014" title=" " alt="" coords="207,114,146,143,114,156,112,151,144,138,205,109"/>
+</map>

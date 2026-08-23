@@ -1,0 +1,14 @@
+<map id="updateAvgClocks" name="updateAvgClocks">
+<area shape="rect" id="Node000001" href="$ppppp_8cpp.html#a19dff1e0de1c08404f53580a96be1fb1" title="Prepare satellite clocks to minimise residuals to broadcast clocks." alt="" coords="5,129,140,155"/>
+<area shape="rect" id="Node000002" href="$ephKalman_8cpp.html#a55ae9cdfbdfbae347846acb116ed909e" title=" " alt="" coords="216,5,329,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,127,126,85,155,60,187,40,202,33,204,37,189,44,158,65,129,89,87,131"/>
+<area shape="rect" id="Node000003" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="188,55,357,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="99,127,187,89,209,81,211,87,189,94,101,132"/>
+<area shape="rect" id="Node000029" href="$algebra_8cpp.html#a4a6a1ebf759ddc5d9d6d1de14269c5af" title=" " alt="" coords="189,104,356,129"/>
+<area shape="poly" id="edge3_Node000001_Node000029" title=" " alt="" coords="140,131,175,126,176,132,141,136"/>
+<area shape="rect" id="Node000032" href="$ephBroadcast_8cpp.html#aa27c6095afa84cff4efedb4ece6671aa" title=" " alt="" coords="209,153,337,179"/>
+<area shape="poly" id="edge4_Node000001_Node000032" title=" " alt="" coords="141,147,195,154,194,159,140,153"/>
+<area shape="rect" id="Node000036" href="$structKFState.html#a8f43fca242e78201e48996ebbb4fd69f" title="Tries to add a state to the filter object." alt="" coords="195,203,350,228"/>
+<area shape="poly" id="edge5_Node000001_Node000036" title=" " alt="" coords="87,152,127,174,183,197,181,202,125,179,85,157"/>
+<area shape="poly" id="edge6_Node000001_Node000036" title=" " alt="" coords="129,152,189,175,245,195,243,200,187,181,127,157"/>
+</map>

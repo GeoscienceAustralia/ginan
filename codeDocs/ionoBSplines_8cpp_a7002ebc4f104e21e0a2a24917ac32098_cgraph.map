@@ -1,0 +1,7 @@
+<map id="ippCheckBsplin" name="ippCheckBsplin">
+<area shape="rect" id="Node000001" href="$ionoBSplines_8cpp.html#a7002ebc4f104e21e0a2a24917ac32098" title="checks if the Ionosphere Piercing Point falls in area of coverage time: I time of observations (not u..." alt="" coords="5,31,128,56"/>
+<area shape="rect" id="Node000002" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="177,5,315,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,32,163,27,164,32,129,37"/>
+<area shape="rect" id="Node000003" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="176,55,316,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,49,163,53,162,59,128,54"/>
+</map>

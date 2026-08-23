@@ -1,0 +1,6 @@
+<map id="accelSourcePoint" name="accelSourcePoint">
+<area shape="rect" id="Node000001" href="$acceleration_8cpp.html#aabb45560abe7b7e087899dca129ea165" title="Source point acceleration from a planet acting on a satellite." alt="" coords="5,5,139,31"/>
+<area shape="rect" id="Node000002" href="$acceleration_8cpp.html#a4b560ff1ca9df0d6b36daf2674ae37d3" title="Central force acceleration." alt="" coords="187,5,325,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,24,173,24,173,30,139,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="139,7,173,6,173,12,139,12"/>
+</map>

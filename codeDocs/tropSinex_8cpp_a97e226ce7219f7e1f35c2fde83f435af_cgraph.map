@@ -1,0 +1,8 @@
+<map id="setDescription" name="setDescription">
+<area shape="rect" id="Node000001" href="$tropSinex_8cpp.html#a97e226ce7219f7e1f35c2fde83f435af" title="Set data for trop description block." alt="" coords="5,55,121,80"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="169,5,341,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,52,191,32,192,37,114,57"/>
+<area shape="rect" id="Node000014" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="194,55,317,80"/>
+<area shape="poly" id="edge2_Node000001_Node000014" title=" " alt="" coords="121,73,181,73,181,79,121,78"/>
+<area shape="poly" id="edge3_Node000001_Node000014" title=" " alt="" coords="121,56,181,56,181,61,121,62"/>
+</map>

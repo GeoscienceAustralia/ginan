@@ -1,0 +1,14 @@
+<map id="startNewMongoDb" name="startNewMongoDb">
+<area shape="rect" id="Node000001" href="$mongo_8cpp.html#a52ea466b77ea949c69649373cb073616" title=" " alt="" coords="5,81,148,107"/>
+<area shape="rect" id="Node000002" href="$mongo_8cpp.html#a6ae1d4d5325500d82e381190dcafe405" title=" " alt="" coords="200,5,347,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,79,226,33,228,38,111,84"/>
+<area shape="rect" id="Node000003" href="$acsConfig_8cpp.html#a611c3086ccdeb877c19a6b1d603227a4" title="search for and replace section of string" alt="" coords="399,81,507,107"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="148,91,385,91,385,97,148,97"/>
+<area shape="rect" id="Node000004" href="$outputs_8cpp.html#a1cf8846f3d7514f4c5d086213aad7949" title="Replace macros for times with numeric values." alt="" coords="218,107,329,132"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="148,101,205,108,204,113,148,106"/>
+<area shape="rect" id="Node000005" href="$mongo_8cpp.html#ac3b59ff42913bb6ab58608b562a82b76" title=" " alt="" coords="196,156,351,181"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="108,104,197,141,220,149,218,154,195,146,106,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="306,28,352,48,411,73,409,78,350,52,304,33"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="329,117,401,107,402,112,329,123"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="311,104,384,92,385,97,312,109"/>
+</map>

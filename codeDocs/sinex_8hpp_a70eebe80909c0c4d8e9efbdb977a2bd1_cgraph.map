@@ -1,0 +1,33 @@
+<map id="writeSinex" name="writeSinex">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#a70eebe80909c0c4d8e9efbdb977a2bd1" title=" " alt="" coords="5,351,96,376"/>
+<area shape="rect" id="Node000002" href="$sinex_8cpp.html#a2bd583429217b4f9f158524eb6212a70" title=" " alt="" coords="191,5,337,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="49,351,49,294,59,210,71,164,87,119,111,77,142,40,158,29,176,21,178,26,161,33,146,44,115,80,92,121,76,166,65,211,55,294,54,351"/>
+<area shape="rect" id="Node000003" href="$sinex_8cpp.html#aa81bc426fe4ffe41ec79348ee26722af" title=" " alt="" coords="201,55,327,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="49,350,53,301,66,230,77,192,94,154,115,119,142,89,163,76,186,68,188,73,165,81,146,93,119,123,98,157,82,194,71,231,58,301,55,350"/>
+<area shape="rect" id="Node000004" href="$sinex_8cpp.html#accc79b93eef953394a2b97c795031b81" title=" " alt="" coords="191,104,337,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="51,350,57,309,72,251,99,190,119,163,142,139,159,128,177,121,179,126,161,133,146,143,123,166,104,193,77,253,62,310,56,351"/>
+<area shape="rect" id="Node000006" href="$sinex_8cpp.html#a34380e73eb681b695516caabdd924888" title=" " alt="" coords="189,153,339,179"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="52,350,62,317,79,272,105,227,122,206,142,188,174,172,176,177,146,192,126,209,110,230,84,275,67,318,57,351"/>
+<area shape="rect" id="Node000007" href="$sinex_8cpp.html#ac5bfae7acd242175c2db1510f2e4da30" title=" " alt="" coords="161,203,367,228"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="55,349,87,294,112,263,142,237,153,231,156,236,146,242,115,267,91,297,60,352"/>
+<area shape="rect" id="Node000008" href="$sinex_8cpp.html#aac56590ac81ab8a481236bca8e39ada9" title=" " alt="" coords="185,252,343,277"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="62,349,96,317,143,286,170,276,172,281,145,291,99,321,66,352"/>
+<area shape="rect" id="Node000009" href="$sinex_8cpp.html#a12845a3b007cc0b6f432d7adee2082ce" title=" " alt="" coords="193,301,335,327"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="95,348,143,335,182,327,183,332,145,341,97,353"/>
+<area shape="rect" id="Node000010" href="$sinex_8cpp.html#a0cd75566d510f0b8b46fe24a75aab5db" title=" " alt="" coords="203,351,325,376"/>
+<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="96,361,189,361,189,366,96,366"/>
+<area shape="rect" id="Node000035" href="$sinex_8cpp.html#a2d15027c2e65db0efa58a5d9b973d2b2" title=" " alt="" coords="144,400,384,425"/>
+<area shape="poly" id="edge9_Node000001_Node000035" title=" " alt="" coords="97,373,145,385,187,394,186,400,143,390,96,378"/>
+<area shape="rect" id="Node000036" href="$sinex_8cpp.html#a02eed38f62e755a61241b6368dd8bef7" title=" " alt="" coords="145,449,383,475"/>
+<area shape="poly" id="edge10_Node000001_Node000036" title=" " alt="" coords="66,374,100,405,145,434,167,443,165,448,143,439,97,409,63,378"/>
+<area shape="rect" id="Node000037" href="$sinex_8cpp.html#a6853e2ebec670455ecf881491df61ae3" title=" " alt="" coords="149,499,379,524"/>
+<area shape="poly" id="edge11_Node000001_Node000037" title=" " alt="" coords="60,375,91,429,116,459,146,484,159,491,156,496,142,488,112,462,87,432,55,377"/>
+<area shape="rect" id="Node000038" href="$sinex_8cpp.html#aa8e5d320932d079d42621f8821da30fe" title=" " alt="" coords="153,548,375,573"/>
+<area shape="poly" id="edge12_Node000001_Node000038" title=" " alt="" coords="57,375,67,408,84,451,110,496,127,516,146,533,155,540,152,544,142,537,123,520,106,499,79,453,62,410,52,377"/>
+<area shape="rect" id="Node000039" href="$sinex_8cpp.html#af6a1c808417ca42260736968139c64a6" title=" " alt="" coords="159,597,369,623"/>
+<area shape="poly" id="edge13_Node000001_Node000039" title=" " alt="" coords="56,376,62,417,78,473,104,532,123,559,146,583,154,589,151,593,142,587,119,563,100,535,72,475,57,418,51,377"/>
+<area shape="rect" id="Node000040" href="$sinex_8cpp.html#a2c8a83df2faa6eba7024b5d03e6b4549" title=" " alt="" coords="155,647,373,672"/>
+<area shape="poly" id="edge14_Node000001_Node000040" title=" " alt="" coords="55,376,59,425,71,494,83,532,99,569,119,603,146,632,153,638,150,642,142,636,115,606,94,571,78,534,66,496,53,426,50,377"/>
+<area shape="rect" id="Node000041" href="$sinex_8cpp.html#ab02384d668b26fa644c579f43835c128" title=" " alt="" coords="163,696,365,721"/>
+<area shape="poly" id="edge15_Node000001_Node000041" title=" " alt="" coords="54,376,55,432,65,515,76,560,93,605,116,646,146,681,153,687,150,691,142,685,111,649,88,607,71,562,60,516,50,432,49,376"/>
+</map>

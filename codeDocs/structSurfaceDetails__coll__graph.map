@@ -1,0 +1,7 @@
+<map id="SurfaceDetails" name="SurfaceDetails">
+<area shape="rect" id="Node000001" href="$structSurfaceDetails.html" title=" " alt="" coords="5,297,185,533"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="20,144,171,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,220,98,281,93,281,93,220"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="57,5,133,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,95,98,144,93,144,93,95"/>
+</map>

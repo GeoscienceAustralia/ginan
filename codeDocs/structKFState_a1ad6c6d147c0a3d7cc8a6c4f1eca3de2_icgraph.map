@@ -1,0 +1,11 @@
+<map id="KFState::initFilterEpoch" name="KFState::initFilterEpoch">
+<area shape="rect" id="Node000001" href="$structKFState.html#a1ad6c6d147c0a3d7cc8a6c4f1eca3de2" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="280,80,453,105"/>
+<area shape="rect" id="Node000002" href="$structKFState.html#a0d12c57e70876543084c182a660bbbd3" title="Kalman filter operation." alt="" coords="39,5,199,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="322,77,231,45,187,33,188,28,233,39,324,72"/>
+<area shape="rect" id="Node000021" href="$structKFState.html#aa97674fcbd7bfbe3953005548b068cfb" title=" " alt="" coords="53,55,184,80"/>
+<area shape="poly" id="edge2_Node000001_Node000021" title=" " alt="" coords="266,85,184,77,185,71,267,80"/>
+<area shape="rect" id="Node000022" href="$structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1" title="Add process noise and dynamics to filter object manually." alt="" coords="5,104,232,129"/>
+<area shape="poly" id="edge3_Node000001_Node000022" title=" " alt="" coords="267,105,233,108,232,103,266,100"/>
+<area shape="rect" id="Node000023" href="$structKFState.html#a7f8e4b9291361c063cef8d9178f07707" title="Add process noise and dynamics to filter object according to time gap." alt="" coords="31,153,207,179"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="322,113,233,143,183,156,182,151,231,138,320,108"/>
+</map>

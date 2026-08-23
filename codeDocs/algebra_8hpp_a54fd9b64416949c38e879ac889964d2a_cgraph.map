@@ -1,0 +1,13 @@
+<map id="solve" name="solve">
+<area shape="rect" id="Node000001" href="$algebra__old_8cpp.html#a54fd9b64416949c38e879ac889964d2a" title=" " alt="" coords="5,68,63,93"/>
+<area shape="rect" id="Node000002" href="$algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e" title=" " alt="" coords="243,5,291,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,71,229,25,230,30,63,76"/>
+<area shape="rect" id="Node000003" href="$algebra__old_8cpp.html#a50d2d9511da542d472f3390449fedf38" title=" " alt="" coords="232,68,303,93"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="63,78,218,78,218,83,63,83"/>
+<area shape="rect" id="Node000004" href="$algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" title=" " alt="" coords="113,93,181,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="63,84,100,93,99,98,62,90"/>
+<area shape="rect" id="Node000008" href="$algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" title=" " alt="" coords="111,143,184,168"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="56,91,117,133,114,137,53,96"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="164,91,237,37,240,41,168,95"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="181,96,218,88,219,93,182,102"/>
+</map>

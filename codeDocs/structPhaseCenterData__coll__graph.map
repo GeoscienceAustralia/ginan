@@ -1,0 +1,16 @@
+<map id="PhaseCenterData" name="PhaseCenterData">
+<area shape="rect" id="Node000001" href="$structPhaseCenterData.html" title=" " alt="" coords="489,1257,637,1333"/>
+<area shape="rect" id="Node000002" href="$structAzElMapData.html" title=" " alt="" coords="260,624,456,800"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="396,812,553,1256,548,1258,391,814"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,55,156,131"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,130,315,608,310,610,95,132"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="181,55,415,131"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="304,131,351,607,345,608,299,132"/>
+<area shape="rect" id="Node000007" href="$structAzElMapData.html" title=" " alt="" coords="439,5,623,181"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="473,195,468,206,432,317,404,429,384,535,371,624,365,623,379,534,399,428,427,315,464,204,468,193"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="670,55,742,131"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="679,133,637,183,619,200,603,212,589,225,578,245,565,284,555,332,542,451,536,591,536,741,547,1032,562,1241,556,1241,542,1032,531,741,531,591,536,451,550,331,560,283,573,243,585,222,600,208,616,196,633,180,675,130"/>
+<area shape="rect" id="Node000011" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="674,244,869,1180"/>
+<area shape="poly" id="edge7_Node000011_Node000010" title=" " alt="" coords="713,131,723,228,717,228,707,132"/>
+<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="676,1141,658,1181,637,1215,613,1246,609,1243,633,1212,653,1179,671,1139"/>
+</map>

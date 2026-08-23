@@ -1,0 +1,9 @@
+<map id="QueuedSpit" name="QueuedSpit">
+<area shape="rect" id="Node000001" href="$structQueuedSpit.html" title=" " alt="" coords="137,283,247,399"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,168,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,219,147,268,142,271,109,222"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="35,5,139,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,95,89,144,84,144,84,95"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="192,144,264,220"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="222,221,211,267,206,266,217,220"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="Augmentation__" name="Augmentation__">
+<area shape="rect" id="Node000001" href="$Ginan_8cpp.html#a4fa4f422258b4feec680a5792f079571" title=" " alt="" coords="5,5,133,31"/>
+<area shape="rect" id="Node000002" href="$rtsSmoothing_8cpp.html#a4c9fa22ff9ec40f576c4c14165d47426" title="Rauch&#45;Tung&#45;Striebel Smoothing." alt="" coords="181,5,319,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,15,168,15,168,21,133,21"/>
+<area shape="rect" id="Node000003" href="$algebraTrace_8cpp.html#a26cbe32ecdc0d1af8afc182528de5f31" title="Save complex variables to files." alt="" coords="367,5,501,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="319,15,353,15,353,21,319,21"/>
+</map>

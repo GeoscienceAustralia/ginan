@@ -1,0 +1,8 @@
+<map id="TcpSocket::networkLog" name="TcpSocket::networkLog">
+<area shape="rect" id="Node000001" href="$structTcpSocket.html#ae3b75807774e6b4d266e3a1e0073a42e" title=" " alt="" coords="559,31,729,56"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html#ae4050e3ed6adf0dbe575ca992234f798" title=" " alt="" coords="296,5,511,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="545,36,511,32,511,27,545,30"/>
+<area shape="rect" id="Node000003" href="$structNtripResponder.html#a874ea233cd0c2b2139c68b6d9009112a" title=" " alt="" coords="5,23,248,63"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="545,46,248,46,248,41,545,41"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="282,32,249,35,248,30,282,26"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="KalmanFilterBLAS::computeKalmanGain" name="KalmanFilterBLAS::computeKalmanGain">
+<area shape="rect" id="Node000001" href="$classKalmanFilterBLAS.html#a1a5dc256fff4a49e702cbb93b6ea71f0" title="Compute Kalman gain K = P*H&#39;*Q^&#45;1 using BLAS/LAPACKE." alt="" coords="5,55,209,95"/>
+<area shape="rect" id="Node000002" href="$classKalmanFilterBLAS.html#af8c83020329e1df483a6720460e1be9b" title="Compute H*P matrix product using BLAS." alt="" coords="257,5,480,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,53,296,31,297,36,200,58"/>
+<area shape="rect" id="Node000006" href="$classKalmanFilterBLAS.html#ad489a44b8e4b1229749f8bed995c10f3" title="Solve Q*X = B for multiple right&#45;hand sides using LAPACKE." alt="" coords="257,55,480,95"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="209,81,244,82,244,87,209,87"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="209,64,244,64,244,69,209,69"/>
+</map>

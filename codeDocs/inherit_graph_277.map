@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,104,84,129"/>
+<area shape="rect" id="Node000001" href="$structVector3dInit.html" title=" " alt="" coords="132,5,232,31"/>
+<area shape="poly" id="edge126_Node000000_Node000001" title=" " alt="" coords="67,92,96,66,131,40,150,28,153,33,133,44,99,70,70,96"/>
+<area shape="rect" id="Node000002" href="$structVectorEcef.html" title=" " alt="" coords="137,55,227,80"/>
+<area shape="poly" id="edge127_Node000000_Node000002" title=" " alt="" coords="92,97,145,78,147,83,94,102"/>
+<area shape="rect" id="Node000003" href="$structVectorEci.html" title=" " alt="" coords="141,104,223,129"/>
+<area shape="poly" id="edge128_Node000000_Node000003" title=" " alt="" coords="98,114,140,114,140,119,98,119"/>
+<area shape="rect" id="Node000004" href="$structVectorEnu.html" title=" " alt="" coords="139,153,225,179"/>
+<area shape="poly" id="edge129_Node000000_Node000004" title=" " alt="" coords="94,132,147,151,145,156,92,137"/>
+<area shape="rect" id="Node000005" href="$structVectorPos.html" title=" " alt="" coords="139,203,225,228"/>
+<area shape="poly" id="edge130_Node000000_Node000005" title=" " alt="" coords="71,137,134,188,155,200,152,205,130,192,67,141"/>
+</map>

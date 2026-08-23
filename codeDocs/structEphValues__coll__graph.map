@@ -1,0 +1,9 @@
+<map id="EphValues" name="EphValues">
+<area shape="rect" id="Node000001" href="$structEphValues.html" title=" " alt="" coords="135,1187,238,1283"/>
+<area shape="rect" id="Node000002" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,144,200,1080"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,1080,181,1170,176,1171,163,1080"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="67,5,139,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,81,105,128,100,128,100,81"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="225,574,317,650"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="276,650,279,742,277,871,263,1017,249,1092,231,1163,227,1173,222,1171,225,1162,244,1091,258,1017,272,871,274,742,271,650"/>
+</map>

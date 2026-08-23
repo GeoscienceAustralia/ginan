@@ -1,0 +1,14 @@
+<map id="satOrbitGeometry" name="satOrbitGeometry">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a1d392d7cfe6d33e3fa11664aeeef4f12" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="5,80,144,105"/>
+<area shape="rect" id="Node000002" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="372,5,436,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,78,132,44,160,28,191,15,235,7,280,4,358,8,358,14,280,9,236,12,193,21,163,33,135,49,92,82"/>
+<area shape="rect" id="Node000026" href="$orbits_8cpp.html#aefaca6400f01b33fcf0b7c142032f02b" title=" " alt="" coords="193,31,323,56"/>
+<area shape="poly" id="edge2_Node000001_Node000026" title=" " alt="" coords="122,77,196,57,197,62,123,83"/>
+<area shape="rect" id="Node000034" href="$planets_8cpp.html#afa5d7098a27c088c2dae5e00aced234b" title=" " alt="" coords="201,80,315,105"/>
+<area shape="poly" id="edge4_Node000001_Node000034" title=" " alt="" coords="144,99,187,99,187,104,144,104"/>
+<area shape="poly" id="edge5_Node000001_Node000034" title=" " alt="" coords="144,81,187,81,187,87,144,87"/>
+<area shape="rect" id="Node000040" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="192,129,324,155"/>
+<area shape="poly" id="edge6_Node000001_Node000040" title=" " alt="" coords="100,103,180,127,178,132,99,108"/>
+<area shape="poly" id="edge7_Node000001_Node000040" title=" " alt="" coords="145,100,221,122,220,127,144,105"/>
+<area shape="poly" id="edge3_Node000026_Node000002" title=" " alt="" coords="323,29,358,23,359,28,324,35"/>
+</map>

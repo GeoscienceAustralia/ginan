@@ -1,0 +1,10 @@
+<map id="RinexNavFileOutput" name="RinexNavFileOutput">
+<area shape="rect" id="Node000001" href="$structRinexNavFileOutput.html" title=" " alt="" coords="101,283,267,359"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,173,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,219,151,268,147,271,113,222"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="152,5,216,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="144,89,130,107,108,145,103,143,126,104,140,85"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="198,144,362,220"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="227,88,240,104,263,142,259,145,235,107,223,91"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="256,222,222,271,217,268,252,219"/>
+</map>

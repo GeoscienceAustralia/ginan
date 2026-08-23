@@ -1,0 +1,7 @@
+<map id="GridMap" name="GridMap">
+<area shape="rect" id="Node000001" href="$structGridMap.html" title=" " alt="" coords="35,312,145,388"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,175,235"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,235,93,295,87,295,87,235"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="58,5,122,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,95,93,144,87,144,87,95"/>
+</map>

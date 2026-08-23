@@ -1,0 +1,5 @@
+<map id="writeClk" name="writeClk">
+<area shape="rect" id="Node000001" href="$orbexWrite_8cpp.html#a8ea221116f5422e1042c3223d4c416f7" title="Write CLK or CRT records." alt="" coords="5,5,81,31"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="129,5,216,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,15,115,15,115,21,82,21"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="readOrbexSatId" name="readOrbexSatId">
+<area shape="rect" id="Node000001" href="$orbex_8cpp.html#a7faa45c2b48fe2c872381034e505d32b" title="Read SATELLITE/ID_AND_DESCRIPTION block Note: This function is currently not fully implemented,..." alt="" coords="144,5,267,31"/>
+<area shape="rect" id="Node000002" href="$orbex_8cpp.html#a1dfbfc8e61777c0b2063a98292a9afe1" title="Read an ORBEX file into navigation data struct." alt="" coords="5,5,96,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,21,96,21,96,15,130,15"/>
+</map>

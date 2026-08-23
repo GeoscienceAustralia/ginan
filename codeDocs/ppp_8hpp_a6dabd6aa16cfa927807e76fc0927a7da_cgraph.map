@@ -1,0 +1,38 @@
+<map id="spp" name="spp">
+<area shape="rect" id="Node000001" href="$spp_8cpp.html#adbdd3dfc6464e10d2f48f44dd3e57a6b" title="Compute receiver position, clock biases by single&#45;point positioning with pseudorange measurements." alt="" coords="5,207,51,232"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="463,5,632,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="36,205,61,173,97,142,140,119,185,98,278,65,369,42,448,27,449,32,370,47,280,70,187,103,142,123,100,147,65,177,40,208"/>
+<area shape="rect" id="Node000028" href="$ephemeris_8cpp.html#ae3fc266561960e17c92108efd742606f" title="satellite positions and clocks." alt="" coords="316,180,403,205"/>
+<area shape="poly" id="edge2_Node000001_Node000028" title=" " alt="" coords="40,204,65,183,98,166,153,156,209,156,263,163,308,174,307,179,262,168,209,161,153,161,100,171,68,188,43,208"/>
+<area shape="rect" id="Node000029" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="482,180,613,205"/>
+<area shape="poly" id="edge7_Node000001_Node000029" title=" " alt="" coords="34,205,58,169,76,150,97,134,141,113,180,99,217,90,252,87,287,89,325,94,414,115,444,126,472,140,520,169,517,174,470,144,442,131,413,121,324,99,287,94,252,92,217,96,182,104,143,118,100,139,79,154,62,172,38,208"/>
+<area shape="rect" id="Node000020" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="486,243,609,268"/>
+<area shape="poly" id="edge22_Node000001_Node000020" title=" " alt="" coords="37,230,63,254,100,273,154,285,211,292,323,294,425,284,502,269,503,274,425,289,324,299,210,298,153,291,98,278,60,259,34,234"/>
+<area shape="poly" id="edge23_Node000001_Node000020" title=" " alt="" coords="52,225,74,238,100,249,148,260,198,267,300,272,394,267,472,259,473,264,394,272,300,277,198,273,147,265,98,254,72,243,49,229"/>
+<area shape="rect" id="Node000086" href="$spp_8cpp.html#ac5bb0b6858cf5e82640190e048f29ccd" title="Estimate receiver position and clock biases using pseudorange measurements." alt="" coords="327,131,392,156"/>
+<area shape="poly" id="edge8_Node000001_Node000086" title=" " alt="" coords="41,204,66,184,98,166,154,150,212,141,313,138,313,143,213,147,155,155,100,171,69,188,44,208"/>
+<area shape="rect" id="Node000060" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="461,80,633,105"/>
+<area shape="poly" id="edge21_Node000001_Node000060" title=" " alt="" coords="52,224,93,233,146,240,203,236,231,228,256,216,268,206,274,194,279,168,284,141,291,128,304,116,337,98,373,87,411,81,447,79,447,85,411,86,375,92,339,103,307,120,296,131,289,143,284,169,279,196,272,209,259,220,232,233,204,241,146,245,92,239,50,229"/>
+<area shape="rect" id="Node000170" href="$spp_8cpp.html#a87085475333bfd2adac21e4d53e07d4d" title="Receiver autonomous integrity monitoring (RAIM) failure detection and exclution Note: This is a simpl..." alt="" coords="152,181,204,207"/>
+<area shape="poly" id="edge15_Node000001_Node000170" title=" " alt="" coords="51,213,138,198,139,203,52,218"/>
+<area shape="rect" id="Node000171" href="$sbas_8cpp.html#a492384191366b09fa6adbfe65f237051" title=" " alt="" coords="99,441,257,467"/>
+<area shape="poly" id="edge24_Node000001_Node000171" title=" " alt="" coords="33,232,37,268,48,318,68,372,83,398,101,420,117,433,114,437,97,424,78,401,64,375,43,320,32,269,27,232"/>
+<area shape="rect" id="Node000172" href="$mongoWrite_8cpp.html#a7b0669675f4db278af7db5cb0b0dee6a" title=" " alt="" coords="305,467,413,492"/>
+<area shape="poly" id="edge25_Node000001_Node000172" title=" " alt="" coords="33,232,41,286,54,361,74,433,87,460,100,477,124,491,149,501,204,508,259,503,307,493,309,498,260,509,204,513,148,506,121,496,97,481,82,463,69,435,49,363,35,287,28,232"/>
+<area shape="poly" id="edge3_Node000028_Node000029" title=" " alt="" coords="403,198,468,199,468,204,403,203"/>
+<area shape="poly" id="edge4_Node000028_Node000029" title=" " alt="" coords="403,182,468,181,468,186,403,188"/>
+<area shape="poly" id="edge5_Node000028_Node000020" title=" " alt="" coords="382,203,474,237,472,242,380,208"/>
+<area shape="poly" id="edge6_Node000028_Node000020" title=" " alt="" coords="404,197,514,235,512,240,402,202"/>
+<area shape="poly" id="edge13_Node000086_Node000002" title=" " alt="" coords="375,128,460,65,509,35,512,40,463,70,378,133"/>
+<area shape="poly" id="edge10_Node000086_Node000029" title=" " alt="" coords="386,154,469,178,468,184,384,159"/>
+<area shape="poly" id="edge14_Node000086_Node000029" title=" " alt="" coords="393,142,509,173,508,178,391,147"/>
+<area shape="poly" id="edge11_Node000086_Node000020" title=" " alt="" coords="373,154,415,177,430,190,439,202,449,214,463,227,475,234,473,239,460,231,445,218,435,206,426,194,412,182,370,158"/>
+<area shape="poly" id="edge12_Node000086_Node000020" title=" " alt="" coords="394,141,415,153,430,166,439,178,449,190,463,202,521,234,519,239,460,207,445,194,435,182,426,170,412,158,391,146"/>
+<area shape="poly" id="edge9_Node000086_Node000060" title=" " alt="" coords="391,132,486,106,487,112,393,137"/>
+<area shape="poly" id="edge19_Node000170_Node000029" title=" " alt="" coords="199,204,247,217,306,226,359,229,413,226,466,218,513,207,515,212,467,224,414,231,359,235,305,231,246,223,198,209"/>
+<area shape="poly" id="edge20_Node000170_Node000029" title=" " alt="" coords="205,188,306,202,359,205,413,202,468,195,469,200,414,207,359,211,305,207,204,193"/>
+<area shape="poly" id="edge17_Node000170_Node000020" title=" " alt="" coords="202,204,306,226,472,251,472,257,305,231,201,209"/>
+<area shape="poly" id="edge18_Node000170_Node000020" title=" " alt="" coords="205,187,306,202,502,237,501,242,305,207,204,192"/>
+<area shape="poly" id="edge16_Node000170_Node000086" title=" " alt="" coords="203,184,312,154,314,159,205,190"/>
+<area shape="poly" id="edge26_Node000172_Node000020" title=" " alt="" coords="376,464,411,433,479,350,529,278,533,281,484,353,415,437,380,468"/>
+</map>

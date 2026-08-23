@@ -1,0 +1,8 @@
+<map id="ippCheckLocal" name="ippCheckLocal">
+<area shape="rect" id="Node000001" href="$ionoLocalSTEC_8cpp.html#aa36d9057a5ea9032b2f639ebc49099cb" title="Checks if the Ionosphere Piercing Point falls in area of coverage." alt="" coords="5,5,121,31"/>
+<area shape="rect" id="Node000002" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="171,5,308,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,24,157,24,157,30,121,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="121,7,157,6,157,12,121,12"/>
+<area shape="rect" id="Node000003" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="169,55,309,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="110,28,181,48,179,53,109,33"/>
+</map>

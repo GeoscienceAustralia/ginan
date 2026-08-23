@@ -1,0 +1,33 @@
+<map id="rtcmTypeToMessageNumber" name="rtcmTypeToMessageNumber">
+<area shape="rect" id="Node000001" href="$enums_8h.html#a086e24a48120638b582c9b860c16f0eb" title=" " alt="" coords="608,321,815,346"/>
+<area shape="rect" id="Node000002" href="$structRtcmEncoder.html#a3fcbeeb38259b50d2684adf2d36efb9f" title="encode GPS/GAL/BDS/QZS ephemeris messages" alt="" coords="5,36,237,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="703,308,688,252,661,180,642,144,619,109,591,78,559,53,509,30,456,16,400,9,345,9,243,20,164,38,163,33,242,15,345,3,401,4,457,10,511,25,561,49,595,74,623,106,647,141,666,178,694,250,708,307"/>
+<area shape="rect" id="Node000006" href="$structRtcmEncoder.html#af36c83c9a132fd9e303ffc337922fd51" title="encode GLO ephemeris messages" alt="" coords="5,122,237,148"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="701,308,684,258,656,196,637,165,615,135,589,109,559,88,505,66,447,56,388,57,329,65,274,78,224,94,149,125,147,120,222,89,273,73,328,60,387,52,447,51,506,61,561,83,592,105,619,132,641,162,661,194,689,256,706,307"/>
+<area shape="rect" id="Node000007" href="$structRtcmEncoder.html#a0faafc925ae0857559dd9a911cc3b90d" title="encode SSR header information" alt="" coords="307,98,538,124"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="696,310,676,271,645,224,606,177,559,139,532,126,534,121,561,134,610,173,650,221,680,268,701,307"/>
+<area shape="rect" id="Node000012" href="$structRtcmEncoder.html#aec43680779bba008687e1f4f792960e1" title=" " alt="" coords="285,148,560,173"/>
+<area shape="poly" id="edge4_Node000001_Node000012" title=" " alt="" coords="691,312,637,248,600,215,559,188,527,176,529,171,561,183,603,211,641,245,695,308"/>
+<area shape="rect" id="Node000015" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="331,197,515,222"/>
+<area shape="poly" id="edge5_Node000001_Node000015" title=" " alt="" coords="683,314,628,274,594,254,559,238,514,224,515,219,561,233,597,250,631,270,686,310"/>
+<area shape="rect" id="Node000018" href="$structRtcmTrace.html#af164612e34a83d1452ef214af3736004" title="Write decoded/encoded GAL ephemeris messages to a json file." alt="" coords="331,246,515,272"/>
+<area shape="poly" id="edge8_Node000001_Node000018" title=" " alt="" coords="662,319,559,287,501,274,503,269,561,282,664,314"/>
+<area shape="rect" id="Node000019" href="$structRtcmTrace.html#abcc1eaba01587cf66fb1637b0969c161" title="Write msm message to a json file." alt="" coords="341,296,504,321"/>
+<area shape="poly" id="edge9_Node000001_Node000019" title=" " alt="" coords="594,326,504,318,505,313,595,321"/>
+<area shape="rect" id="Node000021" href="$structRtcmTrace.html#a77967bdcccaac67fdcd956d47da16055" title=" " alt="" coords="337,345,509,370"/>
+<area shape="poly" id="edge10_Node000001_Node000021" title=" " alt="" coords="595,346,509,353,509,348,594,341"/>
+<area shape="rect" id="Node000023" href="$structRtcmTrace.html#abcf156ad1b35a69c33db080f609b6f16" title=" " alt="" coords="317,394,529,420"/>
+<area shape="poly" id="edge11_Node000001_Node000023" title=" " alt="" coords="664,354,561,386,508,397,507,392,559,380,662,348"/>
+<area shape="rect" id="Node000024" href="$structRtcmTrace.html#ab77b0368e1844bb77eb8a91845c35673" title=" " alt="" coords="335,444,510,469"/>
+<area shape="poly" id="edge12_Node000001_Node000024" title=" " alt="" coords="686,357,631,398,597,418,561,435,511,449,510,444,559,430,594,413,628,393,683,353"/>
+<area shape="rect" id="Node000025" href="$structRtcmTrace.html#a72cc456a169363422bbdb71c4f12ab4f" title=" " alt="" coords="327,493,518,518"/>
+<area shape="poly" id="edge13_Node000001_Node000025" title=" " alt="" coords="695,359,641,423,603,456,561,484,519,499,517,494,559,479,600,452,637,419,691,356"/>
+<area shape="rect" id="Node000026" href="$structRtcmTrace.html#ab176960d2a094f050f187909b777d677" title=" " alt="" coords="317,542,528,568"/>
+<area shape="poly" id="edge14_Node000001_Node000026" title=" " alt="" coords="701,360,680,399,650,447,610,494,561,533,529,547,527,543,559,529,606,490,645,444,676,396,696,357"/>
+<area shape="rect" id="Node000027" href="$structRtcmTrace.html#aa9417bd4a22314d42e8064f78f12d26d" title=" " alt="" coords="335,592,510,617"/>
+<area shape="poly" id="edge15_Node000001_Node000027" title=" " alt="" coords="705,361,687,409,657,470,616,532,590,559,561,583,537,595,511,603,510,598,535,590,559,578,587,555,612,528,653,467,682,407,700,359"/>
+<area shape="rect" id="Node000028" href="$acsConfig_8cpp.html#a31bd17725493fdb8d8f3a90e8488f795" title="Set the variables associated with an output stream." alt="" coords="335,641,510,666"/>
+<area shape="poly" id="edge16_Node000001_Node000028" title=" " alt="" coords="708,360,693,418,665,492,646,531,622,568,594,603,562,632,537,645,511,653,509,648,535,640,558,628,590,599,618,565,641,528,660,490,687,416,702,359"/>
+<area shape="poly" id="edge6_Node000015_Node000002" title=" " alt="" coords="316,203,284,188,266,170,257,151,250,132,235,113,195,84,154,63,157,59,198,79,239,109,255,130,262,149,270,167,287,184,319,198"/>
+<area shape="poly" id="edge7_Node000015_Node000006" title=" " alt="" coords="326,197,285,188,158,150,160,145,286,183,327,192"/>
+</map>

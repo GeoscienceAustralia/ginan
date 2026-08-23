@@ -1,0 +1,7 @@
+<map id="outputClocks" name="outputClocks">
+<area shape="rect" id="Node000001" href="$rinexClkWrite_8cpp.html#a6aa08011df8bb87fbe3541a849eb77ff" title=" " alt="" coords="5,31,112,56"/>
+<area shape="rect" id="Node000002" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="160,5,337,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,34,146,29,147,34,113,39"/>
+<area shape="rect" id="Node000008" href="$rinexClkWrite_8cpp.html#aefbd6a0922472d04631d00673ddc4981" title=" " alt="" coords="185,55,313,80"/>
+<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="113,47,171,55,171,60,112,53"/>
+</map>

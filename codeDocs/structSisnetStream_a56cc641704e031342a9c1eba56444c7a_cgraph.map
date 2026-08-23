@@ -1,0 +1,9 @@
+<map id="SisnetStream::requestResponseHandler" name="SisnetStream::requestResponseHandler">
+<area shape="rect" id="Node000001" href="$structSisnetStream.html#a56cc641704e031342a9c1eba56444c7a" title=" " alt="" coords="5,5,235,45"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html#ae4050e3ed6adf0dbe575ca992234f798" title=" " alt="" coords="517,13,732,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,30,504,30,504,36,235,36"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="235,15,504,15,504,20,235,20"/>
+<area shape="rect" id="Node000008" href="$structSisnetStream.html#a5dc8b2ed787356a865782bdce91bb37a" title=" " alt="" coords="283,75,469,115"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="195,43,289,69,288,74,194,48"/>
+<area shape="poly" id="edge4_Node000008_Node000002" title=" " alt="" coords="448,72,565,39,566,44,449,77"/>
+</map>

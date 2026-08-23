@@ -1,0 +1,11 @@
+<map id="ippInRange" name="ippInRange">
+<area shape="rect" id="Node000001" href="$ionoMeas_8cpp.html#aaa78d117a09d3be383cccb2ba2a56df5" title=" " alt="" coords="5,80,100,105"/>
+<area shape="rect" id="Node000002" href="$ionoSpherical_8cpp.html#a5b7bfe4a5b9c8c410133e7e6efbfc753" title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP..." alt="" coords="149,5,276,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,78,147,40,161,33,163,38,149,44,77,82"/>
+<area shape="rect" id="Node000016" href="$ionoSphericalCaps_8cpp.html#af953ae8b4e5d94daecada20e21dd59a2" title="transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of o..." alt="" coords="148,55,277,80"/>
+<area shape="poly" id="edge2_Node000001_Node000016" title=" " alt="" coords="100,83,134,77,135,82,101,88"/>
+<area shape="rect" id="Node000019" href="$ionoBSplines_8cpp.html#a7002ebc4f104e21e0a2a24917ac32098" title="checks if the Ionosphere Piercing Point falls in area of coverage time: I time of observations (not u..." alt="" coords="151,104,274,129"/>
+<area shape="poly" id="edge3_Node000001_Node000019" title=" " alt="" coords="101,97,138,103,138,108,100,102"/>
+<area shape="rect" id="Node000021" href="$ionoLocalSTEC_8cpp.html#aa36d9057a5ea9032b2f639ebc49099cb" title="Checks if the Ionosphere Piercing Point falls in area of coverage." alt="" coords="155,153,271,179"/>
+<area shape="poly" id="edge4_Node000001_Node000021" title=" " alt="" coords="79,103,149,138,166,146,164,151,147,143,76,108"/>
+</map>

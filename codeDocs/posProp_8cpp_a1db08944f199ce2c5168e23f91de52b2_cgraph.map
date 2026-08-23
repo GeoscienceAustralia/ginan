@@ -1,0 +1,6 @@
+<map id="applyInertials" name="applyInertials">
+<area shape="rect" id="Node000001" href="$posProp_8cpp.html#a1db08944f199ce2c5168e23f91de52b2" title="Apply the prediction using the filter&#39;s state transition." alt="" coords="5,5,116,31"/>
+<area shape="rect" id="Node000002" href="$structKFState.html#af0d847a26215ec8ba638677576d8cae9" title="Adds dynamics to a filter state by inserting off&#45;diagonal, time dependent elements to transition matr..." alt="" coords="164,5,344,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,24,150,24,150,30,116,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="116,7,150,6,150,12,116,12"/>
+</map>

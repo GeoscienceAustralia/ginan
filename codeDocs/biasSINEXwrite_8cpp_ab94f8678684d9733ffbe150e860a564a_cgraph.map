@@ -1,0 +1,16 @@
+<map id="writeBSINEXHeader" name="writeBSINEXHeader">
+<area shape="rect" id="Node000001" href="$biasSINEXwrite_8cpp.html#ab94f8678684d9733ffbe150e860a564a" title="Write bias SINEX head for the first time." alt="" coords="5,106,156,131"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#a37bc65d232e726cdbc51122a8a8ec00e" title=" " alt="" coords="424,31,507,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,104,135,58,167,34,203,16,259,4,317,5,371,13,417,25,415,30,370,18,316,10,260,10,205,21,170,39,139,62,94,107"/>
+<area shape="rect" id="Node000007" href="$biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4" title="Update bias SINEX first line." alt="" coords="229,31,351,56"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="109,103,203,65,226,58,228,63,205,70,111,108"/>
+<area shape="rect" id="Node000009" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="204,80,376,106"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="156,107,190,103,191,108,156,112"/>
+<area shape="rect" id="Node000004" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="229,130,351,155"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="156,124,215,131,214,137,156,130"/>
+<area shape="rect" id="Node000028" href="$algebra__old_8cpp.html#a54fd9b64416949c38e879ac889964d2a" title=" " alt="" coords="261,179,319,204"/>
+<area shape="poly" id="edge7_Node000001_Node000028" title=" " alt="" coords="96,129,144,153,205,176,249,189,247,194,203,181,142,157,94,134"/>
+<area shape="poly" id="edge8_Node000001_Node000028" title=" " alt="" coords="141,129,205,152,262,171,260,176,203,157,140,134"/>
+<area shape="poly" id="edge3_Node000007_Node000002" title=" " alt="" coords="352,50,410,50,410,55,352,55"/>
+<area shape="poly" id="edge4_Node000007_Node000002" title=" " alt="" coords="352,33,410,33,410,38,352,38"/>
+</map>

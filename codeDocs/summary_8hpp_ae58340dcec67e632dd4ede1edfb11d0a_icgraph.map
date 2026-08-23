@@ -1,0 +1,5 @@
+<map id="outputSummaries" name="outputSummaries">
+<area shape="rect" id="Node000001" href="$summary_8cpp.html#ae58340dcec67e632dd4ede1edfb11d0a" title="Output statistics from each station." alt="" coords="207,5,345,31"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html#a2b0d1066eac1a878cf982adcdd550ce1" title="Perform any post&#45;final epoch calculations and outputs, then begin reverse smoothing and tidy up." alt="" coords="5,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,21,159,21,159,15,193,15"/>
+</map>

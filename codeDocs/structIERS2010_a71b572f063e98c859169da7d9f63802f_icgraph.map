@@ -1,0 +1,15 @@
+<map id="IERS2010::secularPole" name="IERS2010::secularPole">
+<area shape="rect" id="Node000001" href="$structIERS2010.html#a71b572f063e98c859169da7d9f63802f" title=" " alt="" coords="497,81,664,106"/>
+<area shape="rect" id="Node000002" href="$structOrbitIntegrator.html#a58c972cf5ddac52358ccbd8f7c34b9cc" title=" " alt="" coords="5,24,188,64"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="551,75,505,45,477,31,449,21,378,10,305,9,236,16,176,27,175,21,236,11,305,4,378,5,450,16,479,27,507,40,554,70"/>
+<area shape="rect" id="Node000004" href="$structIERS2010.html#af377ca32afffb6da4e3eb30e1219263b" title=" " alt="" coords="249,31,437,57"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="505,81,404,60,405,54,506,75"/>
+<area shape="rect" id="Node000005" href="$structIERS2010.html#a6283c4fc62f79745033893cd35f6c6be" title=" " alt="" coords="236,81,449,106"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="483,96,449,96,449,91,483,91"/>
+<area shape="rect" id="Node000006" href="$tides_8cpp.html#ac13ddcfe009e53520fa45c714c524c4f" title="Displacement by ocean pole tide See ref [1] 7.1.5." alt="" coords="285,130,401,155"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="506,112,401,134,400,128,505,106"/>
+<area shape="rect" id="Node000018" href="$tides_8cpp.html#aec065e2f9eb7b4413b74ecde2f1a6ea2" title="Displacement by solid Earth pole tide See ref [1] 7.1.4." alt="" coords="289,179,396,205"/>
+<area shape="poly" id="edge7_Node000001_Node000018" title=" " alt="" coords="551,116,504,143,450,169,397,185,396,180,448,164,502,139,548,111"/>
+<area shape="poly" id="edge3_Node000004_Node000002" title=" " alt="" coords="235,47,188,47,188,41,235,41"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="265,81,188,65,189,60,266,75"/>
+</map>

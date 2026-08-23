@@ -1,0 +1,6 @@
+<map id="updateAntAtt" name="updateAntAtt">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#af213faee69eab1e3eb2f3955c2ab9233" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="5,5,113,31"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a1a74c02f9b5272b79ed718d28dcc3429" title="Converts coords of frame A (expressed in frame G) into transformation matrix from A to G E...." alt="" coords="161,5,261,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,24,148,24,148,30,114,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="114,7,148,6,148,12,114,12"/>
+</map>

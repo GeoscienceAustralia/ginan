@@ -1,0 +1,5 @@
+<map id="IrregGridCoef" name="IrregGridCoef">
+<area shape="rect" id="Node000001" href="$ionoLocalSTEC_8cpp.html#a0fc11c5af2593ba1d061c51abf507a98" title=" " alt="" coords="160,5,269,31"/>
+<area shape="rect" id="Node000002" href="$ionoLocalSTEC_8cpp.html#ad63cf6910bd223eb6900bfa300c53233" title="calcuates the partials of observations with respect to basis functions" alt="" coords="5,5,112,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,21,112,21,112,15,146,15"/>
+</map>

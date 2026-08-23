@@ -1,0 +1,21 @@
+<map id="getGeomagIntensity" name="getGeomagIntensity">
+<area shape="rect" id="Node000001" href="$geomagField_8cpp.html#a1a9089a9e8fb29db7da8a88c9abcf491" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="5,153,160,179"/>
+<area shape="rect" id="Node000002" href="$geomagField_8cpp.html#afdeec0e39b8804b13d87c0d552f57438" title="Calculate the SH coefficients at given epoch based on a piecewise linear model For years starting in ..." alt="" coords="237,5,328,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,151,137,98,170,67,207,40,223,31,226,36,209,44,173,71,141,102,95,155"/>
+<area shape="rect" id="Node000005" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="227,55,338,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="116,151,207,101,253,83,255,88,209,106,118,156"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="92,151,140,114,207,77,213,74,215,79,209,82,143,119,95,155"/>
+<area shape="rect" id="Node000006" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="225,104,340,129"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="134,151,217,130,218,135,135,156"/>
+<area shape="rect" id="Node000007" href="$structLegendre.html#a5a8d9f92b728272375c620f652f7ea36" title=" " alt="" coords="208,153,357,179"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="160,163,194,163,194,169,160,169"/>
+<area shape="rect" id="Node000008" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="405,179,455,204"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="138,176,208,187,307,192,391,191,391,196,307,197,208,193,138,181"/>
+<area shape="rect" id="Node000009" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="231,255,334,280"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="106,176,209,233,239,247,237,252,207,238,104,181"/>
+<area shape="rect" id="Node000010" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="231,304,334,329"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="95,177,141,231,173,262,209,289,223,296,220,301,207,294,170,266,137,235,91,181"/>
+<area shape="rect" id="Node000011" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="231,353,334,379"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="92,178,108,210,134,253,168,299,210,339,220,345,217,350,206,343,164,303,129,256,104,213,87,180"/>
+<area shape="poly" id="edge6_Node000007_Node000008" title=" " alt="" coords="357,176,392,182,391,187,356,181"/>
+</map>

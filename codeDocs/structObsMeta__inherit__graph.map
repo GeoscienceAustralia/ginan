@@ -1,0 +1,13 @@
+<map id="ObsMeta" name="ObsMeta">
+<area shape="rect" id="Node000001" href="$structObsMeta.html" title=" " alt="" coords="305,5,495,341"/>
+<area shape="rect" id="Node000002" href="$structObservation.html" title=" " alt="" coords="325,389,475,585"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="403,355,403,389,397,389,397,355"/>
+<area shape="rect" id="Node000003" href="$structFObs.html" title=" " alt="" coords="5,733,184,844"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="315,542,255,585,198,635,158,684,126,735,121,732,154,681,194,631,251,581,312,538"/>
+<area shape="rect" id="Node000004" href="$structGObs.html" title="Raw observation data from a receiver." alt="" coords="208,723,387,854"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="365,599,322,724,317,722,360,598"/>
+<area shape="rect" id="Node000005" href="$structLObs.html" title=" " alt="" coords="411,633,597,944"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="441,597,453,632,448,634,436,599"/>
+<area shape="rect" id="Node000006" href="$structPObs.html" title=" " alt="" coords="621,703,800,874"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="489,536,551,579,611,631,640,665,666,702,661,705,636,669,607,635,548,584,486,540"/>
+</map>

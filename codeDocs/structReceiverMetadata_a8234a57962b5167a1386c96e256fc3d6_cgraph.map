@@ -1,0 +1,10 @@
+<map id="ReceiverMetadata::ingestRinex" name="ReceiverMetadata::ingestRinex">
+<area shape="rect" id="Node000001" href="$structReceiverMetadata.html#a8234a57962b5167a1386c96e256fc3d6" title=" " alt="" coords="5,40,195,80"/>
+<area shape="rect" id="Node000002" href="$receiverMetadata_8cpp.html#ab1839dad1884ddb509076582c8910275" title=" " alt="" coords="243,5,452,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,53,251,45,252,50,195,58"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="182,37,229,30,230,36,183,43"/>
+<area shape="rect" id="Node000004" href="$receiver_8hpp.html#ad62e3a3efe5e017c0092a133fb7f766f" title=" " alt="" coords="500,82,683,107"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="195,71,487,92,486,97,195,77"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="195,57,495,78,495,83,195,62"/>
+<area shape="poly" id="edge2_Node000002_Node000004" title=" " alt="" coords="419,43,533,76,532,81,418,48"/>
+</map>

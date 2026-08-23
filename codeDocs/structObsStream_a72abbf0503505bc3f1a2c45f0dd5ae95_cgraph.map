@@ -1,0 +1,16 @@
+<map id="ObsStream::getObs" name="ObsStream::getObs">
+<area shape="rect" id="Node000001" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title=" " alt="" coords="5,80,153,105"/>
+<area shape="rect" id="Node000002" href="$structParser.html#a8d70e8a00e63f7653ababe4ae1e24b1d" title=" " alt="" coords="207,5,349,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,77,200,52,249,34,251,39,202,56,136,82"/>
+<area shape="poly" id="edge7_Node000001_Node000002" title=" " alt="" coords="92,78,134,55,193,30,195,35,136,60,94,82"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="217,55,339,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,89,222,80,223,85,154,95"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="121,77,203,65,203,71,122,83"/>
+<area shape="rect" id="Node000004" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="213,104,343,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="123,103,199,113,199,119,122,108"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="154,90,221,99,221,104,153,96"/>
+<area shape="rect" id="Node000005" href="$structStream.html#a3038bf23a448a4b3e1a237a8925d7c6d" title="Check to see if this stream has run out of data." alt="" coords="217,153,339,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="112,103,202,138,225,146,224,151,200,143,110,108"/>
+<area shape="rect" id="Node000006" href="$structStreamParser.html#a78ac18a6adf2850103320c9e2f05fc2e" title=" " alt="" coords="201,203,355,228"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="95,104,141,145,203,188,218,195,216,200,200,192,137,149,92,108"/>
+</map>

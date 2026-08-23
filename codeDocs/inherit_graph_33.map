@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structDebugOptions.html" title="Options to be used only for debugging new features." alt="" coords="6,5,121,31"/>
+<area shape="rect" id="Node000001" href="$structACSConfig.html" title="General options object to be used throughout the software." alt="" coords="169,80,259,105"/>
+<area shape="poly" id="edge30_Node000000_Node000001" title=" " alt="" coords="110,34,123,40,193,78,190,82,120,44,108,39"/>
+<area shape="rect" id="Node000002" href="$structGlobalOptions.html" title="Options for the general operation of the software." alt="" coords="6,55,121,80"/>
+<area shape="poly" id="edge31_Node000002_Node000001" title=" " alt="" coords="135,77,169,83,168,88,134,82"/>
+<area shape="rect" id="Node000003" href="$structInputOptions.html" title="Input source filenames and directories." alt="" coords="11,104,116,129"/>
+<area shape="poly" id="edge32_Node000003_Node000001" title=" " alt="" coords="129,104,169,97,170,102,130,109"/>
+<area shape="rect" id="Node000004" href="$structOutputOptions.html" title="Enabling and setting destiations of program outputs." alt="" coords="5,153,121,179"/>
+<area shape="poly" id="edge33_Node000004_Node000001" title=" " alt="" coords="105,145,120,138,188,103,190,108,123,143,108,150"/>
+</map>

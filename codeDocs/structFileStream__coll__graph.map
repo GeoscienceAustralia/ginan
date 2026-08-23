@@ -1,0 +1,10 @@
+<map id="FileStream" name="FileStream">
+<area shape="rect" id="Node000001" href="$structFileStream.html" title=" " alt="" coords="132,343,289,479"/>
+<area shape="rect" id="Node000002" href="$structStream.html" title=" " alt="" coords="5,144,163,280"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,290,169,341,165,344,132,293"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="112,5,184,81"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="182,81,194,104,210,161,218,219,221,275,221,326,215,326,216,276,213,219,205,162,190,106,178,83"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="114,80,97,106,90,129,85,127,92,104,110,77"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="280,174,371,250"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="306,252,260,330,256,327,301,249"/>
+</map>

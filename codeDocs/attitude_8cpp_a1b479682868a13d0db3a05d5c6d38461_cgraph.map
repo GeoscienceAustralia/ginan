@@ -1,0 +1,15 @@
+<map id="findEclipseBoundaries" name="findEclipseBoundaries">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a1b479682868a13d0db3a05d5c6d38461" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="5,77,171,102"/>
+<area shape="rect" id="Node000002" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="397,27,461,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,74,152,41,184,24,218,12,254,4,284,3,350,12,385,21,384,26,349,17,283,8,255,10,219,17,186,29,155,46,107,79"/>
+<area shape="rect" id="Node000026" href="$attitude_8cpp.html#a3b2447912b724e96167465b4813d591b" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="244,27,324,53"/>
+<area shape="poly" id="edge2_Node000001_Node000026" title=" " alt="" coords="170,75,244,55,245,60,171,80"/>
+<area shape="poly" id="edge8_Node000001_Node000026" title=" " alt="" coords="114,74,230,43,231,48,115,79"/>
+<area shape="rect" id="Node000030" href="$orbits_8cpp.html#aefaca6400f01b33fcf0b7c142032f02b" title=" " alt="" coords="219,77,349,102"/>
+<area shape="poly" id="edge3_Node000001_Node000030" title=" " alt="" coords="171,96,205,96,205,101,171,101"/>
+<area shape="poly" id="edge6_Node000001_Node000030" title=" " alt="" coords="171,78,205,78,205,83,171,83"/>
+<area shape="rect" id="Node000037" href="$attitude_8cpp.html#ab4c1ce1e9929d8f0ea84cffbc8705adc" title=" " alt="" coords="232,126,336,151"/>
+<area shape="poly" id="edge5_Node000001_Node000037" title=" " alt="" coords="115,100,219,128,218,133,114,105"/>
+<area shape="poly" id="edge7_Node000001_Node000037" title=" " alt="" coords="171,99,245,119,244,124,170,104"/>
+<area shape="poly" id="edge4_Node000030_Node000002" title=" " alt="" coords="321,74,383,53,385,58,323,79"/>
+</map>

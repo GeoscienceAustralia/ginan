@@ -1,0 +1,12 @@
+<map id="pppIntegerAmbiguity" name="pppIntegerAmbiguity">
+<area shape="rect" id="Node000001" href="$ppp__obs_8cpp.html#ab3517197e46a0f95f5a49b36cac43084" title=" " alt="" coords="5,31,164,56"/>
+<area shape="rect" id="Node000002" href="$lambda_8cpp.html#a364f9f201016e3baff0a9366158a823b" title=" " alt="" coords="260,5,331,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,40,246,29,247,34,164,45"/>
+<area shape="poly" id="edge5_Node000001_Node000002" title=" " alt="" coords="129,28,246,13,247,19,129,33"/>
+<area shape="rect" id="Node000024" href="$algebra_8cpp.html#a4a6a1ebf759ddc5d9d6d1de14269c5af" title=" " alt="" coords="212,55,379,80"/>
+<area shape="poly" id="edge2_Node000001_Node000024" title=" " alt="" coords="164,50,199,54,198,59,164,55"/>
+<area shape="rect" id="Node000025" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="427,55,476,80"/>
+<area shape="poly" id="edge6_Node000001_Node000025" title=" " alt="" coords="112,54,158,73,213,89,259,96,295,98,378,89,413,80,414,85,379,94,295,104,258,101,211,94,156,78,110,59"/>
+<area shape="poly" id="edge3_Node000024_Node000025" title=" " alt="" coords="379,74,412,73,413,78,379,79"/>
+<area shape="poly" id="edge4_Node000024_Node000025" title=" " alt="" coords="379,56,413,57,412,62,379,61"/>
+</map>

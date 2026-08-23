@@ -1,0 +1,13 @@
+<map id="updateAvgOrbits" name="updateAvgOrbits">
+<area shape="rect" id="Node000001" href="$ppppp_8cpp.html#a6dcbf3bfe96a469cacb8a075506998ea" title="Prepare Satellite clocks to minimise residuals to broadcast orbits Provide a weak tiedown using mu va..." alt="" coords="5,104,136,129"/>
+<area shape="rect" id="Node000002" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="237,5,301,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,102,128,71,183,40,223,25,224,30,185,44,131,75,89,106"/>
+<area shape="rect" id="Node000026" href="$ephBroadcast_8cpp.html#a7a12481a61ef763e3db3bac720587930" title=" " alt="" coords="203,55,334,80"/>
+<area shape="poly" id="edge2_Node000001_Node000026" title=" " alt="" coords="122,101,203,81,204,86,123,107"/>
+<area shape="rect" id="Node000033" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="184,104,353,129"/>
+<area shape="poly" id="edge3_Node000001_Node000033" title=" " alt="" coords="137,114,170,114,170,119,137,119"/>
+<area shape="rect" id="Node000037" href="$algebra_8cpp.html#a4a6a1ebf759ddc5d9d6d1de14269c5af" title=" " alt="" coords="185,153,352,179"/>
+<area shape="poly" id="edge4_Node000001_Node000037" title=" " alt="" coords="123,127,204,147,203,153,122,132"/>
+<area shape="rect" id="Node000039" href="$structKFState.html#a8f43fca242e78201e48996ebbb4fd69f" title="Tries to add a state to the filter object." alt="" coords="191,203,346,228"/>
+<area shape="poly" id="edge5_Node000001_Node000039" title=" " alt="" coords="90,127,132,157,185,188,205,196,203,201,183,192,129,162,87,132"/>
+</map>

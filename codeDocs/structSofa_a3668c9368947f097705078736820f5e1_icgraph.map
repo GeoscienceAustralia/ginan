@@ -1,0 +1,7 @@
+<map id="Sofa::iauGmst" name="Sofa::iauGmst">
+<area shape="rect" id="Node000001" href="$structSofa.html#a3668c9368947f097705078736820f5e1" title=" " alt="" coords="312,31,427,56"/>
+<area shape="rect" id="Node000002" href="$structFundamentalArgs.html#a91c84943ce3b6a20fdd556d43c4280b5" title=" " alt="" coords="5,5,264,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="298,38,252,33,252,28,299,33"/>
+<area shape="rect" id="Node000003" href="$tides_8cpp.html#ab9e903f458c0264cff4b22d87c78c477" title="Displacement by solid Earth tide See ref [1] 7.1.1 Note: permanent deformation not removed,..." alt="" coords="78,55,191,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="298,53,192,64,191,59,298,48"/>
+</map>

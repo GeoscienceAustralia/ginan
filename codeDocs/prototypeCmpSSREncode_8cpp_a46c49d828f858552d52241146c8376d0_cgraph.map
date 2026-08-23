@@ -1,0 +1,12 @@
+<map id="encodecompactBIA" name="encodecompactBIA">
+<area shape="rect" id="Node000001" href="$prototypeCmpSSREncode_8cpp.html#a46c49d828f858552d52241146c8376d0" title="Encode hybrid code and phase bias message warning 1: Currently only global mode supported." alt="" coords="5,55,152,80"/>
+<area shape="rect" id="Node000002" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="228,5,315,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,55,231,33,233,38,153,60"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="104,52,214,22,215,27,106,57"/>
+<area shape="rect" id="Node000004" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="229,55,314,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="152,73,215,73,215,78,152,79"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="152,56,215,56,215,62,152,61"/>
+<area shape="rect" id="Node000006" href="$prototypeCmpSSREncode_8cpp.html#a2f7cefae27bafd9b9afc72ae950d2d92" title=" " alt="" coords="200,104,343,129"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="106,78,187,101,186,107,104,83"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="153,75,233,97,231,102,152,80"/>
+</map>

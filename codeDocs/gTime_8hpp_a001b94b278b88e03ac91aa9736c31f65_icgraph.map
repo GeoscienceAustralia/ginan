@@ -1,0 +1,7 @@
+<map id="nearestTime" name="nearestTime">
+<area shape="rect" id="Node000001" href="$gTime_8cpp.html#a001b94b278b88e03ac91aa9736c31f65" title="Use a time of modulus and recent time to calculate the new time." alt="" coords="169,31,273,56"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a250b532df1f7b6496ad7044152bd05e8" title=" " alt="" coords="5,5,121,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,35,121,30,122,25,156,30"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a9c3afec890ece4e0c1e56a8f66091736" title=" " alt="" coords="5,55,121,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,56,122,61,121,56,155,51"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="configIonModelSphhar" name="configIonModelSphhar">
+<area shape="rect" id="Node000001" href="$ionoSpherical_8cpp.html#a4a53e2c2efbd68f38326d2203c00cb72" title="configures the spherical harmonics model." alt="" coords="5,31,172,56"/>
+<area shape="rect" id="Node000002" href="$structLegendre.html#aed8b2efb4e2275a6f4add28850affc6d" title=" " alt="" coords="220,5,369,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,30,206,26,206,32,172,36"/>
+<area shape="rect" id="Node000005" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="233,55,356,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="172,50,220,56,219,61,172,56"/>
+</map>

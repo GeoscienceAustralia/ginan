@@ -1,0 +1,9 @@
+<map id="URL::sanitised" name="URL::sanitised">
+<area shape="rect" id="Node000001" href="$structURL.html#ab0ccd3714f16e338f40eb008b2a25cf2" title=" " alt="" coords="296,63,411,88"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html#a4c09b381dbd56fa09e6187d833994db6" title=" " alt="" coords="54,5,199,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="300,61,247,46,193,33,194,28,249,41,302,56"/>
+<area shape="rect" id="Node000006" href="$structNtripResponder.html#a874ea233cd0c2b2139c68b6d9009112a" title=" " alt="" coords="5,55,248,95"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="282,78,248,78,248,73,282,73"/>
+<area shape="rect" id="Node000007" href="$structTcpSocket.html#af0d4224df8c4ae9c3ca8227bfd10a701" title=" " alt="" coords="29,120,225,145"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="302,95,249,110,194,123,193,117,247,105,300,90"/>
+</map>

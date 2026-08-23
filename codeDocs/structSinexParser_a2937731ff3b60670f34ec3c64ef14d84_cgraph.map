@@ -1,0 +1,12 @@
+<map id="SinexParser::parse" name="SinexParser::parse">
+<area shape="rect" id="Node000001" href="$structSinexParser.html#a2937731ff3b60670f34ec3c64ef14d84" title=" " alt="" coords="5,55,148,80"/>
+<area shape="rect" id="Node000002" href="$structSinexParser.html#a9027871023d91153748dd956e2ecaf38" title=" " alt="" coords="241,5,426,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,61,195,51,294,32,295,37,197,57,149,66"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="96,52,141,39,195,27,227,22,228,27,197,33,143,44,97,57"/>
+<area shape="rect" id="Node000003" href="$structSinexParser.html#ac83a748e7684f1e4b129899692cb9aa7" title=" " alt="" coords="212,55,455,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="148,65,199,65,199,70,148,70"/>
+<area shape="rect" id="Node000005" href="$structSinexParser.html#ade7a1bd2fb3e99dc9ddf9b0c9116ab65" title=" " alt="" coords="196,104,471,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="140,77,197,89,250,99,249,104,195,94,139,83"/>
+<area shape="rect" id="Node000006" href="$structSinexParser.html#a934f04081238a62ad21f91f7003ea1a0" title=" " alt="" coords="215,154,451,194"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="96,78,140,108,197,138,222,148,220,153,195,143,138,113,93,82"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structBrdcEph.html" title=" " alt="" coords="11,104,86,129"/>
+<area shape="rect" id="Node000001" href="$structEph.html" title="GPS/QZS/GAL/BDS broadcast ephemeris." alt="" coords="145,55,191,80"/>
+<area shape="poly" id="edge13_Node000000_Node000001" title=" " alt="" coords="91,96,143,74,146,79,93,101"/>
+<area shape="rect" id="Node000004" href="$structGeph.html" title="GLONASS broadcast ephemeris." alt="" coords="140,104,196,129"/>
+<area shape="poly" id="edge14_Node000000_Node000004" title=" " alt="" coords="100,114,140,114,140,119,100,119"/>
+<area shape="rect" id="Node000005" href="$structSeph.html" title="SBAS ephemeris." alt="" coords="141,153,195,179"/>
+<area shape="poly" id="edge15_Node000000_Node000005" title=" " alt="" coords="93,132,141,152,139,157,91,137"/>
+<area shape="rect" id="Node000002" href="$structKeplerEph.html" title=" " alt="" coords="5,31,92,56"/>
+<area shape="poly" id="edge17_Node000002_Node000001" title=" " alt="" coords="106,52,145,60,144,65,105,57"/>
+<area shape="rect" id="Node000003" href="$structCeph.html" title="GPS/QZS CNAV/CNAV&#45;2 or BDS CNAV&#45;1/CNAV&#45;2/CNAV&#45;3 ephemeris." alt="" coords="141,5,195,31"/>
+<area shape="poly" id="edge16_Node000002_Node000003" title=" " alt="" coords="105,29,140,21,141,26,106,34"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="SbfDecoder" name="SbfDecoder">
+<area shape="rect" id="Node000001" href="$structSbfDecoder.html" title=" " alt="" coords="66,229,247,465"/>
+<area shape="rect" id="Node000004" href="$structSbfParser.html" title=" " alt="" coords="91,513,222,609"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,479,159,513,154,513,154,479"/>
+<area shape="rect" id="Node000002" href="$structObsLister.html" title=" " alt="" coords="5,55,124,131"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,143,116,228,111,230,80,145"/>
+<area shape="rect" id="Node000003" href="$structIcdDecoder.html" title=" " alt="" coords="148,5,352,181"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,195,203,230,198,228,211,193"/>
+</map>

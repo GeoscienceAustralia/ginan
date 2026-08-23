@@ -1,0 +1,9 @@
+<map id="StreamParser" name="StreamParser">
+<area shape="rect" id="Node000001" href="$structStreamParser.html" title=" " alt="" coords="115,343,295,499"/>
+<area shape="rect" id="Node000002" href="$structStream.html" title=" " alt="" coords="5,144,163,280"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,279,154,327,149,330,121,282"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="48,5,120,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,82,87,128,81,128,81,82"/>
+<area shape="rect" id="Node000004" href="$structParser.html" title=" " alt="" coords="187,154,317,270"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="242,271,229,327,224,326,237,270"/>
+</map>

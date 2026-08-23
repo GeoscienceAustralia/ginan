@@ -1,0 +1,9 @@
+<map id="formatSeries" name="formatSeries">
+<area shape="rect" id="Node000001" href="$mongo_8cpp.html#a21229e129bf799d4fdd7093b954e9381" title=" " alt="" coords="219,55,325,80"/>
+<area shape="rect" id="Node000002" href="$mongoWrite_8cpp.html#a80b870679e2666999af874ba9580269a" title=" " alt="" coords="5,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,54,136,33,137,28,212,49"/>
+<area shape="rect" id="Node000035" href="$mongoWrite_8cpp.html#a5cadd0b1a16ece0f12724f6f750b19ce" title=" " alt="" coords="13,55,163,80"/>
+<area shape="poly" id="edge2_Node000001_Node000035" title=" " alt="" coords="204,70,163,70,163,65,204,65"/>
+<area shape="rect" id="Node000026" href="$mongoWrite_8cpp.html#a7b0669675f4db278af7db5cb0b0dee6a" title=" " alt="" coords="34,104,142,129"/>
+<area shape="poly" id="edge3_Node000001_Node000026" title=" " alt="" coords="212,86,137,106,136,101,210,81"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="SbfParser" name="SbfParser">
+<area shape="rect" id="Node000001" href="$structSbfParser.html" title=" " alt="" coords="185,573,316,669"/>
+<area shape="rect" id="Node000002" href="$structParser.html" title=" " alt="" coords="5,319,136,435"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,447,125,486,150,524,195,571,191,575,146,527,120,489,99,449"/>
+<area shape="rect" id="Node000003" href="$structSbfDecoder.html" title=" " alt="" coords="160,259,341,495"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,509,253,573,248,573,248,509"/>
+<area shape="rect" id="Node000004" href="$structObsLister.html" title=" " alt="" coords="98,55,217,131"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="176,144,214,258,209,260,171,145"/>
+<area shape="rect" id="Node000005" href="$structIcdDecoder.html" title=" " alt="" coords="241,5,445,181"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="313,195,291,260,286,258,308,193"/>
+<area shape="rect" id="Node000006" href="$structPacketStatistics.html" title=" " alt="" coords="365,229,560,525"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="358,524,355,527,307,575,303,571,351,523,354,520"/>
+</map>

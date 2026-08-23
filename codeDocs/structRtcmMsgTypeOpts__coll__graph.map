@@ -1,0 +1,10 @@
+<map id="RtcmMsgTypeOpts" name="RtcmMsgTypeOpts">
+<area shape="rect" id="Node000001" href="$structRtcmMsgTypeOpts.html" title=" " alt="" coords="149,312,305,388"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,159,225,249"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,248,190,297,186,300,148,251"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="194,5,258,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="183,70,161,86,143,107,130,132,123,159,118,158,125,130,138,104,158,82,180,65"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="249,159,429,249"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="271,72,303,104,318,130,330,158,325,160,314,132,299,107,267,75"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="307,251,269,300,264,297,303,248"/>
+</map>

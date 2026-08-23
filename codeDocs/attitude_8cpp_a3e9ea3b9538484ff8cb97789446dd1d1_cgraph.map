@@ -1,0 +1,8 @@
+<map id="findCentredYawStart" name="findCentredYawStart">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a3e9ea3b9538484ff8cb97789446dd1d1" title="Finds time when midnight/noon&#45;centred max yaw started, previous to this point in time." alt="" coords="5,55,159,80"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="207,5,379,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,52,224,31,225,36,138,57"/>
+<area shape="rect" id="Node000004" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="227,55,359,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="159,73,213,73,213,79,159,79"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,56,213,56,213,61,159,61"/>
+</map>

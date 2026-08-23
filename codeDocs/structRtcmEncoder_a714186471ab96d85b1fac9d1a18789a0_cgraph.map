@@ -1,0 +1,8 @@
+<map id="RtcmEncoder::encodeWriteMessageToBuffer" name="RtcmEncoder::encodeWriteMessageToBuffer">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#a714186471ab96d85b1fac9d1a18789a0" title=" " alt="" coords="5,5,204,45"/>
+<area shape="rect" id="Node000002" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="252,13,339,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,32,238,31,238,36,204,37"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="204,14,238,14,238,20,204,19"/>
+<area shape="rect" id="Node000004" href="$common_8cpp.html#a143f5fa72a5c2aa56901ad78710eb4c2" title="crc&#45;24q parity compute crc&#45;24q parity for sbas, rtcm3 see reference [2] A.4.3.3 Parity" alt="" coords="263,62,328,87"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,43,250,60,249,66,182,48"/>
+</map>

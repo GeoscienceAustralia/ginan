@@ -1,0 +1,9 @@
+<map id="preciseAttitude" name="preciseAttitude">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="5,55,127,80"/>
+<area shape="rect" id="Node000002" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="204,5,268,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,52,190,28,192,33,111,57"/>
+<area shape="rect" id="Node000026" href="$coordinates_8cpp.html#ad5579407e3fbc4df3feb1b7d5e910075" title=" " alt="" coords="197,55,275,80"/>
+<area shape="poly" id="edge2_Node000001_Node000026" title=" " alt="" coords="127,65,184,65,184,70,127,70"/>
+<area shape="rect" id="Node000015" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="175,104,297,129"/>
+<area shape="poly" id="edge3_Node000001_Node000015" title=" " alt="" coords="111,77,179,97,177,102,110,83"/>
+</map>

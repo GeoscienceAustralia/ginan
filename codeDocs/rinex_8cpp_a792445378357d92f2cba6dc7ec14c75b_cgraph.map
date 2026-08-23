@@ -1,0 +1,32 @@
+<map id="readRnxNavB" name="readRnxNavB">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#a792445378357d92f2cba6dc7ec14c75b" title="Read RINEX navigation data body section." alt="" coords="5,252,116,277"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#ad993213762f9ea4ab71cc7ec882cbeda" title="Strip trailing carriage return (\r) from string if present This handles Windows&#45;encoded files (\r &#160;li..." alt="" coords="165,5,314,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,251,71,211,89,154,119,93,139,65,162,40,168,35,171,40,166,44,143,68,123,96,94,156,76,212,67,253"/>
+<area shape="rect" id="Node000003" href="$enumHelpers_8hpp.html#a44fa1c1ae04a09f90dbf28307f11cca2" title=" " alt="" coords="178,55,301,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="66,251,99,180,127,138,162,101,182,90,203,82,204,87,184,94,166,105,131,141,104,183,71,253"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="62,251,73,216,93,169,123,120,141,97,162,77,165,75,168,80,166,81,145,101,127,123,98,172,78,218,67,253"/>
+<area shape="rect" id="Node000004" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="201,104,277,129"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="72,250,108,202,133,174,163,150,205,132,207,136,165,155,137,178,112,205,76,253"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="64,251,77,224,99,191,128,156,163,126,187,114,189,119,165,131,132,160,103,194,82,227,68,253"/>
+<area shape="rect" id="Node000005" href="$gTime_8cpp.html#a0080e8d8e9f572cc3a823740536abce4" title=" " alt="" coords="201,153,278,179"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="75,250,113,219,163,188,187,177,189,182,165,192,116,224,78,254"/>
+<area shape="rect" id="Node000010" href="$enumHelpers_8hpp.html#af93cbcd213970c40acdbc166256c3848" title=" " alt="" coords="164,203,315,228"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="115,255,201,230,203,235,117,260"/>
+<area shape="poly" id="edge7_Node000001_Node000010" title=" " alt="" coords="84,249,150,228,152,233,86,254"/>
+<area shape="rect" id="Node000011" href="$rinex_8cpp.html#ac721d8d1b845308215141fb2291a92bd" title="Decode CNVX (Civil Navigation) ephemeris parameters." alt="" coords="188,252,291,277"/>
+<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="116,270,174,271,174,276,116,276"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="116,254,174,253,174,259,116,259"/>
+<area shape="rect" id="Node000017" href="$rinex_8cpp.html#ae809a4d28d2ab5e2c8100852605ad114" title="Decode GLONASS ephemeris parameters." alt="" coords="188,301,291,327"/>
+<area shape="poly" id="edge11_Node000001_Node000017" title=" " alt="" coords="108,275,180,295,178,300,107,280"/>
+<area shape="rect" id="Node000018" href="$rinex_8cpp.html#ac537c5434aa7432a5dc292e882cfbc17" title="Decode SBAS/geostationary satellite ephemeris." alt="" coords="189,351,290,376"/>
+<area shape="poly" id="edge12_Node000001_Node000018" title=" " alt="" coords="79,276,117,305,165,336,182,343,180,348,163,340,114,310,75,280"/>
+<area shape="rect" id="Node000020" href="$rinex_8cpp.html#a979e29d6c67b175b1c72c8a619e2c6fa" title="Decode GPS/Galileo/QZS/BeiDou ephemeris parameters." alt="" coords="193,400,286,425"/>
+<area shape="poly" id="edge13_Node000001_Node000020" title=" " alt="" coords="71,276,108,329,134,359,166,385,181,394,179,399,162,390,131,363,103,332,67,279"/>
+<area shape="rect" id="Node000028" href="$rinex_8cpp.html#a7f83de913c4e69ead61fcfcefddd6eb8" title="Decode System Time Offset (STO) message." alt="" coords="194,449,285,475"/>
+<area shape="poly" id="edge14_Node000001_Node000028" title=" " alt="" coords="69,277,81,308,101,351,129,396,166,435,183,445,180,450,162,439,125,399,96,354,76,311,64,278"/>
+<area shape="rect" id="Node000029" href="$rinex_8cpp.html#a675fb8dcd8c4dc15418fa7cfcb980093" title="Decode Earth Orientation Parameters (EOP) message." alt="" coords="193,499,286,524"/>
+<area shape="poly" id="edge15_Node000001_Node000029" title=" " alt="" coords="67,277,76,317,95,373,124,432,143,460,166,484,182,495,179,499,162,488,139,463,119,435,90,375,71,319,62,278"/>
+<area shape="rect" id="Node000030" href="$rinex_8cpp.html#ae14c4ab1a5d0d4373fb2cd1fc24f3943" title="Decode ionospheric parameters (ION) message." alt="" coords="195,548,284,573"/>
+<area shape="poly" id="edge16_Node000001_Node000030" title=" " alt="" coords="65,277,71,328,87,400,100,439,117,478,139,514,166,545,183,557,180,562,162,549,135,517,113,480,95,441,82,401,66,329,60,278"/>
+<area shape="poly" id="edge17_Node000001_Node000030" title=" " alt="" coords="66,277,74,323,90,388,120,459,141,492,166,521,183,533,203,541,201,546,181,538,162,525,136,495,115,462,85,390,69,324,61,278"/>
+</map>

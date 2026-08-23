@@ -1,0 +1,7 @@
+<map id="mongoGroupSortBias" name="mongoGroupSortBias">
+<area shape="rect" id="Node000001" href="$mongoRead_8cpp.html#a5101d87f3967908ded4dbd7040662937" title="Group and sort biases in Mongo DB to avoid unnecessary requests." alt="" coords="220,31,380,56"/>
+<area shape="rect" id="Node000002" href="$mongoRead_8cpp.html#a7d4ac4dfd0b159e975bff9599afbb147" title="Read code biases from Mongo DB." alt="" coords="8,5,169,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,35,169,30,170,25,207,29"/>
+<area shape="rect" id="Node000006" href="$mongoRead_8cpp.html#a1d89a7a6cae3e135ebc59b318cff9736" title="Read phase biases from Mongo DB." alt="" coords="5,55,172,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="207,57,172,61,172,55,206,51"/>
+</map>

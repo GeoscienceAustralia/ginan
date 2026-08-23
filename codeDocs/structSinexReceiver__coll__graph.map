@@ -1,0 +1,9 @@
+<map id="SinexReceiver" name="SinexReceiver">
+<area shape="rect" id="Node000001" href="$structSinexReceiver.html" title=" " alt="" coords="36,503,164,599"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,77,287"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="43,287,48,375,55,427,67,478,69,487,64,488,61,479,50,428,43,376,38,287"/>
+<area shape="rect" id="Node000003" href="$structUYds.html" title=" " alt="" coords="101,131,264,367"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,368,133,479,130,488,125,486,128,478,158,366"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,5,263,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="185,95,185,131,180,131,180,95"/>
+</map>

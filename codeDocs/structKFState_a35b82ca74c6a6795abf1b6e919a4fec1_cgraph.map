@@ -1,0 +1,9 @@
+<map id="KFState::manualStateTransition" name="KFState::manualStateTransition">
+<area shape="rect" id="Node000001" href="$structKFState.html#a35b82ca74c6a6795abf1b6e919a4fec1" title="Add process noise and dynamics to filter object manually." alt="" coords="5,55,232,80"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="305,5,428,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,52,291,30,292,35,184,57"/>
+<area shape="rect" id="Node000003" href="$algebraTrace_8hpp.html#a763d8db4343fa73fa264de91d8cda786" title="Output filter state to a file for later reading." alt="" coords="309,55,425,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,65,294,65,294,70,232,70"/>
+<area shape="rect" id="Node000008" href="$structKFState.html#a1ad6c6d147c0a3d7cc8a6c4f1eca3de2" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="280,104,453,129"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="184,77,289,99,288,104,183,83"/>
+</map>

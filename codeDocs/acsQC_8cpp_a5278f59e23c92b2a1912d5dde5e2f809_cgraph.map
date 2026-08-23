@@ -1,0 +1,43 @@
+<map id="cycleslip3" name="cycleslip3">
+<area shape="rect" id="Node000001" href="$acsQC_8cpp.html#a5278f59e23c92b2a1912d5dde5e2f809" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="5,374,92,399"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="360,32,491,58"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="49,373,57,302,75,200,101,100,118,61,138,36,166,19,197,9,229,4,262,3,326,11,379,25,378,30,325,16,262,8,230,9,198,14,169,24,142,40,123,64,106,101,80,201,63,303,54,374"/>
+<area shape="rect" id="Node000003" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="140,51,312,76"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="48,373,51,322,64,248,75,207,91,167,112,128,138,94,155,80,158,85,142,97,116,131,96,169,80,209,69,249,56,323,53,373"/>
+<area shape="rect" id="Node000023" href="$common_8hpp.html#addb96936ef14076756af2416bb4a90d9" title=" " alt="" coords="397,114,453,139"/>
+<area shape="poly" id="edge3_Node000001_Node000023" title=" " alt="" coords="49,373,55,333,70,278,97,221,115,195,138,173,167,155,199,142,266,127,330,123,384,125,383,130,330,129,266,132,200,147,170,160,142,178,119,199,101,224,75,280,61,334,54,374"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="48,373,53,329,66,267,78,234,93,203,113,174,138,149,167,131,199,118,232,109,266,104,331,103,384,109,384,115,331,108,267,109,233,114,201,123,170,136,142,154,117,177,98,205,83,236,72,269,58,329,53,374"/>
+<area shape="rect" id="Node000024" href="$preprocessorFreqs_8cpp.html#a6161ac94a30291181c4f3df0cb5361c3" title="Select observed frequency bands that are usable for slip detection." alt="" coords="186,176,266,202"/>
+<area shape="poly" id="edge5_Node000001_Node000024" title=" " alt="" coords="50,373,60,340,77,297,103,250,138,211,172,194,174,199,142,215,107,254,82,299,65,342,55,374"/>
+<area shape="rect" id="Node000025" href="$acsQC_8cpp.html#aec4b0d30f3f501543794a59e89f1b212" title="Derive conservative slip&#45;detector noise from the selected observation bands." alt="" coords="185,226,267,251"/>
+<area shape="poly" id="edge6_Node000001_Node000025" title=" " alt="" coords="53,372,84,318,109,287,139,260,170,245,172,250,141,264,112,290,89,321,58,375"/>
+<area shape="rect" id="Node000026" href="$acsQC_8cpp.html#afd9ec7a4153d748793157c232bd747ef" title="Emit one structured cycle&#45;slip diagnostic trace line." alt="" coords="168,275,284,300"/>
+<area shape="poly" id="edge7_Node000001_Node000026" title=" " alt="" coords="60,371,94,340,139,309,154,302,156,307,141,314,97,344,64,375"/>
+<area shape="rect" id="Node000027" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="382,331,469,356"/>
+<area shape="poly" id="edge19_Node000001_Node000027" title=" " alt="" coords="56,399,65,428,82,466,107,504,123,520,141,533,187,555,227,563,267,556,311,533,324,522,332,511,340,485,345,456,358,422,401,365,405,368,362,425,350,457,345,486,337,513,328,526,313,538,268,561,227,568,185,560,139,538,120,524,103,508,77,469,60,430,51,400"/>
+<area shape="rect" id="Node000031" href="$acsQC_8cpp.html#ae3b62ae16be377006095445f8e3043ad" title="Melbourne&#45;Wenbunna (MW) measurement noise (m)" alt="" coords="185,324,267,350"/>
+<area shape="poly" id="edge10_Node000001_Node000031" title=" " alt="" coords="92,372,172,349,173,354,93,377"/>
+<area shape="rect" id="Node000032" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="401,436,450,462"/>
+<area shape="poly" id="edge16_Node000001_Node000032" title=" " alt="" coords="65,397,100,409,141,420,276,441,387,451,387,456,276,446,139,425,98,415,64,402"/>
+<area shape="poly" id="edge17_Node000001_Node000032" title=" " alt="" coords="93,385,141,396,277,418,388,435,387,440,276,424,139,401,92,390"/>
+<area shape="rect" id="Node000033" href="$linearCombo_8cpp.html#afdd3451cef793c3574f718f2f79d9278" title="Create combinations between specific observation values." alt="" coords="197,374,255,399"/>
+<area shape="poly" id="edge14_Node000001_Node000033" title=" " alt="" coords="92,391,183,391,183,397,92,397"/>
+<area shape="poly" id="edge15_Node000001_Node000033" title=" " alt="" coords="92,376,183,376,183,381,92,381"/>
+<area shape="rect" id="Node000034" href="$tropGPT2_8cpp.html#a9ede7017ee42a297c0ad06e997d57a29" title="coefficients multiplication" alt="" coords="201,499,251,524"/>
+<area shape="poly" id="edge18_Node000001_Node000034" title=" " alt="" coords="57,397,90,443,114,468,141,489,164,501,188,510,186,515,162,506,139,494,110,472,86,446,53,401"/>
+<area shape="poly" id="edge27_Node000001_Node000034" title=" " alt="" coords="68,397,100,431,141,465,169,480,196,491,194,496,167,485,139,470,96,435,64,401"/>
+<area shape="rect" id="Node000035" href="$acsQC_8cpp.html#a6d476900bd8d76fe15d4042c0cbc674d" title="Single channel detection–identification–adaptation (DIA) for integer cycle slips." alt="" coords="198,600,254,626"/>
+<area shape="poly" id="edge20_Node000001_Node000035" title=" " alt="" coords="55,398,64,434,80,482,106,534,122,558,142,579,162,593,186,602,184,607,160,598,138,583,118,561,101,537,75,484,59,435,50,400"/>
+<area shape="rect" id="Node000048" href="$ppp_8cpp.html#add1aa65516313588ef8e125a7d748f51" title=" " alt="" coords="387,631,463,656"/>
+<area shape="poly" id="edge25_Node000001_Node000048" title=" " alt="" coords="53,399,55,449,66,519,77,555,93,591,114,622,142,648,171,665,204,675,238,680,272,681,338,673,390,659,392,664,339,678,272,686,237,686,202,680,169,670,138,652,110,626,88,593,72,557,61,520,50,450,47,400"/>
+<area shape="poly" id="edge26_Node000001_Node000048" title=" " alt="" coords="53,399,56,444,69,507,80,540,96,572,116,600,142,624,168,639,198,650,260,658,321,655,374,647,374,653,322,661,260,663,196,655,166,644,138,628,112,604,91,574,75,542,64,508,51,445,47,399"/>
+<area shape="poly" id="edge8_Node000026_Node000002" title=" " alt="" coords="283,277,310,260,325,241,334,223,338,185,340,145,346,123,358,99,373,80,391,64,395,68,377,84,362,102,351,125,346,146,343,186,339,224,330,244,314,264,285,281"/>
+<area shape="poly" id="edge9_Node000026_Node000027" title=" " alt="" coords="273,298,313,309,369,325,368,330,311,314,271,303"/>
+<area shape="poly" id="edge11_Node000031_Node000023" title=" " alt="" coords="266,329,289,321,310,309,347,273,376,230,398,187,413,151,418,153,403,189,381,233,351,276,314,314,291,326,268,334"/>
+<area shape="poly" id="edge12_Node000031_Node000032" title=" " alt="" coords="248,347,279,357,313,371,356,397,392,425,389,429,353,401,311,375,277,362,246,352"/>
+<area shape="poly" id="edge13_Node000031_Node000032" title=" " alt="" coords="268,331,313,347,369,384,410,423,407,427,365,388,311,351,266,336"/>
+<area shape="poly" id="edge21_Node000035_Node000032" title=" " alt="" coords="253,614,282,606,311,591,343,563,371,532,411,472,416,475,375,535,346,567,313,595,284,611,255,619"/>
+<area shape="poly" id="edge22_Node000035_Node000032" title=" " alt="" coords="244,598,276,585,311,567,338,544,362,519,401,471,405,474,366,522,341,548,313,571,278,590,246,603"/>
+<area shape="poly" id="edge23_Node000035_Node000048" title=" " alt="" coords="255,621,374,641,373,646,254,626"/>
+<area shape="poly" id="edge24_Node000035_Node000048" title=" " alt="" coords="255,608,375,625,374,631,254,613"/>
+</map>

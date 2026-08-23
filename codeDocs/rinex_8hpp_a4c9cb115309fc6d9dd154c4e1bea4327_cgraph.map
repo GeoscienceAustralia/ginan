@@ -1,0 +1,11 @@
+<map id="readRnxObsB" name="readRnxObsB">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#a4c9cb115309fc6d9dd154c4e1bea4327" title="Read RINEX observation data body section." alt="" coords="5,56,116,81"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#ad993213762f9ea4ab71cc7ec882cbeda" title="Strip trailing carriage return (\r) from string if present This handles Windows&#45;encoded files (\r &#160;li..." alt="" coords="345,5,495,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,54,117,33,163,15,206,8,250,4,332,6,332,11,250,10,207,13,165,21,119,37,82,58"/>
+<area shape="rect" id="Node000003" href="$rinex_8cpp.html#a88f2d75f4dbbc4569d0fc07e474d63cc" title="Decode observation epoch header information." alt="" coords="164,31,297,56"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="116,58,150,53,151,58,117,63"/>
+<area shape="rect" id="Node000010" href="$rinex_8cpp.html#a5ae4b0742de2e5c00fb32b45fe3b47e2" title="Decode obs data (dispatcher function)" alt="" coords="168,80,293,105"/>
+<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="98,79,155,88,154,94,97,84"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="117,65,180,75,180,80,116,71"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="297,32,331,27,332,32,298,37"/>
+</map>

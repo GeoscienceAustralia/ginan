@@ -1,0 +1,19 @@
+<map id="NtripResponder::requestResponseHandler" name="NtripResponder::requestResponseHandler">
+<area shape="rect" id="Node000001" href="$structNtripResponder.html#a874ea233cd0c2b2139c68b6d9009112a" title=" " alt="" coords="5,175,248,215"/>
+<area shape="rect" id="Node000002" href="$structNetworkStatistics.html#ae5b148edcc8d178932e524e789d7baed" title=" " alt="" coords="314,5,513,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,172,208,114,250,82,295,55,310,48,312,53,297,60,253,87,212,118,149,176"/>
+<area shape="rect" id="Node000005" href="$structTcpSocket.html#ae4050e3ed6adf0dbe575ca992234f798" title=" " alt="" coords="306,70,521,95"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="176,172,232,143,295,116,372,96,373,101,297,121,234,148,178,177"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="146,172,206,134,292,94,294,99,209,138,149,177"/>
+<area shape="rect" id="Node000006" href="$structTcpSocket.html#ae3b75807774e6b4d266e3a1e0073a42e" title=" " alt="" coords="579,182,749,207"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="249,200,565,199,565,204,249,205"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="249,184,565,185,565,190,249,190"/>
+<area shape="rect" id="Node000009" href="$structNtripResponder.html#a4c1f24d4ceae186ff3031dba4cd7e065" title=" " alt="" coords="296,119,531,145"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="218,172,341,145,342,150,219,177"/>
+<area shape="rect" id="Node000010" href="$structURL.html#ab0ccd3714f16e338f40eb008b2a25cf2" title=" " alt="" coords="356,245,471,270"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="186,212,343,247,342,252,185,217"/>
+<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="249,210,369,238,368,244,247,215"/>
+<area shape="rect" id="Node000011" href="$structTcpSocket.html#a2c944f0ce56e451a2b3830c6eae0a883" title=" " alt="" coords="333,294,494,319"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="162,213,224,246,297,279,327,288,326,293,295,284,221,251,160,217"/>
+<area shape="poly" id="edge3_Node000005_Node000006" title=" " alt="" coords="497,93,532,104,591,136,639,171,635,175,588,141,530,109,496,98"/>
+</map>

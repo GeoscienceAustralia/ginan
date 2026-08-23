@@ -1,0 +1,7 @@
+<map id="ionModelCoef" name="ionModelCoef">
+<area shape="rect" id="Node000001" href="$ionoModel_8cpp.html#afe9742eca389b62fb326210be7b65c47" title=" " alt="" coords="177,31,289,56"/>
+<area shape="rect" id="Node000002" href="$ionoModel_8cpp.html#ae7821a74f98f349d4508712aeced88e1" title="Updating the ionosphere model parameters The ionosphere model should be initialized by calling &#39;confi..." alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,35,129,30,130,25,164,30"/>
+<area shape="rect" id="Node000006" href="$ppp__obs_8cpp.html#a61988497e1e1f150671891c08653b156" title=" " alt="" coords="14,55,121,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="164,56,121,62,120,57,163,51"/>
+</map>

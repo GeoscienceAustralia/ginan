@@ -1,0 +1,9 @@
+<map id="RtcmTrace::traceBrdcEph" name="RtcmTrace::traceBrdcEph">
+<area shape="rect" id="Node000001" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="288,55,472,80"/>
+<area shape="rect" id="Node000002" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="5,5,240,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="299,55,189,33,190,28,300,49"/>
+<area shape="rect" id="Node000005" href="$structRtcmEncoder.html#a3fcbeeb38259b50d2684adf2d36efb9f" title="encode GPS/GAL/BDS/QZS ephemeris messages" alt="" coords="7,55,239,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="274,70,239,70,239,65,274,65"/>
+<area shape="rect" id="Node000009" href="$structRtcmEncoder.html#af36c83c9a132fd9e303ffc337922fd51" title="encode GLO ephemeris messages" alt="" coords="7,104,239,129"/>
+<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="300,85,190,107,189,101,299,80"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="ObservationRecord" name="ObservationRecord">
+<area shape="rect" id="Node000001" href="$structObservationRecord.html" title=" " alt="" coords="168,1157,328,1373"/>
+<area shape="rect" id="Node000002" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,159,200,1095"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,1094,187,1133,189,1141,184,1143,181,1134,170,1096"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="148,13,220,89"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="216,88,232,119,242,180,248,281,255,563,255,879,253,1141,247,1141,250,879,249,563,243,281,236,180,227,121,212,90"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="156,90,140,121,133,143,127,142,135,119,151,88"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="354,429,510,825"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="406,825,377,960,337,1096,318,1143,313,1141,332,1094,372,958,400,824"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="344,5,520,96"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="435,96,435,412,429,412,429,96"/>
+</map>

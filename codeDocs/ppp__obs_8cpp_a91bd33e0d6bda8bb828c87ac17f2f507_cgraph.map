@@ -1,0 +1,17 @@
+<map id="pppSatCodeBias" name="pppSatCodeBias">
+<area shape="rect" id="Node000001" href="$ppp__obs_8cpp.html#a91bd33e0d6bda8bb828c87ac17f2f507" title=" " alt="" coords="5,79,133,105"/>
+<area shape="rect" id="Node000002" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="435,30,485,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,77,124,44,151,27,181,15,213,7,246,4,313,6,374,16,423,28,421,33,373,21,313,11,247,9,214,13,182,20,153,32,127,48,86,81"/>
+<area shape="rect" id="Node000003" href="$biases_8cpp.html#a6f49cb0a55e482e3d3defdb6ab521563" title="Search for hardware biases in phase and code." alt="" coords="231,30,301,55"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="120,77,216,52,218,57,121,82"/>
+<area shape="rect" id="Node000008" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="399,79,521,105"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="86,103,127,136,153,152,182,164,229,177,266,181,304,177,350,164,396,141,434,112,437,117,399,146,352,169,305,182,266,186,228,182,180,169,151,157,124,140,83,107"/>
+<area shape="rect" id="Node000016" href="$algebra_8cpp.html#a4a6a1ebf759ddc5d9d6d1de14269c5af" title=" " alt="" coords="183,79,349,105"/>
+<area shape="poly" id="edge5_Node000001_Node000016" title=" " alt="" coords="134,89,169,89,169,95,134,95"/>
+<area shape="rect" id="Node000018" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="181,129,351,154"/>
+<area shape="poly" id="edge8_Node000001_Node000018" title=" " alt="" coords="121,102,202,123,201,128,120,107"/>
+<area shape="poly" id="edge3_Node000003_Node000008" title=" " alt="" coords="293,53,386,79,385,85,292,58"/>
+<area shape="poly" id="edge4_Node000003_Node000008" title=" " alt="" coords="302,42,422,72,420,78,301,47"/>
+<area shape="poly" id="edge6_Node000016_Node000002" title=" " alt="" coords="349,77,421,57,422,62,350,82"/>
+<area shape="poly" id="edge7_Node000016_Node000002" title=" " alt="" coords="292,77,354,58,421,42,422,48,356,63,293,82"/>
+</map>

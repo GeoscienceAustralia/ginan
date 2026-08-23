@@ -1,0 +1,7 @@
+<map id="CustomDecoder" name="CustomDecoder">
+<area shape="rect" id="Node000001" href="$structCustomDecoder.html" title=" " alt="" coords="5,129,199,465"/>
+<area shape="rect" id="Node000003" href="$structCustomParser.html" title=" " alt="" coords="37,513,167,609"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="105,479,105,513,99,513,99,479"/>
+<area shape="rect" id="Node000002" href="$structObsLister.html" title=" " alt="" coords="43,5,161,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,95,105,129,99,129,99,95"/>
+</map>

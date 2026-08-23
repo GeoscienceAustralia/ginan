@@ -1,0 +1,31 @@
+<map id="Ginan__" name="Ginan__">
+<area shape="rect" id="Node000001" href="$Ginan_8cpp.html#a5bdf8cdda721ab07dcd6033a15eeba3c" title="Ginan is a toolkit for processing GNSS measurements to produce precise positioning products." alt="" coords="5,401,80,427"/>
+<area shape="rect" id="Node000002" href="$Ginan_8cpp.html#a59a8bad8519426f9742fa63079e4a5e9" title="Ginan&#39;s main processing executable." alt="" coords="164,203,224,228"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="52,399,173,238,177,241,56,403"/>
+<area shape="poly" id="Node000049" href="$mongo_8cpp.html#ac25d7a53dfa925957f12845afd38f5b0" title="Persistant formatted storage and inter&#45;process communication." alt="" coords="739,400,739,398,705,397,664,397,623,397,589,398,589,400,589,400,589,428,589,428,589,430,623,431,664,431,705,431,739,430,739,428,739,428,739,400,739,400"/>
+<area shape="poly" id="edge11_Node000001_Node000049" title=" " alt="" coords="80,411,576,411,576,417,80,417"/>
+<area shape="rect" id="Node000050" href="$Ginan_8cpp.html#a41e457d7b9634e671454da85de6ec311" title="Utility scripts and visualisations." alt="" coords="128,452,260,477"/>
+<area shape="poly" id="edge12_Node000001_Node000050" title=" " alt="" coords="81,424,143,445,141,450,80,429"/>
+<area shape="rect" id="Node000003" href="$Ginan_8cpp.html#ad1ea9b59f3d98f3b75d7a93ca29d4d3a" title="3rd&#45;party libraries extend functionality." alt="" coords="379,5,471,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="197,201,211,168,233,124,265,78,285,58,307,40,335,26,365,19,366,24,337,31,309,44,288,61,269,82,238,127,216,170,202,203"/>
+<area shape="rect" id="Node000014" href="$acsConfig_8cpp.html#ae92af27db5dcd388f3d7ef53d96f1f51" title="YAML based configuration." alt="" coords="386,55,463,80"/>
+<area shape="poly" id="edge3_Node000002_Node000014" title=" " alt="" coords="201,201,241,146,271,115,307,89,339,76,372,68,373,74,341,81,309,94,275,119,245,149,205,204"/>
+<area shape="rect" id="Node000018" href="$inputs_8cpp.html#a3f8b2c6b14e9c0440a9f26006979eb42" title=" " alt="" coords="371,104,478,129"/>
+<area shape="poly" id="edge4_Node000002_Node000018" title=" " alt="" coords="209,200,251,169,307,138,357,123,359,128,309,143,254,173,212,205"/>
+<area shape="rect" id="Node000029" href="$main_8cpp.html#a6569312eb882688f16b76afafe5a2cee" title="Retrieve data from streams and process together once per epoch." alt="" coords="308,153,541,179"/>
+<area shape="poly" id="edge5_Node000002_Node000029" title=" " alt="" coords="223,206,307,187,347,179,348,184,309,193,225,211"/>
+<area shape="rect" id="Node000030" href="$preprocessor_8cpp.html#ada86c114890b8228a687807983a2d0d3" title="Perform basic quality checks on observations." alt="" coords="361,203,488,228"/>
+<area shape="poly" id="edge6_Node000002_Node000030" title=" " alt="" coords="224,213,348,213,348,218,224,218"/>
+<area shape="rect" id="Node000033" href="$Ginan_8cpp.html#a7b5924de2294fef5088b63d0c98afc14" title=" " alt="" coords="347,252,502,277"/>
+<area shape="poly" id="edge7_Node000002_Node000033" title=" " alt="" coords="225,219,351,246,350,252,224,224"/>
+<area shape="rect" id="Node000035" href="$ppppp_8cpp.html#a806c4571abfde8d490598ec186768d7f" title="Primary estimation and filtering." alt="" coords="371,301,479,327"/>
+<area shape="poly" id="edge8_Node000002_Node000035" title=" " alt="" coords="213,226,255,257,309,286,358,301,356,306,307,291,252,261,210,230"/>
+<area shape="rect" id="Node000042" href="$outputs_8cpp.html#a6cd5e5db4d14fd454e8a75fea48e0a84" title=" " alt="" coords="381,351,468,376"/>
+<area shape="poly" id="edge9_Node000002_Node000042" title=" " alt="" coords="205,227,245,280,275,311,309,336,338,348,368,356,367,361,336,353,307,340,272,315,241,284,201,230"/>
+<area shape="poly" id="edge10_Node000042_Node000049" title=" " alt="" coords="469,370,576,393,575,398,468,375"/>
+<area shape="rect" id="Node000051" href="$Ginan_8cpp.html#a96a83fcedcc9bfe0a6e3eaf944e00fe6" title="Exploratory Data Analysis tool." alt="" coords="371,452,479,477"/>
+<area shape="poly" id="edge13_Node000050_Node000051" title=" " alt="" coords="260,462,357,462,357,467,260,467"/>
+<area shape="rect" id="Node000052" href="$Ginan_8cpp.html#a28411755d87a2e0d6d27fb63a286fa78" title="Download files required by processing." alt="" coords="355,501,494,527"/>
+<area shape="poly" id="edge15_Node000050_Node000052" title=" " alt="" coords="251,475,309,487,348,496,347,501,307,493,250,480"/>
+<area shape="poly" id="edge14_Node000051_Node000049" title=" " alt="" coords="479,451,575,430,576,435,480,456"/>
+</map>

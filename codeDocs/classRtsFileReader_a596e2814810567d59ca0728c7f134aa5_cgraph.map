@@ -1,0 +1,5 @@
+<map id="RtsFileReader::readNextObject" name="RtsFileReader::readNextObject">
+<area shape="rect" id="Node000001" href="$classRtsFileReader.html#a596e2814810567d59ca0728c7f134aa5" title="Read the next object from file and update FilterData." alt="" coords="5,5,228,31"/>
+<area shape="rect" id="Node000002" href="$algebraTrace_8cpp.html#aba13bba8cb3e047eeb5692cd61a32132" title="Returns the type of object that is located at the specified position in a file." alt="" coords="276,5,439,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,15,262,15,262,21,228,21"/>
+</map>

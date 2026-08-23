@@ -1,0 +1,8 @@
+<map id="lambda_search" name="lambda_search">
+<area shape="rect" id="Node000001" href="$GNSSambres_8cpp.html#aab3dd27d035c545c6c854a6906616e79" title="Lambda algorithm and its variations (ILQ, Common set, BIE)" alt="" coords="5,55,127,80"/>
+<area shape="rect" id="Node000002" href="$GNSSambres_8cpp.html#a5499472ab2c3558fb4d2af6a3d896c36" title="Lambda decorrelation (trough Z transform)" alt="" coords="175,5,307,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,52,181,32,182,37,112,57"/>
+<area shape="rect" id="Node000004" href="$lambda_8cpp.html#a7a45f828294c77c7e36d0a8cbfa229a3" title=" " alt="" coords="208,55,273,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="127,73,194,73,194,78,127,79"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="127,56,194,57,194,62,127,61"/>
+</map>

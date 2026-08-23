@@ -1,0 +1,5 @@
+<map id="getSatSnx" name="getSatSnx">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#a04a0376bd5cd6d04b58ad677105bed47" title=" " alt="" coords="176,5,264,31"/>
+<area shape="rect" id="Node000002" href="$slrCom_8cpp.html#ae1e900be3fbab7e36528208cfd3d451e" title="Center of mass to laser retroreflector array offset for GNSS satellites." alt="" coords="5,5,128,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,21,128,21,128,15,162,15"/>
+</map>

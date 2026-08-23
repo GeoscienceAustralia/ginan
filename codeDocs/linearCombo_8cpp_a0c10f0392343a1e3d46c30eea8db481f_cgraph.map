@@ -1,0 +1,17 @@
+<map id="obs2lc" name="obs2lc">
+<area shape="rect" id="Node000001" href="$linearCombo_8cpp.html#a0c10f0392343a1e3d46c30eea8db481f" title="Function to prepare some predefined linear combinations from an observation." alt="" coords="5,179,69,204"/>
+<area shape="rect" id="Node000002" href="$preprocessorFreqs_8cpp.html#a6161ac94a30291181c4f3df0cb5361c3" title="Select observed frequency bands that are usable for slip detection." alt="" coords="143,5,223,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,178,64,113,86,74,116,40,129,31,132,35,119,44,90,77,69,115,44,180"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="117,55,248,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="43,177,71,134,92,110,116,89,124,84,127,88,119,93,96,114,76,138,48,180"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="139,104,226,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="55,176,116,138,129,132,132,137,119,143,58,181"/>
+<area shape="rect" id="Node000007" href="$linearCombo_8cpp.html#ac2afb733034176947b7338b7d3cba6fb" title="Prepare a base object for linear combinations using observation data." alt="" coords="125,153,240,179"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="69,183,111,176,112,181,70,188"/>
+<area shape="rect" id="Node000008" href="$linearCombo_8cpp.html#afdd3451cef793c3574f718f2f79d9278" title="Create combinations between specific observation values." alt="" coords="153,203,212,228"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="70,201,140,214,139,219,69,207"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="70,186,140,197,139,203,69,192"/>
+<area shape="rect" id="Node000009" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="121,252,244,277"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="48,202,74,223,110,245,108,249,71,227,45,206"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="71,198,119,225,158,243,156,248,116,230,68,203"/>
+</map>

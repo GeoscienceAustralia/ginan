@@ -1,0 +1,8 @@
+<map id="IGS_SSR_group" name="IGS_SSR_group">
+<area shape="rect" id="Node000001" href="$prototypeIgsSSREncode_8cpp.html#a184a80ad4a12bcffae9429ecfc8fb64b" title=" " alt="" coords="288,47,408,72"/>
+<area shape="rect" id="Node000002" href="$prototypeIgsSSRDecode_8cpp.html#a877c5fcee94f02d79c72ae82b423a701" title=" " alt="" coords="66,5,179,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,49,179,31,180,26,275,43"/>
+<area shape="rect" id="Node000005" href="$structNtripUploader.html#aed62670c2d0d02f1bb0d930f42e68609" title=" " alt="" coords="5,79,240,119"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="275,75,236,82,235,77,274,70"/>
+<area shape="poly" id="edge3_Node000005_Node000005" title=" " alt="" coords="161,68,147,61,123,58,101,60,88,65,83,71,86,78,81,80,78,70,85,60,100,55,123,53,149,56,163,63"/>
+</map>

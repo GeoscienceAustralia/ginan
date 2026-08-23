@@ -1,0 +1,20 @@
+<map id="writeGPXEntry" name="writeGPXEntry">
+<area shape="rect" id="Node000001" href="$gpx_8cpp.html#af9cdc05b3e40dc1ffa48b4ff09d108c8" title=" " alt="" coords="5,179,121,204"/>
+<area shape="rect" id="Node000002" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="211,5,292,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,177,103,112,132,73,168,40,196,26,198,31,171,44,136,77,108,115,72,180"/>
+<area shape="rect" id="Node000003" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="183,55,320,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="73,177,111,134,138,110,168,89,181,83,183,87,171,94,141,114,115,138,77,180"/>
+<area shape="rect" id="Node000004" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="181,104,321,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="87,176,168,138,189,131,190,136,170,143,89,181"/>
+<area shape="rect" id="Node000005" href="$structVectorPos.html#a9517f77c95322d34dc896a88db4a804f" title=" " alt="" coords="194,153,309,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="121,181,179,173,180,178,122,186"/>
+<area shape="rect" id="Node000006" href="$structUtcTime.html#a2838470521274ef2f6e3fca8e2f987fb" title=" " alt="" coords="169,203,333,228"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="122,196,156,200,155,206,121,201"/>
+<area shape="rect" id="Node000007" href="$structGTime.html#a5e4c50132ae163ff3b6ec5815509da27" title=" " alt="" coords="381,228,533,253"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="87,202,125,221,170,237,220,245,271,249,367,247,367,252,271,254,219,250,169,242,122,226,84,206"/>
+<area shape="rect" id="Node000009" href="$structKFState.html#aeca6e3874ad0c94607152d244016582f" title="Returns the value and variance of a state within the kalman filter object." alt="" coords="174,328,329,353"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="73,202,114,245,171,295,204,319,201,323,168,299,110,249,70,206"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="90,202,171,271,233,317,230,321,168,275,86,206"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="334,223,368,227,368,232,333,228"/>
+<area shape="poly" id="edge9_Node000009_Node000009" title=" " alt="" coords="220,329,214,320,217,310,230,304,251,301,277,305,288,314,284,318,275,310,251,307,232,309,221,313,219,319,225,326"/>
+</map>

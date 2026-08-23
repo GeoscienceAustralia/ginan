@@ -1,0 +1,9 @@
+<map id="removeBadIonospheres" name="removeBadIonospheres">
+<area shape="rect" id="Node000001" href="$ppp_8cpp.html#a3d11452be1ce2ea58117c7fd3ac9f981" title="Remove ambiguity states from filter when they deemed old or bad This effectively reinitialises them o..." alt="" coords="5,55,181,80"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="229,5,401,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,52,243,31,245,36,152,57"/>
+<area shape="rect" id="Node000022" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="254,55,377,80"/>
+<area shape="poly" id="edge2_Node000001_Node000022" title=" " alt="" coords="181,65,240,65,240,70,181,70"/>
+<area shape="rect" id="Node000023" href="$structKFState.html#a043f0e3fd99610dfad8e650a1514c395" title="Remove a state from a kalman filter object." alt="" coords="233,104,397,129"/>
+<area shape="poly" id="edge3_Node000001_Node000023" title=" " alt="" coords="152,77,245,98,243,104,151,83"/>
+</map>

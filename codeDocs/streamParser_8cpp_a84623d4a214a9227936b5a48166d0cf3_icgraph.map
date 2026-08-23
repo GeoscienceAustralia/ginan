@@ -1,0 +1,8 @@
+<map id="streamPos" name="streamPos">
+<area shape="rect" id="Node000001" href="$streamParser_8cpp.html#a84623d4a214a9227936b5a48166d0cf3" title=" " alt="" coords="236,31,327,56"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="314,20,305,12,281,9,262,11,252,16,250,22,255,29,251,32,244,22,248,13,260,6,281,4,307,8,317,16"/>
+<area shape="rect" id="Node000002" href="$structFileState.html#a60db992e3f9fa28b65ddbce4d98950b3" title=" " alt="" coords="19,5,174,31"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="222,38,174,31,175,26,223,33"/>
+<area shape="rect" id="Node000003" href="$structSerialState.html#aed2b6acef64368bb337e5af3afcd7b86" title=" " alt="" coords="5,55,188,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="223,54,188,58,188,53,222,48"/>
+</map>

@@ -1,0 +1,20 @@
+<map id="SbfDecoder" name="SbfDecoder">
+<area shape="rect" id="Node000001" href="$structSbfDecoder.html" title=" " alt="" coords="391,1172,572,1308"/>
+<area shape="rect" id="Node000002" href="$structObsLister.html" title=" " alt="" coords="31,589,127,665"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,679,66,765,66,818,69,875,78,932,92,989,114,1044,145,1093,169,1120,197,1143,261,1181,328,1206,391,1223,390,1228,326,1211,258,1185,194,1148,165,1124,141,1096,109,1046,87,991,72,933,64,875,61,818,61,765,68,678"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,13,139,89"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,89,81,572,75,572,70,89"/>
+<area shape="rect" id="Node000005" href="$structIcdDecoder.html" title=" " alt="" coords="155,539,359,715"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="273,728,287,809,308,903,337,1000,374,1094,397,1133,424,1170,419,1173,393,1136,370,1096,332,1002,303,904,282,810,267,729"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="163,5,359,96"/>
+<area shape="poly" id="edge4_Node000005_Node000006" title=" " alt="" coords="264,96,261,522,255,522,258,96"/>
+<area shape="rect" id="Node000008" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="384,159,579,1095"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="484,1095,484,1156,479,1156,479,1095"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="519,13,591,89"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="593,88,611,119,611,135,612,405,616,615,613,826,593,1095,592,1123,584,1149,577,1160,573,1157,579,1147,587,1122,588,1095,607,825,611,615,607,405,605,135,605,121,588,90"/>
+<area shape="poly" id="edge6_Node000008_Node000009" title=" " alt="" coords="532,90,519,121,512,143,507,142,513,119,527,88"/>
+<area shape="rect" id="Node000010" href="$structObsList.html" title="List of observations for an epoch." alt="" coords="782,589,919,665"/>
+<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="857,665,859,749,850,862,839,923,822,984,798,1043,765,1096,728,1136,683,1168,636,1193,589,1212,587,1207,633,1188,680,1163,724,1132,761,1093,793,1040,817,983,834,922,845,862,853,749,851,665"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="771,5,931,96"/>
+<area shape="poly" id="edge9_Node000010_Node000011" title=" " alt="" coords="853,110,853,588,848,588,848,110"/>
+</map>

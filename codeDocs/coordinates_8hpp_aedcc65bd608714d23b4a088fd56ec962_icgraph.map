@@ -1,0 +1,9 @@
+<map id="eci2ecef" name="eci2ecef">
+<area shape="rect" id="Node000001" href="$coordinates_8cpp.html#ad5579407e3fbc4df3feb1b7d5e910075" title=" " alt="" coords="277,55,355,80"/>
+<area shape="rect" id="Node000002" href="$structFrameSwapper.html#a65d9288838e2a28aa141ff2e013d2b76" title=" " alt="" coords="5,5,229,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="263,54,229,45,181,33,182,28,230,39,265,49"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="57,55,178,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="263,70,178,70,178,65,263,65"/>
+<area shape="rect" id="Node000021" href="$debug_8cpp.html#a3a9dc241be6174dbd40a8bd071d6973d" title=" " alt="" coords="68,104,167,129"/>
+<area shape="poly" id="edge3_Node000001_Node000021" title=" " alt="" coords="265,85,230,94,167,109,166,104,229,89,263,79"/>
+</map>

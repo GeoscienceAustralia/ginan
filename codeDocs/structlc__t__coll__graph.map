@@ -1,0 +1,19 @@
+<map id="lc_t" name="lc_t">
+<area shape="rect" id="Node000001" href="$structlc__t.html" title=" " alt="" coords="376,1387,435,1463"/>
+<area shape="rect" id="Node000002" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,388,200,1324"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,1296,221,1322,252,1353,288,1377,326,1396,361,1409,360,1414,324,1400,286,1382,248,1357,217,1326,198,1299"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="64,166,136,242"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,242,103,372,98,372,97,242"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="231,658,387,1054"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="331,1054,353,1206,385,1362,388,1371,382,1372,380,1363,347,1207,325,1055"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="160,159,336,249"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="240,250,236,274,233,319,236,364,251,505,272,642,266,642,246,505,231,364,228,319,231,273,234,249"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="437,5,501,81"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="424,53,323,74,278,89,262,98,251,107,241,131,240,159,235,159,236,130,247,104,259,93,276,84,322,69,423,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="341,281,539,357"/>
+<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="467,95,447,281,441,280,461,94"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="546,273,750,364"/>
+<area shape="poly" id="edge9_Node000008_Node000006" title=" " alt="" coords="516,51,565,69,589,84,609,104,632,144,646,189,652,234,653,273,648,273,647,234,641,190,627,146,605,107,585,88,562,74,514,56"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="445,357,452,516,455,764,448,1060,438,1213,423,1363,421,1371,416,1370,417,1362,433,1212,443,1059,450,764,446,516,440,357"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="654,364,657,528,653,643,644,772,626,910,599,1052,558,1192,533,1260,504,1325,479,1362,449,1393,445,1389,475,1359,499,1323,528,1258,553,1191,593,1051,621,910,639,772,648,643,651,528,648,364"/>
+</map>

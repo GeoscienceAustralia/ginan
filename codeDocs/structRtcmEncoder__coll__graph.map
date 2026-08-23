@@ -1,0 +1,20 @@
+<map id="RtcmEncoder" name="RtcmEncoder">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html" title=" " alt="" coords="340,657,593,973"/>
+<area shape="rect" id="Node000002" href="$structRtcmTrace.html" title=" " alt="" coords="87,159,270,595"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,585,285,593,342,671,337,674,280,596,275,588"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,77,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="49,81,63,134,83,187,78,189,57,135,44,82"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="161,5,255,81"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="207,82,202,142,197,142,202,82"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="295,339,447,415"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="381,414,431,640,426,641,376,415"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="333,5,409,81"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="373,95,373,338,368,338,368,95"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="471,339,667,415"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="563,415,510,641,505,640,558,414"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="652,5,716,81"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="641,67,616,84,597,107,583,135,573,166,563,229,562,289,566,338,561,338,557,289,558,228,568,164,578,133,592,104,613,80,638,62"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="692,339,884,415"/>
+<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="727,85,738,104,762,166,777,230,786,290,790,338,784,339,780,291,772,231,757,168,734,107,722,88"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="777,416,730,519,696,579,657,635,607,691,603,687,653,632,692,576,725,517,772,414"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="RtcmDecoder::rtcmTime" name="RtcmDecoder::rtcmTime">
+<area shape="rect" id="Node000001" href="$structRtcmDecoder.html#af4dcc94b23423696a4e8025d8235a1b1" title=" " alt="" coords="5,5,187,31"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="235,5,357,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,24,221,24,221,29,187,30"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="187,6,221,7,221,12,187,12"/>
+<area shape="rect" id="Node000003" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="259,55,333,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="149,28,246,52,245,58,148,33"/>
+</map>

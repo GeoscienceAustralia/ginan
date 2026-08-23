@@ -1,0 +1,7 @@
+<map id="RtsFileReader::RtsFileReader" name="RtsFileReader::RtsFileReader">
+<area shape="rect" id="Node000001" href="$classRtsFileReader.html#a8c4a6ec9f16b71857f81300414372964" title="Constructor." alt="" coords="5,35,216,60"/>
+<area shape="rect" id="Node000002" href="$inputs_8cpp.html#ad1ec272d0843fc173337df99f76618bc" title="Check that filename is valid and the file exists." alt="" coords="303,5,417,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,32,289,24,289,29,217,38"/>
+<area shape="rect" id="Node000003" href="$classRtsFileReader.html#ab8c7e58f5bab2127359dc862deaa9f36" title="Reset data presence flags for new epoch." alt="" coords="264,55,456,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,57,251,60,250,66,216,62"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="BiasEntry" name="BiasEntry">
+<area shape="rect" id="Node000001" href="$structBiasEntry.html" title=" " alt="" coords="183,1187,313,1403"/>
+<area shape="rect" id="Node000002" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,159,200,1095"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,1094,165,1162,177,1190,172,1192,160,1164,139,1095"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="148,13,220,89"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="216,88,232,119,242,181,249,286,255,577,255,901,253,1170,247,1170,250,901,250,577,243,286,236,182,227,121,212,90"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="156,90,140,121,133,143,127,142,135,119,151,88"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="327,429,483,825"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="371,825,343,959,311,1095,289,1172,284,1170,305,1094,338,957,366,824"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="317,5,493,96"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="408,96,408,412,403,412,403,96"/>
+</map>

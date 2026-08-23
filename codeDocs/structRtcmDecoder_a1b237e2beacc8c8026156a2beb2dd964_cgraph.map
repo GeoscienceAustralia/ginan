@@ -1,0 +1,8 @@
+<map id="RtcmDecoder::decodeCustomTimestamp" name="RtcmDecoder::decodeCustomTimestamp">
+<area shape="rect" id="Node000001" href="$structRtcmDecoder.html#a1b237e2beacc8c8026156a2beb2dd964" title=" " alt="" coords="5,5,220,45"/>
+<area shape="rect" id="Node000002" href="$rtcmDecoder_8cpp.html#ad6df3fedd9f02eb01d5c9feaddbc6581" title="increasingly extract unsigned bits from byte data" alt="" coords="276,13,363,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,32,262,31,262,36,220,37"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="220,14,262,15,262,20,220,19"/>
+<area shape="rect" id="Node000004" href="$enumHelpers_8hpp.html#ac318a8058a7c509d1b135f62291446a8" title=" " alt="" coords="268,62,371,87"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,43,255,57,254,62,196,48"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="accelSPH" name="accelSPH">
+<area shape="rect" id="Node000001" href="$acceleration_8cpp.html#a47f8bbad94d274d209b01cb9bb8949ef" title="Compute the acceleration of due to a spherical harmonic field acting on the satellite." alt="" coords="5,5,88,31"/>
+<area shape="rect" id="Node000002" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="333,5,383,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,22,205,24,319,21,320,27,205,30,88,27"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="88,9,205,6,320,9,319,15,205,12,88,14"/>
+<area shape="rect" id="Node000003" href="$structLegendre.html#a5a8d9f92b728272375c620f652f7ea36" title=" " alt="" coords="136,68,285,93"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="82,28,164,60,162,65,80,33"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="240,66,320,31,322,36,242,70"/>
+</map>

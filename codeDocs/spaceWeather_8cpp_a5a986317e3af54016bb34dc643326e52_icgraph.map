@@ -1,0 +1,5 @@
+<map id="ParseSpaceWeatherData" name="ParseSpaceWeatherData">
+<area shape="rect" id="Node000001" href="$spaceWeather_8cpp.html#a5a986317e3af54016bb34dc643326e52" title="Parser of each data line." alt="" coords="205,5,387,31"/>
+<area shape="rect" id="Node000002" href="$structSpaceWeather.html#a068f9af36b8f22118c80ba9c05be4b32" title="Read Space Weather file into the data struct." alt="" coords="5,5,157,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,21,157,21,157,15,191,15"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="GeomagMainField" name="GeomagMainField">
+<area shape="rect" id="Node000001" href="$structGeomagMainField.html" title="Structure for variables related to the International Geomagnetic Reference Field 13th Generation Inte..." alt="" coords="14,5,193,141"/>
+<area shape="rect" id="Node000002" href="$structGeomagSecularVariation.html" title="Structure for secular variation (SV) inherited from GeomagMainField." alt="" coords="5,189,201,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,155,106,189,101,189,101,155"/>
+</map>

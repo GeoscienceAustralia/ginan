@@ -1,0 +1,12 @@
+<map id="IonoObs" name="IonoObs">
+<area shape="rect" id="Node000001" href="$structIonoObs.html" title=" " alt="" coords="109,817,291,1093"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="49,359,205,755"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,754,174,800,169,801,160,755"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,144,181,235"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,235,105,334,106,342,101,343,100,335,93,235"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="153,5,217,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="142,60,106,78,91,91,78,107,73,124,75,143,70,144,68,124,74,104,87,87,103,74,139,55"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="210,259,374,335"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="230,66,252,82,269,104,286,143,295,184,298,224,298,258,293,258,293,224,289,185,281,144,264,107,248,86,227,70"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="293,335,278,532,264,662,244,794,242,802,237,801,239,793,258,661,273,531,287,335"/>
+</map>

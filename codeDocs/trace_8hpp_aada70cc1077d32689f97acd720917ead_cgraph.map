@@ -1,0 +1,12 @@
+<map id="pruneTraceFileCacheIfNeeded" name="pruneTraceFileCacheIfNeeded">
+<area shape="rect" id="Node000001" href="$trace_8hpp.html#aada70cc1077d32689f97acd720917ead" title=" " alt="" coords="5,55,220,80"/>
+<area shape="rect" id="Node000002" href="$trace_8hpp.html#a32d8fd71007a1eb1b0ea934e8d8d994e" title=" " alt="" coords="283,5,465,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,52,292,31,293,36,181,57"/>
+<area shape="rect" id="Node000003" href="$trace_8hpp.html#a8b2aacc57f2dbdee326f100ce43bba15" title=" " alt="" coords="268,55,480,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,74,254,74,254,79,220,79"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="220,56,254,56,254,61,220,61"/>
+<area shape="rect" id="Node000004" href="$trace_8hpp.html#a8b3e5ed425f3a2913060dce63c94d8ac" title=" " alt="" coords="285,104,463,129"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="181,77,293,99,292,104,180,83"/>
+<area shape="rect" id="Node000005" href="$trace_8hpp.html#a1c84dedd8b787d3c42eb80baabe2b7d0" title=" " alt="" coords="296,153,452,179"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="138,78,197,108,269,138,298,147,297,152,267,143,194,112,136,82"/>
+</map>

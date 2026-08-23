@@ -1,0 +1,11 @@
+<map id="OrbexEntry" name="OrbexEntry">
+<area shape="rect" id="Node000001" href="$structOrbexEntry.html" title="ORBEX entry to write out." alt="" coords="186,661,297,797"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="15,159,171,555"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,554,201,636,205,645,200,647,196,638,163,556"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,181,96"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,96,96,142,91,142,91,96"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="195,319,287,395"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="244,395,244,645,239,645,239,395"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="311,319,427,395"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="367,396,347,506,329,573,305,638,300,648,296,646,300,636,324,572,342,505,362,395"/>
+</map>

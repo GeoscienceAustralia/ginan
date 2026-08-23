@@ -1,0 +1,17 @@
+<map id="satClkBroadcast" name="satClkBroadcast">
+<area shape="rect" id="Node000001" href="$ephBroadcast_8cpp.html#aa27c6095afa84cff4efedb4ece6671aa" title=" " alt="" coords="5,129,133,155"/>
+<area shape="rect" id="Node000002" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="222,5,271,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,127,121,85,149,61,180,40,208,27,210,31,183,44,153,65,125,89,84,131"/>
+<area shape="rect" id="Node000003" href="$ephemeris_8hpp.html#ade0ece991f3f67278f037010bef28718" title=" " alt="" coords="214,55,279,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="96,127,180,89,200,81,202,86,182,94,98,132"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="203,104,290,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,139,195,129,196,135,134,144"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="106,127,189,114,190,119,107,132"/>
+<area shape="rect" id="Node000007" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="181,153,312,179"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="109,152,168,162,167,167,108,157"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="134,139,195,148,194,153,133,145"/>
+<area shape="rect" id="Node000008" href="$ephBroadcast_8cpp.html#a775758c448a2af0905843385abe0c4fe" title="broadcast ephemeris to satellite clock bias compute satellite clock bias with broadcast ephemeris (gp..." alt="" coords="209,227,284,252"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="86,153,137,184,198,218,196,223,134,189,83,157"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="108,152,222,217,219,221,106,157"/>
+<area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="217,228,211,218,214,209,227,202,247,200,271,204,281,212,278,216,269,208,247,205,228,207,218,212,216,218,222,225"/>
+</map>

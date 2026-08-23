@@ -1,0 +1,11 @@
+<map id="ION" name="ION">
+<area shape="rect" id="Node000001" href="$structION.html" title="ionosphere message" alt="" coords="145,1157,239,1713"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="15,429,171,825"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,825,159,1141,153,1141,115,825"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,181,96"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,96,96,412,91,412,91,96"/>
+<area shape="rect" id="Node000005" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="196,159,391,1095"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="237,1095,231,1141,226,1141,232,1095"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="257,13,329,89"/>
+<area shape="poly" id="edge4_Node000005_Node000006" title=" " alt="" coords="296,89,296,142,291,142,291,89"/>
+</map>

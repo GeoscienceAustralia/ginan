@@ -1,0 +1,24 @@
+<map id="lsqqc" name="lsqqc">
+<area shape="rect" id="Node000001" href="$algebra__old_8cpp.html#acc2b857563b3c233a09fe2427965f7b2" title=" " alt="" coords="5,102,61,128"/>
+<area shape="rect" id="Node000002" href="$algebra__old_8cpp.html#a1d2c1ecab5b17dcc773fcd83c0b87b7e" title=" " alt="" coords="238,30,286,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="44,101,69,67,87,50,108,37,138,28,169,27,225,36,224,41,169,32,139,33,110,42,90,54,73,71,48,104"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="36,101,45,80,61,55,82,31,108,13,142,4,176,4,209,11,236,22,234,27,207,17,176,10,142,9,110,18,85,35,65,58,50,82,40,103"/>
+<area shape="rect" id="Node000003" href="$algebra__old_8cpp.html#a446a2803e5eaeb996733dd8d73966f00" title=" " alt="" coords="115,40,172,65"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="55,100,107,70,110,74,58,105"/>
+<area shape="rect" id="Node000004" href="$algebra__old_8cpp.html#adc33998911a24938042604ba1f8e6196" title=" " alt="" coords="225,132,299,157"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="62,122,133,134,212,143,211,148,133,139,61,127"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="62,110,133,116,212,128,211,133,133,122,61,115"/>
+<area shape="rect" id="Node000005" href="$algebra__old_8cpp.html#a50d2d9511da542d472f3390449fedf38" title=" " alt="" coords="227,209,297,234"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="53,126,127,165,215,205,212,209,125,170,50,130"/>
+<area shape="poly" id="edge15_Node000001_Node000005" title=" " alt="" coords="63,119,148,157,234,200,231,205,145,161,60,124"/>
+<area shape="rect" id="Node000006" href="$algebra__old_8cpp.html#a4035d20f11b4bd8085e6b0f84f8c0764" title=" " alt="" coords="109,240,177,265"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="45,127,73,169,111,219,120,228,116,231,107,222,69,172,40,129"/>
+<area shape="rect" id="Node000010" href="$algebra__old_8cpp.html#aeeb14c76251388cfcbcbcf3177990976" title=" " alt="" coords="115,289,171,314"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="41,127,65,195,85,237,111,276,113,278,109,282,107,279,81,240,60,197,36,129"/>
+<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="150,238,245,67,249,69,154,241"/>
+<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="177,241,213,232,214,237,178,246"/>
+<area shape="poly" id="edge11_Node000010_Node000002" title=" " alt="" coords="164,287,175,276,197,236,205,201,210,164,223,118,246,67,251,69,228,120,215,165,210,202,202,238,179,279,168,291"/>
+<area shape="poly" id="edge13_Node000010_Node000004" title=" " alt="" coords="170,293,175,288,191,268,201,250,223,208,248,168,253,171,228,211,206,253,196,271,179,292,174,297"/>
+<area shape="poly" id="edge14_Node000010_Node000004" title=" " alt="" coords="150,287,175,264,191,244,201,226,223,184,234,167,239,170,228,187,206,229,196,247,179,268,154,291"/>
+<area shape="poly" id="edge12_Node000010_Node000005" title=" " alt="" coords="162,287,230,240,233,244,165,291"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="circleAreaVisible" name="circleAreaVisible">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#af96be4b77aba19d9e97bb88050fb5a5e" title="Calculates proportion of circle 1 visible with overlapping circle 2." alt="" coords="5,5,136,31"/>
+<area shape="rect" id="Node000002" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="184,5,233,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,24,170,23,170,29,136,30"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="136,6,170,7,170,13,136,12"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="spitQueuedToFile" name="spitQueuedToFile">
+<area shape="rect" id="Node000001" href="$algebraTrace_8cpp.html#ab985d37dc7eba5832e0b6867d2e45dd6" title=" " alt="" coords="5,5,139,31"/>
+<area shape="rect" id="Node000002" href="$algebraTrace_8hpp.html#a763d8db4343fa73fa264de91d8cda786" title="Output filter state to a file for later reading." alt="" coords="187,5,303,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,24,173,24,173,30,139,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="139,7,173,6,173,12,139,12"/>
+</map>

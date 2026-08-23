@@ -1,0 +1,13 @@
+<map id="KFState::leastSquareInitStates" name="KFState::leastSquareInitStates">
+<area shape="rect" id="Node000001" href="$structKFState.html#ad6f79b84df193058644f0f2b3fd97ae9" title="Least squares estimator for new kalman filter states." alt="" coords="5,97,184,137"/>
+<area shape="rect" id="Node000002" href="$structKFState.html#ab154ef7e4249e8edc571da089534ab1e" title="Least squares estimator." alt="" coords="271,5,428,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,94,174,66,231,40,256,32,258,37,233,44,176,71,128,99"/>
+<area shape="rect" id="Node000003" href="$algebra_8cpp.html#ab820db7db6cd6b33fa5955f45ffc09d2" title=" " alt="" coords="286,55,413,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,97,272,80,273,85,185,102"/>
+<area shape="rect" id="Node000005" href="$structKFState.html#a70ebd97c9e2957e0812c404fe815dc8f" title="Perform chi squared quality control." alt="" coords="290,104,409,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="184,114,276,114,276,119,184,119"/>
+<area shape="rect" id="Node000006" href="$structKFState.html#aa2c8a7fcbf5da5c456976b7aa65c111f" title="Compare variances of measurements and estimated parameters to detect unreasonable values Ref: to be a..." alt="" coords="250,154,449,194"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="185,134,247,148,246,154,184,139"/>
+<area shape="rect" id="Node000007" href="$structKFState.html#ac2465be217cac8f8a9785ef24b936195" title=" " alt="" coords="232,219,467,244"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="122,135,172,170,233,204,259,213,257,218,231,208,169,175,119,139"/>
+</map>

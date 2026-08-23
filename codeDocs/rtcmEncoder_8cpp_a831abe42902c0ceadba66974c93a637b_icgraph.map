@@ -1,0 +1,43 @@
+<map id="setbitsInc" name="setbitsInc">
+<area shape="rect" id="Node000001" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="285,475,371,500"/>
+<area shape="rect" id="Node000002" href="$prototypeCmpSSREncode_8cpp.html#a47bc43c7fe02f1df2f66198afbbf509c" title=" " alt="" coords="45,5,198,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="322,461,315,368,299,242,287,179,273,121,256,75,235,44,218,31,197,23,199,18,220,27,239,40,260,73,278,120,292,178,304,241,320,367,328,461"/>
+<area shape="rect" id="Node000006" href="$prototypeCmpSSREncode_8cpp.html#a46c49d828f858552d52241146c8376d0" title="Encode hybrid code and phase bias message warning 1: Currently only global mode supported." alt="" coords="48,55,195,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="322,462,313,378,295,267,270,161,254,120,235,93,216,80,194,72,196,67,219,75,239,89,258,118,275,159,301,266,318,377,327,461"/>
+<area shape="rect" id="Node000007" href="$prototypeCmpSSREncode_8cpp.html#acff15c3e501f1e5003eb79f7b6747629" title=" " alt="" coords="46,104,197,129"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="321,461,310,387,292,291,267,200,252,166,235,143,217,130,196,122,198,117,220,125,239,139,256,163,272,198,297,289,315,386,326,460"/>
+<area shape="rect" id="Node000008" href="$prototypeCmpSSREncode_8cpp.html#a5d34004ef9d3ccd69db0d97fadbbbcd1" title="Encode hybrid orbit and clock message warning: Only global mode supported warning: Requires both orbi..." alt="" coords="44,153,199,179"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="324,461,321,404,309,331,298,293,282,256,262,222,236,192,218,180,198,173,200,168,221,176,239,188,266,219,287,254,303,291,314,330,327,404,330,460"/>
+<area shape="rect" id="Node000009" href="$prototypeCmpSSREncode_8cpp.html#a98b11d246882d1d0c3ae9a55895c3475" title=" " alt="" coords="44,203,199,228"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="323,461,316,413,302,353,276,292,258,265,236,241,218,230,198,222,200,217,220,225,239,237,262,262,281,290,307,351,322,412,328,460"/>
+<area shape="rect" id="Node000010" href="$prototypeCmpSSREncode_8cpp.html#a41aeaca81b4d43a2e0ab3c47603f5c5d" title=" " alt="" coords="45,252,198,277"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="320,461,311,423,295,376,270,330,254,309,236,291,218,280,197,272,199,267,220,275,239,287,258,305,275,327,300,374,316,421,325,460"/>
+<area shape="rect" id="Node000011" href="$prototypeCmpSSREncode_8cpp.html#a1468d4d2dbe32d84739b075117e28a08" title=" " alt="" coords="46,301,197,327"/>
+<area shape="poly" id="edge7_Node000001_Node000011" title=" " alt="" coords="316,463,287,400,265,367,236,340,217,330,196,323,198,318,219,325,239,336,269,364,292,397,321,461"/>
+<area shape="rect" id="Node000012" href="$prototypeCmpSSREncode_8cpp.html#a9cf0998d7d65a64e05e6f918213f78fa" title=" " alt="" coords="46,351,197,376"/>
+<area shape="poly" id="edge8_Node000001_Node000012" title=" " alt="" coords="310,465,279,425,259,406,236,390,196,374,198,369,239,385,262,402,283,422,314,461"/>
+<area shape="rect" id="Node000013" href="$structRtcmEncoder.html#a3fcbeeb38259b50d2684adf2d36efb9f" title="encode GPS/GAL/BDS/QZS ephemeris messages" alt="" coords="5,400,237,425"/>
+<area shape="poly" id="edge9_Node000001_Node000013" title=" " alt="" coords="295,470,236,439,199,428,201,423,238,434,298,465"/>
+<area shape="rect" id="Node000014" href="$prototypeCmpSSREncode_8cpp.html#a3db0d1bf31ba7b7b0ba6727ef58ca482" title=" " alt="" coords="61,449,182,475"/>
+<area shape="poly" id="edge10_Node000001_Node000014" title=" " alt="" coords="271,483,182,472,183,467,272,478"/>
+<area shape="rect" id="Node000016" href="$prototypeIgsSSREncode_8cpp.html#aa4596898d24872dd68632fa953d5108c" title=" " alt="" coords="58,499,185,524"/>
+<area shape="poly" id="edge11_Node000001_Node000016" title=" " alt="" coords="272,496,185,507,185,501,271,491"/>
+<area shape="rect" id="Node000017" href="$prototypeIgsSSREncode_8cpp.html#aed2001951dab0df50a3e8890f6303240" title=" " alt="" coords="60,548,183,573"/>
+<area shape="poly" id="edge12_Node000001_Node000017" title=" " alt="" coords="296,509,238,538,184,553,182,548,236,533,294,505"/>
+<area shape="rect" id="Node000018" href="$prototypeIgsSSREncode_8cpp.html#a0b52ed993dfc6fdce07c1047d9f7d228" title=" " alt="" coords="57,597,185,623"/>
+<area shape="poly" id="edge13_Node000001_Node000018" title=" " alt="" coords="313,513,282,551,262,571,239,587,213,598,187,606,185,601,211,593,236,582,258,567,278,548,309,510"/>
+<area shape="rect" id="Node000019" href="$prototypeIgsSSREncode_8cpp.html#af3fc3638b16db1676d10fa1a4179860a" title=" " alt="" coords="58,647,185,672"/>
+<area shape="poly" id="edge14_Node000001_Node000019" title=" " alt="" coords="321,514,291,576,268,609,239,636,213,650,185,657,184,652,211,645,236,632,264,605,287,573,316,512"/>
+<area shape="rect" id="Node000020" href="$prototypeIgsSSREncode_8cpp.html#a72d4233d3708a4ab1551b1139e6afb27" title=" " alt="" coords="58,696,185,721"/>
+<area shape="poly" id="edge15_Node000001_Node000020" title=" " alt="" coords="325,514,316,552,299,599,275,646,258,667,239,685,214,700,186,708,184,703,212,695,236,681,254,663,270,643,295,597,311,551,320,513"/>
+<area shape="rect" id="Node000021" href="$prototypeIgsSSREncode_8cpp.html#a5860e21c82b09ac4b4f9051c19ad626d" title=" " alt="" coords="58,745,185,771"/>
+<area shape="poly" id="edge16_Node000001_Node000021" title=" " alt="" coords="328,514,321,562,307,622,281,683,262,710,239,735,214,750,186,758,184,753,212,745,236,731,258,707,276,680,302,620,316,561,322,514"/>
+<area shape="rect" id="Node000022" href="$prototypeIgsSSREncode_8cpp.html#a41fe2e1f1e8daaa5fb8158f1b7196681" title=" " alt="" coords="59,795,183,820"/>
+<area shape="poly" id="edge17_Node000001_Node000022" title=" " alt="" coords="330,514,326,570,314,643,302,681,287,719,266,754,239,784,213,800,184,808,183,803,211,795,236,780,261,750,282,716,297,680,309,642,321,570,324,514"/>
+<area shape="rect" id="Node000023" href="$structRtcmEncoder.html#a18fe202e400a35f110954b78f93647ef" title="encode code bias messages" alt="" coords="13,844,229,869"/>
+<area shape="poly" id="edge18_Node000001_Node000023" title=" " alt="" coords="326,514,315,588,297,684,272,774,256,809,239,833,221,846,218,842,235,829,252,807,266,772,292,682,310,587,321,513"/>
+<area shape="rect" id="Node000024" href="$structRtcmEncoder.html#a9a9812f3f6389d6d39eb59a0faff70b7" title="encode orbit/clock messages" alt="" coords="8,893,235,919"/>
+<area shape="poly" id="edge19_Node000001_Node000024" title=" " alt="" coords="327,514,318,598,300,708,275,813,258,854,239,883,222,895,219,891,235,879,254,852,269,812,295,707,312,597,322,513"/>
+<area shape="rect" id="Node000025" href="$structRtcmEncoder.html#adaea4ff6e3c24a71716dd84ee0999fef" title="encode phase bias messages" alt="" coords="10,943,233,968"/>
+<area shape="poly" id="edge20_Node000001_Node000025" title=" " alt="" coords="328,514,320,607,304,732,292,795,278,852,260,900,239,932,222,945,219,940,235,928,255,897,273,851,287,794,298,731,314,606,322,513"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="SisnetStream" name="SisnetStream">
+<area shape="rect" id="Node000001" href="$structSisnetStream.html" title=" " alt="" coords="441,1416,663,1592"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html" title=" " alt="" coords="421,531,683,1367"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="555,1380,555,1416,549,1416,549,1380"/>
+<area shape="rect" id="Node000003" href="$structNetworkStatistics.html" title=" " alt="" coords="5,232,243,468"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="218,477,423,763,418,766,214,481"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="268,5,340,81"/>
+<area shape="poly" id="edge7_Node000002_Node000004" title=" " alt="" coords="316,81,320,105,330,207,330,288,333,367,339,413,351,467,380,566,417,664,412,666,375,568,345,469,334,414,328,368,324,288,324,208,315,106,310,82"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="268,52,161,72,111,88,93,97,81,107,67,131,61,158,61,187,65,216,60,216,55,187,56,158,62,129,77,104,90,92,109,83,160,66,267,46"/>
+<area shape="rect" id="Node000007" href="$structSerialStream.html" title=" " alt="" coords="473,262,631,438"/>
+<area shape="poly" id="edge5_Node000007_Node000004" title=" " alt="" coords="314,80,338,145,357,178,382,206,400,216,417,219,435,221,456,230,479,248,476,252,453,234,434,226,416,224,398,221,378,210,353,181,333,147,309,82"/>
+<area shape="rect" id="Node000011" href="$structURL.html" title=" " alt="" coords="655,292,774,408"/>
+<area shape="poly" id="edge10_Node000011_Node000004" title=" " alt="" coords="342,70,439,137,500,173,564,206,586,212,605,215,623,218,644,230,666,251,684,276,680,279,662,255,641,234,622,223,604,220,585,218,562,210,498,178,437,141,339,74"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="555,452,555,530,549,530,549,452"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="657,5,791,81"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="780,80,797,104,809,159,814,248,808,357,801,413,789,469,771,532,748,595,693,715,689,712,743,593,766,530,784,467,795,412,803,356,808,248,804,159,792,106,776,83"/>
+<area shape="poly" id="edge6_Node000007_Node000009" title=" " alt="" coords="706,83,612,249,607,246,701,80"/>
+<area shape="poly" id="edge9_Node000002_Node000011" title=" " alt="" coords="702,409,673,515,668,514,696,408"/>
+</map>

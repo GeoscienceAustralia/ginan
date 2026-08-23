@@ -1,0 +1,11 @@
+<map id="parseDataHandling" name="parseDataHandling">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#aafaf4751ee5f829fd428da86b8371e2a" title=" " alt="" coords="5,55,152,80"/>
+<area shape="rect" id="Node000002" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="225,5,274,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,52,211,26,212,31,124,57"/>
+<area shape="rect" id="Node000003" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="211,55,287,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,74,197,73,197,78,152,79"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="152,56,197,56,197,62,152,61"/>
+<area shape="rect" id="Node000004" href="$sinex_8cpp.html#a5ed46782b3a26cc6d0a1a30e650be386" title=" " alt="" coords="200,104,299,129"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="103,78,187,105,186,110,101,83"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="153,77,214,97,213,102,151,82"/>
+</map>

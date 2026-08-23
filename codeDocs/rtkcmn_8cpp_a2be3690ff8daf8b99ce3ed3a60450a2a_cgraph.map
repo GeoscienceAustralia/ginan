@@ -1,0 +1,7 @@
+<map id="updateLamMap" name="updateLamMap">
+<area shape="rect" id="Node000001" href="$rtkcmn_8cpp.html#a2be3690ff8daf8b99ce3ed3a60450a2a" title=" " alt="" coords="5,31,128,56"/>
+<area shape="rect" id="Node000002" href="$ephBroadcast_8cpp.html#aa9d94c33df0fa25cd32e6e066c3fb977" title=" " alt="" coords="185,5,314,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,32,171,26,171,31,129,37"/>
+<area shape="rect" id="Node000010" href="$sinex_8cpp.html#ab9f88dcb9830a37016df7f40fcc6a469" title="Get GLONASS frequency channel from SINEX data Returns frequency channel number for a GLONASS satellit..." alt="" coords="176,55,323,80"/>
+<area shape="poly" id="edge2_Node000001_Node000010" title=" " alt="" coords="129,49,163,53,162,59,128,54"/>
+</map>

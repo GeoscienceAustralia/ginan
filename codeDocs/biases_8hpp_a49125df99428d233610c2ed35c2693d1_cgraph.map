@@ -1,0 +1,11 @@
+<map id="updateRefTime" name="updateRefTime">
+<area shape="rect" id="Node000001" href="$biases_8cpp.html#a49125df99428d233610c2ed35c2693d1" title=" " alt="" coords="5,55,128,80"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="176,5,299,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,56,201,33,202,38,129,61"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="89,52,162,28,163,33,91,57"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="194,55,281,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="128,65,180,65,180,70,128,70"/>
+<area shape="rect" id="Node000006" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="176,104,299,129"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="91,78,163,101,162,107,89,83"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="129,74,202,96,201,102,127,79"/>
+</map>

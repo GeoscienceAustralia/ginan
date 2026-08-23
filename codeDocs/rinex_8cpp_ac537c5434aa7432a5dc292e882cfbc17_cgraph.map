@@ -1,0 +1,7 @@
+<map id="decodeSeph" name="decodeSeph">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#ac537c5434aa7432a5dc292e882cfbc17" title="Decode SBAS/geostationary satellite ephemeris." alt="" coords="5,31,107,56"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="155,5,241,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,32,140,26,141,31,107,37"/>
+<area shape="rect" id="Node000005" href="$common_8cpp.html#a96d3e41867e71358683d0395b85972af" title="URA value (m) to URA index." alt="" coords="157,55,239,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="107,49,144,56,143,61,106,54"/>
+</map>

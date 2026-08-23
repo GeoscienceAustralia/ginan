@@ -1,0 +1,5 @@
+<map id="IERS2010::poleOceanTide" name="IERS2010::poleOceanTide">
+<area shape="rect" id="Node000001" href="$structIERS2010.html#af377ca32afffb6da4e3eb30e1219263b" title=" " alt="" coords="5,5,193,31"/>
+<area shape="rect" id="Node000002" href="$structIERS2010.html#a71b572f063e98c859169da7d9f63802f" title=" " alt="" coords="241,5,408,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,15,228,15,228,21,194,21"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="getSysOutputFilenames" name="getSysOutputFilenames">
+<area shape="rect" id="Node000001" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="177,129,355,155"/>
+<area shape="rect" id="Node000002" href="$outputs_8cpp.html#a116830f5a44aad1710dc47ecfa670cab" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,122,189,84,128,44,104,33,106,28,131,40,192,79,241,118"/>
+<area shape="rect" id="Node000005" href="$rinexClkWrite_8cpp.html#a6aa08011df8bb87fbe3541a849eb77ff" title=" " alt="" coords="14,55,121,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="217,127,101,82,103,78,219,122"/>
+<area shape="rect" id="Node000007" href="$orbexWrite_8cpp.html#a10b5962602c3027538917da03bdaaea3" title="Output ORBEX files." alt="" coords="16,104,119,129"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="163,132,118,126,119,120,164,126"/>
+<area shape="rect" id="Node000008" href="$sp3Write_8cpp.html#aa72d59a1f7976cee159aedfc7b54c489" title=" " alt="" coords="23,153,111,179"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="164,157,112,163,111,158,163,152"/>
+<area shape="rect" id="Node000009" href="$rinexNavWrite_8cpp.html#afee81a93c5a36815f71f855f32c34608" title=" " alt="" coords="8,203,127,228"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="219,162,104,205,102,200,217,157"/>
+<area shape="rect" id="Node000010" href="$rinexObsWrite_8cpp.html#a19163e27ecb45540bb15a864d9c0baab" title=" " alt="" coords="9,252,126,277"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="240,166,191,203,131,242,104,254,102,249,128,237,188,199,237,161"/>
+</map>

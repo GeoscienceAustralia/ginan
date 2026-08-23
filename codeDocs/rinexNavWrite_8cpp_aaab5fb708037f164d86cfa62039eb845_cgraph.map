@@ -1,0 +1,13 @@
+<map id="rinexNavHeader" name="rinexNavHeader">
+<area shape="rect" id="Node000001" href="$rinexNavWrite_8cpp.html#aaab5fb708037f164d86cfa62039eb845" title=" " alt="" coords="5,104,133,129"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="215,5,290,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,102,127,71,180,40,201,31,203,35,183,44,130,76,88,106"/>
+<area shape="rect" id="Node000003" href="$structUtcTime.html#a34983414bfc1e8d103229b9aa2b03827" title=" " alt="" coords="181,55,324,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="116,101,191,81,192,86,118,107"/>
+<area shape="rect" id="Node000005" href="$rinexObsWrite_8cpp.html#a7392cc91a14f17ab70dd83c89365d9b2" title="Get human&#45;readable description of GNSS system." alt="" coords="197,104,308,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="133,123,184,123,184,128,133,128"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="133,105,184,105,184,111,133,111"/>
+<area shape="rect" id="Node000006" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="191,153,314,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="95,127,179,152,177,157,94,132"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="134,123,216,146,214,151,133,128"/>
+</map>

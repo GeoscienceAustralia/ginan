@@ -1,0 +1,6 @@
+<map id="RtcmEncoder::encodeSsrUra" name="RtcmEncoder::encodeSsrUra">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#a4fe1b66c1ca3051c79202253abf15099" title="encode URA messages" alt="" coords="288,37,495,62"/>
+<area shape="rect" id="Node000002" href="$structNtripUploader.html#aed62670c2d0d02f1bb0d930f42e68609" title=" " alt="" coords="5,29,240,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="275,52,240,52,240,47,275,47"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="168,18,152,11,123,8,97,10,81,15,75,21,78,28,73,30,70,20,78,10,96,5,123,3,154,5,170,13"/>
+</map>

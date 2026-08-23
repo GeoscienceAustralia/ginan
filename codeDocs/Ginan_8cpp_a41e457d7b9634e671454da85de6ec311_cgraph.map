@@ -1,0 +1,9 @@
+<map id="Python_Scripts__" name="Python_Scripts__">
+<area shape="rect" id="Node000001" href="$Ginan_8cpp.html#a41e457d7b9634e671454da85de6ec311" title="Utility scripts and visualisations." alt="" coords="5,35,137,61"/>
+<area shape="rect" id="Node000002" href="$Ginan_8cpp.html#a96a83fcedcc9bfe0a6e3eaf944e00fe6" title="Exploratory Data Analysis tool." alt="" coords="201,10,309,35"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,36,187,29,187,35,138,42"/>
+<area shape="rect" id="Node000004" href="$Ginan_8cpp.html#a28411755d87a2e0d6d27fb63a286fa78" title="Download files required by processing." alt="" coords="185,59,324,85"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="138,54,172,59,171,64,137,59"/>
+<area shape="poly" id="Node000003" href="$mongo_8cpp.html#ac25d7a53dfa925957f12845afd38f5b0" title="Persistant formatted storage and inter&#45;process communication." alt="" coords="521,9,521,7,488,5,447,5,405,5,372,7,372,9,372,9,372,37,372,37,372,39,405,40,447,40,488,40,521,39,521,37,521,37,521,9,521,9"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="309,20,358,20,358,25,309,25"/>
+</map>

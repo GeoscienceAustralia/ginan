@@ -1,0 +1,11 @@
+<map id="configIonModel" name="configIonModel">
+<area shape="rect" id="Node000001" href="$ionoModel_8cpp.html#ad4f7bf2fa0a4a8e87b6f7edf86fc119b" title=" " alt="" coords="5,80,127,105"/>
+<area shape="rect" id="Node000002" href="$ionoSpherical_8cpp.html#a4a53e2c2efbd68f38326d2203c00cb72" title="configures the spherical harmonics model." alt="" coords="175,5,342,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,77,174,40,195,32,197,37,176,44,93,82"/>
+<area shape="rect" id="Node000007" href="$ionoSphericalCaps_8cpp.html#afee256473acb6fee42628c1622dca224" title="Initializes Spherical caps Ionosphere model The following configursation parameters are used." alt="" coords="175,55,343,80"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="127,82,161,77,162,83,127,87"/>
+<area shape="rect" id="Node000011" href="$ionoBSplines_8cpp.html#add645190e69c7febf9417e4653eac8b5" title="Initializes grid map model The following configursation parameters are used." alt="" coords="178,104,339,129"/>
+<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="127,98,165,102,164,108,127,103"/>
+<area shape="rect" id="Node000012" href="$ionoLocalSTEC_8cpp.html#a1cedbdd8b110f5b0a25ca9f510005b82" title=" " alt="" coords="177,153,340,179"/>
+<area shape="poly" id="edge4_Node000001_Node000012" title=" " alt="" coords="94,103,176,138,200,147,199,152,174,143,92,108"/>
+</map>

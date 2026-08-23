@@ -1,0 +1,21 @@
+<map id="sinexPerEpochPerStation" name="sinexPerEpochPerStation">
+<area shape="rect" id="Node000001" href="$pea__snx_8cpp.html#a92a02d9dc16f06646c5c668b81caaa1f" title=" " alt="" coords="5,181,189,207"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="269,5,392,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,180,154,113,192,73,236,40,255,30,257,35,239,44,195,77,158,116,109,183"/>
+<area shape="rect" id="Node000003" href="$pea__snx_8cpp.html#affc40c65b3a8cb075d4ee551fd1c37d9" title=" " alt="" coords="237,55,424,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="113,179,166,140,236,97,272,82,274,87,239,102,169,144,116,183"/>
+<area shape="rect" id="Node000004" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="472,56,644,81"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="144,179,496,82,498,88,146,184"/>
+<area shape="rect" id="Node000035" href="$pea__snx_8cpp.html#a6dab10d7fd6d2416cb603c671cc5bebd" title=" " alt="" coords="475,105,641,131"/>
+<area shape="poly" id="edge6_Node000001_Node000035" title=" " alt="" coords="175,179,466,130,467,136,176,184"/>
+<area shape="rect" id="Node000036" href="$pea__snx_8cpp.html#a62d3a70a61f0c9898aaaf522bf14d359" title=" " alt="" coords="477,180,639,205"/>
+<area shape="poly" id="edge8_Node000001_Node000036" title=" " alt="" coords="190,191,463,190,463,196,190,196"/>
+<area shape="rect" id="Node000054" href="$antenna_8cpp.html#a204d102006d5bff3d311de7f6f189e44" title=" " alt="" coords="281,257,381,283"/>
+<area shape="poly" id="edge9_Node000001_Node000054" title=" " alt="" coords="121,204,189,230,268,255,267,260,187,235,119,209"/>
+<area shape="poly" id="edge11_Node000001_Node000054" title=" " alt="" coords="163,204,296,249,294,255,161,209"/>
+<area shape="rect" id="Node000055" href="$antenna_8cpp.html#a3beefedc70e84beab788d3d0dd2e9138" title="Change the last four characters of antenna type to NONE e,g, &quot;AOAD/M_T &#160;&#160;&#160;&#160;&#160;&#160;&#160;JPLA&quot; =&gt; &quot;AOAD/M_T &#160;&#160;&#160;&#160;..." alt="" coords="275,307,387,332"/>
+<area shape="poly" id="edge10_Node000001_Node000055" title=" " alt="" coords="114,205,167,248,201,272,238,293,263,302,261,307,236,298,198,277,163,252,111,209"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="424,65,458,65,458,71,424,71"/>
+<area shape="poly" id="edge4_Node000003_Node000035" title=" " alt="" coords="389,78,488,100,487,105,388,83"/>
+<area shape="poly" id="edge5_Node000003_Node000036" title=" " alt="" coords="356,78,523,171,520,175,353,82"/>
+</map>

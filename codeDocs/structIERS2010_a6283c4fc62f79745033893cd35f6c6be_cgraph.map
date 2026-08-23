@@ -1,0 +1,5 @@
+<map id="IERS2010::poleSolidEarthTide" name="IERS2010::poleSolidEarthTide">
+<area shape="rect" id="Node000001" href="$structIERS2010.html#a6283c4fc62f79745033893cd35f6c6be" title=" " alt="" coords="5,5,219,31"/>
+<area shape="rect" id="Node000002" href="$structIERS2010.html#a71b572f063e98c859169da7d9f63802f" title=" " alt="" coords="267,5,433,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,15,253,15,253,21,219,21"/>
+</map>

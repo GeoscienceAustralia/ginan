@@ -1,0 +1,20 @@
+<map id="satYawGalIov" name="satYawGalIov">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a18338f781fea251d0f8b03666fde5b9e" title="Yaw model for GAL IOV sats." alt="" coords="5,153,115,179"/>
+<area shape="rect" id="Node000002" href="$coordinates_8cpp.html#a6d65fc686fade9db8e953ae1ef13d929" title=" " alt="" coords="195,5,273,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,152,102,98,129,67,161,40,180,29,183,34,164,44,133,71,107,101,71,155"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#a0b7a315d68bfcf8c1bf8a1caf9cadd3a" title="Calculate nominal (ideal) sat yaw for GAL&#45;IOV sats." alt="" coords="163,55,305,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="86,151,121,126,161,101,204,83,206,88,164,106,124,131,89,155"/>
+<area shape="poly" id="edge11_Node000001_Node000003" title=" " alt="" coords="67,151,101,118,150,84,153,88,104,122,71,155"/>
+<area shape="rect" id="Node000004" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="353,160,403,185"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="69,177,107,216,134,235,164,249,203,260,235,265,266,261,304,249,322,239,338,226,363,196,367,199,342,230,325,244,306,254,267,267,234,270,202,265,162,254,131,240,103,220,65,181"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="85,177,120,203,164,225,203,236,235,241,266,237,304,225,328,211,349,193,353,197,332,215,306,230,267,243,234,246,202,241,162,230,117,207,82,181"/>
+<area shape="rect" id="Node000005" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="168,104,300,129"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="105,151,174,131,176,136,106,156"/>
+<area shape="rect" id="Node000006" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="173,153,295,179"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="115,163,159,163,159,169,115,169"/>
+<area shape="rect" id="Node000007" href="$common_8hpp.html#a83726ee6888c710c289f9b760053776c" title=" " alt="" coords="209,203,259,228"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="84,176,196,210,195,215,83,181"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="116,171,199,195,197,200,114,176"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="254,78,280,87,307,101,333,123,355,147,351,151,329,127,304,106,277,92,252,83"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="306,77,307,77,343,110,368,146,364,149,339,113,304,81,303,81"/>
+</map>

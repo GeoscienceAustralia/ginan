@@ -1,0 +1,11 @@
+<map id="RtcmEncoder::encodeSsrHeader" name="RtcmEncoder::encodeSsrHeader">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#a0faafc925ae0857559dd9a911cc3b90d" title="encode SSR header information" alt="" coords="5,55,236,80"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="326,5,449,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,52,338,31,339,37,237,58"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="156,52,312,21,313,26,157,57"/>
+<area shape="rect" id="Node000003" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="344,55,431,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="236,74,330,72,330,78,236,79"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="236,56,330,57,330,62,236,61"/>
+<area shape="rect" id="Node000005" href="$enums_8h.html#a086e24a48120638b582c9b860c16f0eb" title=" " alt="" coords="284,104,491,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="190,77,305,99,304,104,189,83"/>
+</map>

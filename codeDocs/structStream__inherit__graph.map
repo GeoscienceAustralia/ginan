@@ -1,0 +1,9 @@
+<map id="Stream" name="Stream">
+<area shape="rect" id="Node000001" href="$structStream.html" title=" " alt="" coords="100,5,257,141"/>
+<area shape="rect" id="Node000002" href="$structFileStream.html" title=" " alt="" coords="5,209,168,385"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,155,125,210,120,208,143,153"/>
+<area shape="rect" id="Node000003" href="$structSerialStream.html" title=" " alt="" coords="192,189,349,405"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,153,229,188,224,190,209,155"/>
+<area shape="rect" id="Node000004" href="$structTcpSocket.html" title=" " alt="" coords="139,453,402,1389"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,419,273,453,268,453,268,419"/>
+</map>

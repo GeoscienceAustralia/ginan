@@ -1,0 +1,20 @@
+<map id="debugAttitude" name="debugAttitude">
+<area shape="rect" id="Node000001" href="$debug_8cpp.html#a9779f5f24c300e72581f3858ed638c9e" title=" " alt="" coords="5,99,120,124"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="605,48,692,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,97,113,63,139,46,167,33,224,17,274,7,318,3,360,4,448,15,558,33,598,42,597,47,557,38,447,21,360,9,318,8,274,12,226,22,169,38,141,51,116,67,78,101"/>
+<area shape="rect" id="Node000005" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="388,48,557,74"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="82,97,120,76,167,58,220,49,274,45,375,47,374,53,274,51,221,55,169,64,123,80,85,101"/>
+<area shape="rect" id="Node000028" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="168,74,340,99"/>
+<area shape="poly" id="edge5_Node000001_Node000028" title=" " alt="" coords="120,101,154,97,155,102,120,107"/>
+<area shape="rect" id="Node000029" href="$ephemeris_8cpp.html#a346b6446fcd54ef489b40cf028168b5c" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="440,98,505,123"/>
+<area shape="poly" id="edge6_Node000001_Node000029" title=" " alt="" coords="120,109,340,109,426,108,426,114,340,114,120,114"/>
+<area shape="rect" id="Node000077" href="$attitude_8cpp.html#a0584e56d2ad0d93d89079e841a6dba28" title="Update sat nominal/model yaws." alt="" coords="197,175,311,200"/>
+<area shape="poly" id="edge9_Node000001_Node000077" title=" " alt="" coords="94,122,169,153,206,168,204,173,167,158,92,127"/>
+<area shape="rect" id="Node000080" href="$planets_8cpp.html#afa5d7098a27c088c2dae5e00aced234b" title=" " alt="" coords="197,224,311,250"/>
+<area shape="poly" id="edge11_Node000001_Node000080" title=" " alt="" coords="76,123,114,166,140,190,169,211,185,218,182,223,167,215,137,194,110,170,72,126"/>
+<area shape="poly" id="edge3_Node000005_Node000002" title=" " alt="" coords="558,67,592,67,592,72,558,73"/>
+<area shape="poly" id="edge4_Node000005_Node000002" title=" " alt="" coords="558,49,592,50,592,55,558,55"/>
+<area shape="poly" id="edge7_Node000029_Node000002" title=" " alt="" coords="505,106,611,76,612,81,506,111"/>
+<area shape="poly" id="edge8_Node000029_Node000002" title=" " alt="" coords="496,95,591,66,592,71,497,100"/>
+<area shape="poly" id="edge10_Node000077_Node000005" title=" " alt="" coords="267,173,317,129,351,104,387,83,402,76,404,81,389,87,353,109,320,133,270,177"/>
+</map>

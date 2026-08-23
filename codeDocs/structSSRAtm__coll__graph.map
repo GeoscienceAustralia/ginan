@@ -1,0 +1,14 @@
+<map id="SSRAtm" name="SSRAtm">
+<area shape="rect" id="Node000001" href="$structSSRAtm.html" title=" " alt="" coords="279,1277,367,1353"/>
+<area shape="rect" id="Node000002" href="$structSSRMeta.html" title=" " alt="" coords="21,1019,184,1215"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,1202,198,1213,268,1270,264,1274,194,1217,183,1206"/>
+<area shape="rect" id="Node000003" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,5,200,941"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,942,105,1002,100,1002,100,942"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="209,1071,437,1162"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="325,1162,325,1261,320,1261,320,1162"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="403,435,467,511"/>
+<area shape="poly" id="edge4_Node000005_Node000006" title=" " alt="" coords="429,525,333,1072,328,1071,423,524"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="461,1079,677,1155"/>
+<area shape="poly" id="edge6_Node000007_Node000006" title=" " alt="" coords="448,524,564,1078,559,1079,443,525"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="547,1157,507,1207,456,1255,420,1278,383,1296,381,1291,418,1273,453,1251,503,1203,543,1154"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="calculateSsrComb" name="calculateSsrComb">
+<area shape="rect" id="Node000001" href="$rtcmEncoder_8cpp.html#a188d56d547bb664a519121cf4bf34896" title=" " alt="" coords="5,55,144,80"/>
+<area shape="rect" id="Node000002" href="$ephemeris_8cpp.html#abdf84814dfc38928fa86e6fd0e6edb00" title="URA SSR by variance." alt="" coords="205,5,309,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,52,195,32,197,37,123,57"/>
+<area shape="rect" id="Node000003" href="$coordinates_8cpp.html#a6d65fc686fade9db8e953ae1ef13d929" title=" " alt="" coords="218,55,297,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="144,73,204,73,204,78,144,79"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="144,56,204,56,204,62,144,61"/>
+<area shape="rect" id="Node000004" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="192,104,323,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="100,78,180,102,178,107,99,83"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="145,75,220,97,219,102,143,80"/>
+</map>

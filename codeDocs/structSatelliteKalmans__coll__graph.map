@@ -1,0 +1,13 @@
+<map id="SatelliteKalmans" name="SatelliteKalmans">
+<area shape="rect" id="Node000001" href="$structSatelliteKalmans.html" title=" " alt="" coords="177,996,324,1072"/>
+<area shape="rect" id="Node000002" href="$structCommonKalmans.html" title=" " alt="" coords="5,581,157,657"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,670,99,729,115,799,139,874,172,945,189,971,210,994,206,998,185,974,167,948,134,876,110,801,94,730,84,671"/>
+<area shape="rect" id="Node000003" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="167,5,305,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="169,83,148,107,118,164,97,225,83,289,75,353,71,471,77,564,72,564,66,471,70,352,78,288,92,224,114,162,143,104,165,79"/>
+<area shape="rect" id="Node000010" href="$structInertialKalmans.html" title=" " alt="" coords="181,581,320,657"/>
+<area shape="poly" id="edge4_Node000010_Node000003" title=" " alt="" coords="239,82,240,267,251,564,245,564,235,267,233,82"/>
+<area shape="rect" id="Node000011" href="$structEmpKalmans.html" title=" " alt="" coords="345,291,482,947"/>
+<area shape="poly" id="edge6_Node000011_Node000003" title=" " alt="" coords="306,54,350,72,370,86,386,104,410,143,428,185,440,229,449,274,443,275,435,230,423,187,405,145,382,107,366,90,347,77,304,59"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="253,671,253,996,248,996,248,671"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="341,935,334,948,316,974,295,998,291,994,312,971,330,945,336,933"/>
+</map>

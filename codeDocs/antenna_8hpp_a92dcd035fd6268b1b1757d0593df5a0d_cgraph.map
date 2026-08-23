@@ -1,0 +1,18 @@
+<map id="readantexf" name="readantexf">
+<area shape="rect" id="Node000001" href="$antenna_8cpp.html#a8c56b39d78caff862f84c8364a392bc4" title="Read antex file." alt="" coords="5,129,99,155"/>
+<area shape="rect" id="Node000002" href="$antenna_8cpp.html#ae4ef89e1cf2a1fafab6dbeb5e739f79d" title=" " alt="" coords="195,5,257,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,128,94,85,118,61,145,40,181,24,183,29,148,44,121,65,98,88,64,131"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="165,55,287,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="92,127,146,101,196,83,198,88,148,106,95,132"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="61,127,97,101,146,77,151,75,153,80,148,82,100,106,64,131"/>
+<area shape="rect" id="Node000004" href="$antenna_8cpp.html#a876f92d067355a61ef054f25b46ca1f9" title=" " alt="" coords="189,104,263,129"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="98,133,174,121,175,127,99,138"/>
+<area shape="rect" id="Node000005" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="175,153,277,179"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="99,146,161,154,161,160,98,151"/>
+<area shape="rect" id="Node000006" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="175,203,277,228"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="77,152,148,188,169,196,167,201,146,192,74,157"/>
+<area shape="rect" id="Node000007" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="175,252,277,277"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="65,154,99,195,122,217,148,237,163,245,161,250,145,242,119,222,95,198,61,157"/>
+<area shape="rect" id="Node000008" href="$structSatSys.html#a60ae5bbbceb1c203cab6a6bc0d8e12df" title=" " alt="" coords="147,301,305,327"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="60,154,91,217,116,254,148,287,158,293,155,297,145,291,112,258,86,220,56,156"/>
+</map>

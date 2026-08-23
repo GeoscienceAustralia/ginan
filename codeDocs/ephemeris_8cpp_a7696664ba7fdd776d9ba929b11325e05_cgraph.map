@@ -1,0 +1,20 @@
+<map id="satclk" name="satclk">
+<area shape="rect" id="Node000001" href="$ephemeris_8cpp.html#a7696664ba7fdd776d9ba929b11325e05" title=" " alt="" coords="5,61,67,87"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="291,61,421,87"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,59,114,46,179,40,243,46,296,56,296,61,242,51,179,46,115,51,68,64"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="313,5,399,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="66,71,114,58,211,41,298,29,299,34,212,46,115,63,67,76"/>
+<area shape="poly" id="edge12_Node000001_Node000003" title=" " alt="" coords="48,59,77,45,114,34,211,17,299,10,299,15,212,23,115,39,79,50,50,64"/>
+<area shape="rect" id="Node000006" href="$ephBroadcast_8cpp.html#aa27c6095afa84cff4efedb4ece6671aa" title=" " alt="" coords="115,61,243,87"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="67,79,101,80,101,86,67,84"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="67,64,101,62,101,68,67,69"/>
+<area shape="rect" id="Node000010" href="$ephPrecise_8cpp.html#a99b848b35a95f1521e4bfe1f222f8505" title=" " alt="" coords="123,111,234,136"/>
+<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="68,82,129,103,127,108,66,87"/>
+<area shape="rect" id="Node000014" href="$ephKalman_8cpp.html#a55ae9cdfbdfbae347846acb116ed909e" title=" " alt="" coords="122,160,235,185"/>
+<area shape="poly" id="edge9_Node000001_Node000014" title=" " alt="" coords="45,86,70,118,112,155,108,159,66,122,41,89"/>
+<area shape="poly" id="edge10_Node000001_Node000014" title=" " alt="" coords="58,85,84,110,116,134,153,152,150,157,113,139,81,114,55,89"/>
+<area shape="poly" id="edge5_Node000006_Node000002" title=" " alt="" coords="243,80,277,80,277,86,243,85"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="243,63,277,62,277,68,243,68"/>
+<area shape="poly" id="edge4_Node000006_Node000003" title=" " alt="" coords="242,60,320,34,322,39,244,65"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="200,59,299,25,300,30,202,64"/>
+</map>

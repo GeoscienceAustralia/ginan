@@ -1,0 +1,11 @@
+<map id="updateSatAtt" name="updateSatAtt">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a7845576f2b86e02591836bb093754a44" title="Calculates satellite attitude &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns false if n..." alt="" coords="5,23,112,48"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="329,23,452,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,20,160,8,221,3,282,8,333,17,332,22,281,13,221,8,160,13,101,25"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#ae4ac48e32e26841def15a665acbf4c2e" title="Recalls satellite nominal/model attitude Returns false if attitude is invalid." alt="" coords="170,23,271,48"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,41,156,42,156,47,112,47"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="112,24,156,24,156,29,112,30"/>
+<area shape="rect" id="Node000005" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="160,72,281,98"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="102,46,165,65,164,70,100,51"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="264,70,332,50,333,55,266,75"/>
+</map>

@@ -1,0 +1,16 @@
+<map id="Preprocessing__" name="Preprocessing__">
+<area shape="rect" id="Node000001" href="$preprocessor_8cpp.html#ada86c114890b8228a687807983a2d0d3" title="Perform basic quality checks on observations." alt="" coords="525,57,652,83"/>
+<area shape="rect" id="Node000002" href="$Ginan_8cpp.html#a59a8bad8519426f9742fa63079e4a5e9" title="Ginan&#39;s main processing executable." alt="" coords="394,19,454,44"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="520,57,454,41,455,36,521,51"/>
+<area shape="rect" id="Node000004" href="$preprocessor_8cpp.html#a7f5da623e57a831dcb3cdf7702d7196c" title=" " alt="" coords="371,81,477,107"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="512,84,478,89,477,84,511,79"/>
+<area shape="rect" id="Node000003" href="$Ginan_8cpp.html#a5bdf8cdda721ab07dcd6033a15eeba3c" title="Ginan is a toolkit for processing GNSS measurements to produce precise positioning products." alt="" coords="178,5,253,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="380,31,253,23,253,18,380,26"/>
+<area shape="rect" id="Node000005" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="5,107,60,132"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="357,90,240,87,174,89,109,97,61,111,59,105,107,91,174,84,240,81,357,85"/>
+<area shape="rect" id="Node000006" href="$main_8cpp.html#ae9a767ba206649ca2e395dd210c2218b" title="Perform operations for each station This function occurs in parallel with other stations &#45; ensure tha..." alt="" coords="108,107,323,132"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="357,105,320,109,320,104,356,99"/>
+<area shape="rect" id="Node000008" href="$structACSConfig.html#acbe400e2cc2760cbebd28dda6413c4ad" title="Parse options to set acsConfig values." alt="" coords="149,156,282,181"/>
+<area shape="poly" id="edge6_Node000004_Node000008" title=" " alt="" coords="391,116,324,147,283,159,282,154,322,142,388,111"/>
+<area shape="poly" id="edge7_Node000008_Node000005" title=" " alt="" coords="139,155,107,147,59,132,61,127,109,142,140,150"/>
+</map>

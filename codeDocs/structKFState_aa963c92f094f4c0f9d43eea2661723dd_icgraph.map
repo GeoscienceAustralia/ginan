@@ -1,0 +1,5 @@
+<map id="KFState::stateChiSquare" name="KFState::stateChiSquare">
+<area shape="rect" id="Node000001" href="$structKFState.html#aa963c92f094f4c0f9d43eea2661723dd" title="Compute Chi&#45;square increment based on the change of fitting solution." alt="" coords="213,5,392,31"/>
+<area shape="rect" id="Node000002" href="$structKFState.html#a0d12c57e70876543084c182a660bbbd3" title="Kalman filter operation." alt="" coords="5,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,21,165,21,165,15,199,15"/>
+</map>

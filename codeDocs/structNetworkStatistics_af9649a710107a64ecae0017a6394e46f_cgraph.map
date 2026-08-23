@@ -1,0 +1,7 @@
+<map id="NetworkStatistics::onChunkSentStatistics" name="NetworkStatistics::onChunkSentStatistics">
+<area shape="rect" id="Node000001" href="$structNetworkStatistics.html#af9649a710107a64ecae0017a6394e46f" title=" " alt="" coords="5,23,173,63"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="249,5,324,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,30,235,22,236,27,174,35"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="221,55,352,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,51,208,55,208,60,173,56"/>
+</map>

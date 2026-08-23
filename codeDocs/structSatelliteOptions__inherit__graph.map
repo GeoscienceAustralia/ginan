@@ -1,0 +1,15 @@
+<map id="SatelliteOptions" name="SatelliteOptions">
+<area shape="rect" id="Node000001" href="$structSatelliteOptions.html" title="Options to be applied to kalman filter states for individual satellites." alt="" coords="369,1537,564,1773"/>
+<area shape="rect" id="Node000002" href="$structSatelliteKalmans.html" title=" " alt="" coords="201,1161,348,1237"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="287,1250,316,1361,337,1426,362,1488,388,1536,383,1538,358,1490,332,1427,311,1363,282,1251"/>
+<area shape="rect" id="Node000003" href="$structCommonKalmans.html" title=" " alt="" coords="5,295,157,571"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,584,139,719,172,861,221,1029,264,1160,259,1162,216,1030,167,862,133,720,106,585"/>
+<area shape="rect" id="Node000004" href="$structInertialKalmans.html" title=" " alt="" coords="182,345,367,521"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="277,535,277,1161,272,1161,272,535"/>
+<area shape="rect" id="Node000005" href="$structEmpKalmans.html" title=" " alt="" coords="391,5,529,861"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="390,828,381,862,363,910,319,1049,287,1162,282,1161,314,1047,357,908,376,860,385,827"/>
+<area shape="rect" id="Node000006" href="$structCommonOptions.html" title=" " alt="" coords="373,909,561,1489"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="469,1503,469,1537,464,1537,464,1503"/>
+<area shape="rect" id="Node000007" href="$structOrbitOptions.html" title="Options associated with orbital force models." alt="" coords="585,961,796,1437"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="595,1451,576,1491,548,1539,544,1536,571,1488,591,1449"/>
+</map>

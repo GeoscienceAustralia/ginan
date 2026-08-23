@@ -1,0 +1,5 @@
+<map id="ReceiverLogs" name="ReceiverLogs">
+<area shape="rect" id="Node000001" href="$structReceiverLogs.html" title=" " alt="" coords="5,5,185,241"/>
+<area shape="rect" id="Node000002" href="$structReceiver.html" title="Object to maintain receiver station data." alt="" coords="10,289,181,965"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,255,98,289,93,289,93,255"/>
+</map>

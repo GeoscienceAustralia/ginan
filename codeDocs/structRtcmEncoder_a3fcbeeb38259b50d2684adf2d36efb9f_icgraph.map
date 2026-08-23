@@ -1,0 +1,6 @@
+<map id="RtcmEncoder::encodeEphemeris" name="RtcmEncoder::encodeEphemeris">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#a3fcbeeb38259b50d2684adf2d36efb9f" title="encode GPS/GAL/BDS/QZS ephemeris messages" alt="" coords="288,37,520,62"/>
+<area shape="rect" id="Node000002" href="$structNtripUploader.html#aed62670c2d0d02f1bb0d930f42e68609" title=" " alt="" coords="5,29,240,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,52,240,52,240,47,274,47"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="171,18,154,11,123,8,95,10,79,15,73,21,76,28,71,30,68,20,76,10,94,5,123,3,155,5,173,13"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="RtcmEncoder::encodeSsrPhase" name="RtcmEncoder::encodeSsrPhase">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#adaea4ff6e3c24a71716dd84ee0999fef" title="encode phase bias messages" alt="" coords="5,100,228,125"/>
+<area shape="rect" id="Node000002" href="$structRtcmEncoder.html#a0faafc925ae0857559dd9a911cc3b90d" title="encode SSR header information" alt="" coords="276,5,507,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,97,275,47,326,32,328,37,277,53,148,102"/>
+<area shape="rect" id="Node000004" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="555,37,641,63"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="228,103,392,83,541,61,541,66,393,88,229,109"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="170,97,354,70,540,49,541,54,355,75,171,103"/>
+<area shape="rect" id="Node000007" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="349,131,434,156"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="168,123,335,142,334,147,167,128"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="229,114,335,127,335,132,228,119"/>
+<area shape="rect" id="Node000009" href="$structRtcmTrace.html#ab176960d2a094f050f187909b777d677" title=" " alt="" coords="286,180,497,205"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="152,123,277,165,314,174,312,179,275,170,151,128"/>
+<area shape="poly" id="edge2_Node000002_Node000004" title=" " alt="" coords="429,28,541,47,540,52,428,33"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="508,24,548,32,547,37,507,30"/>
+</map>

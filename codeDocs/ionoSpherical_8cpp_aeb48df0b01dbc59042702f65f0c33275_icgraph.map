@@ -1,0 +1,9 @@
+<map id="ionCoefSphhar" name="ionCoefSphhar">
+<area shape="rect" id="Node000001" href="$ionoSpherical_8cpp.html#aeb48df0b01dbc59042702f65f0c33275" title="Evaluates spherical harmonics basis functions int ind I obs I Ionosphere measurement struct latIPP &#45; ..." alt="" coords="169,55,287,80"/>
+<area shape="rect" id="Node000002" href="$ionoSpherical_8cpp.html#ad01dd353d17b69b39684a5bb3169fea5" title=" " alt="" coords="6,5,121,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,53,106,33,108,28,173,48"/>
+<area shape="rect" id="Node000010" href="$ionoModel_8cpp.html#afe9742eca389b62fb326210be7b65c47" title=" " alt="" coords="7,55,119,80"/>
+<area shape="poly" id="edge2_Node000001_Node000010" title=" " alt="" coords="156,70,119,70,119,65,156,65"/>
+<area shape="rect" id="Node000016" href="$ionoSpherical_8cpp.html#a1b1dbb6c22bf410390abb588c45f310f" title="Estimate Ionosphere VTEC using Spherical Cap Harmonic models gtime_t time I time of solutions (not us..." alt="" coords="5,104,121,129"/>
+<area shape="poly" id="edge3_Node000001_Node000016" title=" " alt="" coords="173,87,108,106,106,101,171,81"/>
+</map>

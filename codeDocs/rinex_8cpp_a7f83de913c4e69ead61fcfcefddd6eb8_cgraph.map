@@ -1,0 +1,6 @@
+<map id="decodeSto" name="decodeSto">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#a7f83de913c4e69ead61fcfcefddd6eb8" title="Decode System Time Offset (STO) message." alt="" coords="5,5,96,31"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#ac318a8058a7c509d1b135f62291446a8" title=" " alt="" coords="144,5,247,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,24,131,24,130,30,96,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="96,7,130,6,131,12,96,12"/>
+</map>

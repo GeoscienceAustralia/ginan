@@ -1,0 +1,9 @@
+<map id="propagateEllipse" name="propagateEllipse">
+<area shape="rect" id="Node000001" href="$orbits_8cpp.html#aefaca6400f01b33fcf0b7c142032f02b" title=" " alt="" coords="219,55,349,80"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a1b479682868a13d0db3a05d5c6d38461" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="5,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,54,139,33,140,28,220,49"/>
+<area shape="rect" id="Node000020" href="$attitude_8cpp.html#a1d392d7cfe6d33e3fa11664aeeef4f12" title="Calculates satellite orbit geometry &#45; for use in calculating modelled yaw." alt="" coords="19,55,157,80"/>
+<area shape="poly" id="edge2_Node000001_Node000020" title=" " alt="" coords="205,70,157,70,157,65,205,65"/>
+<area shape="rect" id="Node000021" href="$ephKalman_8cpp.html#ae1697dd19411f771300532be63d186c2" title=" " alt="" coords="31,104,145,129"/>
+<area shape="poly" id="edge3_Node000001_Node000021" title=" " alt="" coords="220,86,140,107,139,101,219,81"/>
+</map>

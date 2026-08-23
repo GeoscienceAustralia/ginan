@@ -1,0 +1,5 @@
+<map id="sinexPostProcessing" name="sinexPostProcessing">
+<area shape="rect" id="Node000001" href="$pea__snx_8cpp.html#a4ded3444eea8dfc8736567542792d17e" title=" " alt="" coords="207,5,361,31"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html#a2b0d1066eac1a878cf982adcdd550ce1" title="Perform any post&#45;final epoch calculations and outputs, then begin reverse smoothing and tidy up." alt="" coords="5,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,21,159,21,159,15,193,15"/>
+</map>

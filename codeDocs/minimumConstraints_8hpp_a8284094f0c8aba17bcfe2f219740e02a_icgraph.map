@@ -1,0 +1,11 @@
+<map id="outputMinconStatistics" name="outputMinconStatistics">
+<area shape="rect" id="Node000001" href="$minimumConstraints_8cpp.html#ab6be6b79385844aff6e5935fe285c44a" title=" " alt="" coords="259,80,429,105"/>
+<area shape="rect" id="Node000002" href="$compare_8cpp.html#aa8c289d9d4e60f862fb0a60566b76bd0" title=" " alt="" coords="49,5,167,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="299,77,210,45,167,33,168,28,211,39,301,72"/>
+<area shape="rect" id="Node000005" href="$main_8cpp.html#a2b0d1066eac1a878cf982adcdd550ce1" title="Perform any post&#45;final epoch calculations and outputs, then begin reverse smoothing and tidy up." alt="" coords="31,55,185,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="244,85,185,78,185,73,245,79"/>
+<area shape="rect" id="Node000006" href="$minimumConstraints_8cpp.html#aeb8c374e79e38289a66b8b65d6574141" title=" " alt="" coords="58,104,158,129"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="245,105,158,114,158,109,245,100"/>
+<area shape="rect" id="Node000007" href="$outputs_8cpp.html#abf277b1afcff7cb07fa2857b4a373100" title=" " alt="" coords="5,154,211,194"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="297,113,212,143,172,156,171,151,210,138,295,108"/>
+</map>

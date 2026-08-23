@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,40,168,95"/>
+<area shape="rect" id="Node000001" href="$structConsoleLog.html" title=" " alt="" coords="216,5,313,31"/>
+<area shape="poly" id="edge10_Node000000_Node000001" title=" " alt="" coords="181,39,218,28,219,33,182,44"/>
+<area shape="rect" id="Node000002" href="$structErrorExit.html" title=" " alt="" coords="225,55,304,80"/>
+<area shape="poly" id="edge11_Node000000_Node000002" title=" " alt="" coords="182,65,225,65,225,70,182,70"/>
+<area shape="rect" id="Node000003" href="$structFileLog.html" title=" " alt="" coords="231,104,299,129"/>
+<area shape="poly" id="edge12_Node000000_Node000003" title=" " alt="" coords="182,91,231,105,230,110,181,96"/>
+</map>

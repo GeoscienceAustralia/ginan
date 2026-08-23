@@ -1,0 +1,8 @@
+<map id="legendre_derivatv" name="legendre_derivatv">
+<area shape="rect" id="Node000001" href="$ionoSphericalCaps_8cpp.html#a704ddd2715658506643c09ff2ec2918a" title=" " alt="" coords="351,31,491,56"/>
+<area shape="rect" id="Node000002" href="$ionoSphericalCaps_8cpp.html#aeae450fade955270a49bb037102ae974" title=" " alt="" coords="221,5,303,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="337,33,302,27,303,22,337,27"/>
+<area shape="rect" id="Node000003" href="$ionoSphericalCaps_8cpp.html#afee256473acb6fee42628c1622dca224" title="Initializes Spherical caps Ionosphere model The following configursation parameters are used." alt="" coords="5,31,173,56"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="337,46,173,46,173,41,337,41"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="208,29,174,34,173,28,208,23"/>
+</map>

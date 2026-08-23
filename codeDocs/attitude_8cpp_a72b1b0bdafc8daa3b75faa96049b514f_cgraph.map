@@ -1,0 +1,21 @@
+<map id="satYawBds3" name="satYawBds3">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a72b1b0bdafc8daa3b75faa96049b514f" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="5,136,104,161"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="372,5,497,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,134,104,99,126,80,151,65,202,45,257,33,357,23,358,28,257,38,204,51,153,70,129,85,107,103,74,138"/>
+<area shape="poly" id="edge4_Node000001_Node000002" title=" " alt="" coords="59,134,93,87,120,61,151,41,202,22,257,10,310,4,358,3,358,8,310,9,257,15,204,27,153,46,123,65,97,90,63,137"/>
+<area shape="rect" id="Node000003" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="545,73,677,99"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="104,146,313,126,536,98,536,103,313,131,104,151"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="104,135,310,108,531,86,532,91,311,114,105,141"/>
+<area shape="rect" id="Node000004" href="$common_8hpp.html#a83726ee6888c710c289f9b760053776c" title=" " alt="" coords="409,211,460,236"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="104,146,207,152,266,159,325,172,364,185,400,202,398,207,362,190,323,177,265,164,206,157,104,151"/>
+<area shape="rect" id="Node000005" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="177,187,299,212"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="80,159,164,185,163,190,78,164"/>
+<area shape="poly" id="edge12_Node000001_Node000005" title=" " alt="" coords="105,152,202,179,200,185,104,157"/>
+<area shape="rect" id="Node000006" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="152,236,324,261"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="71,160,107,190,153,221,171,229,169,234,151,226,103,195,67,164"/>
+<area shape="rect" id="Node000007" href="$attitude_8cpp.html#aafc9b40350ab3ffb027aa7572be560db" title="Smoothed yaw steering for GAL &amp; BDS." alt="" coords="182,285,294,311"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="65,160,98,215,123,246,154,272,171,281,168,286,150,276,119,249,93,218,60,163"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="470,28,566,66,564,71,468,33"/>
+<area shape="poly" id="edge9_Node000006_Node000002" title=" " alt="" coords="301,234,322,221,361,180,390,131,411,83,424,43,429,45,416,84,395,133,365,183,326,225,304,238"/>
+<area shape="poly" id="edge11_Node000007_Node000004" title=" " alt="" coords="289,283,323,272,396,240,398,245,325,277,290,288"/>
+</map>

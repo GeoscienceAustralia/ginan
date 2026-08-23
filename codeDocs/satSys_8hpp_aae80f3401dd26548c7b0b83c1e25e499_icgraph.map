@@ -1,0 +1,27 @@
+<map id="getSysSats" name="getSysSats">
+<area shape="rect" id="Node000001" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="503,231,597,256"/>
+<area shape="rect" id="Node000002" href="$biases_8cpp.html#ad625cfbdfa54750bc64d8692e398e16b" title="Add default 0 values to DSBs between default signals, e.g." alt="" coords="310,5,433,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="541,218,531,179,514,132,488,85,453,44,432,31,434,27,456,40,492,81,518,130,536,177,546,216"/>
+<area shape="rect" id="Node000005" href="$biases_8cpp.html#ac58459b3745f007963481c091451efd8" title="Initialise satellite DSBs between default signals, e.g." alt="" coords="318,55,425,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="536,219,504,160,480,129,453,101,419,82,421,78,456,97,485,125,508,157,540,216"/>
+<area shape="rect" id="Node000006" href="$structNtripUploader.html#aed62670c2d0d02f1bb0d930f42e68609" title=" " alt="" coords="5,174,240,214"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="532,221,500,180,478,160,454,146,416,134,377,129,337,130,298,135,224,154,166,176,164,171,223,149,297,129,337,124,377,124,417,129,456,141,481,156,504,176,536,217"/>
+<area shape="rect" id="Node000009" href="$mongoRead_8cpp.html#a7d4ac4dfd0b159e975bff9599afbb147" title="Read code biases from Mongo DB." alt="" coords="291,156,452,181"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="515,226,454,195,421,184,423,179,456,190,517,221"/>
+<area shape="rect" id="Node000010" href="$mongoRead_8cpp.html#a25a89dedbcc39aa56dfb1eff65744154" title="Read orbits and clocks from Mongo DB." alt="" coords="299,205,443,231"/>
+<area shape="poly" id="edge7_Node000001_Node000010" title=" " alt="" coords="488,237,443,231,444,226,489,232"/>
+<area shape="rect" id="Node000011" href="$mongoRead_8cpp.html#a1d89a7a6cae3e135ebc59b318cff9736" title="Read phase biases from Mongo DB." alt="" coords="288,255,455,280"/>
+<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="489,254,455,259,454,254,489,249"/>
+<area shape="rect" id="Node000012" href="$mongoWrite_8cpp.html#a0936cc081f59031ee1253c909285838c" title="Write states generating SSR corrections to Mongo DB." alt="" coords="305,304,438,329"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="516,265,456,294,420,306,418,301,454,289,513,260"/>
+<area shape="rect" id="Node000014" href="$biasSINEXwrite_8cpp.html#a12cb4f62e73c021b02dc2f12e2154c04" title="Store bias output to write into bias SINEX files." alt="" coords="302,353,441,379"/>
+<area shape="poly" id="edge12_Node000001_Node000014" title=" " alt="" coords="533,269,500,307,456,343,429,356,427,351,453,338,497,303,529,265"/>
+<area shape="rect" id="Node000016" href="$orbexWrite_8cpp.html#a68acb232854e3173995f4c0441d7de70" title="Write ORBEX header lines and header blocks including FILE/DESCRIPTION and SATELLITE/ID_AND_DESCRIPTIO..." alt="" coords="301,403,442,428"/>
+<area shape="poly" id="edge13_Node000001_Node000016" title=" " alt="" coords="541,270,510,331,486,364,456,392,433,405,431,400,453,388,482,360,505,328,537,267"/>
+<area shape="rect" id="Node000020" href="$sp3Write_8cpp.html#ab4606ad3c7415880b4adc10c1bfeab0e" title=" " alt="" coords="308,452,435,477"/>
+<area shape="poly" id="edge14_Node000001_Node000020" title=" " alt="" coords="546,270,535,308,517,354,492,401,456,441,436,454,433,450,453,437,487,398,513,352,530,306,541,269"/>
+<area shape="poly" id="edge4_Node000006_Node000006" title=" " alt="" coords="165,162,150,155,123,153,99,155,84,159,79,165,82,173,77,174,74,164,81,155,98,149,123,147,151,150,167,157"/>
+<area shape="poly" id="edge6_Node000009_Node000006" title=" " alt="" coords="277,181,241,185,240,179,277,176"/>
+<area shape="poly" id="edge8_Node000010_Node000006" title=" " alt="" coords="285,212,240,208,241,203,286,207"/>
+<area shape="poly" id="edge10_Node000011_Node000006" title=" " alt="" coords="314,253,191,217,192,212,315,248"/>
+</map>

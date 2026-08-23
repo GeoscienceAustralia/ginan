@@ -1,0 +1,12 @@
+<map id="satFreqs" name="satFreqs">
+<area shape="rect" id="Node000001" href="$preprocessorFreqs_8cpp.html#abd57aff1d197b2747eab5e751cbb0b57" title="Select up to three configured frequency bands for a satellite system." alt="" coords="271,80,348,105"/>
+<area shape="rect" id="Node000002" href="$ionoMeas_8cpp.html#ab3f111d5e6d66de4751fbce467a29372" title=" " alt="" coords="119,5,223,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,75,221,44,199,33,201,28,224,40,277,70"/>
+<area shape="rect" id="Node000006" href="$spp_8cpp.html#a5139dd8c7a67f453985478f3529a93ed" title="Calculate pseudorange and code bias correction." alt="" coords="137,55,204,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="257,86,204,76,205,71,258,81"/>
+<area shape="rect" id="Node000012" href="$ephPrecise_8cpp.html#ac24a7ecc232807f046a15e914b5df57f" title="satellite antenna phase center offset in ecef" alt="" coords="129,104,212,129"/>
+<area shape="poly" id="edge3_Node000001_Node000012" title=" " alt="" coords="258,104,213,112,212,107,257,99"/>
+<area shape="rect" id="Node000013" href="$ephemeris_8cpp.html#a346b6446fcd54ef489b40cf028168b5c" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="5,129,71,155"/>
+<area shape="poly" id="edge5_Node000001_Node000013" title=" " alt="" coords="282,115,254,131,223,143,183,151,141,153,71,149,71,144,141,148,182,145,222,138,252,126,279,111"/>
+<area shape="poly" id="edge4_Node000012_Node000013" title=" " alt="" coords="117,130,71,138,70,133,116,124"/>
+</map>

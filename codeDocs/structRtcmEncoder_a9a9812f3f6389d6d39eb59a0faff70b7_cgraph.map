@@ -1,0 +1,26 @@
+<map id="RtcmEncoder::encodeSsrOrbClk" name="RtcmEncoder::encodeSsrOrbClk">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#a9a9812f3f6389d6d39eb59a0faff70b7" title="encode orbit/clock messages" alt="" coords="5,162,232,188"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="559,41,681,66"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,160,149,130,183,90,227,51,252,35,279,22,317,10,357,4,398,3,438,5,512,18,572,34,571,39,511,23,437,11,398,8,358,10,318,16,281,27,255,40,231,56,187,94,153,133,131,164"/>
+<area shape="rect" id="Node000003" href="$structRtcmEncoder.html#a0faafc925ae0857559dd9a911cc3b90d" title="encode SSR header information" alt="" coords="280,37,511,62"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="137,160,198,121,279,79,324,64,326,69,281,84,201,126,140,164"/>
+<area shape="rect" id="Node000004" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="577,93,663,118"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="232,166,280,159,563,118,564,124,280,164,233,171"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="145,160,206,147,280,135,433,115,563,101,563,107,434,120,280,140,207,152,146,165"/>
+<area shape="rect" id="Node000007" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="353,162,438,188"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="232,181,339,180,339,185,232,187"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="232,164,339,165,339,170,232,169"/>
+<area shape="rect" id="Node000009" href="$structRtcmTrace.html#ab77b0368e1844bb77eb8a91845c35673" title=" " alt="" coords="308,212,483,237"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="191,185,310,207,310,212,190,190"/>
+<area shape="rect" id="Node000016" href="$structRtcmTrace.html#a77967bdcccaac67fdcd956d47da16055" title=" " alt="" coords="309,261,481,286"/>
+<area shape="poly" id="edge13_Node000001_Node000016" title=" " alt="" coords="144,186,205,216,281,247,309,255,307,260,279,252,203,221,142,190"/>
+<area shape="rect" id="Node000017" href="$structRtcmTrace.html#a72cc456a169363422bbdb71c4f12ab4f" title=" " alt="" coords="300,310,491,336"/>
+<area shape="poly" id="edge15_Node000001_Node000017" title=" " alt="" coords="134,186,194,240,236,271,281,297,299,304,297,309,279,301,233,275,191,244,131,190"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="511,58,545,58,545,64,511,63"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="511,40,545,41,545,47,511,45"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="424,60,564,97,562,102,422,65"/>
+<area shape="poly" id="edge6_Node000003_Node000004" title=" " alt="" coords="483,60,580,86,579,91,481,65"/>
+<area shape="poly" id="edge12_Node000009_Node000002" title=" " alt="" coords="482,212,509,197,521,184,528,170,533,141,538,110,545,94,557,79,565,72,568,76,561,82,549,97,543,112,539,142,533,172,526,187,512,201,484,217"/>
+<area shape="poly" id="edge14_Node000016_Node000002" title=" " alt="" coords="480,265,509,248,525,228,532,209,534,167,535,124,542,101,557,79,563,72,567,76,561,82,547,104,540,125,540,167,538,210,529,231,512,252,483,269"/>
+<area shape="poly" id="edge16_Node000017_Node000002" title=" " alt="" coords="489,311,509,297,528,272,537,246,538,220,535,193,532,165,532,137,539,108,557,79,563,73,566,76,561,82,544,110,537,138,537,165,540,192,543,219,542,247,533,274,513,301,492,315"/>
+</map>

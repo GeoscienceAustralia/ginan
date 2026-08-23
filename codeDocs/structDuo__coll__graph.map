@@ -1,0 +1,9 @@
+<map id="Duo" name="Duo">
+<area shape="rect" id="Node000001" href="$structDuo.html" title=" " alt="" coords="131,283,192,359"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,165,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,219,135,267,130,270,104,221"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="53,5,117,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,95,88,144,83,144,83,95"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="190,144,285,220"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="228,221,210,260,204,271,199,268,206,257,223,219"/>
+</map>

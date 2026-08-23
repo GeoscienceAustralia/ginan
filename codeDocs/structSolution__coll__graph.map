@@ -1,0 +1,24 @@
+<map id="Solution" name="Solution">
+<area shape="rect" id="Node000001" href="$structSolution.html" title="Solution of user mode processing functinos." alt="" coords="369,2360,526,2576"/>
+<area shape="rect" id="Node000002" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="81,144,276,1080"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,957,54,1101,30,1261,13,1431,9,1608,12,1698,19,1788,31,1877,49,1965,71,2051,100,2136,135,2218,177,2296,212,2341,257,2379,306,2409,354,2432,352,2437,303,2414,254,2383,208,2345,172,2299,130,2220,95,2138,66,2053,43,1966,26,1878,14,1788,7,1698,3,1608,8,1431,24,1260,49,1100,78,956"/>
+<area shape="rect" id="Node000005" href="$structKFState__.html" title="Kalman filter object." alt="" coords="139,1143,372,1379"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="138,1080,149,1118,152,1127,147,1129,144,1120,133,1081"/>
+<area shape="rect" id="Node000028" href="$structKFKey.html" title="Keys used to interface with Kalman filter objects." alt="" coords="396,1143,552,1379"/>
+<area shape="poly" id="edge11_Node000028_Node000002" title=" " alt="" coords="278,974,302,1028,329,1079,342,1098,355,1111,386,1141,388,1143,384,1147,382,1144,351,1115,338,1101,324,1081,297,1030,273,977"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="320,5,392,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="320,57,281,76,262,90,247,107,232,131,228,128,243,104,259,86,278,72,318,53"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="360,81,368,285,374,586,373,746,367,895,357,1023,340,1119,337,1128,332,1126,334,1118,352,1023,362,895,367,745,368,586,363,285,355,81"/>
+<area shape="poly" id="edge10_Node000028_Node000003" title=" " alt="" coords="394,60,441,94,464,116,481,143,507,205,529,270,546,336,558,404,573,540,574,676,566,806,551,927,532,1036,513,1127,507,1126,527,1035,546,927,561,806,569,675,567,540,553,404,540,337,524,271,502,207,476,145,459,120,438,98,391,65"/>
+<area shape="rect" id="Node000004" href="$structKFState.html" title="Wrapper to simplify copying with default copy but overriding slightly." alt="" coords="187,1441,412,2297"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="371,2297,383,2335,386,2344,381,2345,378,2337,366,2298"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="271,1442,268,1403,267,1395,272,1395,273,1402,276,1441"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="268,1392,271,1441,266,1441,262,1392"/>
+<area shape="rect" id="Node000027" title=" " alt="" coords="577,1223,721,1299"/>
+<area shape="poly" id="edge8_Node000004_Node000027" title=" " alt="" coords="630,1301,602,1341,567,1381,537,1404,502,1420,479,1426,461,1428,444,1431,427,1443,425,1445,421,1441,423,1439,442,1427,460,1423,478,1421,500,1415,534,1399,563,1377,598,1338,625,1298"/>
+<area shape="poly" id="edge9_Node000004_Node000028" title=" " alt="" coords="443,1380,419,1462,414,1461,438,1378"/>
+<area shape="rect" id="Node000040" href="$structVectorEcef.html" title=" " alt="" coords="436,1781,566,1957"/>
+<area shape="poly" id="edge12_Node000001_Node000040" title=" " alt="" coords="496,1958,461,2344,456,2344,490,1958"/>
+<area shape="rect" id="Node000065" href="$structDops.html" title=" " alt="" coords="590,1801,673,1937"/>
+<area shape="poly" id="edge13_Node000001_Node000065" title=" " alt="" coords="637,1937,635,2013,628,2105,611,2203,597,2252,581,2298,562,2336,538,2371,534,2368,557,2333,576,2296,592,2250,605,2202,622,2104,630,2013,631,1937"/>
+</map>

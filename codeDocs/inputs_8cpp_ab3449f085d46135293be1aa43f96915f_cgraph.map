@@ -1,0 +1,7 @@
+<map id="addReceiverData" name="addReceiverData">
+<area shape="rect" id="Node000001" href="$inputs_8cpp.html#ab3449f085d46135293be1aa43f96915f" title="Create a receiver object from an input." alt="" coords="5,31,140,56"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="188,5,360,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,32,174,28,175,33,140,38"/>
+<area shape="rect" id="Node000022" href="$inputs_8cpp.html#ad1ec272d0843fc173337df99f76618bc" title="Check that filename is valid and the file exists." alt="" coords="217,55,331,80"/>
+<area shape="poly" id="edge2_Node000001_Node000022" title=" " alt="" coords="140,49,203,56,202,61,140,54"/>
+</map>

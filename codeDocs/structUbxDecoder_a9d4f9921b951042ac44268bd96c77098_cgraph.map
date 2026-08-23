@@ -1,0 +1,8 @@
+<map id="UbxDecoder::decodeSFRBX" name="UbxDecoder::decodeSFRBX">
+<area shape="rect" id="Node000001" href="$structUbxDecoder.html#a9d4f9921b951042ac44268bd96c77098" title=" " alt="" coords="5,5,205,31"/>
+<area shape="rect" id="Node000002" href="$ubxDecoder_8cpp.html#a3f7c471b91d0090e112befb07c810ee0" title=" " alt="" coords="299,5,437,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,24,285,24,285,29,206,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="206,7,285,7,285,12,206,12"/>
+<area shape="rect" id="Node000003" href="$structUbxDecoder.html#a3edfc6fc421d31970881abd2f6db1f6d" title=" " alt="" coords="253,55,483,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="174,28,286,49,285,55,173,33"/>
+</map>

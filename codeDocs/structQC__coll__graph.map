@@ -1,0 +1,10 @@
+<map id="QC" name="QC">
+<area shape="rect" id="Node000001" href="$structQC.html" title=" " alt="" coords="118,377,197,493"/>
+<area shape="rect" id="Node000002" href="$structAverage.html" title=" " alt="" coords="5,174,93,270"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="57,270,66,311,82,352,109,388,104,391,78,355,61,313,52,271"/>
+<area shape="rect" id="Node000003" href="$structflt__t.html" title="Cycle slip repair filter." alt="" coords="118,144,197,300"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,301,160,361,155,361,155,301"/>
+<area shape="rect" id="Node000004" href="$structlc__t.html" title=" " alt="" coords="172,5,231,81"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="222,81,229,105,229,120,223,239,214,291,195,354,191,363,186,361,189,352,209,289,218,239,224,120,224,106,217,83"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="184,83,175,106,169,128,164,127,169,105,179,81"/>
+</map>

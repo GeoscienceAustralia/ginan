@@ -1,0 +1,7 @@
+<map id="updateSatYaw" name="updateSatYaw">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#aac7be95f5d7dbf6cf5d647524555edcb" title="Calculates nominal &amp; model yaw." alt="" coords="192,31,305,56"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a0584e56d2ad0d93d89079e841a6dba28" title="Update sat nominal/model yaws." alt="" coords="17,5,132,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,36,132,29,133,24,178,30"/>
+<area shape="rect" id="Node000012" href="$orbexWrite_8cpp.html#a0101099c60c06da409a3c2b2ee7145df" title="Retrieve satellite orbits, clocks and attitudes for all included systems and write out to an ORBEX fi..." alt="" coords="5,55,144,80"/>
+<area shape="poly" id="edge2_Node000001_Node000012" title=" " alt="" coords="179,56,145,60,144,55,178,50"/>
+</map>

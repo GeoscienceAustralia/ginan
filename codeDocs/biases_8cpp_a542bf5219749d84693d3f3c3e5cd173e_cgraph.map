@@ -1,0 +1,6 @@
+<map id="getBiasEntry" name="getBiasEntry">
+<area shape="rect" id="Node000001" href="$biases_8cpp.html#a542bf5219749d84693d3f3c3e5cd173e" title="Search for hardware bias for given measurmenet type." alt="" coords="5,29,111,55"/>
+<area shape="rect" id="Node000002" href="$biases_8cpp.html#a6773866b48aa86a6f6b6a609706ca1e4" title="Recurser of bias chaining, i.e." alt="" coords="159,29,265,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,39,145,39,145,45,111,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="186,31,181,21,184,11,194,5,212,3,233,6,242,15,238,19,231,11,212,8,196,10,188,15,186,20,191,28"/>
+</map>

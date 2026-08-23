@@ -1,0 +1,7 @@
+<map id="mongoOutput" name="mongoOutput">
+<area shape="rect" id="Node000001" href="$mongoWrite_8cpp.html#ab38867aee797f9c3fd724e2f6d7c22bf" title=" " alt="" coords="188,31,299,56"/>
+<area shape="rect" id="Node000002" href="$mongoWrite_8cpp.html#ad99e3f029b681676da8bbf077cdb62a7" title=" " alt="" coords="5,5,140,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,36,140,31,141,25,175,31"/>
+<area shape="rect" id="Node000033" href="$mongoWrite_8cpp.html#a0936cc081f59031ee1253c909285838c" title="Write states generating SSR corrections to Mongo DB." alt="" coords="6,55,139,80"/>
+<area shape="poly" id="edge2_Node000001_Node000033" title=" " alt="" coords="175,56,140,61,139,55,174,50"/>
+</map>

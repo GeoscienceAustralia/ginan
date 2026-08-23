@@ -1,0 +1,10 @@
+<map id="mongoReadOrbClk" name="mongoReadOrbClk">
+<area shape="rect" id="Node000001" href="$mongoRead_8cpp.html#a25a89dedbcc39aa56dfb1eff65744154" title="Read orbits and clocks from Mongo DB." alt="" coords="5,80,149,105"/>
+<area shape="rect" id="Node000002" href="$mongoWrite_8cpp.html#aebb57cb730f719eefb3bb81610f2a3e3" title=" " alt="" coords="215,5,277,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,77,203,34,205,39,108,82"/>
+<area shape="rect" id="Node000003" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="199,55,293,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,79,185,74,186,79,150,84"/>
+<area shape="rect" id="Node000004" href="$mongoRead_8cpp.html#a37aadab1fa7529e2344bce109ea42439" title=" " alt="" coords="197,104,295,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="115,103,184,114,183,119,114,108"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="150,91,196,99,195,104,149,97"/>
+</map>

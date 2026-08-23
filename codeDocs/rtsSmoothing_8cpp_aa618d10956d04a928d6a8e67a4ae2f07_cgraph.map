@@ -1,0 +1,15 @@
+<map id="rtsOutput" name="rtsOutput">
+<area shape="rect" id="Node000001" href="$rtsSmoothing_8cpp.html#aa618d10956d04a928d6a8e67a4ae2f07" title="Output filter states in chronological order from a reversed binary trace file." alt="" coords="5,173,88,198"/>
+<area shape="rect" id="Node000002" href="$structRtsConfiguration.html#af892e78631f8a5b75fcb4640162489b8" title="Create configuration from global acsConfig." alt="" coords="151,5,343,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,171,80,116,105,83,134,55,143,49,146,54,138,59,109,87,85,118,56,174"/>
+<area shape="rect" id="Node000003" href="$classRtsOutputFileReader.html#a063ac0da787c6da9c44479a8b785802f" title="Read the next object from reversed file." alt="" coords="169,69,325,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="61,170,93,144,135,119,155,110,157,115,137,124,96,149,64,174"/>
+<area shape="rect" id="Node000007" href="$classRtsOutputProcessor.html#a46cdc37688dba0bbed5ec06823141384" title="Process measurement output." alt="" coords="140,133,355,173"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="88,176,126,170,127,175,88,181"/>
+<area shape="rect" id="Node000008" href="$classRtsOutputProcessor.html#ae4548d884c2c1bfe7820bf7dae25fb26" title="Process smoothed filter output." alt="" coords="136,197,359,237"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="88,189,123,195,122,200,88,194"/>
+<area shape="rect" id="Node000009" href="$classRtsOutputFileReader.html#af8cb3f44b3490816dc1a42f78003c249" title="Check if we&#39;ve reached the beginning of file." alt="" coords="169,261,325,301"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="64,196,96,222,137,247,157,256,155,261,135,252,93,226,61,200"/>
+<area shape="rect" id="Node000010" href="$classRtsOutputFileReader.html#a148aba0ab33433535809b0863242ebe7" title="Check if position is invalid." alt="" coords="169,325,325,365"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="56,197,85,252,109,284,138,311,158,323,155,327,134,315,105,288,80,255,51,199"/>
+</map>

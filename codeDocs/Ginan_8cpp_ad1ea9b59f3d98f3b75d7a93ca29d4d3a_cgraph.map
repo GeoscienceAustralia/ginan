@@ -1,0 +1,23 @@
+<map id="Libraries__" name="Libraries__">
+<area shape="rect" id="Node000001" href="$Ginan_8cpp.html#ad1ea9b59f3d98f3b75d7a93ca29d4d3a" title="3rd&#45;party libraries extend functionality." alt="" coords="5,203,97,228"/>
+<area shape="rect" id="Node000002" href="$Ginan_8cpp.html#afb47959f4aeefc0ec3cc418fe6e35065" title="Linear algebra library." alt="" coords="217,5,289,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="53,202,63,169,80,125,107,79,124,58,144,40,172,25,203,18,204,23,174,30,147,44,128,62,111,82,85,127,68,171,58,203"/>
+<area shape="rect" id="Node000003" href="$Ginan_8cpp.html#acf09caf451ba7132bec24a2c359cf769" title="YAML file&#45;format parser." alt="" coords="204,55,303,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="56,201,88,146,113,115,144,89,166,78,189,71,191,76,168,83,147,94,117,119,92,149,61,204"/>
+<area shape="rect" id="Node000004" href="$Ginan_8cpp.html#a44b52eb6f1cd854c04fae132163eade8" title="C++ Extensions." alt="" coords="217,104,290,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="63,201,97,169,144,138,173,127,203,120,204,125,175,132,147,143,100,173,66,205"/>
+<area shape="rect" id="Node000006" href="$Ginan_8cpp.html#aa0c7dac4f680a00d7bb077372bc71084" title="Analytic reference frame and timing routines." alt="" coords="221,153,286,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="97,200,145,187,207,173,208,178,146,193,98,205"/>
+<area shape="rect" id="Node000007" href="$Ginan_8cpp.html#a14985c4da659775dd661145a40a30e11" title=" " alt="" coords="145,203,361,228"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="97,213,131,213,131,218,97,218"/>
+<area shape="rect" id="Node000008" href="$Ginan_8cpp.html#aa2139f7962c40d9a5d110da4906d54aa" title=" " alt="" coords="205,252,302,277"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="98,225,146,237,191,248,190,253,145,242,97,230"/>
+<area shape="rect" id="Node000009" href="$Ginan_8cpp.html#a589e666f3993f46aa871ce08ef3c10d9" title="C++ MongoDB API." alt="" coords="201,301,306,327"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="67,226,101,257,147,286,188,301,186,306,144,291,98,261,63,230"/>
+<area shape="rect" id="Node000010" href="$Ginan_8cpp.html#ae9bddec85264aa6e825206040b8184e1" title="Automated source code documentation generator." alt="" coords="206,351,301,376"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="61,227,92,280,117,310,147,336,169,347,193,354,192,359,167,352,144,340,113,314,88,283,56,229"/>
+<area shape="rect" id="Node000011" href="$Ginan_8cpp.html#aa2395b269853a0f3e33b384ec1566021" title="GNSS processing toolkit." alt="" coords="213,400,293,425"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="58,227,68,260,85,303,111,348,128,368,147,385,172,399,201,407,199,412,170,404,144,390,124,371,107,351,81,305,63,261,53,229"/>
+<area shape="rect" id="Node000005" href="$algebraTrace_8cpp.html#a26cbe32ecdc0d1af8afc182528de5f31" title="Save complex variables to files." alt="" coords="409,104,544,129"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="290,114,396,114,396,119,290,119"/>
+</map>

@@ -1,0 +1,22 @@
+<map id="Mongo_Database__" name="Mongo_Database__">
+<area shape="poly" id="Node000001" href="$mongo_8cpp.html#ac25d7a53dfa925957f12845afd38f5b0" title="Persistant formatted storage and inter&#45;process communication." alt="" coords="629,60,629,58,596,56,555,56,513,56,480,58,480,60,480,60,480,88,480,88,480,90,513,91,555,91,596,91,629,90,629,88,629,88,629,60,629,60"/>
+<area shape="rect" id="Node000002" href="$Ginan_8cpp.html#a5bdf8cdda721ab07dcd6033a15eeba3c" title="Ginan is a toolkit for processing GNSS measurements to produce precise positioning products." alt="" coords="5,36,80,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="507,53,471,37,431,26,347,12,280,8,214,14,129,26,79,38,78,33,127,20,213,8,280,3,348,6,433,21,473,32,510,48"/>
+<area shape="rect" id="Node000003" href="$Ginan_8cpp.html#a96a83fcedcc9bfe0a6e3eaf944e00fe6" title="Exploratory Data Analysis tool." alt="" coords="324,36,432,61"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="466,64,432,59,433,53,466,58"/>
+<area shape="rect" id="Node000005" href="$mongo_8cpp.html#ae5331ad152c6df38001c3b955c533f8d" title=" " alt="" coords="333,86,423,112"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="466,89,424,95,423,90,466,84"/>
+<area shape="rect" id="Node000008" href="$outputs_8cpp.html#a6cd5e5db4d14fd454e8a75fea48e0a84" title=" " alt="" coords="335,136,421,161"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="501,99,410,138,408,133,499,94"/>
+<area shape="rect" id="Node000004" href="$Ginan_8cpp.html#a41e457d7b9634e671454da85de6ec311" title="Utility scripts and visualisations." alt="" coords="136,36,268,61"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="310,51,268,51,268,46,310,46"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="122,51,80,51,80,46,122,46"/>
+<area shape="rect" id="Node000006" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="15,136,70,161"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="319,105,229,114,129,128,71,143,70,138,127,123,228,108,318,100"/>
+<area shape="rect" id="Node000007" href="$main_8cpp.html#a479f892b35943104163405de9a93be14" title=" " alt="" coords="128,186,276,212"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="335,121,326,127,312,140,303,152,293,165,277,177,254,189,252,184,275,173,289,161,298,149,308,136,322,122,332,116"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="147,185,69,159,71,154,149,180"/>
+<area shape="rect" id="Node000009" href="$Ginan_8cpp.html#a59a8bad8519426f9742fa63079e4a5e9" title="Ginan&#39;s main processing executable." alt="" coords="172,137,232,162"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="321,152,232,152,232,147,321,146"/>
+<area shape="poly" id="edge11_Node000009_Node000002" title=" " alt="" coords="168,132,62,63,65,59,171,127"/>
+</map>

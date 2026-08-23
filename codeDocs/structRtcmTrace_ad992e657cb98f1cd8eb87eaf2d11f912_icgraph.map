@@ -1,0 +1,11 @@
+<map id="RtcmTrace::traceUnknown" name="RtcmTrace::traceUnknown">
+<area shape="rect" id="Node000001" href="$structRtcmTrace.html#ad992e657cb98f1cd8eb87eaf2d11f912" title="Write unknown message to a json file." alt="" coords="501,25,693,51"/>
+<area shape="rect" id="Node000002" href="$structRtcmDecoder.html#a34dfe8bbed06d1cabb0fed2899584dfd" title=" " alt="" coords="5,25,171,51"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="524,25,453,15,336,8,219,15,142,28,141,23,218,10,336,3,454,10,525,20"/>
+<area shape="rect" id="Node000004" href="$structRtcmDecoder.html#a3b7993d7cc20610d8770c2f4d1e902d6" title=" " alt="" coords="229,25,443,51"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="487,41,444,41,444,35,487,35"/>
+<area shape="rect" id="Node000005" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="219,75,453,100"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="516,56,405,77,404,72,515,51"/>
+<area shape="poly" id="edge3_Node000004_Node000002" title=" " alt="" coords="215,41,171,41,171,35,215,35"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="258,75,152,53,153,48,259,69"/>
+</map>

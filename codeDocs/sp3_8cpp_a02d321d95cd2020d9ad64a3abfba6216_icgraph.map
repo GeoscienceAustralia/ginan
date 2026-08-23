@@ -1,0 +1,7 @@
+<map id="readsp3" name="readsp3">
+<area shape="rect" id="Node000001" href="$sp3_8cpp.html#a02d321d95cd2020d9ad64a3abfba6216" title="read an epoch of data from an sp3 precise ephemeris file" alt="" coords="184,31,259,56"/>
+<area shape="rect" id="Node000002" href="$structSp3Parser.html#aced4fed564e773d77fa436e9842e03ee" title=" " alt="" coords="5,5,136,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,37,136,32,137,26,171,32"/>
+<area shape="rect" id="Node000003" href="$sp3_8cpp.html#af6e0e807aea49536081f81fc9c9bb988" title=" " alt="" coords="13,55,128,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,54,128,61,128,56,170,49"/>
+</map>

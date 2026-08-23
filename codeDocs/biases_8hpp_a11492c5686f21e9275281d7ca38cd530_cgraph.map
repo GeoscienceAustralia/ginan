@@ -1,0 +1,25 @@
+<map id="writeBiasSinex" name="writeBiasSinex">
+<area shape="rect" id="Node000001" href="$biasSINEXwrite_8cpp.html#a11492c5686f21e9275281d7ca38cd530" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="5,204,124,229"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="182,5,313,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,203,81,170,102,126,132,80,170,40,177,35,180,39,174,44,136,83,106,129,85,172,73,204"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a72505f23b2252f690f124c2eaf026f91" title=" " alt="" coords="180,55,315,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="71,202,109,148,137,117,170,89,180,83,183,88,174,94,141,120,113,151,76,206"/>
+<area shape="rect" id="Node000004" href="$biasSINEXwrite_8cpp.html#ab94f8678684d9733ffbe150e860a564a" title="Write bias SINEX head for the first time." alt="" coords="172,104,323,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="79,202,119,170,171,138,186,132,188,137,173,143,122,175,82,206"/>
+<area shape="rect" id="Node000010" href="$biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4" title="Update bias SINEX first line." alt="" coords="371,180,493,205"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="124,210,356,195,357,200,124,215"/>
+<area shape="rect" id="Node000007" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="371,317,493,343"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="93,227,215,269,358,312,356,317,213,274,91,232"/>
+<area shape="poly" id="edge13_Node000001_Node000007" title=" " alt="" coords="125,225,264,266,394,310,392,315,262,271,123,231"/>
+<area shape="rect" id="Node000039" href="$biasSINEXwrite_8cpp.html#a12cb4f62e73c021b02dc2f12e2154c04" title="Store bias output to write into bias SINEX files." alt="" coords="178,153,317,179"/>
+<area shape="poly" id="edge6_Node000001_Node000039" title=" " alt="" coords="124,206,209,181,211,186,125,211"/>
+<area shape="poly" id="edge7_Node000001_Node000039" title=" " alt="" coords="88,201,164,177,166,182,90,206"/>
+<area shape="rect" id="Node000072" href="$biasSINEXwrite_8cpp.html#a961567e1b6659842a971db2d3cc759fc" title="Determine if the bias is an OSB or DSB given observation codes." alt="" coords="393,373,471,399"/>
+<area shape="poly" id="edge8_Node000001_Node000072" title=" " alt="" coords="95,227,392,365,389,370,92,232"/>
+<area shape="rect" id="Node000073" href="$biasSINEXwrite_8cpp.html#adcabd7eefaca5c01cf305a80294e57a7" title="print bias SINEX data line" alt="" coords="182,380,313,405"/>
+<area shape="poly" id="edge11_Node000001_Node000073" title=" " alt="" coords="72,228,85,256,106,292,136,331,174,369,170,373,132,335,102,295,80,258,67,231"/>
+<area shape="poly" id="edge14_Node000001_Node000073" title=" " alt="" coords="79,228,116,284,143,317,174,347,196,361,220,372,218,377,194,365,170,351,139,321,112,288,74,231"/>
+<area shape="poly" id="edge4_Node000004_Node000010" title=" " alt="" coords="292,127,324,138,396,171,393,176,322,143,290,132"/>
+<area shape="poly" id="edge5_Node000004_Node000007" title=" " alt="" coords="305,127,324,139,342,163,368,207,420,303,415,306,364,210,338,166,321,143,303,132"/>
+<area shape="poly" id="edge12_Node000073_Node000072" title=" " alt="" coords="313,388,379,385,379,391,313,393"/>
+</map>

@@ -1,0 +1,20 @@
+<map id="decodeGALNav" name="decodeGALNav">
+<area shape="rect" id="Node000001" href="$sbfDecoder_8cpp.html#a88e1500eac34789193114d4874389da0" title=" " alt="" coords="5,153,127,179"/>
+<area shape="rect" id="Node000002" href="$sbfDecoder_8cpp.html#aa25b00b3e9079a63159e0a83bdfba500" title=" " alt="" coords="186,5,273,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,152,113,99,141,68,173,40,180,35,183,40,176,44,145,72,117,102,78,155"/>
+<area shape="rect" id="Node000003" href="$sbfDecoder_8cpp.html#a111e1e2b7e059d98bbf239f6fd191576" title=" " alt="" coords="182,55,277,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,151,173,101,205,85,207,90,176,106,98,156"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="74,151,111,118,168,80,171,85,115,123,77,155"/>
+<area shape="rect" id="Node000004" href="$sbfDecoder_8cpp.html#a22af62b0c9d14e873cb912f827453de4" title=" " alt="" coords="190,104,269,129"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="126,154,193,132,195,137,128,159"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="87,151,176,121,177,127,89,156"/>
+<area shape="rect" id="Node000005" href="$sbfDecoder_8cpp.html#a2b82b7b937004af37e197f6fdad1e5ce" title=" " alt="" coords="175,153,284,179"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="127,172,161,172,161,178,127,177"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="127,155,161,154,161,160,127,160"/>
+<area shape="rect" id="Node000006" href="$common_8cpp.html#a3e64e6b27352f5d683cfbfd28e9bc69a" title="Galileo SISA index to SISA value (m) EUROPEAN GNSS (GALILEO) OPEN SERVICE SIGNAL&#45;IN&#45;SPACE INTERFACE C..." alt="" coords="186,203,273,228"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="89,176,174,204,172,210,87,181"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="128,173,195,195,193,200,126,178"/>
+<area shape="rect" id="Node000007" href="$gTime_8cpp.html#a6ab7d9a372acf84508cf00f0befd6095" title=" " alt="" coords="185,252,273,277"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="78,177,116,209,175,248,172,252,113,214,74,181"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="100,177,176,225,208,242,206,247,173,230,97,181"/>
+</map>

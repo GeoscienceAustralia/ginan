@@ -1,0 +1,8 @@
+<map id="RtsProcessor::initializeFirstEpoch" name="RtsProcessor::initializeFirstEpoch">
+<area shape="rect" id="Node000001" href="$classRtsProcessor.html#a170a5301c8fefd7faa37f193bcd69e8c" title="Initialize first epoch smoothed filter." alt="" coords="5,63,176,103"/>
+<area shape="rect" id="Node000002" href="$structFilterData.html#ae5aea35f91a5751f2153073302e9c69e" title="Initialize smoothed filter from kalman plus state." alt="" coords="224,5,440,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,60,233,46,235,51,176,65"/>
+<area shape="rect" id="Node000003" href="$algebraTrace_8hpp.html#a763d8db4343fa73fa264de91d8cda786" title="Output filter state to a file for later reading." alt="" coords="274,70,390,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,89,260,88,260,94,176,94"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="176,71,260,72,260,77,176,77"/>
+</map>

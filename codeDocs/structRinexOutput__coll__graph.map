@@ -1,0 +1,9 @@
+<map id="RinexOutput" name="RinexOutput">
+<area shape="rect" id="Node000001" href="$structRinexOutput.html" title=" " alt="" coords="15,327,166,423"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,173,77,249"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="55,249,71,302,73,310,68,312,65,303,49,250"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="102,159,282,264"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,266,140,304,133,314,129,311,135,301,159,263"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="160,5,224,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="195,95,195,158,189,158,189,95"/>
+</map>

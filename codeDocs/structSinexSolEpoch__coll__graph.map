@@ -1,0 +1,9 @@
+<map id="SinexSolEpoch" name="SinexSolEpoch">
+<area shape="rect" id="Node000001" href="$structSinexSolEpoch.html" title=" " alt="" coords="36,459,167,535"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,77,287"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="44,287,49,356,56,396,67,434,70,443,65,445,61,436,51,397,44,357,39,287"/>
+<area shape="rect" id="Node000003" href="$structUYds.html" title=" " alt="" coords="101,131,264,367"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,368,135,436,131,445,126,443,129,434,152,366"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,5,263,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="185,95,185,131,180,131,180,95"/>
+</map>

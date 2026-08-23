@@ -1,0 +1,5 @@
+<map id="IERS2010::relativity" name="IERS2010::relativity">
+<area shape="rect" id="Node000001" href="$structIERS2010.html#ac0665555fbdfa4fced99082dc9963d79" title=" " alt="" coords="236,13,387,38"/>
+<area shape="rect" id="Node000002" href="$structOrbitIntegrator.html#a3ed19521cfc21cdaa2d7c8fa4f385499" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,28,188,28,188,23,222,23"/>
+</map>

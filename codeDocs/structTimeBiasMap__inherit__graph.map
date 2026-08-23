@@ -1,0 +1,5 @@
+<map id="TimeBiasMap" name="TimeBiasMap">
+<area shape="rect" id="Node000001" href="$structTimeBiasMap.html" title=" " alt="" coords="45,144,169,220"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,208,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,110,109,144,104,144,104,110"/>
+</map>

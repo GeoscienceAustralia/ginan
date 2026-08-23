@@ -1,0 +1,12 @@
+<map id="addBiasEntry" name="addBiasEntry">
+<area shape="rect" id="Node000001" href="$biasSINEXwrite_8cpp.html#a81a0e7abe30b31f541babeca9dc3a085" title="Adding/updating new bias entry." alt="" coords="5,104,113,129"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="183,5,270,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,102,112,71,160,40,172,34,175,38,163,44,115,76,77,106"/>
+<area shape="rect" id="Node000005" href="$structKFKey.html#a8c157b3a35099c7e28c0ff100e674011" title=" " alt="" coords="176,79,277,104"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="113,106,162,98,163,104,114,111"/>
+<area shape="rect" id="Node000006" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="161,128,292,153"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="114,122,148,127,147,132,113,127"/>
+<area shape="rect" id="Node000007" href="$enumHelpers_8hpp.html#ac318a8058a7c509d1b135f62291446a8" title=" " alt="" coords="175,177,278,203"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="87,127,162,162,181,170,178,175,160,167,85,132"/>
+<area shape="poly" id="edge3_Node000005_Node000005" title=" " alt="" coords="199,80,193,70,196,61,208,54,227,52,249,55,259,64,256,68,247,60,227,57,209,59,200,64,198,70,203,77"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="queryBiasDCB" name="queryBiasDCB">
+<area shape="rect" id="Node000001" href="$ionoModel_8cpp.html#aca87c551691341ecadfe91a86f537d7d" title="Estimate biases from Ionosphere modelling DCBs." alt="" coords="184,5,299,31"/>
+<area shape="rect" id="Node000002" href="$biasSINEXwrite_8cpp.html#abc90614c242788a9f2d72edf553191da" title="Find and combine biases from multiple sources: bias inputs, UC biases and DCB from ionosphere modules..." alt="" coords="5,5,136,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,21,136,21,136,15,170,15"/>
+</map>

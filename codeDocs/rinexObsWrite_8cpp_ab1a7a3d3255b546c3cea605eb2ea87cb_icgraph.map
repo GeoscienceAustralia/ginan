@@ -1,0 +1,8 @@
+<map id="updateRinexObsHeader" name="updateRinexObsHeader">
+<area shape="rect" id="Node000001" href="$rinexObsWrite_8cpp.html#ab1a7a3d3255b546c3cea605eb2ea87cb" title=" " alt="" coords="405,5,581,31"/>
+<area shape="rect" id="Node000002" href="$rinexObsWrite_8cpp.html#ab8afea550a1077377737a6fac0de64d7" title=" " alt="" coords="5,5,145,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="392,21,146,21,146,15,392,15"/>
+<area shape="rect" id="Node000007" href="$rinexObsWrite_8cpp.html#a12572e0f65ef9fa1e2123a7ca7e6e3ec" title=" " alt="" coords="193,31,357,56"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="392,32,358,36,357,31,391,27"/>
+<area shape="poly" id="edge3_Node000007_Node000002" title=" " alt="" coords="179,34,145,30,146,24,180,29"/>
+</map>

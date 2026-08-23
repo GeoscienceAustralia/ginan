@@ -1,0 +1,19 @@
+<map id="QueuedMongo" name="QueuedMongo">
+<area shape="rect" id="Node000001" href="$structQueuedMongo.html" title=" " alt="" coords="380,1361,511,1477"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,1183,165,1259"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,1257,179,1296,274,1348,366,1387,364,1392,271,1353,176,1301,124,1261"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="145,574,221,650"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="177,664,94,1183,89,1182,172,663"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="189,1183,355,1259"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="192,663,259,1118,269,1182,263,1183,253,1119,187,664"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="301,1257,365,1336,376,1348,372,1351,361,1339,297,1261"/>
+<area shape="rect" id="Node000005" href="$structMongoStatesOptions.html" title=" " alt="" coords="379,1143,549,1299"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="452,1299,449,1323,448,1345,443,1345,444,1322,447,1298"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="532,5,604,81"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="605,57,638,76,667,104,677,123,680,144,699,285,708,405,711,511,709,610,695,816,680,1080,683,1143,690,1194,690,1219,687,1244,679,1270,664,1300,636,1334,602,1361,565,1382,527,1398,525,1393,562,1377,599,1357,633,1330,659,1297,674,1268,682,1242,685,1218,684,1195,678,1144,675,1080,690,816,704,610,706,511,703,405,693,286,675,144,672,124,663,107,635,81,603,62"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="533,55,495,66,453,84,413,110,396,127,382,145,346,210,316,271,293,329,276,385,265,439,259,491,257,543,260,595,277,701,305,814,383,1079,402,1127,397,1129,377,1081,300,815,272,702,255,596,252,543,254,491,260,438,271,384,288,327,311,269,341,208,378,143,392,123,410,106,450,79,493,61,531,49"/>
+<area shape="rect" id="Node000007" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="471,144,665,1080"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="571,81,571,128,565,128,565,81"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="614,1080,613,1160,608,1232,598,1293,581,1339,557,1368,527,1389,524,1385,554,1364,576,1336,593,1292,603,1232,608,1160,608,1080"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="490,1081,483,1127,477,1126,485,1080"/>
+</map>

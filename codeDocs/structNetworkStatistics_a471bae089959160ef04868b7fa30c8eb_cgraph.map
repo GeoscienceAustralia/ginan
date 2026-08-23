@@ -1,0 +1,7 @@
+<map id="NetworkStatistics::onConnectedStatistics" name="NetworkStatistics::onConnectedStatistics">
+<area shape="rect" id="Node000001" href="$structNetworkStatistics.html#a471bae089959160ef04868b7fa30c8eb" title=" " alt="" coords="5,23,172,63"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="248,5,323,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,30,234,22,235,27,173,35"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="220,55,351,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,51,207,55,206,60,172,56"/>
+</map>

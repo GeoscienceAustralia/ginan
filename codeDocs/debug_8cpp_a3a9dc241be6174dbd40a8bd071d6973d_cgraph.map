@@ -1,0 +1,10 @@
+<map id="rotationTest" name="rotationTest">
+<area shape="rect" id="Node000001" href="$debug_8cpp.html#a3a9dc241be6174dbd40a8bd071d6973d" title=" " alt="" coords="5,55,104,80"/>
+<area shape="rect" id="Node000002" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="159,5,223,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,52,145,32,147,37,91,57"/>
+<area shape="rect" id="Node000025" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="277,56,408,81"/>
+<area shape="poly" id="edge4_Node000001_Node000025" title=" " alt="" coords="98,77,152,89,191,92,229,89,276,81,277,87,230,94,191,97,152,94,97,83"/>
+<area shape="rect" id="Node000026" href="$coordinates_8cpp.html#ad5579407e3fbc4df3feb1b7d5e910075" title=" " alt="" coords="152,55,229,80"/>
+<area shape="poly" id="edge3_Node000001_Node000026" title=" " alt="" coords="104,65,138,65,138,70,104,70"/>
+<area shape="poly" id="edge2_Node000002_Node000025" title=" " alt="" coords="224,26,292,49,290,54,222,31"/>
+</map>

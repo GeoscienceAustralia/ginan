@@ -1,0 +1,20 @@
+<map id="SinexSatSnx" name="SinexSatSnx">
+<area shape="rect" id="Node000001" href="$structSinexSatSnx.html" title=" " alt="" coords="289,827,405,1023"/>
+<area shape="rect" id="Node000002" href="$structSinexSatIdentity.html" title=" " alt="" coords="5,593,148,669"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,669,94,735,107,770,127,801,159,833,197,860,236,882,275,898,273,903,234,886,194,865,155,837,123,804,103,772,89,736,76,670"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="161,231,233,307"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="197,307,193,406,191,534,196,659,202,711,211,748,224,778,241,806,280,856,276,859,237,809,220,780,206,750,197,712,191,660,186,534,188,406,192,307"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="169,309,132,365,115,398,101,432,90,468,84,507,79,577,73,577,79,506,85,467,95,430,110,395,128,362,165,306"/>
+<area shape="rect" id="Node000005" href="$structSinexSatEcc.html" title=" " alt="" coords="290,593,405,669"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="215,306,328,577,323,579,210,308"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="412,5,504,81"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="459,82,442,492,425,803,415,828,410,826,419,802,436,492,454,82"/>
+<area shape="rect" id="Node000006" href="$structVectorEnu.html" title=" " alt="" coords="480,131,607,407"/>
+<area shape="poly" id="edge8_Node000006_Node000004" title=" " alt="" coords="479,93,493,130,488,131,474,95"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="350,669,350,810,345,810,345,669"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="526,408,512,450,494,491,456,542,412,585,408,581,452,538,489,488,507,448,521,406"/>
+<area shape="rect" id="Node000007" href="$structUYds.html" title=" " alt="" coords="574,513,737,749"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="575,712,419,859,416,855,572,708"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="631,231,791,307"/>
+<area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="706,320,676,514,671,513,701,320"/>
+</map>

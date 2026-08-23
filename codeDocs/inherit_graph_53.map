@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structGeomagMainField.html" title="Structure for variables related to the International Geomagnetic Reference Field 13th Generation Inte..." alt="" coords="5,5,145,31"/>
+<area shape="rect" id="Node000001" href="$structGeomagSecularVariation.html" title="Structure for secular variation (SV) inherited from GeomagMainField." alt="" coords="193,5,376,31"/>
+<area shape="poly" id="edge37_Node000000_Node000001" title=" " alt="" coords="159,15,193,15,193,21,159,21"/>
+</map>

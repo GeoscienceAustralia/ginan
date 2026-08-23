@@ -1,0 +1,5 @@
+<map id="getbitsIncChecked" name="getbitsIncChecked">
+<area shape="rect" id="Node000001" href="$rtcmDecoder_8cpp.html#a0738c2e880660e80260ada873575bd2b" title="Bounds&#45;checked variant of getbitsInc()." alt="" coords="5,5,147,31"/>
+<area shape="rect" id="Node000002" href="$rtcmDecoder_8cpp.html#a1d94c47b5bf399b0e6cbb9d988960947" title="increasingly extract signed bits from byte data" alt="" coords="195,5,281,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,15,181,15,181,21,147,21"/>
+</map>

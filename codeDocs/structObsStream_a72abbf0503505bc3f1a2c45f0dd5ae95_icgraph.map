@@ -1,0 +1,5 @@
+<map id="ObsStream::getObs" name="ObsStream::getObs">
+<area shape="rect" id="Node000001" href="$structObsStream.html#a72abbf0503505bc3f1a2c45f0dd5ae95" title=" " alt="" coords="201,5,349,31"/>
+<area shape="rect" id="Node000002" href="$structObsStream.html#ac2faa7a628907a899366b892d502e4d1" title="Retrieve observations with a specified timestamp from memory where observations are buffered,..." alt="" coords="5,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,21,154,21,154,15,187,15"/>
+</map>

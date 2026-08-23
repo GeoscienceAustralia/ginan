@@ -1,0 +1,7 @@
+<map id="validateStagedObservationsDetailed" name="validateStagedObservationsDetailed">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#af52316058cdd576f2740e3b897daa538" title="Enhanced validation with detailed statistics Single Responsibility: Comprehensive data quality assess..." alt="" coords="5,23,212,63"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#af188719ced79f276444070677b284dd7" title="Advanced validation and conflict resolution for staged observations Single Responsibility: Data quali..." alt="" coords="260,5,465,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,30,246,27,247,32,212,36"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="319,55,406,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,50,306,59,305,65,212,56"/>
+</map>

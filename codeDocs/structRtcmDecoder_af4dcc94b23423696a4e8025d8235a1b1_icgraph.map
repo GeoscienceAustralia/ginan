@@ -1,0 +1,26 @@
+<map id="RtcmDecoder::rtcmTime" name="RtcmDecoder::rtcmTime">
+<area shape="rect" id="Node000001" href="$structRtcmDecoder.html#af4dcc94b23423696a4e8025d8235a1b1" title=" " alt="" coords="936,180,1117,205"/>
+<area shape="rect" id="Node000002" href="$structRtcmDecoder.html#a9793312f3999d7f59d79ca5cbba95797" title="adjust BDT week number according to RTCM time" alt="" coords="691,5,887,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1008,170,959,106,925,73,887,44,862,33,864,28,889,40,929,69,963,103,1012,167"/>
+<area shape="rect" id="Node000003" href="$structRtcmDecoder.html#a424082e15bbf15120f1fc5f0635b01b9" title="decode RTCM navigation messages" alt="" coords="407,104,641,129"/>
+<area shape="poly" id="edge10_Node000001_Node000003" title=" " alt="" coords="927,181,689,145,607,132,607,127,690,139,928,175"/>
+<area shape="rect" id="Node000004" href="$structRtcmDecoder.html#a34dfe8bbed06d1cabb0fed2899584dfd" title=" " alt="" coords="193,256,359,281"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="922,198,690,211,548,226,407,247,342,259,341,253,406,242,547,221,689,206,922,193"/>
+<area shape="rect" id="Node000005" href="$structRtcmParser.html#a6138840942a03f0a06ecb288ab412716" title=" " alt="" coords="5,307,145,332"/>
+<area shape="poly" id="edge15_Node000001_Node000005" title=" " alt="" coords="1005,217,954,259,923,280,889,298,839,318,787,334,681,356,572,367,466,370,366,365,275,357,135,335,136,329,275,351,366,360,466,364,572,362,680,351,786,329,837,313,887,293,920,275,951,254,1001,213"/>
+<area shape="rect" id="Node000006" href="$structRtcmDecoder.html#a9a64ac779c6f793b094aeaab8c917dd1" title="adjust GPS week number according to RTCM time" alt="" coords="689,55,888,80"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1000,173,950,132,887,94,856,83,858,78,889,89,953,128,1003,169"/>
+<area shape="rect" id="Node000007" href="$structRtcmDecoder.html#a3f27b2fcee11a1266301ca9abec7d70d" title="adjust GST week number according to RTCM time" alt="" coords="691,104,887,129"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="972,178,829,132,830,127,974,173"/>
+<area shape="rect" id="Node000008" href="$structRtcmDecoder.html#a794dff6b6cac1bb2f8dfa1b2e5bd6c61" title=" " alt="" coords="425,256,623,281"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="929,210,609,259,608,253,928,205"/>
+<area shape="rect" id="Node000009" href="$structRtcmDecoder.html#adae4ba7ddd9f744631b806a5d550fe39" title="decode RTCM SSR messages" alt="" coords="429,305,619,331"/>
+<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="985,213,889,249,743,284,611,308,611,303,742,279,887,243,984,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="715,37,690,45,613,76,551,106,549,101,611,71,688,39,714,32"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="444,136,408,151,371,176,337,206,290,257,286,254,333,202,367,172,405,146,442,131"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="212,287,127,309,126,304,211,282"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="707,85,594,107,593,101,706,80"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="677,119,642,119,642,114,677,114"/>
+<area shape="poly" id="edge12_Node000008_Node000004" title=" " alt="" coords="412,271,359,271,359,266,412,266"/>
+<area shape="poly" id="edge14_Node000009_Node000004" title=" " alt="" coords="446,305,340,284,341,279,447,300"/>
+</map>

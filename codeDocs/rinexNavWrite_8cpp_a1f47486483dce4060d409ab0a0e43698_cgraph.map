@@ -1,0 +1,16 @@
+<map id="outputNavRinexSTO" name="outputNavRinexSTO">
+<area shape="rect" id="Node000001" href="$rinexNavWrite_8cpp.html#a1f47486483dce4060d409ab0a0e43698" title=" " alt="" coords="5,167,159,192"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="239,5,325,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,165,134,105,167,70,205,40,225,30,227,35,208,44,171,74,138,109,94,168"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="219,55,345,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="96,165,143,128,205,89,220,82,222,87,208,94,146,132,100,169"/>
+<area shape="rect" id="Node000005" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="233,104,331,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="122,164,227,131,228,136,124,169"/>
+<area shape="rect" id="Node000006" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="405,167,528,192"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="159,184,392,184,392,189,159,189"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="159,169,392,169,392,175,159,175"/>
+<area shape="rect" id="Node000007" href="$trace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="207,229,357,255"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="106,190,201,223,200,228,104,195"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="152,190,247,222,245,227,150,195"/>
+<area shape="poly" id="edge4_Node000005_Node000006" title=" " alt="" coords="321,127,416,160,414,165,319,132"/>
+</map>

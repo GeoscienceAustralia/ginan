@@ -1,0 +1,5 @@
+<map id="TideMap" name="TideMap">
+<area shape="rect" id="Node000001" href="$structTideMap.html" title="Map of ocean/atmospheric tide loading displacements." alt="" coords="62,144,154,220"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,211,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,110,111,144,105,144,105,110"/>
+</map>

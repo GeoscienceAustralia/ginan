@@ -1,0 +1,9 @@
+<map id="Config__" name="Config__">
+<area shape="rect" id="Node000001" href="$acsConfig_8cpp.html#ae92af27db5dcd388f3d7ef53d96f1f51" title="YAML based configuration." alt="" coords="5,55,83,80"/>
+<area shape="rect" id="Node000002" href="$acsConfig_8cpp.html#a4ffbdfb38acaf4c2163815381bf3fb89" title="Automatic expansion of configs." alt="" coords="147,5,309,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,53,130,39,160,32,161,37,131,45,84,58"/>
+<area shape="rect" id="Node000003" href="$acsConfig_8cpp.html#a57142261136f5897c47c628a876837a7" title="Some configuration structures are possible to be configured specific for eg a receiver or signal or c..." alt="" coords="131,55,325,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="83,65,117,65,117,70,83,70"/>
+<area shape="rect" id="Node000004" href="$acsConfig_8cpp.html#a46e5e771dfbdcafbb98f322bd67a0bff" title="Each configuration parameter is defined with a default initialisation value which is most sensible fo..." alt="" coords="152,105,304,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="84,77,151,98,150,103,82,82"/>
+</map>

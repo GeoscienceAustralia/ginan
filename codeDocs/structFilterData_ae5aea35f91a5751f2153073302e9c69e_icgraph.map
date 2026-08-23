@@ -1,0 +1,5 @@
+<map id="FilterData::initializeSmoothedFilter" name="FilterData::initializeSmoothedFilter">
+<area shape="rect" id="Node000001" href="$structFilterData.html#ae5aea35f91a5751f2153073302e9c69e" title="Initialize smoothed filter from kalman plus state." alt="" coords="224,5,440,45"/>
+<area shape="rect" id="Node000002" href="$classRtsProcessor.html#a170a5301c8fefd7faa37f193bcd69e8c" title="Initialize first epoch smoothed filter." alt="" coords="5,5,176,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,28,176,28,176,23,210,23"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="TcpSocket::connect" name="TcpSocket::connect">
+<area shape="rect" id="Node000001" href="$structTcpSocket.html#a4c09b381dbd56fa09e6187d833994db6" title=" " alt="" coords="265,55,411,80"/>
+<area shape="rect" id="Node000002" href="$structNtripStream.html#aeb821b2c4050cc16c7ece01651d51724" title=" " alt="" coords="17,5,205,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="265,54,170,33,171,28,266,49"/>
+<area shape="rect" id="Node000003" href="$structNtripUploader.html#a7053ed49ff175076bf8db14933fc3f12" title=" " alt="" coords="5,55,217,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,70,217,70,217,65,252,65"/>
+<area shape="rect" id="Node000004" href="$structSisnetStream.html#abc57467361126d8bcd78831324254ccb" title=" " alt="" coords="9,104,213,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="266,86,171,107,170,101,265,80"/>
+</map>

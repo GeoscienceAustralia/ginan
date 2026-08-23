@@ -1,0 +1,18 @@
+<map id="updateReceiverMetadata" name="updateReceiverMetadata">
+<area shape="rect" id="Node000001" href="$pea__snx_8cpp.html#affc40c65b3a8cb075d4ee551fd1c37d9" title=" " alt="" coords="5,145,192,171"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="249,5,421,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,143,163,94,199,65,239,41,258,33,260,38,241,46,202,70,166,98,114,147"/>
+<area shape="rect" id="Node000022" href="$structReceiverMetadata.html#a8c93d44aefa7a29b22bc9c568267e20a" title=" " alt="" coords="240,55,429,95"/>
+<area shape="poly" id="edge2_Node000001_Node000022" title=" " alt="" coords="134,143,239,105,260,97,262,102,241,110,136,148"/>
+<area shape="rect" id="Node000032" href="$receiverMetadata_8cpp.html#a5a4cab83e1d61d3633fe10a94fc40150" title=" " alt="" coords="249,120,420,145"/>
+<area shape="poly" id="edge3_Node000001_Node000032" title=" " alt="" coords="192,154,271,145,272,150,193,159"/>
+<area shape="poly" id="edge8_Node000001_Node000032" title=" " alt="" coords="148,143,235,132,236,137,149,148"/>
+<area shape="rect" id="Node000033" href="$pea__snx_8cpp.html#a6dab10d7fd6d2416cb603c671cc5bebd" title=" " alt="" coords="252,169,417,195"/>
+<area shape="poly" id="edge4_Node000001_Node000033" title=" " alt="" coords="192,165,239,170,238,175,192,170"/>
+<area shape="rect" id="Node000034" href="$pea__snx_8cpp.html#a62d3a70a61f0c9898aaaf522bf14d359" title=" " alt="" coords="253,219,416,244"/>
+<area shape="poly" id="edge5_Node000001_Node000034" title=" " alt="" coords="136,168,241,203,272,213,270,218,239,209,134,173"/>
+<area shape="rect" id="Node000035" href="$sinex_8cpp.html#ab4839f5d809abfd7161c3bb29b968421" title=" " alt="" coords="289,268,380,293"/>
+<area shape="poly" id="edge6_Node000001_Node000035" title=" " alt="" coords="117,169,170,210,204,233,241,253,277,266,275,271,239,258,202,238,166,214,113,173"/>
+<area shape="rect" id="Node000050" href="$structReceiverMetadata.html#ad12c0b830280f6305236d755a3a336db" title=" " alt="" coords="240,318,429,358"/>
+<area shape="poly" id="edge7_Node000001_Node000050" title=" " alt="" coords="111,169,162,232,199,270,241,302,254,310,252,314,239,307,196,274,158,236,107,173"/>
+</map>

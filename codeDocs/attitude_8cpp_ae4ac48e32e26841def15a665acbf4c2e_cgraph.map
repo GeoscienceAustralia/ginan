@@ -1,0 +1,5 @@
+<map id="satAttModel" name="satAttModel">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#ae4ac48e32e26841def15a665acbf4c2e" title="Recalls satellite nominal/model attitude Returns false if attitude is invalid." alt="" coords="5,5,107,31"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#ad924309859ec29c25c5858fa944d16c5" title="Calculates unit vectors of satellite&#45;fixed coordinates (ECEF) given yaw (assuming Z+ is facing toward..." alt="" coords="155,5,267,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,15,141,15,141,21,107,21"/>
+</map>

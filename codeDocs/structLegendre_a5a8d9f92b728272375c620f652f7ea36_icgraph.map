@@ -1,0 +1,11 @@
+<map id="Legendre::calculate" name="Legendre::calculate">
+<area shape="rect" id="Node000001" href="$structLegendre.html#a5a8d9f92b728272375c620f652f7ea36" title=" " alt="" coords="245,80,395,105"/>
+<area shape="rect" id="Node000002" href="$acceleration_8cpp.html#a47f8bbad94d274d209b01cb9bb8949ef" title="Compute the acceleration of due to a spherical harmonic field acting on the satellite." alt="" coords="60,5,143,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="278,77,196,45,142,29,144,24,198,39,280,72"/>
+<area shape="rect" id="Node000005" href="$geomagField_8cpp.html#a1a9089a9e8fb29db7da8a88c9abcf491" title="Compute the geomagnetic field components in geocentric local reference system at given time and posit..." alt="" coords="24,55,179,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="231,85,179,79,179,74,232,80"/>
+<area shape="rect" id="Node000014" href="$ionoSpherical_8cpp.html#aeb48df0b01dbc59042702f65f0c33275" title="Evaluates spherical harmonics basis functions int ind I obs I Ionosphere measurement struct latIPP &#45; ..." alt="" coords="43,104,160,129"/>
+<area shape="poly" id="edge3_Node000001_Node000014" title=" " alt="" coords="232,105,160,113,160,108,231,100"/>
+<area shape="rect" id="Node000028" href="$structIERS2010.html#ac058313fbc47a8f3ca8fc7739f34a546" title="Implementation of the first part of the solidEarth tides (Eq 6.6 and 6.7 IERS2010)" alt="" coords="5,153,197,179"/>
+<area shape="poly" id="edge4_Node000001_Node000028" title=" " alt="" coords="277,113,198,143,155,156,154,151,196,138,275,108"/>
+</map>

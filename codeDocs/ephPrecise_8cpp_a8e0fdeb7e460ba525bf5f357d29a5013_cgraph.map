@@ -1,0 +1,13 @@
+<map id="satPosPrecise" name="satPosPrecise">
+<area shape="rect" id="Node000001" href="$ephPrecise_8cpp.html#a8e0fdeb7e460ba525bf5f357d29a5013" title="Satellite position/clock by precise ephemeris/clock." alt="" coords="5,29,117,55"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="291,55,421,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,36,178,36,243,39,296,49,296,54,242,45,178,41,118,42"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="313,5,399,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="117,35,299,20,299,25,118,40"/>
+<area shape="rect" id="Node000006" href="$ephPrecise_8cpp.html#a104000a7ff779640478d859f1e187ec9" title="satellite position by precise ephemeris" alt="" coords="165,55,243,80"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="92,52,152,64,151,69,91,57"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="118,41,161,49,160,54,117,46"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="243,65,277,65,277,70,243,70"/>
+<area shape="poly" id="edge4_Node000006_Node000003" title=" " alt="" coords="242,60,322,34,323,39,244,65"/>
+<area shape="poly" id="edge5_Node000006_Node000003" title=" " alt="" coords="224,52,299,25,301,30,226,57"/>
+</map>

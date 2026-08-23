@@ -1,0 +1,16 @@
+<map id="updateOrbexBody" name="updateOrbexBody">
+<area shape="rect" id="Node000001" href="$orbexWrite_8cpp.html#ace464608ffc3c7d40431a978297d3892" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="5,104,144,129"/>
+<area shape="rect" id="Node000002" href="$orbexWrite_8cpp.html#a68acb232854e3173995f4c0441d7de70" title="Write ORBEX header lines and header blocks including FILE/DESCRIPTION and SATELLITE/ID_AND_DESCRIPTIO..." alt="" coords="192,5,333,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,102,135,71,191,40,206,33,208,38,193,44,138,76,94,106"/>
+<area shape="rect" id="Node000006" href="$orbexWrite_8cpp.html#a4711d5bed6795479aecdbf187dcbbbd8" title="Write PCS or VCS records." alt="" coords="218,55,307,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="144,105,223,82,224,87,145,110"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="99,101,204,72,205,77,101,106"/>
+<area shape="rect" id="Node000010" href="$orbexWrite_8cpp.html#a2192926bbdfacee35625b7621dca8d44" title="Write POS or VEL records." alt="" coords="227,104,299,129"/>
+<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="144,123,213,122,213,127,145,128"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="145,105,213,106,213,111,144,111"/>
+<area shape="rect" id="Node000011" href="$orbexWrite_8cpp.html#a8ea221116f5422e1042c3223d4c416f7" title="Write CLK or CRT records." alt="" coords="225,153,301,179"/>
+<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="101,127,212,158,211,163,100,132"/>
+<area shape="poly" id="edge7_Node000001_Node000011" title=" " alt="" coords="145,124,224,146,223,151,144,129"/>
+<area shape="rect" id="Node000012" href="$orbexWrite_8cpp.html#aacc1c61d2e5ca75ed10d4c48e31481f2" title="Write ATT records." alt="" coords="225,203,300,228"/>
+<area shape="poly" id="edge8_Node000001_Node000012" title=" " alt="" coords="95,127,139,157,193,188,214,197,212,201,191,192,136,161,92,132"/>
+</map>

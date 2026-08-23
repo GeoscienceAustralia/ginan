@@ -1,0 +1,8 @@
+<map id="KFState::initFilterEpoch" name="KFState::initFilterEpoch">
+<area shape="rect" id="Node000001" href="$structKFState.html#a1ad6c6d147c0a3d7cc8a6c4f1eca3de2" title="Clears and initialises the state transition matrix to identity at the beginning of an epoch." alt="" coords="5,55,179,80"/>
+<area shape="rect" id="Node000002" href="$structKFState.html#a2a21ab8300f2940c03ef6f6cc4273f03" title="Returns the standard deviation of a state within the kalman filter object." alt="" coords="229,5,388,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,52,238,31,240,36,149,57"/>
+<area shape="rect" id="Node000003" href="$structKFState.html#a043f0e3fd99610dfad8e650a1514c395" title="Remove a state from a kalman filter object." alt="" coords="227,55,391,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,74,213,74,213,79,179,79"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="179,56,213,56,213,61,179,61"/>
+</map>

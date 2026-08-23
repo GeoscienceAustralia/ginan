@@ -1,0 +1,5 @@
+<map id="cullEphMap" name="cullEphMap">
+<area shape="rect" id="Node000001" href="$ephemeris_8cpp.html#a54c09f3ed2a61e7f23caae21c73a0e8e" title=" " alt="" coords="5,5,103,31"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aa31d14f6b8c2100c085c732b9a3fef3f" title="Constructs a SatSys object from it&#39;s hash uid." alt="" coords="151,5,289,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,15,137,15,137,21,103,21"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="SatSys::sysName" name="SatSys::sysName">
+<area shape="rect" id="Node000001" href="$structSatSys.html#a099c890a6a613ec08f3260a51f0544f8" title=" " alt="" coords="377,55,512,80"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#a774458b36a7a13e1263568e05106dc83" title="Decode RINEX observation file header." alt="" coords="193,5,297,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="379,54,296,33,298,28,380,49"/>
+<area shape="rect" id="Node000006" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="160,55,329,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="364,70,330,70,330,65,364,65"/>
+<area shape="rect" id="Node000044" href="$ppp__ambres_8cpp.html#a020b06329797411a2dc7746aadd19361" title=" " alt="" coords="5,80,112,105"/>
+<area shape="poly" id="edge4_Node000001_Node000044" title=" " alt="" coords="381,86,330,94,213,100,112,98,112,93,213,95,329,89,380,80"/>
+<area shape="poly" id="edge3_Node000006_Node000044" title=" " alt="" coords="147,83,112,88,112,83,146,78"/>
+</map>

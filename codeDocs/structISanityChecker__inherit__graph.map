@@ -1,0 +1,15 @@
+<map id="ISanityChecker" name="ISanityChecker">
+<area shape="rect" id="Node000001" href="$structISanityChecker.html" title=" " alt="" coords="626,5,794,121"/>
+<area shape="rect" id="Node000002" href="$structEphemerisTimeDelayChecker.html" title=" " alt="" coords="5,177,233,273"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="613,84,440,119,342,144,245,172,225,179,223,174,244,167,341,138,439,114,612,79"/>
+<area shape="rect" id="Node000003" href="$structEpochToleranceChecker.html" title=" " alt="" coords="257,177,445,273"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="615,105,458,172,442,179,440,174,456,167,612,100"/>
+<area shape="rect" id="Node000004" href="$structIonosphericFreeComboChecker.html" title=" " alt="" coords="469,177,705,273"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="660,134,626,178,622,175,656,131"/>
+<area shape="rect" id="Node000005" href="$structIonosphericOutageChecker.html" title=" " alt="" coords="729,177,939,273"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="765,131,799,175,795,178,761,134"/>
+<area shape="rect" id="Node000006" href="$structRequiredSiteEccentricityChecker.html" title=" " alt="" coords="963,169,1158,280"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="808,103,952,167,964,172,962,177,950,172,805,108"/>
+<area shape="rect" id="Node000007" href="$structSbasSanityChecker.html" title=" " alt="" coords="1182,177,1342,273"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="808,75,980,109,1077,135,1171,167,1187,174,1185,179,1169,172,1075,140,979,114,807,81"/>
+</map>

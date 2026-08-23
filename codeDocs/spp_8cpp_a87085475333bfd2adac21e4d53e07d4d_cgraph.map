@@ -1,0 +1,17 @@
+<map id="raim" name="raim">
+<area shape="rect" id="Node000001" href="$spp_8cpp.html#a87085475333bfd2adac21e4d53e07d4d" title="Receiver autonomous integrity monitoring (RAIM) failure detection and exclution Note: This is a simpl..." alt="" coords="5,100,57,125"/>
+<area shape="rect" id="Node000002" href="$spp_8cpp.html#ac5bb0b6858cf5e82640190e048f29ccd" title="Estimate receiver position and clock biases using pseudorange measurements." alt="" coords="116,5,181,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="45,98,104,48,118,37,121,41,107,52,49,102"/>
+<area shape="rect" id="Node000025" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="240,9,371,35"/>
+<area shape="poly" id="edge9_Node000001_Node000025" title=" " alt="" coords="40,124,66,154,85,168,106,178,151,191,169,189,191,178,204,166,211,154,216,124,220,93,226,76,238,60,255,47,274,38,277,43,258,52,242,64,231,79,225,94,221,125,216,155,208,170,193,183,171,194,150,196,104,183,82,173,63,158,36,127"/>
+<area shape="poly" id="edge10_Node000001_Node000025" title=" " alt="" coords="57,124,80,141,106,154,151,167,169,165,191,154,203,143,210,132,216,105,219,75,224,60,232,44,237,47,229,62,225,76,221,106,215,134,207,147,193,159,171,170,150,172,104,159,77,145,54,128"/>
+<area shape="rect" id="Node000015" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="244,61,367,87"/>
+<area shape="poly" id="edge6_Node000001_Node000015" title=" " alt="" coords="57,112,147,103,248,87,249,92,148,108,58,117"/>
+<area shape="poly" id="edge8_Node000001_Node000015" title=" " alt="" coords="57,101,137,86,230,74,231,79,137,92,58,106"/>
+<area shape="rect" id="Node000026" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="105,131,192,156"/>
+<area shape="poly" id="edge7_Node000001_Node000026" title=" " alt="" coords="58,117,93,126,91,131,57,122"/>
+<area shape="poly" id="edge2_Node000002_Node000025" title=" " alt="" coords="182,24,226,26,226,32,181,29"/>
+<area shape="poly" id="edge5_Node000002_Node000025" title=" " alt="" coords="182,9,226,8,226,14,182,14"/>
+<area shape="poly" id="edge3_Node000002_Node000015" title=" " alt="" coords="169,28,233,54,231,59,167,33"/>
+<area shape="poly" id="edge4_Node000002_Node000015" title=" " alt="" coords="182,20,274,53,272,58,181,25"/>
+</map>

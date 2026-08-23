@@ -1,0 +1,12 @@
+<map id="traceSlipEvent" name="traceSlipEvent">
+<area shape="rect" id="Node000001" href="$acsQC_8cpp.html#afd9ec7a4153d748793157c232bd747ef" title="Emit one structured cycle&#45;slip diagnostic trace line." alt="" coords="5,104,121,129"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="183,5,314,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,102,117,71,168,40,183,33,185,38,171,44,120,75,81,106"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="205,55,292,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="111,101,191,80,193,85,112,107"/>
+<area shape="rect" id="Node000006" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="187,104,310,129"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="121,122,173,123,173,128,121,128"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="121,106,173,105,173,110,121,111"/>
+<area shape="rect" id="Node000007" href="$enumHelpers_8hpp.html#ab540f0f655c64599f8dc748608c7918a" title=" " alt="" coords="169,153,328,179"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="112,127,187,147,186,152,111,132"/>
+</map>

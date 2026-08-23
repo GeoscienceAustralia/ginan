@@ -1,0 +1,8 @@
+<map id="StaticField::read" name="StaticField::read">
+<area shape="rect" id="Node000001" href="$structStaticField.html#a66e48a3b4553fa4d86a723fd2e9d9fc2" title="Read the static gravity field." alt="" coords="5,5,132,31"/>
+<area shape="rect" id="Node000002" href="$sinex_8cpp.html#af38af2220a8fa8cb8d1b8a1a6b7b8b13" title=" " alt="" coords="224,5,303,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,24,210,23,210,29,132,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="132,7,210,7,210,13,132,12"/>
+<area shape="rect" id="Node000003" href="$structStaticField.html#adbfcc206331113c00b9c61e5a01aa389" title=" " alt="" coords="180,55,347,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="120,28,200,49,198,54,119,33"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="SinexSatPrn" name="SinexSatPrn">
+<area shape="rect" id="Node000001" href="$structSinexSatPrn.html" title=" " alt="" coords="46,459,159,535"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,77,287"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="42,287,44,357,50,396,61,434,66,444,61,446,56,436,45,397,39,357,37,287"/>
+<area shape="rect" id="Node000003" href="$structUYds.html" title=" " alt="" coords="101,131,264,367"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,368,138,436,135,445,130,442,134,434,155,366"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,5,263,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="185,95,185,131,180,131,180,95"/>
+</map>

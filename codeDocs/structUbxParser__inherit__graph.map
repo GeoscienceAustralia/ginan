@@ -1,0 +1,13 @@
+<map id="UbxParser" name="UbxParser">
+<area shape="rect" id="Node000001" href="$structUbxParser.html" title=" " alt="" coords="184,613,315,709"/>
+<area shape="rect" id="Node000002" href="$structParser.html" title=" " alt="" coords="5,339,136,455"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,467,121,516,150,564,193,611,189,615,146,567,116,519,93,469"/>
+<area shape="rect" id="Node000003" href="$structUbxDecoder.html" title=" " alt="" coords="160,229,339,565"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,579,252,613,247,613,247,579"/>
+<area shape="rect" id="Node000004" href="$structObsLister.html" title=" " alt="" coords="97,55,215,131"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="174,144,200,228,195,230,169,145"/>
+<area shape="rect" id="Node000005" href="$structIcdDecoder.html" title=" " alt="" coords="239,5,443,181"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="313,195,303,230,298,228,308,194"/>
+<area shape="rect" id="Node000006" href="$structPacketStatistics.html" title=" " alt="" coords="363,249,557,545"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="360,558,353,567,306,615,302,611,349,564,356,555"/>
+</map>

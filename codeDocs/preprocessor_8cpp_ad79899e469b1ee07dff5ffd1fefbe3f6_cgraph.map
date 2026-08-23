@@ -1,0 +1,9 @@
+<map id="determineExpectedSignals" name="determineExpectedSignals">
+<area shape="rect" id="Node000001" href="$preprocessor_8cpp.html#ad79899e469b1ee07dff5ffd1fefbe3f6" title=" " alt="" coords="5,55,201,80"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#a01de9e9cee76346f43550516bba9558e" title=" " alt="" coords="291,5,430,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,52,280,31,281,36,171,57"/>
+<area shape="rect" id="Node000003" href="$enumHelpers_8hpp.html#a44fa1c1ae04a09f90dbf28307f11cca2" title=" " alt="" coords="299,55,422,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,65,286,65,286,70,202,70"/>
+<area shape="rect" id="Node000004" href="$constants_8cpp.html#adbb00db30ced63e8a03c0a0df2b07e10" title=" " alt="" coords="249,104,472,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="171,77,281,99,280,104,170,83"/>
+</map>

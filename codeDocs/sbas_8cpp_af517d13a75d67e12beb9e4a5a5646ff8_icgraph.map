@@ -1,0 +1,5 @@
+<map id="writeEMSline" name="writeEMSline">
+<area shape="rect" id="Node000001" href="$sbas_8cpp.html#af517d13a75d67e12beb9e4a5a5646ff8" title=" " alt="" coords="165,5,272,31"/>
+<area shape="rect" id="Node000002" href="$sbas_8cpp.html#a6f4229224f8d8f8b8cf050533b992fcc" title="Write received SBAS messages into EMS files." alt="" coords="5,5,117,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,21,118,21,118,15,151,15"/>
+</map>

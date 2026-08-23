@@ -1,0 +1,9 @@
+<map id="SatelliteKalmans::operator+=" name="SatelliteKalmans::operator+=">
+<area shape="rect" id="Node000001" href="$structSatelliteKalmans.html#a8adc701abec0eddc0f880e68de73748a" title=" " alt="" coords="5,55,224,80"/>
+<area shape="rect" id="Node000002" href="$structCommonKalmans.html#aa1e2dd643d681f15a81f6aa9b6f54729" title=" " alt="" coords="272,5,495,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,52,299,31,300,36,185,57"/>
+<area shape="rect" id="Node000003" href="$structInertialKalmans.html#a9ea06820e17d1a9e34e89db50541e450" title=" " alt="" coords="278,55,489,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="224,65,264,65,264,70,224,70"/>
+<area shape="rect" id="Node000004" href="$structEmpKalmans.html#a6bc3c2f411592e3e8a0257eae3b56913" title=" " alt="" coords="287,104,480,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="185,77,300,99,299,104,184,83"/>
+</map>

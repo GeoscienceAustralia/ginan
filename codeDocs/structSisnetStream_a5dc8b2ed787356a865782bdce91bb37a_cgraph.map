@@ -1,0 +1,11 @@
+<map id="SisnetStream::sisnetStartHandler" name="SisnetStream::sisnetStartHandler">
+<area shape="rect" id="Node000001" href="$structSisnetStream.html#a5dc8b2ed787356a865782bdce91bb37a" title=" " alt="" coords="5,17,192,57"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html#ae4050e3ed6adf0dbe575ca992234f798" title=" " alt="" coords="507,24,721,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,15,240,9,349,3,459,9,537,19,536,25,458,14,349,8,240,14,193,21"/>
+<area shape="rect" id="Node000008" href="$structTcpSocket.html#af0d4224df8c4ae9c3ca8227bfd10a701" title=" " alt="" coords="251,24,447,50"/>
+<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="192,34,237,34,237,40,192,40"/>
+<area shape="rect" id="Node000010" href="$structSisnetStream.html#aa33b178bbc2570400475425ba059bb4d" title=" " alt="" coords="240,74,459,114"/>
+<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="187,54,249,69,248,74,186,60"/>
+<area shape="poly" id="edge3_Node000008_Node000002" title=" " alt="" coords="447,34,493,34,493,40,447,40"/>
+<area shape="poly" id="edge5_Node000010_Node000002" title=" " alt="" coords="442,72,541,50,542,55,443,77"/>
+</map>

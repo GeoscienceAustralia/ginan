@@ -1,0 +1,16 @@
+<map id="RtcmTrace::traceSsrEph" name="RtcmTrace::traceSsrEph">
+<area shape="rect" id="Node000001" href="$structRtcmTrace.html#ab77b0368e1844bb77eb8a91845c35673" title=" " alt="" coords="5,153,180,179"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="294,5,369,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,151,151,97,187,66,227,40,253,29,280,22,281,27,255,34,229,44,190,70,155,101,106,155"/>
+<area shape="rect" id="Node000003" href="$enums_8h.html#a086e24a48120638b582c9b860c16f0eb" title=" " alt="" coords="228,55,435,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,151,163,120,227,89,250,81,252,86,229,94,165,125,115,155"/>
+<area shape="rect" id="Node000004" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="270,104,393,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,151,256,129,257,135,155,156"/>
+<area shape="rect" id="Node000005" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="266,153,397,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="180,172,252,172,252,177,180,177"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="180,155,252,155,252,160,180,160"/>
+<area shape="rect" id="Node000006" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="288,203,375,228"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="155,176,275,201,274,206,154,181"/>
+<area shape="rect" id="Node000009" href="$structRtcmTrace.html#a083ba50f6c01409415118a4c7aa7655e" title=" " alt="" coords="267,252,396,277"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="115,177,166,207,229,237,255,246,254,251,227,242,163,211,112,181"/>
+</map>

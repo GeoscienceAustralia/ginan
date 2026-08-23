@@ -1,0 +1,9 @@
+<map id="parseAntennas" name="parseAntennas">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#a5e3a7a1bcb37db6719fb334e5ec345af" title=" " alt="" coords="5,31,124,56"/>
+<area shape="rect" id="Node000002" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="197,5,246,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,40,183,29,184,35,125,45"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="97,28,183,14,184,19,98,33"/>
+<area shape="rect" id="Node000003" href="$sinex_8cpp.html#a5ed46782b3a26cc6d0a1a30e650be386" title=" " alt="" coords="172,55,271,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="100,53,159,64,158,69,99,59"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="125,41,174,49,173,54,124,46"/>
+</map>

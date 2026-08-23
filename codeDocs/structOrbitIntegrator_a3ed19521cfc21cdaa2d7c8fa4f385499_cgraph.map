@@ -1,0 +1,63 @@
+<map id="OrbitIntegrator::computeAcceleration" name="OrbitIntegrator::computeAcceleration">
+<area shape="rect" id="Node000001" href="$structOrbitIntegrator.html#a3ed19521cfc21cdaa2d7c8fa4f385499" title=" " alt="" coords="5,471,188,511"/>
+<area shape="rect" id="Node000002" href="$trace_8hpp.html#a7dbfcdc15f22bcbbfb3f1111539580af" title=" " alt="" coords="294,5,394,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,471,100,393,107,339,119,280,136,218,160,156,193,99,234,48,255,33,279,24,281,28,258,38,238,52,197,102,165,159,141,220,124,281,112,340,105,394,101,471"/>
+<area shape="rect" id="Node000009" href="$acceleration_8cpp.html#a4b560ff1ca9df0d6b36daf2674ae37d3" title="Central force acceleration." alt="" coords="500,107,639,132"/>
+<area shape="poly" id="edge2_Node000001_Node000009" title=" " alt="" coords="95,471,99,396,105,346,116,291,134,235,158,180,191,132,234,92,270,73,309,62,350,59,391,61,468,77,529,99,527,104,466,82,390,66,350,64,310,67,272,78,238,96,195,135,163,183,139,236,121,292,110,346,104,397,100,471"/>
+<area shape="rect" id="Node000010" href="$acceleration_8cpp.html#aabb45560abe7b7e087899dca129ea165" title="Source point acceleration from a planet acting on a satellite." alt="" coords="277,107,411,132"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="97,471,106,407,128,317,146,269,169,222,198,179,234,141,263,125,265,130,238,145,203,182,174,225,151,271,134,319,111,408,102,471"/>
+<area shape="rect" id="Node000011" href="$acceleration_8cpp.html#a47f8bbad94d274d209b01cb9bb8949ef" title="Compute the acceleration of due to a spherical harmonic field acting on the satellite." alt="" coords="303,156,385,181"/>
+<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="100,471,113,417,137,344,155,305,177,268,203,233,234,203,260,188,289,180,290,185,262,193,238,207,207,236,181,271,160,308,142,346,118,418,105,472"/>
+<area shape="poly" id="edge9_Node000001_Node000011" title=" " alt="" coords="98,471,109,412,133,333,151,290,174,249,201,211,234,179,260,164,288,157,289,163,262,169,238,183,205,215,178,252,156,293,138,334,114,413,103,472"/>
+<area shape="rect" id="Node000012" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="545,231,594,256"/>
+<area shape="poly" id="edge18_Node000001_Node000012" title=" " alt="" coords="150,469,235,426,296,404,345,392,393,378,451,350,508,308,551,265,555,269,512,313,453,355,395,383,346,397,297,409,237,431,152,474"/>
+<area shape="poly" id="edge23_Node000001_Node000012" title=" " alt="" coords="116,469,169,436,235,402,296,380,345,368,393,354,451,326,496,295,534,263,538,268,499,300,453,331,395,359,346,373,297,385,237,407,172,440,119,474"/>
+<area shape="rect" id="Node000014" href="$acceleration_8cpp.html#a58ec4e57210d82626bf5605188a92a22" title="&quot;The indirect J2 effect&quot;." alt="" coords="310,205,378,231"/>
+<area shape="poly" id="edge10_Node000001_Node000014" title=" " alt="" coords="101,470,116,423,142,360,181,295,206,265,234,240,264,225,296,217,297,223,266,230,238,244,210,269,185,298,147,362,121,424,106,472"/>
+<area shape="rect" id="Node000015" href="$structIERS2010.html#ac0665555fbdfa4fced99082dc9963d79" title=" " alt="" coords="269,255,419,280"/>
+<area shape="poly" id="edge13_Node000001_Node000015" title=" " alt="" coords="107,470,125,433,153,387,190,341,235,301,261,288,288,280,290,285,263,293,237,306,193,344,158,390,130,436,111,472"/>
+<area shape="poly" id="edge16_Node000001_Node000015" title=" " alt="" coords="101,470,118,429,146,376,185,322,208,298,235,277,255,267,257,271,237,282,212,302,189,325,151,379,123,431,106,472"/>
+<area shape="rect" id="Node000016" href="$attitude_8cpp.html#a543fde2ca3f11becceecfce52de34cd8" title="Calculates fraction of Sun&#39;s disk visible by spacecraft 0 = full eclipse (umbra) 0 &lt; fraction &lt; 1 = p..." alt="" coords="293,304,395,329"/>
+<area shape="poly" id="edge17_Node000001_Node000016" title=" " alt="" coords="117,469,166,414,199,384,235,358,270,342,305,331,307,336,272,347,237,363,202,389,170,418,121,473"/>
+<area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="105,470,126,439,156,403,193,366,235,334,278,316,280,321,237,339,196,370,159,406,130,442,110,473"/>
+<area shape="rect" id="Node000018" href="$algebra__old_8cpp.html#abaa5d4a31df361116a9b2be552624cf9" title=" " alt="" coords="316,429,372,455"/>
+<area shape="poly" id="edge19_Node000001_Node000018" title=" " alt="" coords="188,471,302,448,303,453,189,476"/>
+<area shape="rect" id="Node000020" href="$attitude_8cpp.html#a0584e56d2ad0d93d89079e841a6dba28" title="Update sat nominal/model yaws." alt="" coords="287,479,401,504"/>
+<area shape="poly" id="edge20_Node000001_Node000020" title=" " alt="" coords="188,497,273,497,273,502,188,503"/>
+<area shape="poly" id="edge24_Node000001_Node000020" title=" " alt="" coords="188,480,273,480,273,486,188,485"/>
+<area shape="rect" id="Node000109" href="$boxwing_8cpp.html#a0f2ed5ce271eca9d462328ef96a20804" title=" " alt="" coords="277,528,411,553"/>
+<area shape="poly" id="edge21_Node000001_Node000109" title=" " alt="" coords="189,507,267,523,266,528,188,512"/>
+<area shape="rect" id="Node000112" href="$boxwing_8cpp.html#a004235dcf1fb99c3adeb2be5839dc22a" title=" " alt="" coords="265,577,423,603"/>
+<area shape="poly" id="edge25_Node000001_Node000112" title=" " alt="" coords="132,509,180,537,237,562,265,571,264,576,235,567,178,541,129,514"/>
+<area shape="rect" id="Node000113" href="$structSpaceWeather.html#a75af64defa3378682153d5b0f73df63d" title=" " alt="" coords="236,627,452,652"/>
+<area shape="poly" id="edge26_Node000001_Node000113" title=" " alt="" coords="117,510,167,561,201,589,237,612,256,620,254,625,235,616,198,593,164,565,113,514"/>
+<area shape="rect" id="Node000114" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="520,825,619,851"/>
+<area shape="poly" id="edge27_Node000001_Node000114" title=" " alt="" coords="111,510,130,544,158,585,195,626,237,661,267,676,293,684,343,688,394,691,423,699,453,713,485,735,513,762,554,812,550,816,509,765,481,739,451,718,421,704,393,696,343,693,292,689,265,681,235,666,191,630,154,588,126,546,106,513"/>
+<area shape="rect" id="Node000115" href="$utils_8cpp.html#ae91d83cf693cdc7e1efacbe4d8d9656e" title=" " alt="" coords="303,728,385,753"/>
+<area shape="poly" id="edge28_Node000001_Node000115" title=" " alt="" coords="108,510,125,552,153,605,190,660,213,685,238,706,263,721,291,730,289,735,261,726,234,711,209,689,186,663,148,608,120,554,103,513"/>
+<area shape="rect" id="Node000116" href="$structVectorPos.html#a9517f77c95322d34dc896a88db4a804f" title=" " alt="" coords="287,777,401,803"/>
+<area shape="poly" id="edge29_Node000001_Node000116" title=" " alt="" coords="105,511,118,562,144,631,161,667,183,702,208,735,238,763,255,773,274,780,272,785,252,778,234,767,204,738,178,705,157,670,139,633,113,564,99,512"/>
+<area shape="rect" id="Node000117" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="275,827,413,852"/>
+<area shape="poly" id="edge30_Node000001_Node000117" title=" " alt="" coords="103,511,114,571,137,653,155,696,177,739,205,778,238,812,263,827,261,831,234,816,200,782,173,742,150,698,132,654,109,572,98,512"/>
+<area shape="rect" id="Node000118" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="274,876,414,901"/>
+<area shape="poly" id="edge31_Node000001_Node000118" title=" " alt="" coords="102,511,110,579,131,674,148,725,171,775,201,821,238,861,262,876,260,881,234,865,197,825,167,778,143,727,126,675,104,580,96,512"/>
+<area shape="rect" id="Node000119" href="$gTime_8cpp.html#a282534ac1ef65d4844290ce80bf76fed" title=" " alt="" coords="295,925,393,951"/>
+<area shape="poly" id="edge32_Node000001_Node000119" title=" " alt="" coords="101,511,106,587,113,638,125,695,142,754,166,811,197,864,238,911,258,924,282,932,280,937,256,929,234,915,193,868,161,813,137,755,119,696,108,639,101,587,95,512"/>
+<area shape="rect" id="Node000120" href="$gTime_8cpp.html#a37bc65d232e726cdbc51122a8a8ec00e" title=" " alt="" coords="303,975,385,1000"/>
+<area shape="poly" id="edge33_Node000001_Node000120" title=" " alt="" coords="100,511,102,595,107,653,118,717,135,783,159,848,193,909,238,961,262,976,290,984,288,989,260,981,234,965,189,912,155,850,130,785,113,718,102,653,97,595,95,512"/>
+<area shape="rect" id="Node000023" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="301,1024,387,1049"/>
+<area shape="poly" id="edge35_Node000001_Node000023" title=" " alt="" coords="103,511,118,619,146,774,165,853,187,925,211,984,238,1023,261,1037,287,1044,286,1049,259,1042,234,1027,206,987,182,927,160,854,141,775,112,620,97,512"/>
+<area shape="poly" id="edge36_Node000001_Node000023" title=" " alt="" coords="104,512,120,614,148,762,167,837,188,906,212,962,238,999,261,1013,288,1022,286,1027,259,1018,234,1003,207,964,183,907,162,838,143,763,115,615,99,512"/>
+<area shape="rect" id="Node000123" href="$coordinates_8cpp.html#a9860e0cea74eb4ca1383342104693565" title="transform vector in body frame to ecef" alt="" coords="299,1073,389,1099"/>
+<area shape="poly" id="edge37_Node000001_Node000123" title=" " alt="" coords="102,511,116,627,143,797,161,884,184,964,209,1029,223,1054,238,1072,260,1086,286,1093,285,1099,258,1091,234,1076,219,1057,204,1031,179,966,156,886,138,798,110,628,97,512"/>
+<area shape="poly" id="edge38_Node000001_Node000123" title=" " alt="" coords="103,511,118,623,145,785,163,868,185,945,210,1007,224,1030,238,1048,260,1063,286,1071,284,1076,258,1067,234,1052,219,1033,205,1009,180,946,158,870,140,786,112,624,98,512"/>
+<area shape="poly" id="edge4_Node000010_Node000009" title=" " alt="" coords="411,125,486,125,486,131,411,130"/>
+<area shape="poly" id="edge5_Node000010_Node000009" title=" " alt="" coords="411,108,486,108,486,113,411,114"/>
+<area shape="poly" id="edge7_Node000011_Node000012" title=" " alt="" coords="368,179,453,202,532,233,531,238,451,207,366,184"/>
+<area shape="poly" id="edge8_Node000011_Node000012" title=" " alt="" coords="386,162,453,178,504,198,547,221,544,225,502,203,451,183,385,168"/>
+<area shape="poly" id="edge11_Node000014_Node000012" title=" " alt="" coords="379,226,454,237,531,243,531,249,454,242,378,231"/>
+<area shape="poly" id="edge12_Node000014_Node000012" title=" " alt="" coords="378,212,454,219,532,230,531,235,454,224,378,218"/>
+<area shape="poly" id="edge14_Node000015_Node000012" title=" " alt="" coords="419,265,531,252,532,257,420,271"/>
+<area shape="poly" id="edge15_Node000015_Node000012" title=" " alt="" coords="393,252,531,238,531,243,393,257"/>
+<area shape="poly" id="edge34_Node000120_Node000114" title=" " alt="" coords="385,981,418,974,451,961,482,939,509,912,550,861,554,864,513,916,485,943,453,966,420,979,386,987"/>
+</map>

@@ -1,0 +1,30 @@
+<map id="ACSConfig::getSatOpts" name="ACSConfig::getSatOpts">
+<area shape="rect" id="Node000001" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="5,205,175,231"/>
+<area shape="rect" id="Node000002" href="$acsConfig_8cpp.html#a57142261136f5897c47c628a876837a7" title="Some configuration structures are possible to be configured specific for eg a receiver or signal or c..." alt="" coords="223,5,417,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,204,112,170,139,126,176,79,221,40,231,34,234,38,224,44,180,83,143,129,116,173,100,206"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="277,55,363,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="108,203,156,158,187,132,221,109,254,94,286,82,288,87,256,99,224,114,191,136,160,162,112,207"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="95,204,144,146,180,114,221,85,262,67,265,72,224,90,184,118,148,150,99,207"/>
+<area shape="rect" id="Node000006" href="$acsConfig_8cpp.html#a5e7bdb984a957f6949a0b1d49e3f6538" title="Set an output from yaml object if found." alt="" coords="481,481,607,507"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="107,203,164,166,203,146,246,128,291,116,337,112,380,119,400,128,419,141,445,169,458,198,461,227,459,257,453,321,456,356,468,393,493,435,522,469,518,473,489,438,463,395,451,357,448,321,454,257,456,227,453,199,440,172,416,145,398,133,378,124,336,117,292,121,248,133,205,151,167,171,110,207"/>
+<area shape="rect" id="Node000007" href="$acsConfig_8cpp.html#aaeb305db9559c585125ced693d9360d1" title="Get an object within a hierarchy of yaml structure using a vector of nodes." alt="" coords="671,419,824,444"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="110,229,160,260,224,289,282,304,334,311,424,311,468,310,514,313,565,322,624,341,653,355,680,372,724,407,721,411,677,376,650,359,622,346,564,327,513,318,468,316,424,317,333,317,281,310,222,294,157,264,108,233"/>
+<area shape="rect" id="Node000011" href="$structSatSys.html#a099c890a6a613ec08f3260a51f0544f8" title=" " alt="" coords="253,156,387,181"/>
+<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="149,203,246,182,247,187,150,208"/>
+<area shape="rect" id="Node000012" href="$structSatSys.html#a01de9e9cee76346f43550516bba9558e" title=" " alt="" coords="251,205,389,231"/>
+<area shape="poly" id="edge7_Node000001_Node000012" title=" " alt="" coords="175,224,237,224,237,229,175,229"/>
+<area shape="poly" id="edge8_Node000001_Node000012" title=" " alt="" coords="175,207,237,207,237,212,175,212"/>
+<area shape="rect" id="Node000013" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="271,255,369,280"/>
+<area shape="poly" id="edge9_Node000001_Node000013" title=" " alt="" coords="122,228,258,260,257,265,120,233"/>
+<area shape="poly" id="edge10_Node000001_Node000013" title=" " alt="" coords="175,225,277,248,275,253,174,230"/>
+<area shape="rect" id="Node000014" href="$acsConfig_8cpp.html#abd641a8ece1db2382383025f4933d87c" title="Set satellite options from yaml." alt="" coords="465,356,623,381"/>
+<area shape="poly" id="edge12_Node000001_Node000014" title=" " alt="" coords="103,229,150,282,185,311,224,334,280,354,340,365,398,371,451,372,451,377,398,376,339,370,279,359,222,339,182,316,147,286,99,233"/>
+<area shape="rect" id="Node000025" href="$acsConfig_8cpp.html#a5094f0121a324e01a0dbb41eeac8a703" title="Set orbit options from yaml." alt="" coords="241,419,399,444"/>
+<area shape="poly" id="edge14_Node000001_Node000025" title=" " alt="" coords="101,229,147,301,183,346,224,385,269,411,266,416,221,389,179,349,143,305,96,232"/>
+<area shape="poly" id="edge4_Node000006_Node000007" title=" " alt="" coords="585,479,692,446,693,451,587,484"/>
+<area shape="poly" id="edge13_Node000014_Node000007" title=" " alt="" coords="587,379,693,412,692,417,585,384"/>
+<area shape="poly" id="edge17_Node000025_Node000006" title=" " alt="" coords="346,441,468,479,467,484,345,447"/>
+<area shape="poly" id="edge18_Node000025_Node000006" title=" " alt="" coords="398,442,506,474,505,479,396,447"/>
+<area shape="poly" id="edge15_Node000025_Node000007" title=" " alt="" coords="399,436,657,436,657,441,399,441"/>
+<area shape="poly" id="edge16_Node000025_Node000007" title=" " alt="" coords="399,422,657,421,657,427,399,427"/>
+</map>

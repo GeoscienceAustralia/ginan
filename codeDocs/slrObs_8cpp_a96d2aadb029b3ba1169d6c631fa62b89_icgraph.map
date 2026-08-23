@@ -1,0 +1,5 @@
+<map id="sessionSod2Time" name="sessionSod2Time">
+<area shape="rect" id="Node000001" href="$slrObs_8cpp.html#a96d2aadb029b3ba1169d6c631fa62b89" title="Convert seconds&#45;of&#45;day of an event and the start of the session encompassing the event to a GTime Ass..." alt="" coords="127,5,263,31"/>
+<area shape="rect" id="Node000002" href="$slrObs_8cpp.html#a38ee0a5d01fed7dee3c29841ca02b54a" title="Extracts observations from a given CRD (.npt) file." alt="" coords="5,5,79,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,21,79,21,79,15,113,15"/>
+</map>

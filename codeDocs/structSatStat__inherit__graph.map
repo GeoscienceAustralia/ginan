@@ -1,0 +1,9 @@
+<map id="SatStat" name="SatStat">
+<area shape="rect" id="Node000001" href="$structSatStat.html" title="Object containing persistent status parameters of individual satellites." alt="" coords="144,269,287,545"/>
+<area shape="rect" id="Node000002" href="$structIonoStat.html" title=" " alt="" coords="5,35,137,191"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,203,150,268,145,270,113,205"/>
+<area shape="rect" id="Node000003" href="$structQC.html" title=" " alt="" coords="162,5,269,221"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,235,218,269,213,269,213,235"/>
+<area shape="rect" id="Node000004" href="$structAzEl.html" title=" " alt="" coords="293,65,359,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="306,175,270,270,265,268,301,173"/>
+</map>

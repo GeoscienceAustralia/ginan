@@ -1,0 +1,5 @@
+<map id="ReceiverMap" name="ReceiverMap">
+<area shape="rect" id="Node000001" href="$structReceiverMap.html" title=" " alt="" coords="43,129,163,205"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,201,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,95,106,129,101,129,101,95"/>
+</map>

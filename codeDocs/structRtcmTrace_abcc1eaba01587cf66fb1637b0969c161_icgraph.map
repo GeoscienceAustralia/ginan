@@ -1,0 +1,5 @@
+<map id="RtcmTrace::traceMSM" name="RtcmTrace::traceMSM">
+<area shape="rect" id="Node000001" href="$structRtcmTrace.html#abcc1eaba01587cf66fb1637b0969c161" title="Write msm message to a json file." alt="" coords="251,5,413,31"/>
+<area shape="rect" id="Node000002" href="$structRtcmDecoder.html#a794dff6b6cac1bb2f8dfa1b2e5bd6c61" title=" " alt="" coords="5,5,203,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,21,203,21,203,15,237,15"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="OutputOptions" name="OutputOptions">
+<area shape="rect" id="Node000001" href="$structOutputOptions.html" title="Enabling and setting destiations of program outputs." alt="" coords="197,549,449,3209"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,204,77,280"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="46,280,54,390,68,525,127,903,196,1271,191,1272,122,904,63,526,48,391,41,281"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="133,204,299,280"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,280,232,525,232,533,227,533,227,525,215,280"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="282,5,358,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="291,94,284,107,235,205,230,203,279,104,286,92"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="323,204,528,280"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="368,90,377,104,402,155,418,203,413,205,397,157,372,107,363,93"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="426,280,410,533,404,533,420,280"/>
+<area shape="rect" id="Node000006" href="$structIonexOptions.html" title=" " alt="" coords="553,144,674,340"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="600,341,569,526,454,1174,449,1173,564,525,595,340"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="freq2CodeHax" name="freq2CodeHax">
+<area shape="rect" id="Node000001" href="$constants_8cpp.html#aae430c4cbc58c8759813666dd50f8aed" title=" " alt="" coords="196,31,311,56"/>
+<area shape="rect" id="Node000002" href="$biases_8cpp.html#a6f49cb0a55e482e3d3defdb6ab521563" title="Search for hardware biases in phase and code." alt="" coords="41,5,112,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,36,112,26,112,20,183,31"/>
+<area shape="rect" id="Node000025" href="$prototypeCmpSSREncode_8cpp.html#a2f7cefae27bafd9b9afc72ae950d2d92" title=" " alt="" coords="5,55,148,80"/>
+<area shape="poly" id="edge2_Node000001_Node000025" title=" " alt="" coords="183,56,149,60,148,55,182,50"/>
+</map>

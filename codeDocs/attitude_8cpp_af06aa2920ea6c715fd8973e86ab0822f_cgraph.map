@@ -1,0 +1,41 @@
+<map id="satYawGpsIIF" name="satYawGpsIIF">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#af06aa2920ea6c715fd8973e86ab0822f" title="Yaw model for GPS&#45;IIF sats Ref: https://www.researchgate.net/publication/306924379_Observed_features_..." alt="" coords="5,360,113,385"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="595,161,720,187"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,359,66,312,82,245,95,208,112,172,133,139,159,109,206,70,252,39,297,18,342,6,389,3,438,9,491,23,548,46,580,67,607,93,645,148,641,151,603,97,577,71,545,51,489,28,437,14,389,8,343,11,299,23,254,44,210,74,163,113,137,142,116,175,100,211,87,247,71,313,64,360"/>
+<area shape="rect" id="Node000003" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="768,224,900,249"/>
+<area shape="poly" id="edge26_Node000001_Node000003" title=" " alt="" coords="76,383,150,425,204,450,267,472,335,490,406,499,477,498,512,492,546,482,591,462,635,436,676,406,713,374,776,310,816,259,821,262,780,314,717,378,679,410,638,440,594,467,548,487,513,497,478,503,405,505,334,495,265,477,202,454,147,430,74,388"/>
+<area shape="poly" id="edge28_Node000001_Node000003" title=" " alt="" coords="94,383,176,418,229,438,289,456,352,470,418,476,483,473,546,458,588,440,629,416,703,361,763,304,807,258,811,262,767,308,706,365,632,421,590,444,548,463,484,478,418,482,351,475,287,461,228,443,174,423,92,388"/>
+<area shape="rect" id="Node000004" href="$attitude_8cpp.html#a3b2447912b724e96167465b4813d591b" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="421,336,501,361"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="59,359,65,316,82,255,95,223,112,192,133,165,160,142,204,119,245,110,265,112,286,118,328,142,347,163,356,185,358,207,356,231,355,277,361,299,377,321,391,332,408,339,406,344,388,337,373,325,356,302,350,278,351,230,353,207,351,186,343,166,325,147,284,122,264,117,245,115,206,124,163,147,137,168,116,195,99,225,87,257,71,317,64,360"/>
+<area shape="rect" id="Node000008" href="$attitude_8cpp.html#a43e7b17b62853da813d5289667b3284e" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="189,157,299,183"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="63,358,75,327,95,285,123,240,160,200,181,186,184,190,163,204,128,243,100,287,80,329,67,360"/>
+<area shape="rect" id="Node000009" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="375,61,546,87"/>
+<area shape="poly" id="edge17_Node000001_Node000009" title=" " alt="" coords="67,358,104,310,130,282,160,257,183,243,206,235,246,227,284,218,304,208,325,192,341,168,348,144,354,120,373,96,380,91,383,95,377,100,359,122,353,146,346,171,329,196,307,212,286,223,247,232,207,240,186,248,163,261,134,286,108,313,71,361"/>
+<area shape="rect" id="Node000010" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="412,111,509,136"/>
+<area shape="poly" id="edge18_Node000001_Node000010" title=" " alt="" coords="81,357,160,313,207,291,245,277,281,262,325,237,387,189,436,144,439,148,390,194,328,241,283,267,247,282,209,296,163,318,83,362"/>
+<area shape="rect" id="Node000011" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="399,287,522,312"/>
+<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="107,357,161,345,279,323,385,307,386,312,280,328,162,350,108,362"/>
+<area shape="rect" id="Node000012" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="375,385,547,411"/>
+<area shape="poly" id="edge23_Node000001_Node000012" title=" " alt="" coords="76,383,114,397,162,407,222,412,284,414,392,409,392,415,284,419,222,418,161,412,113,402,74,388"/>
+<area shape="poly" id="edge25_Node000001_Node000012" title=" " alt="" coords="114,374,162,383,264,390,361,391,361,396,264,396,161,388,113,380"/>
+<area shape="rect" id="Node000013" href="$common_8hpp.html#a83726ee6888c710c289f9b760053776c" title=" " alt="" coords="435,435,486,460"/>
+<area shape="poly" id="edge27_Node000001_Node000013" title=" " alt="" coords="90,383,162,407,233,422,305,432,422,443,421,448,304,437,232,427,161,412,89,388"/>
+<area shape="rect" id="Node000014" href="$attitude_8cpp.html#a1b479682868a13d0db3a05d5c6d38461" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="161,360,327,385"/>
+<area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="114,378,148,379,147,384,114,383"/>
+<area shape="poly" id="edge24_Node000001_Node000014" title=" " alt="" coords="114,362,147,361,148,366,114,367"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="695,184,785,217,783,222,693,189"/>
+<area shape="poly" id="edge8_Node000008_Node000002" title=" " alt="" coords="299,168,581,170,581,176,299,173"/>
+<area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="299,179,521,207,755,231,754,237,520,213,299,184"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="299,168,523,190,758,219,758,224,523,195,299,173"/>
+<area shape="poly" id="edge5_Node000008_Node000009" title=" " alt="" coords="263,155,312,126,374,95,393,88,395,93,376,100,315,130,266,159"/>
+<area shape="poly" id="edge6_Node000008_Node000010" title=" " alt="" coords="298,163,416,137,418,142,299,169"/>
+<area shape="poly" id="edge7_Node000008_Node000010" title=" " alt="" coords="274,155,398,126,399,131,275,160"/>
+<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="255,181,304,227,339,254,376,277,388,283,385,288,373,281,336,258,300,231,251,185"/>
+<area shape="poly" id="edge14_Node000008_Node000011" title=" " alt="" coords="272,181,319,216,376,253,433,278,431,283,373,258,316,220,269,185"/>
+<area shape="poly" id="edge11_Node000008_Node000012" title=" " alt="" coords="252,182,267,219,293,270,330,324,352,349,376,370,387,377,384,382,373,375,348,353,326,327,289,273,263,221,247,184"/>
+<area shape="poly" id="edge15_Node000008_Node000013" title=" " alt="" coords="252,182,314,321,351,394,376,433,398,445,422,452,421,457,396,450,373,437,346,397,309,323,247,184"/>
+<area shape="poly" id="edge16_Node000008_Node000013" title=" " alt="" coords="256,182,318,308,353,374,376,409,398,422,423,430,421,435,396,427,373,413,348,377,314,310,251,184"/>
+<area shape="poly" id="edge12_Node000012_Node000002" title=" " alt="" coords="524,383,545,370,583,330,612,284,633,237,646,199,651,201,638,239,616,286,587,334,548,375,526,387"/>
+<area shape="poly" id="edge21_Node000014_Node000004" title=" " alt="" coords="327,369,407,360,408,365,327,375"/>
+<area shape="poly" id="edge22_Node000014_Node000004" title=" " alt="" coords="291,357,407,344,407,349,292,362"/>
+</map>

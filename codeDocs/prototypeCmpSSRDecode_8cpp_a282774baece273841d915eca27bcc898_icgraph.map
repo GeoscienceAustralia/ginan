@@ -1,0 +1,25 @@
+<map id="decodeSSR_header" name="decodeSSR_header">
+<area shape="rect" id="Node000001" href="$prototypeCmpSSRDecode_8cpp.html#a282774baece273841d915eca27bcc898" title=" " alt="" coords="225,252,372,277"/>
+<area shape="rect" id="Node000002" href="$prototypeCmpSSRDecode_8cpp.html#addf598cda6ebf1b393189148608056e1" title="Compact SSR message type 3: global satellite clock offsets." alt="" coords="24,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="288,239,274,197,251,144,218,90,198,65,176,44,157,33,160,28,179,40,202,62,223,87,256,141,279,195,293,238"/>
+<area shape="rect" id="Node000006" href="$prototypeCmpSSRDecode_8cpp.html#a3b63ded7b1ecb5ff60f33321c24ea824" title="Compact SSR message type 4: global satellite code biases." alt="" coords="8,55,175,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="284,241,268,207,244,167,213,127,176,94,155,82,158,78,179,89,217,124,248,164,272,205,289,238"/>
+<area shape="rect" id="Node000007" href="$prototypeCmpSSRDecode_8cpp.html#a3faf903027244bcfe5b7368a2fba6eb6" title="Combined code and phase bias (with potential regional biases)" alt="" coords="6,104,177,129"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="278,243,235,192,207,165,176,143,152,132,154,127,179,138,211,161,239,188,283,239"/>
+<area shape="rect" id="Node000008" href="$prototypeCmpSSRDecode_8cpp.html#aece4231cd6215933cb67f695d1ef9e48" title="Compact SSR message type 11: regional satellite orbits and clock offsets." alt="" coords="9,153,174,179"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="268,246,225,219,176,192,145,181,147,176,178,188,228,214,271,242"/>
+<area shape="rect" id="Node000009" href="$prototypeCmpSSRDecode_8cpp.html#abf7b71d9ca319924c1f90e0c9041eab2" title="Compact (polynomial based) atmospheric corrections." alt="" coords="5,203,177,228"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="231,251,145,231,146,225,232,246"/>
+<area shape="rect" id="Node000010" href="$prototypeCmpSSRDecode_8cpp.html#a50839e45f19f77e5908bfd1c9e038846" title="Grid based Ionosphere and troposphere corrections." alt="" coords="11,252,172,277"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="212,267,172,267,172,262,212,262"/>
+<area shape="rect" id="Node000011" href="$prototypeCmpSSRDecode_8cpp.html#ad787861f672809e001877660a38f95c1" title="Compact SSR message type 1: satellite/code mask." alt="" coords="23,301,160,327"/>
+<area shape="poly" id="edge7_Node000001_Node000011" title=" " alt="" coords="232,283,146,304,145,299,231,278"/>
+<area shape="rect" id="Node000012" href="$prototypeCmpSSRDecode_8cpp.html#ae27b0fff5c7ec85e5baf50ffa6c174dc" title="Compact SSR message type 2: global satellite orbits." alt="" coords="26,351,157,376"/>
+<area shape="poly" id="edge8_Node000001_Node000012" title=" " alt="" coords="270,287,228,314,178,340,144,353,142,348,176,336,225,310,267,283"/>
+<area shape="rect" id="Node000013" href="$prototypeCmpSSRDecode_8cpp.html#a80ff502a5d165aeb14577439f8ec63fe" title="Compact SSR message type 5: global satellite phase biases." alt="" coords="8,400,175,425"/>
+<area shape="poly" id="edge9_Node000001_Node000013" title=" " alt="" coords="282,290,239,340,210,367,179,390,151,402,149,397,176,385,207,363,235,337,278,287"/>
+<area shape="rect" id="Node000014" href="$prototypeCmpSSRDecode_8cpp.html#a8c718e8df7b25a5dfa2497870e53afd2" title="Compact (polynomial based) salnt TEC maps." alt="" coords="9,449,174,475"/>
+<area shape="poly" id="edge10_Node000001_Node000014" title=" " alt="" coords="289,291,272,325,248,364,216,404,179,439,155,452,153,447,176,434,213,401,243,361,267,322,284,289"/>
+<area shape="rect" id="Node000015" href="$prototypeCmpSSRDecode_8cpp.html#a3aa3657a509836d3dcba87d23bf860f5" title="User Range Accuracy." alt="" coords="27,499,156,524"/>
+<area shape="poly" id="edge11_Node000001_Node000015" title=" " alt="" coords="293,291,279,334,255,387,223,441,202,466,179,488,157,501,154,496,176,484,198,463,218,438,251,385,274,332,288,290"/>
+</map>

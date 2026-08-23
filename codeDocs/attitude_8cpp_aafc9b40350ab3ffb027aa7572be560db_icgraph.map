@@ -1,0 +1,7 @@
+<map id="smoothedYaw" name="smoothedYaw">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#aafc9b40350ab3ffb027aa7572be560db" title="Smoothed yaw steering for GAL &amp; BDS." alt="" coords="164,31,276,56"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a72b1b0bdafc8daa3b75faa96049b514f" title="Yaw model for BDS&#45;3I/3M satellites Ref: https://doi.org/10.1007/s10291&#45;018&#45;0783&#45;1 https://doi...." alt="" coords="11,5,110,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,35,110,28,111,23,151,30"/>
+<area shape="rect" id="Node000018" href="$attitude_8cpp.html#abdce260d1dd40f5c15f4003e87bafd3b" title="Yaw model for GAL FOC sats." alt="" coords="5,55,116,80"/>
+<area shape="poly" id="edge2_Node000001_Node000018" title=" " alt="" coords="151,56,117,62,116,56,150,51"/>
+</map>

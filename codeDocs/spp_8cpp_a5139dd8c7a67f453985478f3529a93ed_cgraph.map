@@ -1,0 +1,27 @@
+<map id="prange" name="prange">
+<area shape="rect" id="Node000001" href="$spp_8cpp.html#a5139dd8c7a67f453985478f3529a93ed" title="Calculate pseudorange and code bias correction." alt="" coords="5,193,72,219"/>
+<area shape="rect" id="Node000002" href="$preprocessorFreqs_8cpp.html#abd57aff1d197b2747eab5e751cbb0b57" title="Select up to three configured frequency bands for a satellite system." alt="" coords="166,5,243,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="41,192,65,125,88,84,118,48,152,28,154,33,122,52,92,87,70,127,46,194"/>
+<area shape="rect" id="Node000003" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="337,256,460,281"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="50,192,78,158,97,141,119,128,166,109,207,100,247,105,291,128,305,140,313,154,319,184,321,214,324,229,331,244,327,246,319,231,315,215,313,184,308,156,301,144,288,132,246,110,207,105,168,114,121,132,100,145,82,162,54,195"/>
+<area shape="poly" id="edge13_Node000001_Node000003" title=" " alt="" coords="41,192,52,171,69,145,91,121,119,104,166,85,207,76,247,81,291,104,306,118,314,133,319,165,322,198,328,214,339,229,353,240,370,248,367,253,351,245,335,233,323,216,317,199,314,166,309,135,302,121,288,108,246,86,207,81,168,90,121,108,95,126,73,149,57,173,46,194"/>
+<area shape="rect" id="Node000004" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="120,131,289,156"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="71,191,156,159,158,163,73,196"/>
+<area shape="rect" id="Node000006" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="355,207,442,232"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="46,218,57,238,73,263,95,285,121,302,166,319,205,324,243,319,288,302,303,292,312,280,321,267,336,253,371,236,373,240,339,258,325,270,317,283,307,296,291,307,244,324,205,330,165,324,119,307,92,290,69,266,52,241,41,220"/>
+<area shape="poly" id="edge12_Node000001_Node000006" title=" " alt="" coords="55,217,82,250,100,266,121,278,166,295,205,300,243,295,288,278,303,268,312,256,321,243,336,229,341,226,344,230,339,233,325,246,317,259,307,272,291,283,244,300,205,306,165,300,119,283,97,270,78,253,51,221"/>
+<area shape="rect" id="Node000029" href="$common_8hpp.html#a4f1a2c24030cd6e74d381f97e15cf6d6" title=" " alt="" coords="374,343,423,368"/>
+<area shape="poly" id="edge6_Node000001_Node000029" title=" " alt="" coords="73,209,173,219,233,231,291,253,370,331,366,335,288,258,232,236,172,224,72,215"/>
+<area shape="poly" id="edge14_Node000001_Node000029" title=" " alt="" coords="72,194,117,192,173,196,233,207,291,229,383,330,379,333,288,234,232,212,172,201,117,197,72,199"/>
+<area shape="rect" id="Node000030" href="$biases_8cpp.html#a6f49cb0a55e482e3d3defdb6ab521563" title="Search for hardware biases in phase and code." alt="" coords="169,256,240,281"/>
+<area shape="poly" id="edge7_Node000001_Node000030" title=" " alt="" coords="73,216,158,249,156,253,71,221"/>
+<area shape="rect" id="Node000039" href="$spp_8cpp.html#a7afc4094cda65055ce1d5540bde3b5f1" title="Carrier&#45;smoothing of code pseudoranges Ref: https://gssc.esa.int/navipedia/index.php/Carrier&#45;smoothin..." alt="" coords="141,381,268,407"/>
+<area shape="poly" id="edge15_Node000001_Node000039" title=" " alt="" coords="46,218,70,285,92,325,122,360,142,373,139,378,118,364,88,328,65,287,41,220"/>
+<area shape="poly" id="edge4_Node000004_Node000006" title=" " alt="" coords="220,154,290,185,343,206,341,211,288,190,217,159"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="272,154,290,161,374,197,372,202,288,166,270,159"/>
+<area shape="poly" id="edge9_Node000030_Node000003" title=" " alt="" coords="240,273,324,275,324,280,240,278"/>
+<area shape="poly" id="edge10_Node000030_Node000003" title=" " alt="" coords="240,259,324,257,324,263,240,264"/>
+<area shape="poly" id="edge8_Node000030_Node000006" title=" " alt="" coords="240,257,341,231,343,236,241,262"/>
+<area shape="poly" id="edge16_Node000039_Node000029" title=" " alt="" coords="268,387,360,367,361,373,269,393"/>
+<area shape="poly" id="edge17_Node000039_Node000029" title=" " alt="" coords="235,379,360,353,361,358,236,384"/>
+</map>

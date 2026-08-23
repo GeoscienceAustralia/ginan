@@ -1,0 +1,8 @@
+<map id="updateFirstLine" name="updateFirstLine">
+<area shape="rect" id="Node000001" href="$biasSINEXwrite_8cpp.html#a986e047c2dd383adf5526d99e5c418c4" title="Update bias SINEX first line." alt="" coords="371,5,493,31"/>
+<area shape="rect" id="Node000002" href="$biasSINEXwrite_8cpp.html#a11492c5686f21e9275281d7ca38cd530" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="5,5,124,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="357,21,124,21,124,15,357,15"/>
+<area shape="rect" id="Node000006" href="$biasSINEXwrite_8cpp.html#ab94f8678684d9733ffbe150e860a564a" title="Write bias SINEX head for the first time." alt="" coords="172,31,323,56"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="358,31,324,36,323,30,357,26"/>
+<area shape="poly" id="edge3_Node000006_Node000002" title=" " alt="" coords="158,34,124,29,125,24,159,28"/>
+</map>

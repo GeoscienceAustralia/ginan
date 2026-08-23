@@ -1,0 +1,7 @@
+<map id="SinexGpsPhaseCenter" name="SinexGpsPhaseCenter">
+<area shape="rect" id="Node000001" href="$structSinexGpsPhaseCenter.html" title=" " alt="" coords="5,173,184,249"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,77,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,82,40,115,48,148,52,158,48,160,43,150,35,115,34,82"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="102,5,194,81"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="141,83,121,150,118,159,113,157,116,149,136,81"/>
+</map>

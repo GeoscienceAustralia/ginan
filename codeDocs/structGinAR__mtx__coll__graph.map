@@ -1,0 +1,11 @@
+<map id="GinAR_mtx" name="GinAR_mtx">
+<area shape="rect" id="Node000001" href="$structGinAR__mtx.html" title=" " alt="" coords="182,341,290,417"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,165,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,219,126,267,159,316,172,329,168,332,155,319,122,270,98,221"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="53,5,117,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,95,88,144,83,144,83,95"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="189,144,283,220"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="239,220,239,325,233,325,233,220"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="307,144,402,220"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="340,221,316,269,286,319,279,329,275,326,282,316,311,266,335,219"/>
+</map>

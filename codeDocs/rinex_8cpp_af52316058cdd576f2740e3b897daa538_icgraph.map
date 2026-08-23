@@ -1,0 +1,7 @@
+<map id="validateStagedObservationsDetailed" name="validateStagedObservationsDetailed">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#af52316058cdd576f2740e3b897daa538" title="Enhanced validation with detailed statistics Single Responsibility: Comprehensive data quality assess..." alt="" coords="224,23,431,63"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#a79b5092addef140a4013e90f5cfaaba9" title="Decode RINEX 2 observation data." alt="" coords="5,5,176,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,33,176,30,176,24,211,28"/>
+<area shape="rect" id="Node000008" href="$rinex_8cpp.html#a8ab29cfe6b8e2b84708dd02c9ce80d2a" title="Decode RINEX 3 observation data." alt="" coords="5,55,176,80"/>
+<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="211,58,176,61,176,56,210,53"/>
+</map>

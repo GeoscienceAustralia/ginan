@@ -1,0 +1,11 @@
+<map id="writeSp3Header" name="writeSp3Header">
+<area shape="rect" id="Node000001" href="$sp3Write_8cpp.html#ab4606ad3c7415880b4adc10c1bfeab0e" title=" " alt="" coords="5,80,132,105"/>
+<area shape="rect" id="Node000002" href="$structMjDateTT.html#a59bc0eb943a43f7f024329249a73c2bb" title=" " alt="" coords="187,5,343,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,77,179,40,201,32,202,37,181,44,96,82"/>
+<area shape="rect" id="Node000003" href="$satSys_8cpp.html#aae80f3401dd26548c7b0b83c1e25e499" title="Get all satellites of target system." alt="" coords="217,55,312,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,82,203,73,204,78,133,87"/>
+<area shape="rect" id="Node000004" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="180,104,349,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,98,167,102,166,107,132,103"/>
+<area shape="rect" id="Node000030" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="227,153,302,179"/>
+<area shape="poly" id="edge4_Node000001_Node000030" title=" " alt="" coords="98,103,181,138,215,150,213,155,179,143,96,108"/>
+</map>

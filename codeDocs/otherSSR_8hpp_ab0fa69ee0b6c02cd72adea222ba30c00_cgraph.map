@@ -1,0 +1,12 @@
+<map id="encodecompactPHS" name="encodecompactPHS">
+<area shape="rect" id="Node000001" href="$prototypeCmpSSREncode_8cpp.html#a1468d4d2dbe32d84739b075117e28a08" title=" " alt="" coords="5,55,156,80"/>
+<area shape="rect" id="Node000002" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="232,5,319,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,54,235,33,236,38,157,60"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="106,52,218,21,219,27,108,57"/>
+<area shape="rect" id="Node000004" href="$prototypeCmpSSREncode_8cpp.html#a2f7cefae27bafd9b9afc72ae950d2d92" title=" " alt="" coords="204,55,347,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="156,73,190,74,190,79,156,79"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="156,56,190,56,190,61,156,61"/>
+<area shape="rect" id="Node000006" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="233,104,318,129"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="108,78,220,108,219,113,106,83"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="157,75,236,97,235,102,156,80"/>
+</map>

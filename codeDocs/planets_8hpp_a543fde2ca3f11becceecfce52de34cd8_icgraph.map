@@ -1,0 +1,7 @@
+<map id="sunVisibility" name="sunVisibility">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a543fde2ca3f11becceecfce52de34cd8" title="Calculates fraction of Sun&#39;s disk visible by spacecraft 0 = full eclipse (umbra) 0 &lt; fraction &lt; 1 = p..." alt="" coords="236,42,339,67"/>
+<area shape="rect" id="Node000002" href="$structOrbitIntegrator.html#a3ed19521cfc21cdaa2d7c8fa4f385499" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,47,188,42,188,37,223,42"/>
+<area shape="rect" id="Node000004" href="$attitude_8cpp.html#a3b2447912b724e96167465b4813d591b" title="Returns true if satellite is in eclipse (shadow umbra); else false." alt="" coords="57,70,137,95"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="223,67,138,79,137,74,222,62"/>
+</map>

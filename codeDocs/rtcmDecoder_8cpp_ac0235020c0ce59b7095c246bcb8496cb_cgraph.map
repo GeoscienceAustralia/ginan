@@ -1,0 +1,5 @@
+<map id="getbitsIncScale" name="getbitsIncScale">
+<area shape="rect" id="Node000001" href="$rtcmDecoder_8cpp.html#ac0235020c0ce59b7095c246bcb8496cb" title="increasingly extract signed bits from RTCM messages with scale factor/resolution applied" alt="" coords="5,5,127,31"/>
+<area shape="rect" id="Node000002" href="$rtcmDecoder_8cpp.html#a1d94c47b5bf399b0e6cbb9d988960947" title="increasingly extract signed bits from byte data" alt="" coords="175,5,261,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,15,161,15,161,21,127,21"/>
+</map>

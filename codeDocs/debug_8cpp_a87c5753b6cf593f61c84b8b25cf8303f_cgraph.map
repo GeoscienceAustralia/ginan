@@ -1,0 +1,21 @@
+<map id="debugTideSolidPole" name="debugTideSolidPole">
+<area shape="rect" id="Node000001" href="$debug_8cpp.html#a87c5753b6cf593f61c84b8b25cf8303f" title=" " alt="" coords="5,183,156,208"/>
+<area shape="rect" id="Node000002" href="$debug_8cpp.html#ac5ac34fbec1323f638fed7feb3b671ea" title=" " alt="" coords="216,5,355,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,181,131,119,164,81,202,48,227,34,230,38,206,52,168,85,135,122,92,184"/>
+<area shape="rect" id="Node000003" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="417,107,527,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,180,141,146,171,129,203,117,255,106,308,102,403,107,403,112,308,108,255,112,205,122,173,134,144,151,98,185"/>
+<area shape="rect" id="Node000004" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="415,207,529,232"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="104,180,149,159,203,142,249,133,286,128,323,131,368,142,391,152,414,166,450,195,447,199,411,170,389,157,366,147,322,136,286,134,250,138,205,147,151,164,106,185"/>
+<area shape="rect" id="Node000005" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="253,157,317,183"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="156,183,240,173,240,178,156,189"/>
+<area shape="rect" id="Node000029" href="$tides_8cpp.html#aec065e2f9eb7b4413b74ecde2f1a6ea2" title="Displacement by solid Earth pole tide See ref [1] 7.1.4." alt="" coords="232,207,339,232"/>
+<area shape="poly" id="edge5_Node000001_Node000029" title=" " alt="" coords="156,201,218,209,218,214,156,207"/>
+<area shape="rect" id="Node000034" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="234,256,337,281"/>
+<area shape="poly" id="edge9_Node000001_Node000034" title=" " alt="" coords="96,206,143,230,205,254,222,260,220,265,203,259,141,235,93,211"/>
+<area shape="poly" id="edge11_Node000001_Node000034" title=" " alt="" coords="139,206,205,230,258,248,256,253,203,235,137,211"/>
+<area shape="rect" id="Node000035" href="$structMjDateUtc.html#ac35e3ac8d68de9b2bdae2c893e6e6fc8" title=" " alt="" coords="204,305,367,331"/>
+<area shape="poly" id="edge10_Node000001_Node000035" title=" " alt="" coords="96,206,142,248,172,271,205,292,219,298,217,303,203,296,169,276,138,252,93,210"/>
+<area shape="poly" id="edge6_Node000029_Node000003" title=" " alt="" coords="337,204,365,193,408,167,444,139,448,143,411,171,368,198,339,209"/>
+<area shape="poly" id="edge7_Node000029_Node000004" title=" " alt="" coords="339,225,401,225,401,231,339,230"/>
+<area shape="poly" id="edge8_Node000029_Node000004" title=" " alt="" coords="339,208,401,208,401,213,339,214"/>
+</map>

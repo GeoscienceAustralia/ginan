@@ -1,0 +1,19 @@
+<map id="SinexTropDesc" name="SinexTropDesc">
+<area shape="rect" id="Node000001" href="$structSinexTropDesc.html" title=" " alt="" coords="413,297,544,373"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,151,181,227"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,225,194,232,399,305,397,310,192,237,175,230"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="447,5,511,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,55,341,74,288,89,236,108,191,129,149,153,146,149,188,125,234,103,286,84,340,69,433,49"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="206,151,362,227"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="436,70,378,107,323,153,320,149,374,103,433,66"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="387,151,571,227"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="481,95,481,151,476,151,476,95"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="595,144,760,235"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="525,58,567,77,610,103,648,142,644,146,606,107,565,82,523,63"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="784,144,949,235"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="525,46,684,65,764,81,796,91,819,103,838,121,852,142,847,145,834,124,816,108,794,96,763,86,683,70,524,51"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="336,225,417,285,414,290,333,230"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="481,228,481,281,476,281,476,228"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="618,237,545,289,542,285,615,233"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="785,232,773,237,663,279,561,312,559,307,661,274,771,232,783,227"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="satYawOrbNor" name="satYawOrbNor">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a7da34cb31c95554835b5872eabf41df1" title="Orbit normal yaw model Will set nominalYaw &amp; modelYaw to the orbit&#45;normal yaw (0 or PI) closest to th..." alt="" coords="5,31,119,56"/>
+<area shape="rect" id="Node000002" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="167,5,299,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,41,183,31,184,36,119,46"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="98,28,153,18,154,23,99,33"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#a782499a36774788cffb4a1e481c87080" title="Orbit&#45;normal mode yaw (always zero)" alt="" coords="170,55,295,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="100,53,157,63,156,68,99,59"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="119,40,182,49,181,55,118,45"/>
+</map>

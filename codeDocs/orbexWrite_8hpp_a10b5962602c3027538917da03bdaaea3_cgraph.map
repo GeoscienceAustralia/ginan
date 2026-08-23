@@ -1,0 +1,7 @@
+<map id="outputOrbex" name="outputOrbex">
+<area shape="rect" id="Node000001" href="$orbexWrite_8cpp.html#a10b5962602c3027538917da03bdaaea3" title="Output ORBEX files." alt="" coords="5,31,108,56"/>
+<area shape="rect" id="Node000002" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="156,5,333,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,34,142,29,143,34,109,39"/>
+<area shape="rect" id="Node000008" href="$orbexWrite_8cpp.html#a0101099c60c06da409a3c2b2ee7145df" title="Retrieve satellite orbits, clocks and attitudes for all included systems and write out to an ORBEX fi..." alt="" coords="175,55,314,80"/>
+<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="108,47,162,54,161,59,108,52"/>
+</map>

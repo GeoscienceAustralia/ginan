@@ -1,0 +1,5 @@
+<map id="satYawBds2" name="satYawBds2">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#abd7ddf5a848e540724fe5341542eef52" title="Yaw model for BDS&#45;2I/2M satellites Requires bds_yaw_modes.snx Ref: https://doi.org/10...." alt="" coords="167,5,265,31"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#aac7be95f5d7dbf6cf5d647524555edcb" title="Calculates nominal &amp; model yaw." alt="" coords="5,5,119,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,21,119,21,119,15,153,15"/>
+</map>

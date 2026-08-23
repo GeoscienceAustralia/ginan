@@ -1,0 +1,7 @@
+<map id="parseSatelliteIdentifiers" name="parseSatelliteIdentifiers">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#aeeafb3496cb618d93d588c6fae3aecf9" title=" " alt="" coords="5,31,183,56"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="231,5,307,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,28,216,23,217,28,182,33"/>
+<area shape="rect" id="Node000003" href="$sinex_8cpp.html#a06fabc81a2cc41dfee260450a527ad2d" title="Trims leading &amp; trailing whitespace." alt="" coords="244,55,293,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,53,231,60,230,65,182,58"/>
+</map>

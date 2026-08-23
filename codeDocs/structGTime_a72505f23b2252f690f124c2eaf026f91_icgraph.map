@@ -1,0 +1,20 @@
+<map id="GTime::floorTime" name="GTime::floorTime">
+<area shape="rect" id="Node000001" href="$structGTime.html#a72505f23b2252f690f124c2eaf026f91" title=" " alt="" coords="541,155,676,180"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="311,5,441,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="590,145,550,93,523,66,492,44,467,33,440,26,441,21,469,28,495,40,526,62,554,89,594,142"/>
+<area shape="rect" id="Node000005" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="81,80,135,105"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="527,169,400,162,329,155,258,143,191,126,135,106,137,101,193,120,259,138,329,149,401,157,528,164"/>
+<area shape="rect" id="Node000008" href="$rinex_8cpp.html#a979e29d6c67b175b1c72c8a619e2c6fa" title="Decode GPS/Galileo/QZS/BeiDou ephemeris parameters." alt="" coords="329,55,423,80"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="580,148,540,120,492,94,457,82,423,75,424,70,459,77,494,89,543,115,583,144"/>
+<area shape="rect" id="Node000013" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="287,104,465,129"/>
+<area shape="poly" id="edge4_Node000001_Node000013" title=" " alt="" coords="536,154,434,132,436,127,537,149"/>
+<area shape="rect" id="Node000021" href="$structNtripUploader.html#aed62670c2d0d02f1bb0d930f42e68609" title=" " alt="" coords="259,229,493,269"/>
+<area shape="poly" id="edge6_Node000001_Node000021" title=" " alt="" coords="560,187,435,231,433,226,558,182"/>
+<area shape="rect" id="Node000015" href="$outputs_8cpp.html#abf277b1afcff7cb07fa2857b4a373100" title=" " alt="" coords="5,311,211,351"/>
+<area shape="poly" id="edge8_Node000001_Node000015" title=" " alt="" coords="593,193,552,240,525,264,494,283,443,299,371,312,211,328,211,323,370,307,442,294,492,278,522,260,549,236,589,190"/>
+<area shape="rect" id="Node000024" href="$biasSINEXwrite_8cpp.html#a11492c5686f21e9275281d7ca38cd530" title="Write stored bias output to SINEX file Return number of written biases (&#45;1 if file not found)" alt="" coords="317,344,435,369"/>
+<area shape="poly" id="edge9_Node000001_Node000024" title=" " alt="" coords="598,194,559,260,530,296,495,327,466,342,436,351,435,346,464,337,492,322,526,293,554,257,594,191"/>
+<area shape="poly" id="edge2_Node000002_Node000005" title=" " alt="" coords="299,35,259,45,136,85,135,80,258,39,297,30"/>
+<area shape="poly" id="edge7_Node000021_Node000021" title=" " alt="" coords="415,217,402,210,376,207,354,209,340,214,335,220,338,228,333,229,330,219,337,210,352,204,376,202,403,205,418,212"/>
+<area shape="poly" id="edge10_Node000024_Node000015" title=" " alt="" coords="303,352,210,344,211,338,303,347"/>
+</map>

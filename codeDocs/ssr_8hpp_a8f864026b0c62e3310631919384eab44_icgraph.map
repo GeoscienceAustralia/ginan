@@ -1,0 +1,13 @@
+<map id="uraToClassValue" name="uraToClassValue">
+<area shape="rect" id="Node000001" href="$rtcmEncoder_8cpp.html#a8f864026b0c62e3310631919384eab44" title="Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE." alt="" coords="260,104,388,129"/>
+<area shape="rect" id="Node000002" href="$prototypeCmpSSREncode_8cpp.html#a47bc43c7fe02f1df2f66198afbbf509c" title=" " alt="" coords="32,5,185,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="295,97,257,70,211,44,178,33,180,28,213,40,260,65,298,93"/>
+<area shape="rect" id="Node000006" href="$prototypeCmpSSREncode_8cpp.html#a6e9d01bf6b6264bf86f3a1f0e9ca47d5" title=" " alt="" coords="31,55,186,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="254,104,164,83,166,77,256,98"/>
+<area shape="rect" id="Node000007" href="$prototypeCmpSSREncode_8cpp.html#a9cf0998d7d65a64e05e6f918213f78fa" title=" " alt="" coords="33,104,184,129"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="246,119,184,119,184,114,246,114"/>
+<area shape="rect" id="Node000008" href="$prototypeIgsSSREncode_8cpp.html#abe906d6281cf96f532c4c915582eed18" title=" " alt="" coords="45,153,172,179"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="256,135,166,156,164,151,254,130"/>
+<area shape="rect" id="Node000009" href="$structRtcmEncoder.html#a4fe1b66c1ca3051c79202253abf15099" title="encode URA messages" alt="" coords="5,203,212,228"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="298,140,259,167,213,192,176,205,174,200,211,188,256,163,295,136"/>
+</map>

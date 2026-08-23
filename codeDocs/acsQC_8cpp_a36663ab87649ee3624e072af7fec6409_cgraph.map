@@ -1,0 +1,13 @@
+<map id="detslp_mw" name="detslp_mw">
+<area shape="rect" id="Node000001" href="$acsQC_8cpp.html#a36663ab87649ee3624e072af7fec6409" title="Detect slip by Melbourne&#45;Wubbena linear combination jump." alt="" coords="5,80,99,105"/>
+<area shape="rect" id="Node000002" href="$preprocessorFreqs_8cpp.html#a6161ac94a30291181c4f3df0cb5361c3" title="Select observed frequency bands that are usable for slip detection." alt="" coords="165,5,245,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,78,145,40,158,34,161,38,148,44,77,82"/>
+<area shape="rect" id="Node000003" href="$acsQC_8cpp.html#afd9ec7a4153d748793157c232bd747ef" title="Emit one structured cycle&#45;slip diagnostic trace line." alt="" coords="147,55,263,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="98,91,159,80,160,86,99,96"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="84,77,132,68,133,73,85,83"/>
+<area shape="rect" id="Node000010" href="$linearCombo_8cpp.html#afdd3451cef793c3574f718f2f79d9278" title="Create combinations between specific observation values." alt="" coords="175,104,234,129"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="99,97,162,107,161,113,98,103"/>
+<area shape="rect" id="Node000011" href="$ppp_8cpp.html#add1aa65516313588ef8e125a7d748f51" title=" " alt="" coords="167,153,243,179"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="65,103,101,126,148,150,155,154,153,159,145,155,99,131,62,108"/>
+<area shape="poly" id="edge6_Node000001_Node000011" title=" " alt="" coords="100,103,148,126,183,144,181,148,145,131,98,108"/>
+</map>

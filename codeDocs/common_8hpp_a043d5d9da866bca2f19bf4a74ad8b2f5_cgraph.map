@@ -1,0 +1,15 @@
+<map id="satazel" name="satazel">
+<area shape="rect" id="Node000001" href="$rtkcmn_8cpp.html#a043d5d9da866bca2f19bf4a74ad8b2f5" title="satellite azimuth/elevation angle" alt="" coords="5,129,75,155"/>
+<area shape="rect" id="Node000002" href="$structVectorPos.html#a9517f77c95322d34dc896a88db4a804f" title=" " alt="" coords="123,5,237,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="47,128,76,86,97,61,121,40,128,35,131,40,124,44,101,65,80,89,51,131"/>
+<area shape="rect" id="Node000003" href="$coordinates_8cpp.html#a04048e2e965c36987a98fb8c4f04bea2" title=" " alt="" coords="139,55,221,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="59,127,121,89,133,83,135,88,124,94,62,131"/>
+<area shape="rect" id="Node000007" href="$algebra__old_8cpp.html#addee52380c690a50fa0048924c67bc92" title=" " alt="" coords="159,104,201,129"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="74,133,144,120,145,126,75,138"/>
+<area shape="rect" id="Node000008" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="129,153,231,179"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="75,145,116,152,115,158,74,150"/>
+<area shape="rect" id="Node000009" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="129,203,231,228"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="63,153,124,188,138,194,135,199,121,192,60,157"/>
+<area shape="rect" id="Node000010" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="129,252,231,277"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="52,153,81,194,101,217,124,237,133,243,131,248,121,241,98,221,77,197,47,157"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="pos2ecef" name="pos2ecef">
+<area shape="rect" id="Node000001" href="$coordinates_8cpp.html#a726b77659a6e94017c3acc10bca86a29" title="Transform geodetic postion to ecef." alt="" coords="183,31,264,56"/>
+<area shape="rect" id="Node000002" href="$ionoSphericalCaps_8cpp.html#af953ae8b4e5d94daecada20e21dd59a2" title="transforms the Ionosphere Piercing Point and checks if it falls in area of coverage time: I time of o..." alt="" coords="5,5,135,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,37,135,31,136,26,169,32"/>
+<area shape="rect" id="Node000013" href="$ionoSpherical_8cpp.html#a5b7bfe4a5b9c8c410133e7e6efbfc753" title="rotates the Ionosphere piercing point time: I time of observations (to update the rotation matrix) IP..." alt="" coords="7,55,133,80"/>
+<area shape="poly" id="edge2_Node000001_Node000013" title=" " alt="" coords="169,54,134,60,133,55,168,49"/>
+</map>

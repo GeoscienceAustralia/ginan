@@ -1,0 +1,17 @@
+<map id="traceSlipEvent" name="traceSlipEvent">
+<area shape="rect" id="Node000001" href="$acsQC_8cpp.html#afd9ec7a4153d748793157c232bd747ef" title="Emit one structured cycle&#45;slip diagnostic trace line." alt="" coords="281,131,397,156"/>
+<area shape="rect" id="Node000002" href="$acsQC_8cpp.html#a9a7675a515de2802ed917e9d32dd897d" title="Cycle slip detection for dual&#45;frequency." alt="" coords="143,5,230,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="316,122,278,83,232,44,214,33,217,28,235,40,282,80,319,118"/>
+<area shape="rect" id="Node000003" href="$acsQC_8cpp.html#a7b37fc255c80330a5497de5bee8f2dbb" title="Cycle slip detection and repair." alt="" coords="5,55,92,80"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="275,130,139,94,91,81,93,76,141,89,277,125"/>
+<area shape="rect" id="Node000011" href="$acsQC_8cpp.html#a5278f59e23c92b2a1912d5dde5e2f809" title="Cycle slip detection and repair for triple&#45;frequency." alt="" coords="143,55,230,80"/>
+<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="299,127,212,82,214,78,302,122"/>
+<area shape="rect" id="Node000012" href="$acsQC_8cpp.html#a0d2d4fd45a0cdf961784d89cc132442e" title="Detect cycle slip by geometry free phase jump." alt="" coords="145,156,228,181"/>
+<area shape="poly" id="edge6_Node000001_Node000012" title=" " alt="" coords="268,158,229,164,228,159,267,153"/>
+<area shape="rect" id="Node000013" href="$acsQC_8cpp.html#a7cae7a76a291c0a56b01d929cb94e3ff" title="Detect cycle slip by reported loss of lock." alt="" coords="148,205,225,231"/>
+<area shape="poly" id="edge7_Node000001_Node000013" title=" " alt="" coords="301,165,215,208,212,203,299,160"/>
+<area shape="rect" id="Node000014" href="$acsQC_8cpp.html#a36663ab87649ee3624e072af7fec6409" title="Detect slip by Melbourne&#45;Wubbena linear combination jump." alt="" coords="140,255,233,280"/>
+<area shape="poly" id="edge8_Node000001_Node000014" title=" " alt="" coords="319,168,282,206,235,245,216,257,214,252,232,241,278,202,315,165"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="139,38,86,57,84,52,137,33"/>
+<area shape="poly" id="edge4_Node000011_Node000003" title=" " alt="" coords="130,70,92,70,92,65,130,65"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="retainTraceFiles" name="retainTraceFiles">
+<area shape="rect" id="Node000001" href="$trace_8hpp.html#a82aadd4ad08eca4e9058dc2efbfb05a6" title=" " alt="" coords="177,5,301,31"/>
+<area shape="rect" id="Node000002" href="$outputs_8cpp.html#a116830f5a44aad1710dc47ecfa670cab" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,21,130,21,130,15,163,15"/>
+</map>

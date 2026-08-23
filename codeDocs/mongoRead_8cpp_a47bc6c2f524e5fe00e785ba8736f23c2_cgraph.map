@@ -1,0 +1,7 @@
+<map id="mongoReadEphemeris" name="mongoReadEphemeris">
+<area shape="rect" id="Node000001" href="$mongoRead_8cpp.html#a47bc6c2f524e5fe00e785ba8736f23c2" title="Read GPS/GAL/BDS/QZS ephemeris from Mongo DB." alt="" coords="5,31,175,56"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="241,5,327,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,30,227,23,228,28,175,35"/>
+<area shape="rect" id="Node000005" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="223,55,345,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="175,51,209,55,209,61,174,56"/>
+</map>

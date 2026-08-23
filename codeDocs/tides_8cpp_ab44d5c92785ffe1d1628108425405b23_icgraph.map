@@ -1,0 +1,5 @@
+<map id="tideTimeDomain" name="tideTimeDomain">
+<area shape="rect" id="Node000001" href="$tides_8cpp.html#ab44d5c92785ffe1d1628108425405b23" title="Step 1 of solid Earth tide computation: Corrections to be computed in the time domain (solar/lunar ti..." alt="" coords="167,5,297,31"/>
+<area shape="rect" id="Node000002" href="$tides_8cpp.html#ab9e903f458c0264cff4b22d87c78c477" title="Displacement by solid Earth tide See ref [1] 7.1.1 Note: permanent deformation not removed,..." alt="" coords="5,5,119,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,21,119,21,119,15,153,15"/>
+</map>

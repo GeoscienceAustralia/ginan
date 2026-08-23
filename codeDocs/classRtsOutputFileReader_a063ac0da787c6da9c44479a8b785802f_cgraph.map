@@ -1,0 +1,7 @@
+<map id="RtsOutputFileReader::readNextObject" name="RtsOutputFileReader::readNextObject">
+<area shape="rect" id="Node000001" href="$classRtsOutputFileReader.html#a063ac0da787c6da9c44479a8b785802f" title="Read the next object from reversed file." alt="" coords="5,23,161,63"/>
+<area shape="rect" id="Node000002" href="$algebraTrace_8cpp.html#aba13bba8cb3e047eeb5692cd61a32132" title="Returns the type of object that is located at the specified position in a file." alt="" coords="209,5,372,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,31,195,27,196,32,162,36"/>
+<area shape="rect" id="Node000004" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="229,55,352,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="162,50,215,56,215,61,161,55"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="IERS2010::solidEarthTide1" name="IERS2010::solidEarthTide1">
+<area shape="rect" id="Node000001" href="$structIERS2010.html#ac058313fbc47a8f3ca8fc7739f34a546" title="Implementation of the first part of the solidEarth tides (Eq 6.6 and 6.7 IERS2010)" alt="" coords="236,13,428,38"/>
+<area shape="rect" id="Node000002" href="$structOrbitIntegrator.html#a58c972cf5ddac52358ccbd8f7c34b9cc" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,28,188,28,188,23,222,23"/>
+</map>

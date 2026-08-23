@@ -1,0 +1,12 @@
+<map id="mongoMeasSatStat" name="mongoMeasSatStat">
+<area shape="rect" id="Node000001" href="$mongoWrite_8cpp.html#a5cadd0b1a16ece0f12724f6f750b19ce" title=" " alt="" coords="5,55,155,80"/>
+<area shape="rect" id="Node000002" href="$mongo_8cpp.html#a4deef04a2c03d1d1b7cc4bd72be73ed5" title=" " alt="" coords="203,5,332,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,52,204,32,206,37,130,57"/>
+<area shape="rect" id="Node000003" href="$mongo_8hpp.html#a6505afcec3cad19fb96a77327cd244ee" title="Converts a C&#45;style string (const char*) to a std::string." alt="" coords="231,55,304,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,73,216,73,216,78,155,79"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="155,56,216,57,216,62,155,61"/>
+<area shape="rect" id="Node000004" href="$mongoWrite_8cpp.html#aebb57cb730f719eefb3bb81610f2a3e3" title=" " alt="" coords="237,104,298,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="130,77,224,103,223,108,128,83"/>
+<area shape="rect" id="Node000005" href="$mongo_8cpp.html#a21229e129bf799d4fdd7093b954e9381" title=" " alt="" coords="214,153,321,179"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="102,78,147,107,204,138,220,146,218,150,201,143,145,111,99,82"/>
+</map>

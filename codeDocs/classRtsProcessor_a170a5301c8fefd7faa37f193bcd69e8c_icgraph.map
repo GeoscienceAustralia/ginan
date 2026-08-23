@@ -1,0 +1,5 @@
+<map id="RtsProcessor::initializeFirstEpoch" name="RtsProcessor::initializeFirstEpoch">
+<area shape="rect" id="Node000001" href="$classRtsProcessor.html#a170a5301c8fefd7faa37f193bcd69e8c" title="Initialize first epoch smoothed filter." alt="" coords="256,5,427,45"/>
+<area shape="rect" id="Node000002" href="$classRtsProcessor.html#a55d470915f8bef108d84aac00cf523b9" title="Process complete epoch data (computation + output)" alt="" coords="5,13,208,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,28,208,28,208,23,242,23"/>
+</map>

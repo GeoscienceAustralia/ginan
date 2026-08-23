@@ -1,0 +1,17 @@
+<map id="KalmanModel" name="KalmanModel">
+<area shape="rect" id="Node000001" href="$structKalmanModel.html" title="Options associated with kalman filter states." alt="" coords="260,371,397,447"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,156,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,220,86,250,94,284,107,317,127,345,152,365,182,381,213,391,244,399,243,404,212,397,179,386,149,370,123,348,102,319,89,285,81,251,78,220"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="209,5,285,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="200,81,165,107,121,146,118,142,162,103,197,77"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="180,144,315,220"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="250,95,250,144,245,144,245,95"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="339,144,483,220"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="298,83,369,142,365,146,294,87"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="241,221,236,282,239,315,250,346,257,357,253,360,245,348,234,316,230,282,236,220"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="413,220,406,282,398,315,386,348,380,359,375,356,381,346,393,314,401,281,408,220"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="508,144,656,220"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="573,221,544,286,522,319,494,349,456,374,414,391,412,386,454,369,491,345,517,316,539,283,568,219"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="550,5,614,81"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="585,95,585,144,579,144,579,95"/>
+</map>

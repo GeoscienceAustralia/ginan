@@ -1,0 +1,17 @@
+<map id="SatSys::blockType" name="SatSys::blockType">
+<area shape="rect" id="Node000001" href="$structSatSys.html#a01de9e9cee76346f43550516bba9558e" title=" " alt="" coords="520,129,659,155"/>
+<area shape="rect" id="Node000002" href="$preprocessor_8cpp.html#ac3fc3297d7cbb0a7fcafd9be7e193844" title=" " alt="" coords="315,5,433,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="566,121,524,81,498,61,471,44,433,30,435,25,473,40,501,57,528,77,569,117"/>
+<area shape="rect" id="Node000010" href="$preprocessor_8cpp.html#a7c5b7a3f8e1308cf3324d1737dd617f1" title=" " alt="" coords="281,55,467,80"/>
+<area shape="poly" id="edge2_Node000001_Node000010" title=" " alt="" coords="549,126,471,94,433,83,434,78,473,89,551,121"/>
+<area shape="rect" id="Node000011" href="$preprocessor_8cpp.html#ad79899e469b1ee07dff5ffd1fefbe3f6" title=" " alt="" coords="276,104,472,129"/>
+<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="506,135,472,131,473,126,507,130"/>
+<area shape="rect" id="Node000012" href="$structACSConfig.html#a20ca3689eafecfa2b7e656c28e340256" title="Set satellite options for a specific satellite using a hierarchy of sources." alt="" coords="289,153,459,179"/>
+<area shape="poly" id="edge4_Node000001_Node000012" title=" " alt="" coords="506,154,459,159,459,154,506,149"/>
+<area shape="rect" id="Node000025" href="$main_8cpp.html#a79eb17a8eaafbf1dde7569cb7eae3b7e" title=" " alt="" coords="5,204,228,229"/>
+<area shape="poly" id="edge6_Node000001_Node000025" title=" " alt="" coords="552,163,514,179,473,193,410,205,347,213,228,220,228,215,346,207,410,199,471,187,513,174,550,158"/>
+<area shape="rect" id="Node000069" href="$structSatSys.html#aa2f7732319c19c6aa872606483a9c471" title=" " alt="" coords="294,255,454,280"/>
+<area shape="poly" id="edge7_Node000001_Node000069" title=" " alt="" coords="567,166,525,202,473,238,426,257,424,252,471,233,522,198,564,162"/>
+<area shape="poly" id="edge5_Node000012_Node000025" title=" " alt="" coords="295,184,182,207,181,201,294,179"/>
+<area shape="poly" id="edge8_Node000069_Node000025" title=" " alt="" coords="294,254,181,232,182,227,295,249"/>
+</map>

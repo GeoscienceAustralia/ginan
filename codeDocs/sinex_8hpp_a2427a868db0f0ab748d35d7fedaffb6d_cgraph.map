@@ -1,0 +1,5 @@
+<map id="getSnxSatAttMode" name="getSnxSatAttMode">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#a2427a868db0f0ab748d35d7fedaffb6d" title="Get attitude mode for sat." alt="" coords="5,5,148,31"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="196,5,319,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,15,182,15,182,21,148,21"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="obsRec" name="obsRec">
+<area shape="rect" id="Node000001" href="$preprocessor_8cpp.html#ae65b6703fbe101329ca1cda5da5fa7cf" title=" " alt="" coords="5,104,75,129"/>
+<area shape="rect" id="Node000002" href="$preprocessor_8cpp.html#af9eb59b6630f4f72d8f803f1e24d0b6f" title=" " alt="" coords="123,5,261,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="50,102,80,71,121,40,133,34,135,38,124,44,84,75,54,106"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="127,55,257,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="74,103,138,82,140,87,76,108"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="149,104,235,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="75,122,135,123,135,128,75,127"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="75,106,135,105,135,111,75,112"/>
+<area shape="rect" id="Node000007" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="131,153,253,179"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="62,127,118,148,117,153,60,132"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="76,118,160,145,158,150,74,123"/>
+</map>

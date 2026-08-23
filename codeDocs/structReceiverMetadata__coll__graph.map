@@ -1,0 +1,18 @@
+<map id="ReceiverMetadata" name="ReceiverMetadata">
+<area shape="rect" id="Node000001" href="$structReceiverMetadata.html" title=" " alt="" coords="292,485,447,661"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,231,261,307"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,306,202,379,261,460,282,485,278,488,257,463,198,382,152,309"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="95,35,171,111"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="136,125,136,231,131,231,131,125"/>
+<area shape="rect" id="Node000004" href="$structReceiverMetaField.html" title=" " alt="" coords="285,204,453,335"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="372,335,372,469,367,469,367,335"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="317,35,389,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="358,112,363,180,363,187,358,188,357,180,353,112"/>
+<area shape="rect" id="Node000006" href="$structReceiverMetaField.html" title=" " alt="" coords="413,5,608,141"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="456,154,419,205,414,202,451,151"/>
+<area shape="rect" id="Node000007" href="$structReceiverMetaField.html" title=" " alt="" coords="477,204,645,335"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="534,154,547,203,542,204,529,155"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="557,336,542,399,530,432,513,463,489,492,462,517,458,513,486,488,508,460,525,430,537,398,552,334"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="633,35,725,111"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="669,113,656,147,638,181,631,192,627,189,634,179,651,144,664,111"/>
+</map>

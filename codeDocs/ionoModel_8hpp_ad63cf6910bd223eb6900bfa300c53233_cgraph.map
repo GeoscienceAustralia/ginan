@@ -1,0 +1,7 @@
+<map id="ionCoefLocal" name="ionCoefLocal">
+<area shape="rect" id="Node000001" href="$ionoLocalSTEC_8cpp.html#ad63cf6910bd223eb6900bfa300c53233" title="calcuates the partials of observations with respect to basis functions" alt="" coords="5,31,112,56"/>
+<area shape="rect" id="Node000002" href="$ionoLocalSTEC_8cpp.html#aa2f5c1791aaf5fe105b3a611026a3da0" title=" " alt="" coords="160,5,305,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,33,146,28,147,33,113,38"/>
+<area shape="rect" id="Node000003" href="$ionoLocalSTEC_8cpp.html#a0fc11c5af2593ba1d061c51abf507a98" title=" " alt="" coords="178,55,287,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="113,48,164,55,164,61,112,53"/>
+</map>

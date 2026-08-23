@@ -1,0 +1,9 @@
+<map id="time2yds" name="time2yds">
+<area shape="rect" id="Node000001" href="$gTime_8cpp.html#a37bc65d232e726cdbc51122a8a8ec00e" title=" " alt="" coords="5,55,88,80"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="162,5,261,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,53,154,32,156,37,89,58"/>
+<area shape="rect" id="Node000004" href="$structDuration.html#aa0e0c9082c2072b733d2c5ef7dc55973" title=" " alt="" coords="150,55,273,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="88,65,136,65,136,70,88,70"/>
+<area shape="rect" id="Node000005" href="$structDuration.html#a76e22d65c9f48ad9eb4e65cce4c8e415" title=" " alt="" coords="136,104,287,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="89,77,156,97,154,102,87,82"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="getPreciseRecClks" name="getPreciseRecClks">
+<area shape="rect" id="Node000001" href="$rinexClkWrite_8cpp.html#ad6c4f8e805bb32ac0d6f07400f54c430" title=" " alt="" coords="5,5,148,31"/>
+<area shape="rect" id="Node000002" href="$ephPrecise_8cpp.html#a7152f02ef77017fa75612ac13eeda408" title="clock by precise clock" alt="" coords="196,5,269,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,15,182,15,182,21,148,21"/>
+</map>

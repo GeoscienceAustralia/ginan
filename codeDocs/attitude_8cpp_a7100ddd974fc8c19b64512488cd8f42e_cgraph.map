@@ -1,0 +1,5 @@
+<map id="nominalYawGpsAtTime" name="nominalYawGpsAtTime">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="5,5,177,31"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="225,5,351,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,15,211,15,211,21,178,21"/>
+</map>

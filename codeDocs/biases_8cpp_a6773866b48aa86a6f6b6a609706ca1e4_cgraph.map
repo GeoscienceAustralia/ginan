@@ -1,0 +1,11 @@
+<map id="biasRecurser" name="biasRecurser">
+<area shape="rect" id="Node000001" href="$biases_8cpp.html#a6773866b48aa86a6f6b6a609706ca1e4" title="Recurser of bias chaining, i.e." alt="" coords="5,31,112,56"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="27,32,21,22,24,12,37,6,59,4,85,8,96,16,92,20,83,12,59,9,39,11,28,16,26,22,32,29"/>
+<area shape="rect" id="Node000002" href="$biases_8cpp.html#ac35aee460f932095f5be80ed33f9fa74" title=" " alt="" coords="193,5,303,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,42,195,31,195,36,113,47"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="98,28,179,16,180,21,99,33"/>
+<area shape="rect" id="Node000005" href="$biases_8cpp.html#ae2c152c632df4d2be43398c1a39e9748" title=" " alt="" coords="160,55,336,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="113,47,147,52,146,57,112,53"/>
+<area shape="rect" id="Node000006" href="$biases_8cpp.html#a498a9e57eece625ada36154eb3745803" title=" " alt="" coords="163,104,333,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="85,54,161,89,186,97,184,102,159,94,83,59"/>
+</map>

@@ -1,0 +1,23 @@
+<map id="satYawGpsIIR" name="satYawGpsIIR">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a43e7b17b62853da813d5289667b3284e" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,168,115,193"/>
+<area shape="rect" id="Node000002" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="163,5,334,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="65,166,99,106,127,70,161,40,171,34,173,39,164,44,131,74,104,109,69,169"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="200,55,297,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="83,166,119,138,161,109,219,83,221,88,164,114,122,142,86,170"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="66,166,105,126,161,85,186,73,188,78,164,90,108,130,70,169"/>
+<area shape="rect" id="Node000004" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="383,231,508,256"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="115,184,217,197,335,215,381,225,380,230,334,221,217,202,115,189"/>
+<area shape="rect" id="Node000005" href="$common_8cpp.html#ad96246b7344aed2150ca622b91214cb2" title="Wrap angle between (&#45;pi, pi]." alt="" coords="556,168,688,193"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="115,184,322,187,542,184,542,190,322,192,115,189"/>
+<area shape="poly" id="edge10_Node000001_Node000005" title=" " alt="" coords="115,172,322,169,542,172,542,177,322,174,115,178"/>
+<area shape="rect" id="Node000006" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="187,231,310,256"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="83,191,175,225,173,230,81,196"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="116,188,215,223,214,228,114,193"/>
+<area shape="rect" id="Node000007" href="$attitude_8cpp.html#a7100ddd974fc8c19b64512488cd8f42e" title="Calculate nominal sat yaw for GPS sats at a given time Returns result between (&#45;PI,..." alt="" coords="163,280,335,305"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="74,192,112,229,137,249,164,266,178,273,175,278,161,271,134,253,108,233,71,195"/>
+<area shape="rect" id="Node000008" href="$common_8hpp.html#a83726ee6888c710c289f9b760053776c" title=" " alt="" coords="223,329,274,355"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="67,192,80,221,101,258,129,296,164,328,186,339,210,345,209,350,185,344,161,332,125,300,96,261,75,224,62,195"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="73,192,108,246,134,277,164,304,187,315,211,323,209,328,185,320,161,308,130,281,104,250,69,195"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="481,228,571,196,573,201,483,233"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="299,277,380,257,382,262,301,283"/>
+</map>

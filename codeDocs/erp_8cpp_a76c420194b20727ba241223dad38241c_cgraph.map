@@ -1,0 +1,13 @@
+<map id="readErp" name="readErp">
+<area shape="rect" id="Node000001" href="$erp_8cpp.html#a76c420194b20727ba241223dad38241c" title="read earth rotation parameters" alt="" coords="5,104,77,129"/>
+<area shape="rect" id="Node000002" href="$erp_8cpp.html#a65e5b05849c2712fe7fc84de6140b13f" title="read IERS final EOP products" alt="" coords="139,5,246,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="52,102,83,71,124,40,135,34,138,38,127,44,86,75,56,106"/>
+<area shape="rect" id="Node000004" href="$erp_8cpp.html#aea74a6a66f8dbe955856469da9df6a43" title="read IERS C04 EOP products" alt="" coords="135,55,251,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="77,103,139,82,141,87,78,108"/>
+<area shape="rect" id="Node000006" href="$erp_8cpp.html#a33c70b74bb73dd330fcbe0193762aa11" title="read IERS C04 EOP products" alt="" coords="135,104,251,129"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="78,114,121,114,121,119,78,119"/>
+<area shape="rect" id="Node000007" href="$erp_8cpp.html#a6693c4ce302638d8fb26901aae89eebd" title="read IGS ERP products" alt="" coords="147,153,238,179"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="78,126,141,146,139,151,77,131"/>
+<area shape="rect" id="Node000008" href="$erp_8cpp.html#a4d450703022d8769efa3e5df2f84b0e4" title="read IERS Bulletin&#45;A EOP products" alt="" coords="125,203,260,228"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="56,128,87,157,127,188,140,195,137,200,124,192,83,161,53,132"/>
+</map>

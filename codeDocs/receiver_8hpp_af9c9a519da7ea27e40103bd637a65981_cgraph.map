@@ -1,0 +1,17 @@
+<map id="extractReceiverMetadata" name="extractReceiverMetadata">
+<area shape="rect" id="Node000001" href="$receiver_8cpp.html#a23416d32eb7f2b1dbd95dbfe562974a0" title=" " alt="" coords="5,161,192,187"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="265,5,437,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,159,159,101,196,68,239,40,254,33,256,38,241,44,200,72,163,105,112,163"/>
+<area shape="rect" id="Node000022" href="$structReceiverMetadata.html#af502e59803df66b859334806ad868992" title=" " alt="" coords="243,55,459,80"/>
+<area shape="poly" id="edge2_Node000001_Node000022" title=" " alt="" coords="116,159,169,124,239,89,262,81,264,86,241,94,172,129,119,163"/>
+<area shape="rect" id="Node000024" href="$structParser.html#a8d70e8a00e63f7653ababe4ae1e24b1d" title=" " alt="" coords="281,104,422,129"/>
+<area shape="poly" id="edge3_Node000001_Node000024" title=" " alt="" coords="155,159,281,130,282,135,156,164"/>
+<area shape="rect" id="Node000025" href="$structReceiverMetadata.html#a8234a57962b5167a1386c96e256fc3d6" title=" " alt="" coords="257,154,446,194"/>
+<area shape="poly" id="edge4_Node000001_Node000025" title=" " alt="" coords="192,171,243,171,243,177,192,177"/>
+<area shape="rect" id="Node000032" href="$rtcmDecoder_8hpp.html#a6aa2b74d13341f95e4f53c04d9f0621b" title=" " alt="" coords="258,218,445,258"/>
+<area shape="poly" id="edge5_Node000001_Node000032" title=" " alt="" coords="151,184,259,212,258,217,149,189"/>
+<area shape="rect" id="Node000033" href="$structReceiverMetadata.html#ad0d9f999a3ee02fe7a94fc6f67d60a79" title=" " alt="" coords="240,283,463,308"/>
+<area shape="poly" id="edge6_Node000001_Node000033" title=" " alt="" coords="116,185,169,226,204,248,241,268,265,276,263,281,239,272,201,253,166,230,113,189"/>
+<area shape="rect" id="Node000035" href="$receiverMetadata_8cpp.html#a5a4cab83e1d61d3633fe10a94fc40150" title=" " alt="" coords="266,332,437,357"/>
+<area shape="poly" id="edge7_Node000001_Node000035" title=" " alt="" coords="111,185,161,249,198,286,241,317,258,325,256,330,239,322,195,290,157,253,106,189"/>
+</map>

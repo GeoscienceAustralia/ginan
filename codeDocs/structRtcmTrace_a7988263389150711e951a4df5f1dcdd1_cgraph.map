@@ -1,0 +1,19 @@
+<map id="RtcmTrace::traceBrdcEph" name="RtcmTrace::traceBrdcEph">
+<area shape="rect" id="Node000001" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="5,136,189,161"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="303,5,378,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,134,162,88,197,62,236,40,289,23,291,28,238,44,200,66,165,92,113,138"/>
+<area shape="rect" id="Node000003" href="$enums_8h.html#a086e24a48120638b582c9b860c16f0eb" title=" " alt="" coords="237,55,444,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="125,133,176,111,236,89,264,81,265,86,238,94,178,116,127,138"/>
+<area shape="rect" id="Node000004" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="279,104,402,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,143,283,129,284,134,190,148"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="141,133,265,115,266,121,142,139"/>
+<area shape="rect" id="Node000005" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="492,199,623,224"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="149,159,308,184,479,205,478,210,308,189,148,164"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="190,151,346,171,493,194,492,199,345,176,189,156"/>
+<area shape="rect" id="Node000006" href="$rtcmTrace_8cpp.html#ab2ae04480fcd800861b494214899e1c0" title=" " alt="" coords="270,229,411,255"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="126,159,238,208,283,223,281,228,236,212,124,164"/>
+<area shape="rect" id="Node000010" href="$structRtcmTrace.html#a083ba50f6c01409415118a4c7aa7655e" title=" " alt="" coords="276,279,405,304"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="112,160,163,210,199,239,239,264,264,274,262,279,236,268,196,244,160,214,108,163"/>
+<area shape="poly" id="edge8_Node000006_Node000005" title=" " alt="" coords="411,238,503,224,504,229,412,243"/>
+<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="380,227,478,211,479,216,381,232"/>
+</map>

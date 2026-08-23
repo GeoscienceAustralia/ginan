@@ -1,0 +1,15 @@
+<map id="eci2ecef" name="eci2ecef">
+<area shape="rect" id="Node000001" href="$coordinates_8cpp.html#ad5579407e3fbc4df3feb1b7d5e910075" title=" " alt="" coords="5,129,83,155"/>
+<area shape="rect" id="Node000002" href="$structIERS2010.html#a086191f90165561ee72aa860501a38c0" title=" " alt="" coords="143,5,289,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,128,81,85,103,60,129,40,140,34,142,39,132,44,107,64,85,88,55,131"/>
+<area shape="rect" id="Node000003" href="$structHfOceanEop.html#a34b067baac5e96ae356fc4550a43f572" title=" " alt="" coords="133,55,299,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="62,127,93,108,130,89,148,82,150,87,132,94,96,112,65,132"/>
+<area shape="rect" id="Node000004" href="$structIERS2010.html#a5d148e07e2fad178d96561137656b51c" title=" " alt="" coords="131,104,301,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="83,134,117,129,118,134,83,139"/>
+<area shape="rect" id="Node000005" href="$structSofa.html#a5495d56e52eb53c694e43c9a7e9c7ae2" title=" " alt="" coords="169,153,263,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="83,145,155,155,154,160,83,150"/>
+<area shape="rect" id="Node000007" href="$structSofa.html#a6bc051d981e5a0f519174c3bcf15ea50" title=" " alt="" coords="166,203,266,228"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="66,152,132,188,154,196,152,201,130,192,64,157"/>
+<area shape="rect" id="Node000009" href="$structSofa.html#ae1c6d560c4c92cbbeb269d4697bde3be" title=" " alt="" coords="165,252,267,277"/>
+<area shape="poly" id="edge6_Node000001_Node000009" title=" " alt="" coords="55,153,86,195,107,218,132,237,152,247,150,252,129,242,104,221,82,198,51,156"/>
+</map>

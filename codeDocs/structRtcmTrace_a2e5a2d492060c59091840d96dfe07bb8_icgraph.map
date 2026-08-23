@@ -1,0 +1,7 @@
+<map id="RtcmTrace::traceTimestamp" name="RtcmTrace::traceTimestamp">
+<area shape="rect" id="Node000001" href="$structRtcmTrace.html#a2e5a2d492060c59091840d96dfe07bb8" title=" " alt="" coords="328,31,533,56"/>
+<area shape="rect" id="Node000002" href="$structRtcmDecoder.html#a3b7993d7cc20610d8770c2f4d1e902d6" title=" " alt="" coords="35,5,250,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,36,250,30,251,25,314,30"/>
+<area shape="rect" id="Node000005" href="$structRtcmEncoder.html#aec43680779bba008687e1f4f792960e1" title=" " alt="" coords="5,55,280,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="315,56,280,59,280,53,314,50"/>
+</map>

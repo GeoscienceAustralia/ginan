@@ -1,0 +1,5 @@
+<map id="Rtk" name="Rtk">
+<area shape="rect" id="Node000001" href="$structRtk.html" title=" " alt="" coords="24,5,157,201"/>
+<area shape="rect" id="Node000002" href="$structReceiver.html" title="Object to maintain receiver station data." alt="" coords="5,249,176,925"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,215,93,249,88,249,88,215"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="readionexh" name="readionexh">
+<area shape="rect" id="Node000001" href="$ionex_8cpp.html#aaa98d3b461d6df7be466702f97817da4" title=" " alt="" coords="5,5,100,31"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="307,37,383,63"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,27,197,40,293,49,293,54,196,45,100,33"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="101,14,197,22,294,35,293,40,196,27,100,19"/>
+<area shape="rect" id="Node000003" href="$ionex_8cpp.html#ad8d9b28daf532c13a9a7e71912cae79f" title="read ionex dcb aux data" alt="" coords="148,68,259,93"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="85,28,160,60,158,65,83,33"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="258,75,305,64,306,69,259,80"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="229,65,292,50,294,55,231,70"/>
+</map>

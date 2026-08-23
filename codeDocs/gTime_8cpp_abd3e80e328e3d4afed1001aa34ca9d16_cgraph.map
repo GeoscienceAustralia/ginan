@@ -1,0 +1,7 @@
+<map id="currentLogptime" name="currentLogptime">
+<area shape="rect" id="Node000001" href="$gTime_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="5,31,135,56"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a72505f23b2252f690f124c2eaf026f91" title=" " alt="" coords="183,5,317,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,32,169,27,170,32,135,37"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#aaa8a379d11cd6c040a6bbe680c0e913e" title="Uninitialised time for comparisons." alt="" coords="189,55,311,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,49,176,55,175,60,134,55"/>
+</map>

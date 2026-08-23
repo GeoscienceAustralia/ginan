@@ -1,0 +1,16 @@
+<map id="decodeBDSNav" name="decodeBDSNav">
+<area shape="rect" id="Node000001" href="$sbfDecoder_8cpp.html#a621f9e2c92f251b49ae2b1c7643937a1" title=" " alt="" coords="5,104,128,129"/>
+<area shape="rect" id="Node000002" href="$sbfDecoder_8cpp.html#aa25b00b3e9079a63159e0a83bdfba500" title=" " alt="" coords="187,5,274,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,102,124,72,175,40,185,34,188,39,177,44,127,76,86,106"/>
+<area shape="rect" id="Node000003" href="$sbfDecoder_8cpp.html#a2b82b7b937004af37e197f6fdad1e5ce" title=" " alt="" coords="176,55,285,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="127,104,195,83,197,88,129,110"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="88,101,162,76,164,81,90,106"/>
+<area shape="rect" id="Node000004" href="$sbfDecoder_8cpp.html#a22af62b0c9d14e873cb912f827453de4" title=" " alt="" coords="191,104,270,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="128,123,178,122,178,128,128,128"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="128,105,178,106,178,111,128,111"/>
+<area shape="rect" id="Node000005" href="$sbfDecoder_8cpp.html#a111e1e2b7e059d98bbf239f6fd191576" title=" " alt="" coords="183,153,278,179"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="90,127,171,154,169,159,88,132"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="129,124,197,146,195,151,127,129"/>
+<area shape="rect" id="Node000006" href="$common_8cpp.html#a47b796248ca1aabdfc761d61bb878142" title="URA index to URA value (m) GLOBAL POSITIONING SYSTEM STANDARD POSITIONING SERVICE SIGNAL SPECIFICATIO..." alt="" coords="189,203,272,228"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="87,127,177,188,189,194,187,199,175,192,84,132"/>
+</map>

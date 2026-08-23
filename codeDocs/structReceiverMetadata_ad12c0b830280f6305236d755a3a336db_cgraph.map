@@ -1,0 +1,12 @@
+<map id="ReceiverMetadata::ingestSinex" name="ReceiverMetadata::ingestSinex">
+<area shape="rect" id="Node000001" href="$structReceiverMetadata.html#ad12c0b830280f6305236d755a3a336db" title=" " alt="" coords="5,55,195,95"/>
+<area shape="rect" id="Node000002" href="$receiverMetadata_8cpp.html#ab285181d86d7127717b4979b428a6feb" title=" " alt="" coords="274,5,421,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,53,278,31,279,36,188,58"/>
+<area shape="rect" id="Node000003" href="$receiverMetadata_8cpp.html#ab1839dad1884ddb509076582c8910275" title=" " alt="" coords="243,55,452,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,81,229,82,229,87,195,87"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="195,64,229,64,229,69,195,69"/>
+<area shape="rect" id="Node000005" href="$receiver_8hpp.html#ad62e3a3efe5e017c0092a133fb7f766f" title=" " alt="" coords="500,132,683,157"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="141,93,243,117,369,134,486,144,486,150,369,139,242,122,139,98"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="195,84,243,93,390,113,519,128,518,133,389,118,242,98,194,89"/>
+<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="419,93,533,126,532,131,418,98"/>
+</map>

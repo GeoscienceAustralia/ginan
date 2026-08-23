@@ -1,0 +1,5 @@
+<map id="stagePhaseObservation" name="stagePhaseObservation">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#a766fb9db5bce7a415d8c7f909e950909" title="Stage phase observation with priority resolution support." alt="" coords="5,5,181,31"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="229,5,352,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,15,215,15,215,21,182,21"/>
+</map>

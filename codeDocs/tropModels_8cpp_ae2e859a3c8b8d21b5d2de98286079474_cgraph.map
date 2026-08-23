@@ -1,0 +1,9 @@
+<map id="tropModelCoef" name="tropModelCoef">
+<area shape="rect" id="Node000001" href="$tropModels_8cpp.html#ae2e859a3c8b8d21b5d2de98286079474" title=" " alt="" coords="5,55,124,80"/>
+<area shape="rect" id="Node000002" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="173,5,311,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,52,181,32,183,37,112,57"/>
+<area shape="rect" id="Node000003" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="172,55,312,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="124,65,158,65,158,70,124,70"/>
+<area shape="rect" id="Node000004" href="$enumHelpers_8hpp.html#ac318a8058a7c509d1b135f62291446a8" title=" " alt="" coords="191,104,293,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="112,77,183,98,181,103,110,83"/>
+</map>

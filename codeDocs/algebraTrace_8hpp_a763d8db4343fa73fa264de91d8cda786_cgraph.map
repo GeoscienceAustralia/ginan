@@ -1,0 +1,7 @@
+<map id="spitFilterToFile" name="spitFilterToFile">
+<area shape="rect" id="Node000001" href="$algebraTrace_8hpp.html#a763d8db4343fa73fa264de91d8cda786" title="Output filter state to a file for later reading." alt="" coords="5,31,121,56"/>
+<area shape="rect" id="Node000002" href="$algebraTrace_8cpp.html#a26cbe32ecdc0d1af8afc182528de5f31" title="Save complex variables to files." alt="" coords="185,5,320,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,33,171,26,172,31,122,38"/>
+<area shape="rect" id="Node000003" href="$algebraTrace_8cpp.html#ab61a5af869aef20a6a5291467ce9121b" title=" " alt="" coords="169,55,336,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="122,48,156,52,155,58,121,53"/>
+</map>

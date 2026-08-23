@@ -1,0 +1,8 @@
+<map id="Base64::encode" name="Base64::encode">
+<area shape="rect" id="Node000001" href="$structBase64.html#a3e8d4028aff313b0a28f4c65a808f43e" title=" " alt="" coords="265,31,391,56"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="367,21,356,13,328,9,305,11,293,16,290,22,297,29,293,32,285,22,289,12,304,6,328,4,358,8,370,17"/>
+<area shape="rect" id="Node000002" href="$structNtripStream.html#aeb821b2c4050cc16c7ece01651d51724" title=" " alt="" coords="17,5,205,31"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="251,37,205,32,206,26,252,32"/>
+<area shape="rect" id="Node000003" href="$structNtripUploader.html#a7053ed49ff175076bf8db14933fc3f12" title=" " alt="" coords="5,55,217,80"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="252,54,218,58,217,53,251,49"/>
+</map>

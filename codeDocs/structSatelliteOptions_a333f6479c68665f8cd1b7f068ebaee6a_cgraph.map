@@ -1,0 +1,16 @@
+<map id="SatelliteOptions::operator+=" name="SatelliteOptions::operator+=">
+<area shape="rect" id="Node000001" href="$structSatelliteOptions.html#a333f6479c68665f8cd1b7f068ebaee6a" title=" " alt="" coords="5,104,216,129"/>
+<area shape="rect" id="Node000002" href="$structSatelliteKalmans.html#a8adc701abec0eddc0f880e68de73748a" title=" " alt="" coords="264,5,483,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,101,191,71,263,39,289,31,291,37,265,45,193,75,135,106"/>
+<area shape="rect" id="Node000006" href="$structCommonOptions.html#acaec78cf1cf23e89bb9ffc93f5abc844" title=" " alt="" coords="265,55,481,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="178,101,291,80,292,85,179,107"/>
+<area shape="rect" id="Node000007" href="$acsConfig_8hpp.html#a7d711647c61df106ba3e11c33c1d7771" title="Copy one parameter to another, if it has been initialised." alt="" coords="531,104,633,129"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="134,127,193,141,264,151,374,159,421,158,482,151,520,144,554,133,556,138,521,149,483,157,422,163,373,164,264,157,192,147,133,132"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="217,122,264,127,374,135,421,134,482,127,517,121,518,126,483,133,422,139,373,140,264,133,216,127"/>
+<area shape="rect" id="Node000010" href="$structOrbitOptions.html#a155e5fcfa35393eaa4fed2fe485b212c" title=" " alt="" coords="279,104,468,129"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="216,114,265,114,265,119,216,119"/>
+<area shape="poly" id="edge3_Node000006_Node000007" title=" " alt="" coords="395,78,483,101,518,109,517,114,482,106,393,83"/>
+<area shape="poly" id="edge4_Node000006_Node000007" title=" " alt="" coords="482,76,483,77,553,96,551,101,482,82,481,82"/>
+<area shape="poly" id="edge6_Node000010_Node000007" title=" " alt="" coords="468,123,517,122,517,128,468,128"/>
+<area shape="poly" id="edge7_Node000010_Node000007" title=" " alt="" coords="468,105,517,106,517,111,468,110"/>
+</map>

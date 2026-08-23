@@ -1,0 +1,24 @@
+<map id="copySSRBlock" name="copySSRBlock">
+<area shape="rect" id="Node000001" href="$prototypeCmpSSRDecode_8cpp.html#af39acd0cd837f894466dca4e7b5ed7f7" title=" " alt="" coords="5,143,120,168"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="365,5,451,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,141,115,102,140,82,167,65,213,47,262,35,350,24,351,29,263,40,215,52,169,70,143,86,119,106,82,144"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="67,141,81,118,104,90,133,63,167,41,213,23,262,12,309,6,351,5,351,11,309,12,263,17,215,28,169,46,136,67,108,94,86,121,71,144"/>
+<area shape="rect" id="Node000005" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="168,68,299,93"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="110,140,167,114,207,97,209,102,169,119,112,145"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="73,140,108,118,155,96,157,100,111,123,76,145"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="170,117,297,143"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="120,153,184,143,184,148,121,158"/>
+<area shape="poly" id="edge12_Node000001_Node000004" title=" " alt="" coords="98,140,156,130,157,135,99,145"/>
+<area shape="rect" id="Node000006" href="$biases_8cpp.html#a49125df99428d233610c2ed35c2693d1" title=" " alt="" coords="172,167,295,192"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="100,165,158,175,157,180,100,171"/>
+<area shape="poly" id="edge13_Node000001_Node000006" title=" " alt="" coords="121,152,183,161,182,167,120,157"/>
+<area shape="rect" id="Node000008" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="347,223,469,248"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="71,167,85,190,107,218,136,244,169,264,196,272,224,276,281,275,334,265,376,251,378,256,335,270,282,280,224,281,195,277,167,268,133,248,103,222,81,193,66,170"/>
+<area shape="poly" id="edge15_Node000001_Node000008" title=" " alt="" coords="81,166,117,205,142,225,169,240,210,250,252,253,294,251,333,245,334,250,295,256,252,259,209,256,167,244,139,229,114,209,77,170"/>
+<area shape="rect" id="Node000009" href="$biases_8cpp.html#ad7402956db3836fc8dbe7b8b51d04c69" title="Push forward and reverse bias entry into biasMaps." alt="" coords="176,216,291,241"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="77,166,113,187,164,211,162,216,111,192,74,171"/>
+<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="116,166,169,189,210,207,208,212,167,194,114,171"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="275,164,297,152,326,126,352,96,391,41,395,44,357,100,330,130,300,156,278,169"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="256,190,334,218,333,223,254,195"/>
+<area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="296,188,374,215,372,220,294,193"/>
+</map>

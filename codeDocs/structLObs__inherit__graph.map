@@ -1,0 +1,11 @@
+<map id="LObs" name="LObs">
+<area shape="rect" id="Node000001" href="$structLObs.html" title=" " alt="" coords="162,1373,349,1684"/>
+<area shape="rect" id="Node000002" href="$structObservation.html" title=" " alt="" coords="25,759,176,955"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,969,150,1137,191,1325,205,1372,200,1374,186,1326,144,1138,115,970"/>
+<area shape="rect" id="Node000003" href="$structObsMeta.html" title=" " alt="" coords="5,5,196,341"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,355,103,759,98,759,98,355"/>
+<area shape="rect" id="Node000004" href="$structLObsMeta.html" title=" " alt="" coords="201,779,310,935"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="258,949,258,1373,253,1373,253,949"/>
+<area shape="rect" id="Node000005" href="$structSatPos.html" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="335,389,533,1325"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="334,1294,325,1326,310,1374,305,1372,319,1325,328,1293"/>
+</map>

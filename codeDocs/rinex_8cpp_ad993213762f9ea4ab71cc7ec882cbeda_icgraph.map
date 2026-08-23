@@ -1,0 +1,28 @@
+<map id="stripCarriageReturn" name="stripCarriageReturn">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#ad993213762f9ea4ab71cc7ec882cbeda" title="Strip trailing carriage return (\r) from string if present This handles Windows&#45;encoded files (\r &#160;li..." alt="" coords="383,228,532,253"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#a3ae01240baac2b9246e1d1f4ad068eaf" title="Decode GLONASS navigation file header." alt="" coords="193,5,306,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="445,216,429,178,405,131,373,84,333,44,305,30,308,25,336,40,377,81,410,128,434,175,450,214"/>
+<area shape="rect" id="Node000003" href="$rinex_8cpp.html#a8751d1a1d98fb7862f17d0a3ebc22310" title="Read RINEX file header section." alt="" coords="17,104,104,129"/>
+<area shape="poly" id="edge13_Node000001_Node000003" title=" " alt="" coords="439,265,395,306,367,326,336,340,287,357,247,365,207,361,163,340,136,319,115,292,98,263,85,232,68,173,61,130,66,129,73,172,90,230,103,260,119,289,140,315,165,336,208,356,246,360,286,352,334,336,364,321,392,302,435,261"/>
+<area shape="rect" id="Node000006" href="$rinex_8cpp.html#aeb9ed7a2f9c56ac369434c213abaed3e" title="Decode SBAS/Geostationary navigation file header." alt="" coords="193,55,306,80"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="440,217,398,155,368,122,333,94,305,80,307,76,336,89,371,118,402,152,445,214"/>
+<area shape="rect" id="Node000007" href="$rinex_8cpp.html#a7a60f187ca9defbaa801f242efb7f18b" title="Decode RINEX navigation file header." alt="" coords="197,104,302,129"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="432,220,389,181,333,143,301,130,303,125,336,138,392,176,436,216"/>
+<area shape="rect" id="Node000008" href="$rinex_8cpp.html#a79b5092addef140a4013e90f5cfaaba9" title="Decode RINEX 2 observation data." alt="" coords="164,153,335,179"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="415,225,334,193,298,181,300,176,336,187,417,220"/>
+<area shape="rect" id="Node000012" href="$rinex_8cpp.html#a88f2d75f4dbbc4569d0fc07e474d63cc" title="Decode observation epoch header information." alt="" coords="183,203,316,228"/>
+<area shape="poly" id="edge8_Node000001_Node000012" title=" " alt="" coords="369,233,316,226,317,221,369,227"/>
+<area shape="rect" id="Node000010" href="$rinex_8cpp.html#a4c9cb115309fc6d9dd154c4e1bea4327" title="Read RINEX observation data body section." alt="" coords="5,328,116,353"/>
+<area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="452,268,437,309,414,358,381,406,360,426,336,443,291,463,251,468,210,461,163,443,132,425,104,401,68,355,72,352,108,397,135,421,165,438,212,455,251,463,289,458,333,438,357,422,377,402,410,355,432,307,447,266"/>
+<area shape="rect" id="Node000013" href="$rinex_8cpp.html#a774458b36a7a13e1263568e05106dc83" title="Decode RINEX observation file header." alt="" coords="197,252,301,277"/>
+<area shape="poly" id="edge10_Node000001_Node000013" title=" " alt="" coords="369,253,302,261,302,256,369,248"/>
+<area shape="rect" id="Node000014" href="$rinex_8cpp.html#a31dd08ba5cac291e98978728ec29f60c" title="Read RINEX clock file." alt="" coords="201,301,298,327"/>
+<area shape="poly" id="edge12_Node000001_Node000014" title=" " alt="" coords="414,261,336,291,296,304,295,299,334,286,412,256"/>
+<area shape="rect" id="Node000015" href="$rinex_8cpp.html#a792445378357d92f2cba6dc7ec14c75b" title="Read RINEX navigation data body section." alt="" coords="194,403,305,428"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="443,267,399,325,370,357,336,386,298,405,295,400,333,381,366,354,395,322,439,264"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="181,38,165,44,116,75,78,106,74,102,113,71,163,40,179,33"/>
+<area shape="poly" id="edge4_Node000006_Node000003" title=" " alt="" coords="188,86,105,108,103,103,186,81"/>
+<area shape="poly" id="edge6_Node000007_Node000003" title=" " alt="" coords="183,119,104,119,104,114,183,114"/>
+<area shape="poly" id="edge9_Node000012_Node000010" title=" " alt="" coords="178,235,165,242,137,262,111,286,73,329,69,326,107,282,133,258,163,237,175,231"/>
+<area shape="poly" id="edge11_Node000013_Node000003" title=" " alt="" coords="183,252,163,242,130,215,103,184,67,131,71,128,107,181,134,211,165,237,185,247"/>
+</map>

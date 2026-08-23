@@ -1,0 +1,14 @@
+<map id="Config__" name="Config__">
+<area shape="rect" id="Node000001" href="$acsConfig_8cpp.html#ae92af27db5dcd388f3d7ef53d96f1f51" title="YAML based configuration." alt="" coords="420,81,497,107"/>
+<area shape="rect" id="Node000002" href="$structACSConfig.html#acbe400e2cc2760cbebd28dda6413c4ad" title="Parse options to set acsConfig values." alt="" coords="239,56,372,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="406,88,372,82,373,77,407,83"/>
+<area shape="rect" id="Node000005" href="$Ginan_8cpp.html#a59a8bad8519426f9742fa63079e4a5e9" title="Ginan&#39;s main processing executable." alt="" coords="275,105,335,131"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="407,105,336,116,335,111,406,99"/>
+<area shape="rect" id="Node000003" href="$acsConfig_8cpp.html#a428af53af7dd917738fb5d204948f74f" title="Prepare the configuration of the program." alt="" coords="108,5,191,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="251,54,189,33,190,28,253,49"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="5,31,60,56"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="225,64,60,48,60,43,225,59"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="95,33,61,40,60,35,94,27"/>
+<area shape="rect" id="Node000006" href="$Ginan_8cpp.html#a5bdf8cdda721ab07dcd6033a15eeba3c" title="Ginan is a toolkit for processing GNSS measurements to produce precise positioning products." alt="" coords="112,107,187,132"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="261,121,187,122,187,116,261,116"/>
+</map>

@@ -1,0 +1,20 @@
+<map id="createTracefiles" name="createTracefiles">
+<area shape="rect" id="Node000001" href="$outputs_8cpp.html#a116830f5a44aad1710dc47ecfa670cab" title="Create new empty trace files only when required when the filename is changed." alt="" coords="5,153,129,179"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="201,5,331,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,152,113,98,142,66,176,40,188,33,190,38,179,44,146,70,117,101,78,155"/>
+<area shape="rect" id="Node000005" href="$outputs_8cpp.html#a2206cd179576b10f99dbe50e8e7ddc5a" title="Create directories if required." alt="" coords="199,55,333,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="82,151,123,120,176,89,194,82,196,87,179,94,126,125,85,155"/>
+<area shape="rect" id="Node000008" href="$mongo_8cpp.html#a52ea466b77ea949c69649373cb073616" title=" " alt="" coords="195,104,337,129"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="129,156,225,131,227,136,130,162"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="94,151,180,126,182,131,95,156"/>
+<area shape="rect" id="Node000013" href="$trace_8cpp.html#a4d8fcbcf5c1eb96baff3deeeaf1cc8ab" title=" " alt="" coords="191,153,341,179"/>
+<area shape="poly" id="edge5_Node000001_Node000013" title=" " alt="" coords="130,172,178,172,178,178,130,177"/>
+<area shape="poly" id="edge6_Node000001_Node000013" title=" " alt="" coords="130,155,178,154,178,160,130,160"/>
+<area shape="rect" id="Node000016" href="$rinexClkWrite_8cpp.html#a87a652e05ec91c35c1e56c0650176dfa" title=" " alt="" coords="177,203,355,228"/>
+<area shape="poly" id="edge7_Node000001_Node000016" title=" " alt="" coords="95,176,166,197,165,202,94,181"/>
+<area shape="poly" id="edge8_Node000001_Node000016" title=" " alt="" coords="130,170,227,196,225,201,129,176"/>
+<area shape="rect" id="Node000018" href="$algebraTrace_8hpp.html#a763d8db4343fa73fa264de91d8cda786" title="Output filter state to a file for later reading." alt="" coords="208,252,324,277"/>
+<area shape="poly" id="edge9_Node000001_Node000018" title=" " alt="" coords="86,177,127,207,179,237,199,245,197,250,176,242,124,211,83,181"/>
+<area shape="rect" id="Node000023" href="$trace_8hpp.html#a82aadd4ad08eca4e9058dc2efbfb05a6" title=" " alt="" coords="204,301,328,327"/>
+<area shape="poly" id="edge10_Node000001_Node000023" title=" " alt="" coords="79,177,117,230,146,261,179,286,193,294,190,299,176,291,142,265,113,234,74,180"/>
+</map>

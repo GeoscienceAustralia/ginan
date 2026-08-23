@@ -1,0 +1,11 @@
+<map id="ClockEntry" name="ClockEntry">
+<area shape="rect" id="Node000001" href="$structClockEntry.html" title=" " alt="" coords="95,297,201,413"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,77,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,219,92,272,98,282,94,285,87,275,57,222"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="102,144,194,220"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,220,151,281,145,281,145,220"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="218,144,342,220"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="255,222,214,275,205,286,201,283,210,272,250,219"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="242,5,318,81"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="283,95,283,144,277,144,277,95"/>
+</map>

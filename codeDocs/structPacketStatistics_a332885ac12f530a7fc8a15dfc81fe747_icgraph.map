@@ -1,0 +1,11 @@
+<map id="PacketStatistics::checksumFailure" name="PacketStatistics::checksumFailure">
+<area shape="rect" id="Node000001" href="$structPacketStatistics.html#a332885ac12f530a7fc8a15dfc81fe747" title=" " alt="" coords="209,73,408,113"/>
+<area shape="rect" id="Node000002" href="$structCustomParser.html#a1b307af55ea236fb3c0c248978844e30" title=" " alt="" coords="5,5,161,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,71,160,45,125,33,127,28,162,39,239,66"/>
+<area shape="rect" id="Node000003" href="$structRtcmParser.html#a6138840942a03f0a06ecb288ab412716" title=" " alt="" coords="13,55,153,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,83,153,78,154,73,196,77"/>
+<area shape="rect" id="Node000004" href="$structSbfParser.html#a8adc854fbf5dae542398b61fc0da7e81" title=" " alt="" coords="20,104,147,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,107,148,113,147,107,195,102"/>
+<area shape="rect" id="Node000005" href="$structUbxParser.html#aeb578c76a4db0173d21f6a7de471c06b" title=" " alt="" coords="17,153,149,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="235,119,125,156,123,151,233,114"/>
+</map>

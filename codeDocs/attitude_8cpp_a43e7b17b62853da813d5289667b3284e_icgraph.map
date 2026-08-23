@@ -1,0 +1,11 @@
+<map id="satYawGpsIIR" name="satYawGpsIIR">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a43e7b17b62853da813d5289667b3284e" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="324,55,433,80"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a46cec52b21a1c337c0ca23eba28f5bca" title="Yaw model for GPS&#45;IIA sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="167,5,276,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="324,53,262,33,264,28,325,48"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#aac7be95f5d7dbf6cf5d647524555edcb" title="Calculates nominal &amp; model yaw." alt="" coords="5,55,119,80"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="324,86,276,95,221,100,166,95,105,83,106,77,167,90,221,94,276,90,323,81"/>
+<area shape="rect" id="Node000017" href="$attitude_8cpp.html#af06aa2920ea6c715fd8973e86ab0822f" title="Yaw model for GPS&#45;IIF sats Ref: https://www.researchgate.net/publication/306924379_Observed_features_..." alt="" coords="167,55,275,80"/>
+<area shape="poly" id="edge3_Node000001_Node000017" title=" " alt="" coords="310,70,276,70,276,65,310,65"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="167,37,105,57,103,52,166,32"/>
+<area shape="poly" id="edge4_Node000017_Node000003" title=" " alt="" coords="153,70,119,70,119,65,153,65"/>
+</map>

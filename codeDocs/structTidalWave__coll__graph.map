@@ -1,0 +1,9 @@
+<map id="TidalWave" name="TidalWave">
+<area shape="rect" id="Node000001" href="$structTidalWave.html" title=" " alt="" coords="97,247,225,343"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,77,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="41,81,45,150,54,187,69,221,87,244,83,247,64,224,49,188,40,150,36,82"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="114,5,209,81"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,81,164,230,159,230,159,81"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="233,5,321,81"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="272,82,254,150,240,188,222,224,216,235,211,232,218,221,235,186,249,148,267,81"/>
+</map>

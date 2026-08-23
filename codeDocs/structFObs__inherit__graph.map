@@ -1,0 +1,7 @@
+<map id="FObs" name="FObs">
+<area shape="rect" id="Node000001" href="$structFObs.html" title=" " alt="" coords="11,633,190,744"/>
+<area shape="rect" id="Node000002" href="$structObservation.html" title=" " alt="" coords="25,389,176,585"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,599,103,633,98,633,98,599"/>
+<area shape="rect" id="Node000003" href="$structObsMeta.html" title=" " alt="" coords="5,5,196,341"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,355,103,389,98,389,98,355"/>
+</map>

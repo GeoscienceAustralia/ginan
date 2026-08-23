@@ -1,0 +1,8 @@
+<map id="satYawGpsIII" name="satYawGpsIII">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#afd2653cc1d2bee172447ed161bf0f19d" title="Yaw model for GPS&#45;III sats Ref: https://www.gpsworld.com/new&#45;type&#45;on&#45;the&#45;block&#45;generating&#45;high&#45;precis..." alt="" coords="5,55,109,80"/>
+<area shape="rect" id="Node000002" href="$common_8hpp.html#a83726ee6888c710c289f9b760053776c" title=" " alt="" coords="195,5,245,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,52,181,27,182,32,101,57"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="157,55,283,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="110,73,143,74,143,79,110,78"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="110,56,143,56,143,61,110,62"/>
+</map>

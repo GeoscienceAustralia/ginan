@@ -1,0 +1,11 @@
+<map id="SsrBroadcast" name="SsrBroadcast">
+<area shape="rect" id="Node000001" href="$structSsrBroadcast.html" title=" " alt="" coords="130,337,250,413"/>
+<area shape="rect" id="Node000002" href="$structSSRMetaOpts.html" title=" " alt="" coords="5,159,129,275"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,284,163,335,159,339,118,287"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="154,179,226,255"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,255,193,321,187,321,187,255"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="250,171,455,262"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="308,264,242,327,239,324,305,260"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="321,5,385,81"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="355,95,355,171,350,171,350,95"/>
+</map>

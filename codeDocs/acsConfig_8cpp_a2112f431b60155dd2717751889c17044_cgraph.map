@@ -1,0 +1,26 @@
+<map id="getOptionsFromYaml" name="getOptionsFromYaml">
+<area shape="rect" id="Node000001" href="$acsConfig_8cpp.html#a2112f431b60155dd2717751889c17044" title="Set satellite options from yaml." alt="" coords="5,109,163,134"/>
+<area shape="rect" id="Node000002" href="$acsConfig_8cpp.html#aaeb305db9559c585125ced693d9360d1" title="Get an object within a hierarchy of yaml structure using a vector of nodes." alt="" coords="591,29,744,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,107,143,67,175,47,210,31,261,17,314,8,367,3,420,3,519,11,599,23,598,29,518,16,420,8,367,9,314,13,262,22,212,36,178,52,147,72,100,111"/>
+<area shape="rect" id="Node000005" href="$acsConfig_8cpp.html#a5094f0121a324e01a0dbb41eeac8a703" title="Set orbit options from yaml." alt="" coords="211,46,368,71"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="154,106,252,74,254,79,155,111"/>
+<area shape="poly" id="edge13_Node000001_Node000005" title=" " alt="" coords="107,106,205,73,207,78,108,111"/>
+<area shape="rect" id="Node000006" href="$acsConfig_8hpp.html#afbb4ad5e0459e2bb029f3e874ec566d5" title="Use pointer arithmetic to keep track of variables that have been initialised." alt="" coords="440,91,519,117"/>
+<area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="163,123,299,118,426,110,427,115,299,124,163,128"/>
+<area shape="poly" id="edge16_Node000001_Node000006" title=" " alt="" coords="163,108,299,100,426,97,426,103,299,106,163,113"/>
+<area shape="rect" id="Node000007" href="$acsConfig_8cpp.html#a5e7bdb984a957f6949a0b1d49e3f6538" title="Set an output from yaml object if found." alt="" coords="416,141,543,166"/>
+<area shape="poly" id="edge17_Node000001_Node000007" title=" " alt="" coords="155,131,403,152,402,157,154,137"/>
+<area shape="poly" id="edge18_Node000001_Node000007" title=" " alt="" coords="163,118,402,137,402,143,163,123"/>
+<area shape="rect" id="Node000015" href="$acsConfig_8cpp.html#aaf018a36c1eb75f5745d21e53d528732" title="Set an enum from yaml, decoding strings to ints." alt="" coords="418,190,541,215"/>
+<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="147,132,405,185,404,190,146,137"/>
+<area shape="poly" id="edge3_Node000005_Node000002" title=" " alt="" coords="368,60,577,51,577,56,369,65"/>
+<area shape="poly" id="edge4_Node000005_Node000002" title=" " alt="" coords="368,45,577,35,577,40,369,50"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="317,69,427,97,426,102,316,74"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="369,66,439,85,438,90,368,71"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="302,69,346,99,406,132,404,137,343,104,299,74"/>
+<area shape="poly" id="edge9_Node000005_Node000007" title=" " alt="" coords="331,69,417,114,456,132,454,136,415,118,328,74"/>
+<area shape="poly" id="edge10_Node000005_Node000015" title=" " alt="" coords="299,70,341,122,372,152,408,181,405,185,369,156,337,125,295,73"/>
+<area shape="poly" id="edge12_Node000005_Node000015" title=" " alt="" coords="311,70,357,115,417,163,454,182,452,186,415,168,353,119,307,74"/>
+<area shape="poly" id="edge7_Node000007_Node000002" title=" " alt="" coords="515,138,541,126,594,93,638,60,641,65,597,97,544,130,517,143"/>
+<area shape="poly" id="edge11_Node000015_Node000002" title=" " alt="" coords="518,188,541,175,574,149,603,119,647,64,652,67,607,123,577,153,544,180,521,192"/>
+</map>

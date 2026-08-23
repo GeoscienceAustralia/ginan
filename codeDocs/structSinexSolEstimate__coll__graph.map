@@ -1,0 +1,9 @@
+<map id="SinexSolEstimate" name="SinexSolEstimate">
+<area shape="rect" id="Node000001" href="$structSinexSolEstimate.html" title=" " alt="" coords="27,503,176,659"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,77,287"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="45,287,51,375,67,478,69,486,63,487,61,479,45,375,39,287"/>
+<area shape="rect" id="Node000003" href="$structUYds.html" title=" " alt="" coords="101,131,264,367"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,367,135,479,132,488,127,486,129,478,156,366"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,5,263,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="185,95,185,131,180,131,180,95"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="NtripUploader::connected" name="NtripUploader::connected">
+<area shape="rect" id="Node000001" href="$structNtripUploader.html#a898eb17a065327e8637abb7876c06bd9" title=" " alt="" coords="5,31,193,56"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html#a03ed6daf30143b309d99966c9318b347" title=" " alt="" coords="271,5,428,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,31,257,25,257,30,194,36"/>
+<area shape="rect" id="Node000003" href="$structNtripUploader.html#af0617de893f9f0c1873cbc7cfd12ccb0" title=" " alt="" coords="241,55,457,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,50,228,53,227,58,193,55"/>
+</map>

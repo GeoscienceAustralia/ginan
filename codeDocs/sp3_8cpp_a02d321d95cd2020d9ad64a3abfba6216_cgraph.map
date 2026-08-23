@@ -1,0 +1,11 @@
+<map id="readsp3" name="readsp3">
+<area shape="rect" id="Node000001" href="$sp3_8cpp.html#a02d321d95cd2020d9ad64a3abfba6216" title="read an epoch of data from an sp3 precise ephemeris file" alt="" coords="5,55,80,80"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#a0080e8d8e9f572cc3a823740536abce4" title=" " alt="" coords="131,5,208,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,59,138,35,140,40,82,64"/>
+<area shape="poly" id="edge5_Node000001_Node000002" title=" " alt="" coords="59,52,116,27,118,32,61,57"/>
+<area shape="rect" id="Node000007" href="$sp3_8cpp.html#aa6a1cc81baa057b53e2f3a644959a432" title="satellite code to satellite system" alt="" coords="128,55,211,80"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="81,65,114,65,114,70,81,70"/>
+<area shape="rect" id="Node000008" href="$gTime_8cpp.html#aca21817ee2127e89013ae4252c5f9abe" title=" " alt="" coords="131,104,207,129"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="61,78,119,103,117,108,59,83"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="82,71,140,95,138,100,80,76"/>
+</map>

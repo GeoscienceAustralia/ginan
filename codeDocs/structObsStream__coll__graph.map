@@ -1,0 +1,14 @@
+<map id="ObsStream" name="ObsStream">
+<area shape="rect" id="Node000001" href="$structObsStream.html" title=" " alt="" coords="251,1469,383,1665"/>
+<area shape="rect" id="Node000002" href="$structStreamParser.html" title=" " alt="" coords="147,1264,327,1420"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="272,1432,285,1468,280,1470,267,1434"/>
+<area shape="rect" id="Node000003" href="$structStream.html" title=" " alt="" coords="5,144,163,280"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,281,54,455,47,570,45,698,52,834,68,972,98,1109,119,1175,144,1239,149,1249,144,1251,139,1241,114,1177,93,1110,63,973,46,834,40,698,42,570,49,455,70,280"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="213,5,285,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="215,83,164,134,161,130,211,79"/>
+<area shape="rect" id="Node000006" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="301,304,496,1240"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="288,78,312,108,332,143,357,213,376,287,371,288,352,215,327,145,308,111,284,81"/>
+<area shape="rect" id="Node000005" href="$structParser.html" title=" " alt="" coords="187,154,317,270"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="240,271,235,304,221,446,214,566,212,672,214,771,224,976,235,1240,235,1248,230,1248,229,1240,218,977,208,771,207,672,209,566,216,446,229,304,235,270"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="363,1241,343,1420,338,1453,333,1453,337,1420,357,1240"/>
+</map>

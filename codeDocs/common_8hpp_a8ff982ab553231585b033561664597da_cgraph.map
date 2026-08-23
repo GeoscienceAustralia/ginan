@@ -1,0 +1,6 @@
+<map id="dopCalc" name="dopCalc">
+<area shape="rect" id="Node000001" href="$rtkcmn_8cpp.html#a8ff982ab553231585b033561664597da" title="compute DOP (dilution of precision)" alt="" coords="5,5,80,31"/>
+<area shape="rect" id="Node000002" href="$common_8hpp.html#addb96936ef14076756af2416bb4a90d9" title=" " alt="" coords="128,5,184,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,24,114,24,114,29,80,29"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="80,7,114,7,114,12,80,12"/>
+</map>

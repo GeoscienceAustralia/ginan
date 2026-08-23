@@ -1,0 +1,5 @@
+<map id="RtcmDecoder::adjBdtWeek" name="RtcmDecoder::adjBdtWeek">
+<area shape="rect" id="Node000001" href="$structRtcmDecoder.html#a9793312f3999d7f59d79ca5cbba95797" title="adjust BDT week number according to RTCM time" alt="" coords="5,5,201,31"/>
+<area shape="rect" id="Node000002" href="$structRtcmDecoder.html#af4dcc94b23423696a4e8025d8235a1b1" title=" " alt="" coords="249,5,431,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,15,235,15,235,21,202,21"/>
+</map>

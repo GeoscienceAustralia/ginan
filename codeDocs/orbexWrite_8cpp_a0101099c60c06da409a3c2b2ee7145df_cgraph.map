@@ -1,0 +1,13 @@
+<map id="writeSysSetOrbex" name="writeSysSetOrbex">
+<area shape="rect" id="Node000001" href="$orbexWrite_8cpp.html#a0101099c60c06da409a3c2b2ee7145df" title="Retrieve satellite orbits, clocks and attitudes for all included systems and write out to an ORBEX fi..." alt="" coords="5,104,144,129"/>
+<area shape="rect" id="Node000002" href="$ephemeris_8cpp.html#a7696664ba7fdd776d9ba929b11325e05" title=" " alt="" coords="231,5,292,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,102,135,72,191,40,216,29,219,34,193,44,138,76,94,106"/>
+<area shape="rect" id="Node000016" href="$ephemeris_8cpp.html#a346b6446fcd54ef489b40cf028168b5c" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="229,55,294,80"/>
+<area shape="poly" id="edge2_Node000001_Node000016" title=" " alt="" coords="123,101,215,77,216,82,124,107"/>
+<area shape="rect" id="Node000083" href="$attitude_8cpp.html#aac7be95f5d7dbf6cf5d647524555edcb" title="Calculates nominal &amp; model yaw." alt="" coords="205,104,318,129"/>
+<area shape="poly" id="edge3_Node000001_Node000083" title=" " alt="" coords="145,114,191,114,191,119,145,119"/>
+<area shape="rect" id="Node000123" href="$attitude_8cpp.html#a8163a079ffc016054e8f4a324ff45da6" title="Satellite attitude &#45; calculates attitude of satellite as a quaternion (ECEF) Also transforms coordina..." alt="" coords="225,153,298,179"/>
+<area shape="poly" id="edge4_Node000001_Node000123" title=" " alt="" coords="124,127,212,150,211,156,123,132"/>
+<area shape="rect" id="Node000137" href="$orbexWrite_8cpp.html#ace464608ffc3c7d40431a978297d3892" title="Write EPHEMERIS/DATA block and update END_TIME line." alt="" coords="192,203,331,228"/>
+<area shape="poly" id="edge5_Node000001_Node000137" title=" " alt="" coords="95,127,139,157,193,188,210,195,208,200,191,192,136,161,92,132"/>
+</map>

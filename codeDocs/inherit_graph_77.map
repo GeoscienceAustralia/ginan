@@ -1,0 +1,15 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structISanityChecker.html" title=" " alt="" coords="5,129,124,155"/>
+<area shape="rect" id="Node000001" href="$structEphemerisTimeDelayChecker.html" title=" " alt="" coords="176,5,391,31"/>
+<area shape="poly" id="edge88_Node000000_Node000001" title=" " alt="" coords="82,117,120,77,144,57,171,40,199,28,201,33,173,44,147,61,124,81,86,120"/>
+<area shape="rect" id="Node000002" href="$structEpochToleranceChecker.html" title=" " alt="" coords="196,55,371,80"/>
+<area shape="poly" id="edge89_Node000000_Node000002" title=" " alt="" coords="100,120,171,89,211,77,213,83,173,94,102,125"/>
+<area shape="rect" id="Node000003" href="$structIonosphericFreeComboChecker.html" title=" " alt="" coords="172,104,395,129"/>
+<area shape="poly" id="edge90_Node000000_Node000003" title=" " alt="" coords="137,131,174,127,174,132,138,136"/>
+<area shape="rect" id="Node000004" href="$structIonosphericOutageChecker.html" title=" " alt="" coords="185,153,381,179"/>
+<area shape="poly" id="edge91_Node000000_Node000004" title=" " alt="" coords="138,147,185,153,185,158,138,153"/>
+<area shape="rect" id="Node000005" href="$structRequiredSiteEccentricityChecker.html" title=" " alt="" coords="193,203,374,243"/>
+<area shape="poly" id="edge92_Node000000_Node000005" title=" " alt="" coords="105,158,173,188,211,201,210,206,171,192,103,163"/>
+<area shape="rect" id="Node000006" href="$structSbasSanityChecker.html" title=" " alt="" coords="210,268,357,293"/>
+<area shape="poly" id="edge93_Node000000_Node000006" title=" " alt="" coords="84,164,121,210,146,234,173,253,211,268,209,273,171,258,142,238,117,214,80,168"/>
+</map>

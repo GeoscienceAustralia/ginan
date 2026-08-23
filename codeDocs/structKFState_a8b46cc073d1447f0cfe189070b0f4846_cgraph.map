@@ -1,0 +1,7 @@
+<map id="KFState::addPseudoState" name="KFState::addPseudoState">
+<area shape="rect" id="Node000001" href="$structKFState.html#a8b46cc073d1447f0cfe189070b0f4846" title="Create a pseudo state that represents the linear combination of two or more perfectly correlated stat..." alt="" coords="5,31,191,56"/>
+<area shape="rect" id="Node000002" href="$structKFState.html#a043f0e3fd99610dfad8e650a1514c395" title="Remove a state from a kalman filter object." alt="" coords="239,5,403,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,30,225,26,225,31,191,35"/>
+<area shape="rect" id="Node000003" href="$structKFState.html#a8f43fca242e78201e48996ebbb4fd69f" title="Tries to add a state to the filter object." alt="" coords="243,55,398,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,51,230,55,230,60,190,56"/>
+</map>

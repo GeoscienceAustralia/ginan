@@ -1,0 +1,9 @@
+<map id="SatSys::sysFromChar" name="SatSys::sysFromChar">
+<area shape="rect" id="Node000001" href="$structSatSys.html#a60ae5bbbceb1c203cab6a6bc0d8e12df" title=" " alt="" coords="172,55,331,80"/>
+<area shape="rect" id="Node000002" href="$antenna_8cpp.html#a8c56b39d78caff862f84c8364a392bc4" title="Read antex file." alt="" coords="18,5,111,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,54,111,33,113,28,190,49"/>
+<area shape="rect" id="Node000006" href="$rinex_8cpp.html#a8751d1a1d98fb7862f17d0a3ebc22310" title="Read RINEX file header section." alt="" coords="21,55,108,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="159,70,108,70,108,65,159,65"/>
+<area shape="rect" id="Node000009" href="$structSatSys.html#a63dcd276b3ae12ef59ed0ba0f11529a5" title="Constructs a SatSys object from a c_string id." alt="" coords="5,104,124,129"/>
+<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="190,86,115,106,113,101,189,81"/>
+</map>

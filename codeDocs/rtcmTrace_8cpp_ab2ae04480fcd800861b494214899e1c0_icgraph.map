@@ -1,0 +1,9 @@
+<map id="traceBrdcEphBody" name="traceBrdcEphBody">
+<area shape="rect" id="Node000001" href="$rtcmTrace_8cpp.html#ab2ae04480fcd800861b494214899e1c0" title=" " alt="" coords="283,55,424,80"/>
+<area shape="rect" id="Node000002" href="$structUbxDecoder.html#a3edfc6fc421d31970881abd2f6db1f6d" title=" " alt="" coords="5,5,235,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,54,234,45,181,33,182,28,235,39,281,49"/>
+<area shape="rect" id="Node000007" href="$structRtcmTrace.html#a7988263389150711e951a4df5f1dcdd1" title="Write decoded/encoded GPS/GAL/BDS/QZS ephemeris messages to a json file." alt="" coords="28,55,212,80"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="268,70,212,70,212,65,268,65"/>
+<area shape="rect" id="Node000016" href="$structRtcmTrace.html#af164612e34a83d1452ef214af3736004" title="Write decoded/encoded GAL ephemeris messages to a json file." alt="" coords="28,104,212,129"/>
+<area shape="poly" id="edge3_Node000001_Node000016" title=" " alt="" coords="280,85,181,107,180,101,279,80"/>
+</map>

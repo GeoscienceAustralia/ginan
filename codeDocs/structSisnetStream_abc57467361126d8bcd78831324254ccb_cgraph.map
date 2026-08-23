@@ -1,0 +1,5 @@
+<map id="SisnetStream::SisnetStream" name="SisnetStream::SisnetStream">
+<area shape="rect" id="Node000001" href="$structSisnetStream.html#abc57467361126d8bcd78831324254ccb" title=" " alt="" coords="5,5,209,31"/>
+<area shape="rect" id="Node000002" href="$structTcpSocket.html#a4c09b381dbd56fa09e6187d833994db6" title=" " alt="" coords="257,5,403,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,15,244,15,244,21,210,21"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="CommonKalmans" name="CommonKalmans">
+<area shape="rect" id="Node000001" href="$structCommonKalmans.html" title=" " alt="" coords="153,5,305,281"/>
+<area shape="rect" id="Node000002" href="$structReceiverKalmans.html" title=" " alt="" coords="55,329,204,585"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,296,173,330,168,328,179,294"/>
+<area shape="rect" id="Node000004" href="$structSatelliteKalmans.html" title=" " alt="" coords="257,419,404,495"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="281,294,321,418,316,420,276,295"/>
+<area shape="rect" id="Node000003" href="$structReceiverOptions.html" title="Options to be applied to kalman filter states for individual receivers." alt="" coords="5,633,224,1639"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="129,599,128,633,123,633,124,599"/>
+<area shape="rect" id="Node000005" href="$structSatelliteOptions.html" title="Options to be applied to kalman filter states for individual satellites." alt="" coords="248,1018,443,1254"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="334,509,345,1017,340,1018,329,509"/>
+</map>

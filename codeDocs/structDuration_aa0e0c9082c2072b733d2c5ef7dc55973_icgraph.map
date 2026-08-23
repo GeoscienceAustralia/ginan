@@ -1,0 +1,9 @@
+<map id="Duration::to_int" name="Duration::to_int">
+<area shape="rect" id="Node000001" href="$structDuration.html#aa0e0c9082c2072b733d2c5ef7dc55973" title=" " alt="" coords="232,55,355,80"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#af1c382fdfacba6418bb148bd4959fe0a" title=" " alt="" coords="6,5,183,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,54,146,33,147,28,229,49"/>
+<area shape="rect" id="Node000003" href="$structGTime.html#a6db5d36b744d836a0ac3b915c1a35374" title=" " alt="" coords="5,55,184,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,70,184,70,184,65,218,65"/>
+<area shape="rect" id="Node000004" href="$gTime_8cpp.html#a37bc65d232e726cdbc51122a8a8ec00e" title=" " alt="" coords="53,104,136,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="229,86,137,109,136,104,228,81"/>
+</map>

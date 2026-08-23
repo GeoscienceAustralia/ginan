@@ -1,0 +1,7 @@
+<map id="RtcmEncoder" name="RtcmEncoder">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html" title=" " alt="" coords="5,549,259,925"/>
+<area shape="rect" id="Node000003" href="$structNtripUploader.html" title=" " alt="" coords="20,973,244,1329"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,939,135,973,129,973,129,939"/>
+<area shape="rect" id="Node000002" href="$structRtcmTrace.html" title=" " alt="" coords="41,5,223,501"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,515,135,549,129,549,129,515"/>
+</map>

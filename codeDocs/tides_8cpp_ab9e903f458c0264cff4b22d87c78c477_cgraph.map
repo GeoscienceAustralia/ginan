@@ -1,0 +1,28 @@
+<map id="tideSolidEarth" name="tideSolidEarth">
+<area shape="rect" id="Node000001" href="$tides_8cpp.html#ab9e903f458c0264cff4b22d87c78c477" title="Displacement by solid Earth tide See ref [1] 7.1.1 Note: permanent deformation not removed,..." alt="" coords="5,155,119,180"/>
+<area shape="rect" id="Node000002" href="$structVectorPos.html#ae607eb1f43de3cf1aaa024c2fdabc514" title=" " alt="" coords="347,5,484,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,153,107,106,134,81,165,60,206,42,249,30,332,17,333,23,250,35,208,47,168,64,138,85,111,110,74,156"/>
+<area shape="rect" id="Node000003" href="$structVectorPos.html#aa693d5a52133cfb55040b768c6175bae" title=" " alt="" coords="345,56,485,81"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="74,153,113,120,138,103,166,90,207,78,250,70,331,63,332,69,251,75,208,83,168,95,141,108,116,124,78,157"/>
+<area shape="rect" id="Node000004" href="$coordinates_8cpp.html#a8473fa1efe21e24084f708ed9e9df38e" title=" " alt="" coords="193,105,271,131"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="106,152,179,130,180,136,107,157"/>
+<area shape="rect" id="Node000005" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="360,105,471,131"/>
+<area shape="poly" id="edge16_Node000001_Node000005" title=" " alt="" coords="96,178,138,190,189,200,244,201,271,197,296,189,311,179,320,167,329,153,344,140,354,134,357,139,347,144,333,157,324,170,315,183,298,194,272,202,244,207,188,205,136,195,95,183"/>
+<area shape="rect" id="Node000006" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="358,155,473,180"/>
+<area shape="poly" id="edge18_Node000001_Node000006" title=" " alt="" coords="71,179,85,205,106,237,134,268,168,292,202,305,232,309,261,305,296,292,329,271,358,245,398,190,402,194,362,248,332,276,299,296,263,310,232,315,201,310,165,296,130,272,102,240,80,207,67,181"/>
+<area shape="rect" id="Node000007" href="$tides_8cpp.html#ab44d5c92785ffe1d1628108425405b23" title="Step 1 of solid Earth tide computation: Corrections to be computed in the time domain (solar/lunar ti..." alt="" coords="167,155,297,180"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="119,173,153,174,153,179,119,179"/>
+<area shape="poly" id="edge15_Node000001_Node000007" title=" " alt="" coords="119,156,153,156,153,161,119,161"/>
+<area shape="rect" id="Node000009" href="$structSofa.html#a3668c9368947f097705078736820f5e1" title=" " alt="" coords="175,256,289,281"/>
+<area shape="poly" id="edge17_Node000001_Node000009" title=" " alt="" coords="82,178,168,234,192,247,189,252,165,239,79,182"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="271,123,346,124,346,129,271,128"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="271,108,346,107,346,112,271,113"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="258,128,345,155,344,160,256,133"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="271,118,378,147,377,153,270,123"/>
+<area shape="poly" id="edge9_Node000007_Node000002" title=" " alt="" coords="277,152,295,140,312,116,319,92,325,67,343,41,351,35,354,40,347,45,330,69,324,93,317,118,299,144,280,157"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="272,152,296,140,310,128,319,116,329,103,344,90,354,85,357,89,347,95,332,107,323,119,314,131,299,144,274,157"/>
+<area shape="poly" id="edge11_Node000007_Node000005" title=" " alt="" coords="297,156,377,133,379,138,298,161"/>
+<area shape="poly" id="edge12_Node000007_Node000005" title=" " alt="" coords="256,152,346,125,348,130,258,157"/>
+<area shape="poly" id="edge13_Node000007_Node000006" title=" " alt="" coords="298,173,344,173,344,179,298,179"/>
+<area shape="poly" id="edge14_Node000007_Node000006" title=" " alt="" coords="298,156,344,156,344,161,298,161"/>
+</map>

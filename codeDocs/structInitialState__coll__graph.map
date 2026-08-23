@@ -1,0 +1,5 @@
+<map id="InitialState" name="InitialState">
+<area shape="rect" id="Node000001" href="$structInitialState.html" title="Object to hold the values used to initialise new states when adding to the kalman filter object." alt="" coords="5,144,180,380"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="57,5,129,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,82,95,128,90,128,90,82"/>
+</map>

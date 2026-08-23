@@ -1,0 +1,12 @@
+<map id="encodecompactATM" name="encodecompactATM">
+<area shape="rect" id="Node000001" href="$prototypeCmpSSREncode_8cpp.html#a47bc43c7fe02f1df2f66198afbbf509c" title=" " alt="" coords="5,55,159,80"/>
+<area shape="rect" id="Node000002" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="227,5,314,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,54,231,33,233,38,160,59"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="107,52,213,22,215,27,108,57"/>
+<area shape="rect" id="Node000004" href="$rtcmEncoder_8cpp.html#a8f864026b0c62e3310631919384eab44" title="Convert SSR URA to URA_CLASS and URA_VALUE combination, with 3 Msb URA_CLASS and 3Lsb URA_VALUE." alt="" coords="207,55,335,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,74,193,74,193,79,159,79"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="159,56,193,56,193,61,159,61"/>
+<area shape="rect" id="Node000005" href="$rtcmEncoder_8cpp.html#a831abe42902c0ceadba66974c93a637b" title="increasingly set signed bits to byte data" alt="" coords="228,104,313,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="108,78,216,108,214,113,107,83"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="160,76,233,97,231,102,158,81"/>
+</map>

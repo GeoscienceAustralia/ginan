@@ -1,0 +1,6 @@
+<map id="KalmanFilterBLAS::updateCovarianceJoseph" name="KalmanFilterBLAS::updateCovarianceJoseph">
+<area shape="rect" id="Node000001" href="$classKalmanFilterBLAS.html#ad6f2de1376179ba078ccfbc1a05ba5f7" title="Update covariance: Pp = (I&#45;K*H)*P*(I&#45;K*H)&#39; + K*R*K&#39; (Joseph form) using BLAS." alt="" coords="5,5,197,45"/>
+<area shape="rect" id="Node000002" href="$namespaceLapackWrapper.html#aa76c5043f8d710b83113b2680bdf5e49" title=" " alt="" coords="245,13,427,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,32,232,32,232,37,197,37"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="197,14,232,14,232,19,197,19"/>
+</map>

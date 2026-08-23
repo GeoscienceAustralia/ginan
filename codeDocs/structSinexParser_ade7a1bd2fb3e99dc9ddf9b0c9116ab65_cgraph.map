@@ -1,0 +1,6 @@
+<map id="SinexParser::parseSinexDiscontinuities" name="SinexParser::parseSinexDiscontinuities">
+<area shape="rect" id="Node000001" href="$structSinexParser.html#ade7a1bd2fb3e99dc9ddf9b0c9116ab65" title=" " alt="" coords="5,5,280,31"/>
+<area shape="rect" id="Node000002" href="$structSinexParser.html#afc2cf33d23cb84147ae5890880d7df59" title=" " alt="" coords="328,5,511,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,24,314,24,314,29,280,30"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="280,6,314,7,314,12,280,12"/>
+</map>

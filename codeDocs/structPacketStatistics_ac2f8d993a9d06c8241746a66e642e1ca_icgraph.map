@@ -1,0 +1,11 @@
+<map id="PacketStatistics::preambleFound" name="PacketStatistics::preambleFound">
+<area shape="rect" id="Node000001" href="$structPacketStatistics.html#ac2f8d993a9d06c8241746a66e642e1ca" title=" " alt="" coords="209,73,404,113"/>
+<area shape="rect" id="Node000002" href="$structCustomParser.html#a1b307af55ea236fb3c0c248978844e30" title=" " alt="" coords="5,5,161,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,71,160,45,125,33,127,28,162,39,238,66"/>
+<area shape="rect" id="Node000003" href="$structRtcmParser.html#a6138840942a03f0a06ecb288ab412716" title=" " alt="" coords="13,55,153,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,83,154,78,154,73,196,77"/>
+<area shape="rect" id="Node000004" href="$structSbfParser.html#a8adc854fbf5dae542398b61fc0da7e81" title=" " alt="" coords="20,104,147,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,107,147,113,147,107,195,102"/>
+<area shape="rect" id="Node000005" href="$structUbxParser.html#aeb578c76a4db0173d21f6a7de471c06b" title=" " alt="" coords="17,153,149,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="233,120,162,143,124,156,122,151,160,138,232,115"/>
+</map>

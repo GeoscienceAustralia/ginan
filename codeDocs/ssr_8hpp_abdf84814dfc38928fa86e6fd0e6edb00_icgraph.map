@@ -1,0 +1,5 @@
+<map id="ephVarToUra" name="ephVarToUra">
+<area shape="rect" id="Node000001" href="$ephemeris_8cpp.html#abdf84814dfc38928fa86e6fd0e6edb00" title="URA SSR by variance." alt="" coords="192,5,296,31"/>
+<area shape="rect" id="Node000002" href="$rtcmEncoder_8cpp.html#a188d56d547bb664a519121cf4bf34896" title=" " alt="" coords="5,5,144,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,21,144,21,144,15,178,15"/>
+</map>

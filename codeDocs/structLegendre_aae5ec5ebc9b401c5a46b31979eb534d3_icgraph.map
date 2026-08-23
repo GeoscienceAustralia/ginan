@@ -1,0 +1,9 @@
+<map id="Legendre::init" name="Legendre::init">
+<area shape="rect" id="Node000001" href="$structLegendre.html#aae5ec5ebc9b401c5a46b31979eb534d3" title=" " alt="" coords="204,55,315,80"/>
+<area shape="rect" id="Node000002" href="$structLegendre.html#ad737127b539de70105d61faa44af5697" title=" " alt="" coords="5,5,156,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,53,127,33,129,28,200,48"/>
+<area shape="rect" id="Node000003" href="$structLegendre.html#aaa4e2eb202db69effc72d389453ad3ff" title=" " alt="" coords="5,55,156,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,70,156,70,156,65,190,65"/>
+<area shape="rect" id="Node000004" href="$structLegendre.html#aed8b2efb4e2275a6f4add28850affc6d" title=" " alt="" coords="6,104,155,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="200,86,129,106,127,101,199,81"/>
+</map>

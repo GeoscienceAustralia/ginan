@@ -1,0 +1,11 @@
+<map id="TEC" name="TEC">
+<area shape="rect" id="Node000001" href="$structTEC.html" title=" " alt="" coords="161,1143,247,1299"/>
+<area shape="rect" id="Node000002" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="5,144,200,1080"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,1080,191,1126,186,1127,178,1081"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="67,5,139,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,81,105,128,100,128,100,81"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="225,574,389,650"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="307,651,287,852,268,985,241,1119,239,1127,234,1126,236,1118,263,984,282,851,302,650"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="269,5,345,81"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="309,95,309,574,304,574,304,95"/>
+</map>

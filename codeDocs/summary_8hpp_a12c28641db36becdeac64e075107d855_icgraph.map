@@ -1,0 +1,7 @@
+<map id="outputStatistics" name="outputStatistics">
+<area shape="rect" id="Node000001" href="$summary_8cpp.html#a12c28641db36becdeac64e075107d855" title=" " alt="" coords="259,35,383,60"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html#a2b0d1066eac1a878cf982adcdd550ce1" title="Perform any post&#45;final epoch calculations and outputs, then begin reverse smoothing and tidy up." alt="" coords="31,5,185,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,40,185,31,185,26,246,34"/>
+<area shape="rect" id="Node000004" href="$outputs_8cpp.html#abf277b1afcff7cb07fa2857b4a373100" title=" " alt="" coords="5,55,211,95"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="246,60,211,64,210,59,245,55"/>
+</map>

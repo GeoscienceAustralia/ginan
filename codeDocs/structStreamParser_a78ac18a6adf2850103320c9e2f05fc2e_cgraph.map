@@ -1,0 +1,7 @@
+<map id="StreamParser::parse" name="StreamParser::parse">
+<area shape="rect" id="Node000001" href="$structStreamParser.html#a78ac18a6adf2850103320c9e2f05fc2e" title=" " alt="" coords="5,31,159,56"/>
+<area shape="rect" id="Node000002" href="$structStream.html#a342bc7a0cdb87de848ccd050ab8bf457" title=" " alt="" coords="207,5,381,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,32,193,27,193,33,159,37"/>
+<area shape="rect" id="Node000003" href="$structParser.html#abf204bb143ddbec1c777239d6be42eee" title=" " alt="" coords="241,55,347,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,49,227,57,226,62,159,55"/>
+</map>

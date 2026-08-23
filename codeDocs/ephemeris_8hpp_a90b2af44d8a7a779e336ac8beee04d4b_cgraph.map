@@ -1,0 +1,54 @@
+<map id="satpos" name="satpos">
+<area shape="rect" id="Node000001" href="$ephemeris_8cpp.html#a346b6446fcd54ef489b40cf028168b5c" title="compute satellite position and clock satellite clock does not include code bias correction (tgd or bg..." alt="" coords="5,286,71,311"/>
+<area shape="rect" id="Node000002" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="468,286,599,311"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="36,285,37,239,46,172,56,137,70,103,90,72,117,47,146,30,175,22,205,20,235,25,265,35,295,50,353,89,406,138,453,188,518,273,514,276,448,192,402,141,349,93,292,54,263,40,234,30,205,26,176,27,148,35,120,51,95,76,75,105,61,139,51,173,42,239,41,286"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="490,148,577,174"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="36,285,37,240,47,178,57,144,72,112,91,83,117,59,141,44,166,34,218,27,272,32,326,47,378,68,425,92,500,138,497,143,423,97,376,73,324,52,271,37,218,32,167,40,143,49,120,63,96,86,77,115,62,146,53,179,43,241,41,286"/>
+<area shape="poly" id="edge24_Node000001_Node000003" title=" " alt="" coords="36,285,37,236,45,166,55,129,69,93,90,61,117,35,142,20,169,10,196,4,225,3,282,11,339,29,393,55,442,84,513,137,509,141,439,88,391,59,337,34,281,16,225,8,197,9,170,15,145,24,120,39,94,64,74,96,60,131,50,167,42,236,42,285"/>
+<area shape="rect" id="Node000006" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="119,62,241,87"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="39,285,47,250,61,203,84,151,117,104,131,92,135,96,121,108,89,154,66,205,52,252,44,286"/>
+<area shape="rect" id="Node000007" href="$ephBroadcast_8cpp.html#a7a12481a61ef763e3db3bac720587930" title=" " alt="" coords="289,286,420,311"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="43,284,69,233,90,206,117,184,150,169,179,165,209,171,243,184,272,202,298,225,337,273,333,276,294,229,269,206,240,189,207,176,179,171,152,175,120,188,94,209,73,236,48,286"/>
+<area shape="poly" id="edge22_Node000001_Node000007" title=" " alt="" coords="39,284,47,256,62,221,86,186,117,160,150,145,179,141,209,147,243,160,278,182,307,212,330,243,346,272,342,274,326,246,303,215,274,186,240,165,207,152,179,147,152,151,120,164,90,190,67,224,52,258,44,286"/>
+<area shape="rect" id="Node000011" href="$ephSBAS_8cpp.html#adb16ac9574e1242fb06273dd884dac8e" title=" " alt="" coords="131,187,229,212"/>
+<area shape="poly" id="edge7_Node000001_Node000011" title=" " alt="" coords="49,283,78,253,117,221,126,216,129,221,120,226,81,257,52,287"/>
+<area shape="rect" id="Node000017" href="$ephSSR_8cpp.html#ab46bbc0b3a67c74f5ab3520bea51162d" title="satellite position and clock with ssr correction" alt="" coords="135,236,225,262"/>
+<area shape="poly" id="edge13_Node000001_Node000017" title=" " alt="" coords="70,284,129,264,131,269,72,290"/>
+<area shape="rect" id="Node000023" href="$ephPrecise_8cpp.html#a02e4e036a78c3136f5c9215b2dd093f4" title=" " alt="" coords="124,286,236,311"/>
+<area shape="poly" id="edge19_Node000001_Node000023" title=" " alt="" coords="71,296,110,296,110,301,71,301"/>
+<area shape="rect" id="Node000027" href="$ephKalman_8cpp.html#ae1697dd19411f771300532be63d186c2" title=" " alt="" coords="123,335,237,360"/>
+<area shape="poly" id="edge20_Node000001_Node000027" title=" " alt="" coords="59,308,111,330,109,335,57,313"/>
+<area shape="poly" id="edge21_Node000001_Node000027" title=" " alt="" coords="72,299,149,327,147,332,70,304"/>
+<area shape="rect" id="Node000065" href="$algebra__old_8cpp.html#abaa5d4a31df361116a9b2be552624cf9" title=" " alt="" coords="152,384,208,410"/>
+<area shape="poly" id="edge23_Node000001_Node000065" title=" " alt="" coords="52,309,82,339,120,369,141,380,138,385,117,374,78,343,49,313"/>
+<area shape="rect" id="Node000067" href="$preprocessorFreqs_8cpp.html#abd57aff1d197b2747eab5e751cbb0b57" title="Select up to three configured frequency bands for a satellite system." alt="" coords="316,538,393,563"/>
+<area shape="poly" id="edge25_Node000001_Node000067" title=" " alt="" coords="47,310,74,362,95,392,120,419,151,439,178,448,208,456,243,471,288,499,327,527,324,531,285,503,240,475,206,461,177,453,148,443,117,423,91,396,69,365,42,312"/>
+<area shape="rect" id="Node000068" href="$rtkcmn_8cpp.html#a2be3690ff8daf8b99ce3ed3a60450a2a" title=" " alt="" coords="119,486,241,511"/>
+<area shape="poly" id="edge26_Node000001_Node000068" title=" " alt="" coords="45,310,69,381,91,425,121,464,136,477,132,481,117,468,87,428,64,383,40,312"/>
+<area shape="rect" id="Node000071" href="$antenna_8cpp.html#aa781255f62e500233148b6f4a9240740" title="fetch pco" alt="" coords="321,588,388,614"/>
+<area shape="poly" id="edge27_Node000001_Node000071" title=" " alt="" coords="43,311,47,351,60,407,83,468,100,496,120,520,152,540,202,559,309,588,307,593,200,564,150,545,117,524,95,499,78,470,55,409,42,352,37,311"/>
+<area shape="rect" id="Node000074" href="$coordinates_8cpp.html#a9860e0cea74eb4ca1383342104693565" title="transform vector in body frame to ecef" alt="" coords="309,638,400,663"/>
+<area shape="poly" id="edge28_Node000001_Node000074" title=" " alt="" coords="42,311,43,361,53,432,62,471,77,509,96,545,120,576,144,588,189,603,297,633,296,638,187,608,142,593,117,580,91,548,72,511,57,472,47,433,38,361,36,312"/>
+<area shape="rect" id="Node000075" href="$ephPrecise_8cpp.html#ac24a7ecc232807f046a15e914b5df57f" title="satellite antenna phase center offset in ecef" alt="" coords="139,638,221,663"/>
+<area shape="poly" id="edge29_Node000001_Node000075" title=" " alt="" coords="42,311,43,365,53,445,62,490,76,535,96,578,121,617,133,628,130,632,117,620,91,580,71,536,57,491,47,446,38,366,36,311"/>
+<area shape="poly" id="edge6_Node000007_Node000002" title=" " alt="" coords="420,296,454,296,454,301,420,301"/>
+<area shape="poly" id="edge5_Node000007_Node000003" title=" " alt="" coords="371,283,503,180,506,184,374,288"/>
+<area shape="poly" id="edge11_Node000011_Node000002" title=" " alt="" coords="199,210,221,219,243,234,254,247,261,261,266,287,272,311,279,322,291,332,317,344,346,351,375,352,405,349,461,334,505,315,507,320,462,339,406,354,375,357,345,356,315,349,288,336,275,326,267,314,261,288,256,262,250,250,240,238,219,224,197,215"/>
+<area shape="poly" id="edge12_Node000011_Node000002" title=" " alt="" coords="231,201,243,210,254,223,261,237,266,263,272,287,279,298,291,308,311,318,333,325,380,328,426,323,468,312,470,318,427,328,380,333,332,330,309,323,288,312,275,302,267,290,261,264,256,238,250,226,240,213,228,205"/>
+<area shape="poly" id="edge8_Node000011_Node000003" title=" " alt="" coords="206,184,243,160,289,140,338,131,388,132,436,139,477,148,476,153,435,144,388,138,338,137,290,145,246,165,209,189"/>
+<area shape="poly" id="edge10_Node000011_Node000003" title=" " alt="" coords="187,185,227,147,257,129,289,116,318,109,348,107,407,112,461,124,504,140,502,145,460,129,406,117,348,112,319,115,290,121,259,134,231,152,190,189"/>
+<area shape="poly" id="edge9_Node000011_Node000007" title=" " alt="" coords="218,210,243,221,288,248,327,275,324,279,285,253,240,226,216,215"/>
+<area shape="poly" id="edge16_Node000017_Node000002" title=" " alt="" coords="226,258,420,282,455,289,454,294,420,288,225,263"/>
+<area shape="poly" id="edge17_Node000017_Node000002" title=" " alt="" coords="226,240,316,245,420,258,503,278,502,283,420,263,315,251,225,246"/>
+<area shape="poly" id="edge14_Node000017_Node000003" title=" " alt="" coords="225,241,357,211,489,175,490,180,358,216,226,247"/>
+<area shape="poly" id="edge15_Node000017_Node000003" title=" " alt="" coords="211,233,337,198,476,165,477,171,338,203,212,239"/>
+<area shape="poly" id="edge18_Node000017_Node000007" title=" " alt="" coords="226,259,296,279,295,284,225,264"/>
+<area shape="poly" id="edge30_Node000075_Node000002" title=" " alt="" coords="190,636,231,585,287,523,408,406,505,318,509,322,412,410,291,527,235,589,194,639"/>
+<area shape="poly" id="edge31_Node000075_Node000003" title=" " alt="" coords="193,636,287,513,418,333,518,184,522,187,422,336,292,516,197,639"/>
+<area shape="poly" id="edge34_Node000075_Node000003" title=" " alt="" coords="186,635,279,502,418,309,508,183,512,186,422,312,283,506,190,638"/>
+<area shape="poly" id="edge32_Node000075_Node000067" title=" " alt="" coords="196,635,237,605,288,573,303,566,305,571,291,578,240,610,199,639"/>
+<area shape="poly" id="edge33_Node000075_Node000071" title=" " alt="" coords="221,644,317,616,319,621,222,649"/>
+<area shape="poly" id="edge35_Node000075_Node000071" title=" " alt="" coords="203,635,307,603,308,608,205,640"/>
+<area shape="poly" id="edge36_Node000075_Node000074" title=" " alt="" coords="222,655,296,656,296,661,222,661"/>
+<area shape="poly" id="edge37_Node000075_Node000074" title=" " alt="" coords="222,640,296,639,296,644,222,645"/>
+</map>

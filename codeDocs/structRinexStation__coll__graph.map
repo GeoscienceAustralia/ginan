@@ -1,0 +1,7 @@
+<map id="RinexStation" name="RinexStation">
+<area shape="rect" id="Node000001" href="$structRinexStation.html" title=" " alt="" coords="47,232,166,308"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,77,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="36,82,32,142,36,175,45,207,51,218,46,220,40,209,30,176,27,142,31,81"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="127,5,219,81"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,82,165,142,147,209,142,219,137,216,141,207,159,141,168,81"/>
+</map>

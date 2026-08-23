@@ -1,0 +1,9 @@
+<map id="satYawBds3Secm" name="satYawBds3Secm">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#ad8ec6bbdac1098900409cd45ace7c105" title="Yaw model for BDS&#45;3M&#45;SECM satellites Ref: https://doi.org/10.48550/arXiv.2112.13252." alt="" coords="5,31,140,56"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a4a86c05583dbc7b327e2158d99afae5f" title="Calculate nominal (ideal) sat yaw for GPS sats Returns result between (&#45;PI, PI]." alt="" coords="188,5,313,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,40,199,31,200,36,141,45"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="110,28,174,17,175,23,111,33"/>
+<area shape="rect" id="Node000004" href="$common_8hpp.html#a83726ee6888c710c289f9b760053776c" title=" " alt="" coords="225,55,276,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="112,53,212,67,211,72,111,59"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="141,41,212,52,211,57,140,46"/>
+</map>

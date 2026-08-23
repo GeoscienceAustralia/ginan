@@ -1,0 +1,8 @@
+<map id="KalmanFilterBLAS::computeInnovationCovariance" name="KalmanFilterBLAS::computeInnovationCovariance">
+<area shape="rect" id="Node000001" href="$classKalmanFilterBLAS.html#a2613e3189dfd21d1669d05bc542c878c" title="Compute innovation covariance Q = H*P*H&#39; + R using BLAS." alt="" coords="5,23,209,63"/>
+<area shape="rect" id="Node000002" href="$classKalmanFilterBLAS.html#af8c83020329e1df483a6720460e1be9b" title="Compute H*P matrix product using BLAS." alt="" coords="257,5,480,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,31,243,27,244,33,210,36"/>
+<area shape="rect" id="Node000003" href="$namespaceLapackWrapper.html#aa76c5043f8d710b83113b2680bdf5e49" title=" " alt="" coords="528,31,709,56"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="210,41,515,41,515,46,210,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="481,27,514,30,514,35,480,32"/>
+</map>

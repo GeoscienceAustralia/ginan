@@ -1,0 +1,7 @@
+<map id="KFKey::commaString" name="KFKey::commaString">
+<area shape="rect" id="Node000001" href="$structKFKey.html#a73d67a098d8a81c264ee6f8e68b3cf3a" title=" " alt="" coords="5,31,163,56"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="211,5,333,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,30,197,25,197,31,163,35"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="229,55,315,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,51,215,57,215,63,163,56"/>
+</map>

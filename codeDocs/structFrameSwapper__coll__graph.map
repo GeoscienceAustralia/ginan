@@ -1,0 +1,18 @@
+<map id="FrameSwapper" name="FrameSwapper">
+<area shape="rect" id="Node000001" href="$structFrameSwapper.html" title=" " alt="" coords="357,1636,514,1812"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,1313,217,1389"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,1389,118,1438,128,1496,148,1557,163,1585,181,1610,216,1642,256,1667,299,1687,341,1701,339,1706,297,1692,254,1672,213,1646,177,1614,158,1588,143,1559,123,1498,112,1438,109,1389"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="69,574,138,650"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="106,664,107,1119,113,1313,107,1313,102,1119,100,664"/>
+<area shape="rect" id="Node000004" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="226,144,421,1080"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="271,1080,262,1224,260,1359,267,1474,275,1520,286,1558,312,1605,347,1647,343,1651,308,1608,281,1560,270,1521,262,1474,255,1359,257,1224,266,1080"/>
+<area shape="rect" id="Node000006" href="$structERPValues.html" title="earth rotation parameter data type" alt="" coords="349,1143,521,1559"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="397,1080,404,1126,399,1127,392,1081"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="287,5,359,81"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="326,81,326,128,321,128,321,81"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="438,1559,438,1620,433,1620,433,1559"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="546,1313,639,1389"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="588,1389,568,1469,536,1560,504,1623,499,1620,532,1558,563,1467,583,1388"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="664,1313,756,1389"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="708,1389,690,1470,675,1516,654,1560,628,1595,598,1627,564,1654,530,1677,527,1673,561,1650,594,1623,624,1592,649,1557,670,1514,685,1469,703,1388"/>
+</map>

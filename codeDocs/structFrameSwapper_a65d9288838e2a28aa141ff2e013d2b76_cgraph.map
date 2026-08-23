@@ -1,0 +1,9 @@
+<map id="FrameSwapper::FrameSwapper" name="FrameSwapper::FrameSwapper">
+<area shape="rect" id="Node000001" href="$structFrameSwapper.html#a65d9288838e2a28aa141ff2e013d2b76" title=" " alt="" coords="5,55,229,80"/>
+<area shape="rect" id="Node000002" href="$coordinates_8cpp.html#ad5579407e3fbc4df3feb1b7d5e910075" title=" " alt="" coords="325,5,403,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,52,311,26,312,31,182,57"/>
+<area shape="rect" id="Node000011" href="$structIERS2010.html#a84f1f40ad1028ca517a66ed8905ebac7" title=" " alt="" coords="291,55,437,80"/>
+<area shape="poly" id="edge2_Node000001_Node000011" title=" " alt="" coords="230,65,277,65,277,70,230,70"/>
+<area shape="rect" id="Node000012" href="$structCenterMassCorrections.html#ac9191438bfdc1af7c0f6860c38981fdd" title=" " alt="" coords="277,105,451,145"/>
+<area shape="poly" id="edge3_Node000001_Node000012" title=" " alt="" coords="173,77,265,99,264,104,172,83"/>
+</map>

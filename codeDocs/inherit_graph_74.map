@@ -1,0 +1,22 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structIonoObs.html" title=" " alt="" coords="8,5,83,31"/>
+<area shape="rect" id="Node000001" href="$structGObsMeta.html" title="Observation metadata and data derived from it." alt="" coords="139,5,229,31"/>
+<area shape="poly" id="edge78_Node000000_Node000001" title=" " alt="" coords="96,15,139,15,139,21,96,21"/>
+<area shape="rect" id="Node000002" href="$structGObs.html" title="Raw observation data from a receiver." alt="" coords="283,55,340,80"/>
+<area shape="poly" id="edge79_Node000001_Node000002" title=" " alt="" coords="231,33,284,54,282,59,229,38"/>
+<area shape="rect" id="Node000006" href="$structLObsMeta.html" title=" " alt="" coords="141,153,227,179"/>
+<area shape="rect" id="Node000005" href="$structLObs.html" title=" " alt="" coords="284,104,339,129"/>
+<area shape="poly" id="edge80_Node000006_Node000005" title=" " alt="" coords="229,146,283,125,285,129,231,151"/>
+<area shape="rect" id="Node000009" href="$structObsMeta.html" title=" " alt="" coords="5,104,85,129"/>
+<area shape="rect" id="Node000003" href="$structObservation.html" title=" " alt="" coords="133,104,235,129"/>
+<area shape="poly" id="edge81_Node000009_Node000003" title=" " alt="" coords="99,114,133,114,133,119,99,119"/>
+<area shape="poly" id="edge83_Node000003_Node000002" title=" " alt="" coords="229,96,282,76,284,81,231,101"/>
+<area shape="poly" id="edge84_Node000003_Node000005" title=" " alt="" coords="248,114,284,114,284,119,248,119"/>
+<area shape="rect" id="Node000004" href="$structFObs.html" title=" " alt="" coords="284,5,339,31"/>
+<area shape="poly" id="edge82_Node000003_Node000004" title=" " alt="" coords="224,95,233,89,258,66,281,40,293,29,297,33,285,44,261,70,236,93,227,99"/>
+<area shape="rect" id="Node000008" href="$structPObs.html" title=" " alt="" coords="284,153,339,179"/>
+<area shape="poly" id="edge85_Node000003_Node000008" title=" " alt="" coords="231,132,285,153,283,158,229,137"/>
+<area shape="rect" id="Node000007" href="$structSatPos.html" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="151,55,217,80"/>
+<area shape="poly" id="edge86_Node000007_Node000002" title=" " alt="" coords="231,65,283,65,283,70,231,70"/>
+<area shape="poly" id="edge87_Node000007_Node000005" title=" " alt="" coords="231,83,285,104,283,109,229,88"/>
+</map>

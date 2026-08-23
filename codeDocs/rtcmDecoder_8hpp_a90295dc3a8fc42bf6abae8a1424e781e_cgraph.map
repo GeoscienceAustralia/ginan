@@ -1,0 +1,5 @@
+<map id="getbitsIncChecked" name="getbitsIncChecked">
+<area shape="rect" id="Node000001" href="$rtcmDecoder_8cpp.html#ac3eedbe1105766ba463fbc97cd24e847" title="Vector overload of the bounds&#45;checked signed incremental bit reader." alt="" coords="5,5,147,31"/>
+<area shape="rect" id="Node000002" href="$rtcmDecoder_8cpp.html#a0738c2e880660e80260ada873575bd2b" title="Bounds&#45;checked variant of getbitsInc()." alt="" coords="195,5,336,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,15,181,15,181,21,147,21"/>
+</map>

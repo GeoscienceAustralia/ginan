@@ -1,0 +1,30 @@
+<map id="LObs" name="LObs">
+<area shape="rect" id="Node000001" href="$structLObs.html" title=" " alt="" coords="332,2055,519,2345"/>
+<area shape="rect" id="Node000002" href="$structObservation.html" title=" " alt="" coords="290,2431,441,2507"/>
+<area shape="poly" id="edge14_Node000002_Node000001" title=" " alt="" coords="399,2346,385,2407,383,2415,378,2414,380,2406,394,2345"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="374,2416,390,2345,395,2346,379,2417"/>
+<area shape="rect" id="Node000006" href="$structGObs.html" title="Raw observation data from a receiver." alt="" coords="5,2569,184,2680"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="290,2516,185,2575,183,2570,287,2511"/>
+<area shape="rect" id="Node000100" href="$structPObs.html" title=" " alt="" coords="208,2569,387,2680"/>
+<area shape="poly" id="edge11_Node000100_Node000002" title=" " alt="" coords="358,2521,349,2546,337,2570,332,2568,344,2544,353,2519"/>
+<area shape="rect" id="Node000101" href="$structFObs.html" title=" " alt="" coords="411,2569,589,2680"/>
+<area shape="poly" id="edge13_Node000101_Node000002" title=" " alt="" coords="454,2502,483,2529,494,2548,500,2568,495,2570,489,2550,479,2532,451,2506"/>
+<area shape="rect" id="Node000003" href="$structObsMeta.html" title=" " alt="" coords="117,2032,307,2368"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="316,2377,346,2429,342,2432,312,2380"/>
+<area shape="rect" id="Node000004" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="253,173,448,1109"/>
+<area shape="poly" id="edge18_Node000001_Node000004" title=" " alt="" coords="391,1109,392,1133,413,1627,425,2038,419,2038,408,1628,387,1133,385,1110"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="256,845,210,953,162,1079,115,1218,74,1368,39,1525,16,1686,10,1767,8,1848,10,1928,17,2008,24,2116,28,2203,36,2242,49,2282,72,2322,106,2366,142,2398,185,2422,230,2440,275,2452,273,2457,229,2445,183,2427,139,2403,102,2370,67,2325,44,2284,30,2244,23,2203,19,2116,12,2008,5,1929,3,1848,5,1767,11,1685,34,1524,68,1366,110,1216,157,1077,205,951,251,843"/>
+<area shape="rect" id="Node000073" href="$structSatPos.html" title="Satellite position data &#45; for determining and storing satellite positions/clocks." alt="" coords="179,1253,378,1969"/>
+<area shape="poly" id="edge9_Node000073_Node000004" title=" " alt="" coords="319,1110,309,1238,304,1237,313,1109"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="520,5,592,81"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="559,82,559,640,559,2201,562,2290,555,2327,533,2370,498,2406,457,2434,454,2430,495,2402,528,2366,550,2325,556,2289,553,2201,553,640,553,82"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="521,58,481,77,463,90,447,107,416,159,411,157,443,104,459,86,479,72,519,53"/>
+<area shape="rect" id="Node000102" href="$structLObsMeta.html" title=" " alt="" coords="587,1133,693,1229"/>
+<area shape="poly" id="edge16_Node000102_Node000005" title=" " alt="" coords="571,81,577,105,600,250,617,400,629,548,637,691,644,942,644,1117,639,1117,639,942,632,691,624,548,612,400,595,251,572,106,566,82"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="106,2568,117,2547,133,2529,165,2507,200,2491,237,2480,273,2473,274,2478,238,2485,202,2496,167,2511,136,2533,122,2550,111,2570"/>
+<area shape="poly" id="edge17_Node000001_Node000073" title=" " alt="" coords="374,1982,392,2054,387,2055,369,1983"/>
+<area shape="poly" id="edge8_Node000006_Node000073" title=" " alt="" coords="176,1822,136,1925,107,2033,94,2107,86,2183,80,2334,84,2468,91,2569,86,2569,79,2468,75,2334,81,2183,89,2106,101,2031,131,1924,171,1820"/>
+<area shape="poly" id="edge10_Node000002_Node000100" title=" " alt="" coords="267,2570,266,2549,271,2530,280,2517,284,2520,276,2532,271,2550,273,2569"/>
+<area shape="poly" id="edge12_Node000002_Node000101" title=" " alt="" coords="431,2571,409,2547,391,2522,395,2519,413,2544,435,2567"/>
+<area shape="poly" id="edge15_Node000001_Node000102" title=" " alt="" coords="654,1242,672,1377,679,1465,683,1561,680,1663,671,1767,652,1871,621,1970,602,2011,577,2050,521,2118,517,2114,573,2047,597,2009,616,1968,646,1870,665,1767,675,1663,677,1561,674,1465,667,1378,649,1243"/>
+</map>

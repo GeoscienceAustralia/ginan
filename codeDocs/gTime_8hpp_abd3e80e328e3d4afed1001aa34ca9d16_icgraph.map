@@ -1,0 +1,10 @@
+<map id="currentLogptime" name="currentLogptime">
+<area shape="rect" id="Node000001" href="$gTime_8cpp.html#abd3e80e328e3d4afed1001aa34ca9d16" title="Returns (posix) for current epoch." alt="" coords="280,55,409,80"/>
+<area shape="rect" id="Node000002" href="$compare_8cpp.html#aa8c289d9d4e60f862fb0a60566b76bd0" title=" " alt="" coords="111,5,229,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="285,53,215,33,217,28,287,48"/>
+<area shape="rect" id="Node000005" href="$outputs_8cpp.html#a116830f5a44aad1710dc47ecfa670cab" title="Create new empty trace files only when required when the filename is changed." alt="" coords="108,55,232,80"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="266,70,232,70,232,65,266,65"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title=" " alt="" coords="5,80,60,105"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="282,86,232,94,138,99,60,97,60,92,137,93,232,89,281,80"/>
+<area shape="poly" id="edge3_Node000005_Node000004" title=" " alt="" coords="95,84,61,90,60,85,94,79"/>
+</map>

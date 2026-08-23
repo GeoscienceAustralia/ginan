@@ -1,0 +1,11 @@
+<map id="readOrbex" name="readOrbex">
+<area shape="rect" id="Node000001" href="$orbex_8cpp.html#a1dfbfc8e61777c0b2063a98292a9afe1" title="Read an ORBEX file into navigation data struct." alt="" coords="5,80,96,105"/>
+<area shape="rect" id="Node000002" href="$orbex_8cpp.html#a22504f72305e51c2d74ec94b113744df" title="Read and check the two header lines from an orbex file." alt="" coords="148,5,285,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="71,78,143,40,159,33,161,38,145,44,74,82"/>
+<area shape="rect" id="Node000004" href="$orbex_8cpp.html#a70cc23de57bf5ae7065f885a917ee4cf" title="Read necessary information, e.g." alt="" coords="144,55,289,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="96,83,130,78,131,83,97,88"/>
+<area shape="rect" id="Node000006" href="$orbex_8cpp.html#a7faa45c2b48fe2c872381034e505d32b" title="Read SATELLITE/ID_AND_DESCRIPTION block Note: This function is currently not fully implemented,..." alt="" coords="155,104,278,129"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="97,97,142,103,141,108,96,102"/>
+<area shape="rect" id="Node000007" href="$orbex_8cpp.html#aee81025026cfd3a1c193d9eb64df2895" title="Read EPHEMERIS/DATA block Note: Only ATT record type is supported currently." alt="" coords="159,153,274,179"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="75,103,145,138,165,146,163,151,143,143,73,108"/>
+</map>

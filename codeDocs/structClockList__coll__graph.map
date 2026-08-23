@@ -1,0 +1,5 @@
+<map id="ClockList" name="ClockList">
+<area shape="rect" id="Node000001" href="$structClockList.html" title=" " alt="" coords="46,129,141,205"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,181,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,95,96,129,91,129,91,95"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="getGloFreqChannel" name="getGloFreqChannel">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#ab9f88dcb9830a37016df7f40fcc6a469" title="Get GLONASS frequency channel from SINEX data Returns frequency channel number for a GLONASS satellit..." alt="" coords="5,55,152,80"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#a1da3994cf03ff0ec115928954c9307bb" title=" " alt="" coords="217,5,314,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,52,203,32,204,37,128,57"/>
+<area shape="rect" id="Node000003" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="222,55,309,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,73,208,73,208,78,152,79"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="152,56,208,56,208,62,152,61"/>
+<area shape="rect" id="Node000006" href="$structGTime.html#a98fdbaaec5a132a7e694f28b4f1907cb" title=" " alt="" coords="200,104,331,129"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="105,78,188,102,186,107,103,83"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="153,75,228,97,226,102,151,80"/>
+</map>

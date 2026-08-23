@@ -1,0 +1,7 @@
+<map id="GTime::gregString" name="GTime::gregString">
+<area shape="rect" id="Node000001" href="$structGTime.html#affff0f00d636211bbf24c3c794f89be9" title="Returns GTime in &quot;dd&#45;mmm&#45;yyyy hh:mm:ss&quot; format." alt="" coords="5,31,145,56"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="193,5,316,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,31,179,26,180,31,146,36"/>
+<area shape="rect" id="Node000003" href="$enumHelpers_8hpp.html#ac318a8058a7c509d1b135f62291446a8" title=" " alt="" coords="203,55,306,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,50,190,56,189,61,145,55"/>
+</map>

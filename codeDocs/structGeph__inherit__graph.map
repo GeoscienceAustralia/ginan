@@ -1,0 +1,5 @@
+<map id="Geph" name="Geph">
+<area shape="rect" id="Node000001" href="$structGeph.html" title="GLONASS broadcast ephemeris." alt="" coords="5,129,120,685"/>
+<area shape="rect" id="Node000002" href="$structBrdcEph.html" title=" " alt="" coords="19,5,107,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="65,95,65,129,60,129,60,95"/>
+</map>

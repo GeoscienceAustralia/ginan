@@ -1,0 +1,12 @@
+<map id="RtcmEncoder::encodeTimeStampRTCM" name="RtcmEncoder::encodeTimeStampRTCM">
+<area shape="rect" id="Node000001" href="$structRtcmEncoder.html#aec43680779bba008687e1f4f792960e1" title=" " alt="" coords="5,104,280,129"/>
+<area shape="rect" id="Node000002" href="$enums_8h.html#a086e24a48120638b582c9b860c16f0eb" title=" " alt="" coords="328,5,535,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,101,241,71,327,39,355,31,357,36,329,45,243,76,173,106"/>
+<area shape="rect" id="Node000003" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="394,55,469,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,101,380,73,381,79,218,107"/>
+<area shape="rect" id="Node000004" href="$rtcmEncoder_8cpp.html#af0d5eab5e18729b5d6b67194e94979a0" title="increasingly set unsigned bits to byte data" alt="" coords="388,104,475,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,123,374,121,375,127,280,128"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="280,105,375,107,374,112,280,110"/>
+<area shape="rect" id="Node000006" href="$structRtcmTrace.html#a2e5a2d492060c59091840d96dfe07bb8" title=" " alt="" coords="329,153,534,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="218,127,343,148,342,154,217,132"/>
+</map>

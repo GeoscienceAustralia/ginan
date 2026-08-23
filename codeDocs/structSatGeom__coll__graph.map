@@ -1,0 +1,11 @@
+<map id="SatGeom" name="SatGeom">
+<area shape="rect" id="Node000001" href="$structSatGeom.html" title=" " alt="" coords="121,691,231,827"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="15,159,171,555"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,554,161,674,156,675,131,555"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,181,96"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,96,96,142,91,142,91,96"/>
+<area shape="rect" id="Node000005" href="$structVectorEcef.html" title=" " alt="" coords="195,269,325,445"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="247,445,203,667,201,675,196,674,197,666,242,444"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="214,13,306,89"/>
+<area shape="poly" id="edge4_Node000005_Node000006" title=" " alt="" coords="263,103,263,268,257,268,257,103"/>
+</map>

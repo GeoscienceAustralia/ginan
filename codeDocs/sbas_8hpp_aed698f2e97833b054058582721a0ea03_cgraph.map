@@ -1,0 +1,7 @@
+<map id="writeEMSdata" name="writeEMSdata">
+<area shape="rect" id="Node000001" href="$sbas_8cpp.html#a6f4229224f8d8f8b8cf050533b992fcc" title="Write received SBAS messages into EMS files." alt="" coords="5,31,117,56"/>
+<area shape="rect" id="Node000002" href="$outputs_8cpp.html#a1cf8846f3d7514f4c5d086213aad7949" title="Replace macros for times with numeric values." alt="" coords="165,5,276,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,32,151,26,152,32,118,37"/>
+<area shape="rect" id="Node000004" href="$sbas_8cpp.html#af517d13a75d67e12beb9e4a5a5646ff8" title=" " alt="" coords="167,55,274,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="118,49,154,55,153,60,117,54"/>
+</map>

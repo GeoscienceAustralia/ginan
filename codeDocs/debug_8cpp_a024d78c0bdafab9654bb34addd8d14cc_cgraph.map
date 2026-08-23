@@ -1,0 +1,32 @@
+<map id="debugTideOceanPole" name="debugTideOceanPole">
+<area shape="rect" id="Node000001" href="$debug_8cpp.html#a024d78c0bdafab9654bb34addd8d14cc" title=" " alt="" coords="5,301,164,327"/>
+<area shape="rect" id="Node000002" href="$tides_8cpp.html#a1425ef4f680e83dce84af83d374efa25" title="Read ocean pole load tide coefficients." alt="" coords="216,5,371,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,300,96,252,119,182,135,143,156,106,181,71,210,40,216,35,219,40,214,44,185,74,160,109,140,146,124,184,102,253,91,302"/>
+<area shape="rect" id="Node000004" href="$structVectorEnu.html#a9dc9aa9b550edbb98110a836698a71e5" title=" " alt="" coords="423,39,525,64"/>
+<area shape="poly" id="edge16_Node000001_Node000004" title=" " alt="" coords="102,324,152,350,187,363,224,373,264,378,303,378,340,368,373,349,396,325,407,300,411,273,409,246,404,186,408,153,420,118,437,94,455,73,459,76,441,97,425,121,413,154,409,186,414,245,416,274,413,301,400,328,376,353,342,373,304,383,263,384,223,378,185,368,150,355,99,329"/>
+<area shape="poly" id="edge19_Node000001_Node000004" title=" " alt="" coords="130,324,184,342,249,354,282,355,315,352,345,342,373,325,396,301,407,276,411,249,409,222,404,162,408,129,420,94,435,73,439,76,425,97,413,130,409,162,414,221,416,250,413,277,400,304,376,329,348,347,316,357,283,361,249,359,183,347,128,329"/>
+<area shape="rect" id="Node000005" href="$structVectorEnu.html#a6909ce4148ab35bce7d6333be89bad3d" title=" " alt="" coords="423,120,525,145"/>
+<area shape="poly" id="edge15_Node000001_Node000005" title=" " alt="" coords="103,324,152,348,223,369,262,374,301,374,339,366,373,349,387,338,396,326,404,299,409,269,420,233,460,157,465,160,425,235,414,270,410,301,401,328,391,341,376,354,340,371,302,379,261,380,222,374,150,353,100,329"/>
+<area shape="poly" id="edge18_Node000001_Node000005" title=" " alt="" coords="134,324,187,340,250,350,282,351,314,348,345,340,373,325,387,314,396,302,404,275,409,245,420,209,449,156,454,159,425,211,414,246,410,277,401,304,391,317,376,330,347,345,315,353,282,357,249,356,186,345,132,329"/>
+<area shape="rect" id="Node000006" href="$structVectorEnu.html#ae90c6dd0141c45c334e8df0f7a1eee4f" title=" " alt="" coords="423,235,525,260"/>
+<area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="105,324,153,343,221,359,259,364,298,364,337,360,374,349,401,334,424,314,459,270,463,274,428,318,404,338,376,354,338,365,299,369,259,369,220,365,152,348,103,329"/>
+<area shape="poly" id="edge17_Node000001_Node000006" title=" " alt="" coords="152,324,202,334,259,340,317,339,374,325,395,314,415,300,447,268,450,272,418,304,398,318,376,330,318,344,258,346,201,339,151,329"/>
+<area shape="rect" id="Node000007" href="$debug_8cpp.html#af14bc84fb0eb7bd6cd72fee3c1693820" title=" " alt="" coords="223,55,363,80"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="87,300,101,260,125,203,161,142,184,114,210,89,217,84,220,89,214,93,188,117,166,145,130,205,106,262,92,302"/>
+<area shape="rect" id="Node000008" href="$structVectorPos.html#a63e862a389b3548bc5b4aedabd94540b" title=" " alt="" coords="238,104,349,129"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="89,300,106,267,132,224,167,178,210,139,224,131,226,135,214,143,171,181,137,227,111,270,94,302"/>
+<area shape="rect" id="Node000009" href="$structVectorPos.html#ab7ade23bd200ec4145eb389b58737dee" title=" " alt="" coords="236,153,351,179"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="94,299,140,246,173,215,211,188,223,181,225,186,213,192,177,219,144,249,98,303"/>
+<area shape="rect" id="Node000010" href="$erp_8cpp.html#afe3874cc58d609f4ccc2b03a5ef632b8" title="Get earth rotation parameter values." alt="" coords="261,203,325,228"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="103,299,151,268,211,237,247,224,249,229,213,242,153,273,106,303"/>
+<area shape="rect" id="Node000034" href="$tides_8cpp.html#ac13ddcfe009e53520fa45c714c524c4f" title="Displacement by ocean pole tide See ref [1] 7.1.5." alt="" coords="235,252,351,277"/>
+<area shape="poly" id="edge12_Node000001_Node000034" title=" " alt="" coords="138,299,225,278,226,283,140,304"/>
+<area shape="rect" id="Node000039" href="$structMjDateUtc.html#ac35e3ac8d68de9b2bdae2c893e6e6fc8" title=" " alt="" coords="212,301,375,327"/>
+<area shape="poly" id="edge13_Node000001_Node000039" title=" " alt="" coords="164,311,198,311,198,317,164,317"/>
+<area shape="poly" id="edge2_Node000002_Node000004" title=" " alt="" coords="326,28,410,46,409,51,325,33"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="371,21,429,33,428,38,370,26"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="315,28,344,38,376,52,414,79,446,108,443,112,411,83,373,56,343,43,313,33"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="372,26,376,28,402,45,426,66,462,107,458,110,422,70,399,49,373,32,370,30"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="323,28,351,37,376,52,398,79,408,106,413,134,425,168,454,222,450,224,420,170,408,136,402,107,394,82,373,56,348,42,322,33"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="373,25,377,28,398,55,408,82,413,110,425,144,465,221,461,223,420,146,408,112,402,83,394,58,373,32,369,29"/>
+</map>

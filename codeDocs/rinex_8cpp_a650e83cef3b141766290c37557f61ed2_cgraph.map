@@ -1,0 +1,5 @@
+<map id="readRnxObs" name="readRnxObs">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#a650e83cef3b141766290c37557f61ed2" title="Read complete RINEX observation file." alt="" coords="5,5,107,31"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#a4c9cb115309fc6d9dd154c4e1bea4327" title="Read RINEX observation data body section." alt="" coords="155,5,265,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,15,141,15,141,21,107,21"/>
+</map>

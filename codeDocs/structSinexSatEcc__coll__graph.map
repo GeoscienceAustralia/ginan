@@ -1,0 +1,9 @@
+<map id="SinexSatEcc" name="SinexSatEcc">
+<area shape="rect" id="Node000001" href="$structSinexSatEcc.html" title=" " alt="" coords="37,499,152,575"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,231,77,307"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="39,307,38,385,42,430,53,474,57,483,52,485,48,476,37,431,32,385,34,307"/>
+<area shape="rect" id="Node000003" href="$structVectorEnu.html" title=" " alt="" coords="102,131,229,407"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,408,131,476,127,485,122,483,125,474,144,406"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="119,5,211,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="168,95,168,131,163,131,163,95"/>
+</map>

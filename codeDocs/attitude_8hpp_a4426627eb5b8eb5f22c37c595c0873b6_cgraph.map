@@ -1,0 +1,15 @@
+<map id="recAtt" name="recAtt">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#aa53a61f369f0b0065ee1a804f3285b41" title="Attitude of receiver." alt="" coords="5,109,67,135"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a34ffecf2f7e5af16fc623c375f16abab" title="Helper functions to simplify magic_enum usage and provide drop&#45;in replacements for BETTER_ENUM functi..." alt="" coords="295,35,417,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,108,66,62,87,38,113,20,139,10,165,5,219,5,270,14,313,27,312,32,269,19,219,10,166,10,140,15,116,24,91,42,71,65,45,110"/>
+<area shape="rect" id="Node000003" href="$attitude_8cpp.html#a7024eb226a006702c72fe4a963ae8b19" title="Nominal receiver attitude &#45; unit vectors of receiver&#45;fixed coordinates (ECEF) Orientation of receiver..." alt="" coords="115,35,247,60"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="53,107,113,69,127,63,129,67,116,74,56,111"/>
+<area shape="rect" id="Node000008" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="120,84,241,109"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="66,114,106,107,107,112,67,119"/>
+<area shape="rect" id="Node000041" href="$attitude_8cpp.html#a9e9bca93f586f5ec08f11191600b4238" title=" " alt="" coords="119,133,242,159"/>
+<area shape="poly" id="edge5_Node000001_Node000041" title=" " alt="" coords="67,132,106,140,105,145,66,137"/>
+<area shape="poly" id="edge6_Node000001_Node000041" title=" " alt="" coords="67,117,136,128,135,133,66,122"/>
+<area shape="rect" id="Node000042" href="$attitude_8cpp.html#af213faee69eab1e3eb2f3955c2ab9233" title="Calculates antenna attitude &#45; unit vectors of antenna&#45;fixed coordinates (ECEF)" alt="" coords="127,183,235,208"/>
+<area shape="poly" id="edge7_Node000001_Node000042" title=" " alt="" coords="57,132,116,168,132,175,130,180,113,172,54,137"/>
+<area shape="poly" id="edge4_Node000008_Node000002" title=" " alt="" coords="226,81,296,61,297,66,227,86"/>
+</map>

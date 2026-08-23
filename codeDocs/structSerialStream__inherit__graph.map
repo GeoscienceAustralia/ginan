@@ -1,0 +1,11 @@
+<map id="SerialStream" name="SerialStream">
+<area shape="rect" id="Node000001" href="$structSerialStream.html" title=" " alt="" coords="161,189,318,405"/>
+<area shape="rect" id="Node000003" href="$structTcpSocket.html" title=" " alt="" coords="108,453,371,1389"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,419,242,453,237,453,237,419"/>
+<area shape="rect" id="Node000002" href="$structStream.html" title=" " alt="" coords="161,5,318,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,155,242,189,237,189,237,155"/>
+<area shape="rect" id="Node000004" href="$structNtripResponder.html" title=" " alt="" coords="5,1467,228,1583"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="144,1403,131,1468,126,1467,139,1402"/>
+<area shape="rect" id="Node000007" href="$structSisnetStream.html" title=" " alt="" coords="252,1437,475,1613"/>
+<area shape="poly" id="edge4_Node000003_Node000007" title=" " alt="" coords="341,1402,348,1437,343,1438,336,1403"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="SerialState" name="SerialState">
+<area shape="rect" id="Node000001" href="$structSerialState.html" title=" " alt="" coords="182,299,325,395"/>
+<area shape="rect" id="Node000002" href="$structSerialStateMembers.html" title=" " alt="" coords="5,159,197,235"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,242,207,297,203,300,147,246"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="34,5,169,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,82,104,142,99,142,99,82"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="221,144,389,249"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="285,263,272,299,267,298,280,262"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="leapSeconds" name="leapSeconds">
+<area shape="rect" id="Node000001" href="$gTime_8cpp.html#a26f3cd7fc7d2331aaf3b6d4a059d6113" title=" " alt="" coords="221,104,325,129"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#afdaba13b6d6a105e3b3d006010cf4c6e" title=" " alt="" coords="50,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,97,213,70,172,44,128,28,130,23,174,40,216,65,250,93"/>
+<area shape="rect" id="Node000004" href="$structGTime.html#afd22f7f0ceb51d899e7f82a83d46c972" title=" " alt="" coords="31,55,147,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="212,103,137,83,139,78,213,98"/>
+<area shape="rect" id="Node000005" href="$structMjDateUtc.html#af46c0b64a0a33064fff79323d9b64284" title=" " alt="" coords="5,104,173,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="207,119,174,119,174,114,207,114"/>
+<area shape="rect" id="Node000006" href="$structGTime.html#a886316fc5568baa9724184d534532fa9" title=" " alt="" coords="8,153,171,179"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="213,135,139,156,137,151,212,130"/>
+<area shape="rect" id="Node000007" href="$gTime_8cpp.html#ad4d46b57a880857abd1826dacf374c77" title=" " alt="" coords="50,203,129,228"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="249,141,215,167,175,192,130,209,128,204,172,188,212,163,246,137"/>
+</map>

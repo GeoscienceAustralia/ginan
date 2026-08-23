@@ -1,0 +1,5 @@
+<map id="validateStagedObservations" name="validateStagedObservations">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#afc2027f51e62b79451005902372f5612" title="Validate staged observations before commitment." alt="" coords="5,5,212,31"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="260,5,347,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,15,246,15,246,21,212,21"/>
+</map>

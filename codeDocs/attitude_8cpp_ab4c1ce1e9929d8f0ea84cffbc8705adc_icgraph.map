@@ -1,0 +1,5 @@
+<map id="sunMoonPos" name="sunMoonPos">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#ab4c1ce1e9929d8f0ea84cffbc8705adc" title=" " alt="" coords="219,5,323,31"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#a1b479682868a13d0db3a05d5c6d38461" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="5,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,21,171,21,171,15,205,15"/>
+</map>

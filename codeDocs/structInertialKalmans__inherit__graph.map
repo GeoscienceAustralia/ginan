@@ -1,0 +1,11 @@
+<map id="InertialKalmans" name="InertialKalmans">
+<area shape="rect" id="Node000001" href="$structInertialKalmans.html" title=" " alt="" coords="137,5,322,181"/>
+<area shape="rect" id="Node000002" href="$structReceiverKalmans.html" title=" " alt="" coords="55,229,204,485"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,195,180,230,175,228,189,193"/>
+<area shape="rect" id="Node000004" href="$structSatelliteKalmans.html" title=" " alt="" coords="257,319,404,395"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="271,194,319,318,314,320,266,195"/>
+<area shape="rect" id="Node000003" href="$structReceiverOptions.html" title="Options to be applied to kalman filter states for individual receivers." alt="" coords="5,533,224,1539"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="129,499,128,533,123,533,124,499"/>
+<area shape="rect" id="Node000005" href="$structSatelliteOptions.html" title="Options to be applied to kalman filter states for individual satellites." alt="" coords="248,918,443,1154"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="334,409,345,917,340,918,329,409"/>
+</map>

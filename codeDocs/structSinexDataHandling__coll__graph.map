@@ -1,0 +1,9 @@
+<map id="SinexDataHandling" name="SinexDataHandling">
+<area shape="rect" id="Node000001" href="$structSinexDataHandling.html" title=" " alt="" coords="25,517,185,633"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,77,287"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,287,39,382,45,438,57,493,60,501,55,503,52,494,39,439,34,382,35,287"/>
+<area shape="rect" id="Node000003" href="$structUYds.html" title=" " alt="" coords="101,131,264,367"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,368,159,431,143,494,140,503,135,501,137,493,153,430,165,367"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,5,263,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="185,95,185,131,180,131,180,95"/>
+</map>

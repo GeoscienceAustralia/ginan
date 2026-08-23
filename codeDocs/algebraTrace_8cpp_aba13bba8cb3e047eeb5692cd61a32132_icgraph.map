@@ -1,0 +1,12 @@
+<map id="getFilterTypeFromFile" name="getFilterTypeFromFile">
+<area shape="rect" id="Node000001" href="$algebraTrace_8cpp.html#aba13bba8cb3e047eeb5692cd61a32132" title="Returns the type of object that is located at the specified position in a file." alt="" coords="424,81,587,107"/>
+<area shape="rect" id="Node000002" href="$minimumConstraints_8cpp.html#a3066a5f0056d1e3a9c7ed4b31b9cae4a" title=" " alt="" coords="229,5,300,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="455,79,375,53,300,30,301,25,377,47,456,74"/>
+<area shape="rect" id="Node000007" href="$minimumConstraints_8cpp.html#aeb8c374e79e38289a66b8b65d6574141" title=" " alt="" coords="5,31,105,56"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="410,86,105,52,106,46,410,81"/>
+<area shape="rect" id="Node000014" href="$classRtsFileReader.html#a596e2814810567d59ca0728c7f134aa5" title="Read the next object from file and update FilterData." alt="" coords="153,107,376,132"/>
+<area shape="poly" id="edge4_Node000001_Node000014" title=" " alt="" coords="410,107,376,110,376,105,410,101"/>
+<area shape="rect" id="Node000015" href="$classRtsOutputFileReader.html#a063ac0da787c6da9c44479a8b785802f" title="Read the next object from reversed file." alt="" coords="187,157,343,197"/>
+<area shape="poly" id="edge5_Node000001_Node000015" title=" " alt="" coords="461,114,377,146,336,159,334,154,375,141,459,109"/>
+<area shape="poly" id="edge2_Node000002_Node000007" title=" " alt="" coords="216,26,106,40,105,35,215,21"/>
+</map>

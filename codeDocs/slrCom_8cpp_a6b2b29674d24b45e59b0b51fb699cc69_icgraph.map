@@ -1,0 +1,7 @@
+<map id="stripNumbers" name="stripNumbers">
+<area shape="rect" id="Node000001" href="$slrCom_8cpp.html#a6b2b29674d24b45e59b0b51fb699cc69" title="Strip numbers from string." alt="" coords="189,31,300,56"/>
+<area shape="rect" id="Node000002" href="$slrCom_8cpp.html#a5a02d80161a35a795bf71d867dc34158" title="Check if sat is spherical (i.e." alt="" coords="27,5,120,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,36,120,28,121,22,176,31"/>
+<area shape="rect" id="Node000009" href="$slrCom_8cpp.html#abf53241592f284ba21a5a81847d734d6" title="Center of mass to laser retroreflector array offset for spherical satellites." alt="" coords="5,55,141,80"/>
+<area shape="poly" id="edge2_Node000001_Node000009" title=" " alt="" coords="176,56,142,60,141,55,175,50"/>
+</map>

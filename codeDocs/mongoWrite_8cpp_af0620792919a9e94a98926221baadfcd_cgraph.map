@@ -1,0 +1,9 @@
+<map id="mongoEditing" name="mongoEditing">
+<area shape="rect" id="Node000001" href="$mongoWrite_8cpp.html#af0620792919a9e94a98926221baadfcd" title="add editing infomation to mongo" alt="" coords="5,55,117,80"/>
+<area shape="rect" id="Node000002" href="$mongo_8cpp.html#a4deef04a2c03d1d1b7cc4bd72be73ed5" title=" " alt="" coords="165,5,295,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,52,172,32,173,37,106,57"/>
+<area shape="rect" id="Node000003" href="$mongo_8hpp.html#a6505afcec3cad19fb96a77327cd244ee" title="Converts a C&#45;style string (const char*) to a std::string." alt="" coords="193,55,267,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="117,65,180,65,180,70,117,70"/>
+<area shape="rect" id="Node000004" href="$mongoWrite_8cpp.html#aebb57cb730f719eefb3bb81610f2a3e3" title=" " alt="" coords="199,104,261,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="106,77,187,101,185,107,105,83"/>
+</map>

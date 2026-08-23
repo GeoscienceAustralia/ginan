@@ -1,0 +1,20 @@
+<map id="SbfParser" name="SbfParser">
+<area shape="rect" id="Node000001" href="$structSbfParser.html" title=" " alt="" coords="387,1503,517,1599"/>
+<area shape="rect" id="Node000002" href="$structParser.html" title=" " alt="" coords="207,1247,337,1363"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="305,1375,326,1414,351,1452,397,1501,393,1504,347,1455,322,1417,300,1377"/>
+<area shape="rect" id="Node000003" href="$structSbfDecoder.html" title=" " alt="" coords="361,1237,543,1373"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="455,1387,455,1503,449,1503,449,1387"/>
+<area shape="rect" id="Node000004" href="$structObsLister.html" title=" " alt="" coords="5,574,101,650"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="47,664,37,752,36,805,38,862,46,920,61,976,83,1030,115,1078,142,1103,168,1116,196,1122,225,1123,285,1127,318,1136,351,1155,390,1193,420,1236,416,1239,386,1196,348,1159,316,1141,285,1132,224,1129,195,1127,167,1121,139,1107,111,1082,79,1033,56,978,41,921,33,862,31,805,32,751,41,664"/>
+<area shape="rect" id="Node000007" href="$structIcdDecoder.html" title=" " alt="" coords="126,524,330,700"/>
+<area shape="poly" id="edge4_Node000003_Node000007" title=" " alt="" coords="249,713,287,886,314,983,345,1079,380,1161,417,1236,412,1238,375,1164,340,1081,309,985,282,887,244,714"/>
+<area shape="rect" id="Node000010" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="355,144,549,1080"/>
+<area shape="poly" id="edge5_Node000003_Node000010" title=" " alt="" coords="455,1080,455,1221,449,1221,449,1080"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="489,5,561,81"/>
+<area shape="poly" id="edge7_Node000003_Node000011" title=" " alt="" coords="564,76,581,105,581,120,583,390,587,601,583,811,564,1080,562,1108,555,1134,534,1181,510,1224,505,1222,529,1178,549,1132,556,1107,559,1080,578,811,581,601,577,390,576,120,576,106,560,79"/>
+<area shape="poly" id="edge6_Node000010_Node000011" title=" " alt="" coords="500,83,489,106,482,129,477,127,484,104,495,81"/>
+<area shape="rect" id="Node000012" href="$structObsList.html" title="List of observations for an epoch." alt="" coords="753,574,890,650"/>
+<area shape="poly" id="edge8_Node000003_Node000012" title=" " alt="" coords="828,650,831,735,829,789,823,848,812,910,794,971,769,1029,735,1082,709,1106,682,1118,652,1125,617,1136,585,1145,571,1150,556,1159,525,1190,498,1225,494,1222,521,1186,553,1155,569,1145,583,1140,615,1131,651,1119,680,1113,706,1102,731,1078,765,1026,789,969,807,908,817,848,823,789,825,735,822,650"/>
+<area shape="rect" id="Node000014" href="$structPacketStatistics.html" title=" " alt="" coords="567,1157,761,1453"/>
+<area shape="poly" id="edge9_Node000001_Node000014" title=" " alt="" coords="560,1452,557,1455,508,1504,504,1500,553,1452,556,1448"/>
+</map>

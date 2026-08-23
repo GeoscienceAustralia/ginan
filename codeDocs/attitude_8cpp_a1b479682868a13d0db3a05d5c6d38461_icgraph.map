@@ -1,0 +1,9 @@
+<map id="findEclipseBoundaries" name="findEclipseBoundaries">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a1b479682868a13d0db3a05d5c6d38461" title="Finds time when eclipse started, prior (default) to this point in time For finding eclipses forward i..." alt="" coords="163,55,328,80"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="15,5,105,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,54,104,32,106,27,185,49"/>
+<area shape="rect" id="Node000017" href="$attitude_8cpp.html#a46cec52b21a1c337c0ca23eba28f5bca" title="Yaw model for GPS&#45;IIA sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,55,115,80"/>
+<area shape="poly" id="edge2_Node000001_Node000017" title=" " alt="" coords="149,70,115,70,115,65,149,65"/>
+<area shape="rect" id="Node000018" href="$attitude_8cpp.html#af06aa2920ea6c715fd8973e86ab0822f" title="Yaw model for GPS&#45;IIF sats Ref: https://www.researchgate.net/publication/306924379_Observed_features_..." alt="" coords="6,104,114,129"/>
+<area shape="poly" id="edge3_Node000001_Node000018" title=" " alt="" coords="185,86,110,106,108,101,183,81"/>
+</map>

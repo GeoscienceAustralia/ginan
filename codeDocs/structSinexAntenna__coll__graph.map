@@ -1,0 +1,9 @@
+<map id="SinexAntenna" name="SinexAntenna">
+<area shape="rect" id="Node000001" href="$structSinexAntenna.html" title=" " alt="" coords="43,503,168,599"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,77,287"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,287,39,376,44,428,57,478,61,487,56,489,52,480,39,428,33,376,35,287"/>
+<area shape="rect" id="Node000003" href="$structUYds.html" title=" " alt="" coords="101,131,264,367"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,367,160,424,144,479,141,489,136,487,139,478,154,422,166,366"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,5,263,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="185,95,185,131,180,131,180,95"/>
+</map>

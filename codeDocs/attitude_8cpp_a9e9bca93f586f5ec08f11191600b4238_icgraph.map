@@ -1,0 +1,5 @@
+<map id="kalmanAttitude" name="kalmanAttitude">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a9e9bca93f586f5ec08f11191600b4238" title=" " alt="" coords="115,5,237,31"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#aa53a61f369f0b0065ee1a804f3285b41" title="Attitude of receiver." alt="" coords="5,5,67,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,21,67,21,67,15,101,15"/>
+</map>

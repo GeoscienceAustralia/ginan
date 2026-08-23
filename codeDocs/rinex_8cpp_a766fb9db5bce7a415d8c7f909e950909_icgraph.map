@@ -1,0 +1,5 @@
+<map id="stagePhaseObservation" name="stagePhaseObservation">
+<area shape="rect" id="Node000001" href="$rinex_8cpp.html#a766fb9db5bce7a415d8c7f909e950909" title="Stage phase observation with priority resolution support." alt="" coords="224,5,400,31"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#a79b5092addef140a4013e90f5cfaaba9" title="Decode RINEX 2 observation data." alt="" coords="5,5,176,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,21,176,21,176,15,210,15"/>
+</map>

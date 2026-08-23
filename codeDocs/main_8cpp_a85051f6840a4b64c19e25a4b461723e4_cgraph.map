@@ -1,0 +1,7 @@
+<map id="avoidCollisions" name="avoidCollisions">
+<area shape="rect" id="Node000001" href="$main_8cpp.html#a85051f6840a4b64c19e25a4b461723e4" title=" " alt="" coords="5,31,127,56"/>
+<area shape="rect" id="Node000002" href="$trace_8hpp.html#a7dbfcdc15f22bcbbfb3f1111539580af" title=" " alt="" coords="211,5,311,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,33,197,24,197,29,127,38"/>
+<area shape="rect" id="Node000009" href="$structACSConfig.html#acbb130e061ba4b7bf620e4fb68e1b794" title="Set receiver options for a specific receiver using a hierarchy of sources." alt="" coords="175,55,347,80"/>
+<area shape="poly" id="edge2_Node000001_Node000009" title=" " alt="" coords="127,48,161,52,161,58,127,53"/>
+</map>

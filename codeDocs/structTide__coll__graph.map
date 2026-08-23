@@ -1,0 +1,9 @@
+<map id="Tide" name="Tide">
+<area shape="rect" id="Node000001" href="$structTide.html" title=" " alt="" coords="38,283,149,419"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,77,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="55,219,67,258,69,266,64,268,61,259,50,221"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="102,144,277,220"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,222,142,270,138,267,166,219"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="151,5,227,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="192,95,192,144,187,144,187,95"/>
+</map>

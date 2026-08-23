@@ -1,0 +1,8 @@
+<map id="readBlq" name="readBlq">
+<area shape="rect" id="Node000001" href="$tides_8cpp.html#a24750aaade7aafe7ddc03feec0b31826" title="Read BLQ ocean/atmospheric tide loading parameters." alt="" coords="5,55,77,80"/>
+<area shape="rect" id="Node000002" href="$enumHelpers_8hpp.html#a44fa1c1ae04a09f90dbf28307f11cca2" title=" " alt="" coords="125,5,248,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,53,135,33,136,38,78,58"/>
+<area shape="rect" id="Node000003" href="$tides_8cpp.html#a22861873fc8c560c6d8d7a95b1335d52" title="Read BLQ record for a single station." alt="" coords="128,55,245,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="78,73,114,74,114,79,77,78"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="77,57,114,56,114,61,78,62"/>
+</map>

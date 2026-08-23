@@ -1,0 +1,10 @@
+<map id="IERS2010::doodson" name="IERS2010::doodson">
+<area shape="rect" id="Node000001" href="$structIERS2010.html#a84f1f40ad1028ca517a66ed8905ebac7" title=" " alt="" coords="508,25,655,51"/>
+<area shape="rect" id="Node000002" href="$structOrbitIntegrator.html#a58c972cf5ddac52358ccbd8f7c34b9cc" title=" " alt="" coords="5,18,188,58"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="518,25,460,15,348,8,236,15,189,22,188,16,236,10,348,3,460,10,519,20"/>
+<area shape="rect" id="Node000004" href="$structFrameSwapper.html#a65d9288838e2a28aa141ff2e013d2b76" title=" " alt="" coords="236,25,460,51"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="494,41,460,41,460,35,494,35"/>
+<area shape="rect" id="Node000005" href="$structIERS2010.html#a235f709d37da714e34d2545e5e2ef4ab" title=" " alt="" coords="252,75,444,100"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="508,56,409,77,408,72,507,51"/>
+<area shape="poly" id="edge4_Node000005_Node000002" title=" " alt="" coords="269,75,188,59,189,53,270,69"/>
+</map>

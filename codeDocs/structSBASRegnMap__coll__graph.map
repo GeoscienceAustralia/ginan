@@ -1,0 +1,14 @@
+<map id="SBASRegnMap" name="SBASRegnMap">
+<area shape="rect" id="Node000001" href="$structSBASRegnMap.html" title=" " alt="" coords="218,1143,349,1219"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,567,175,657"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,657,206,1079,209,1099,216,1117,225,1129,221,1132,212,1120,204,1101,201,1081,98,658"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="147,5,211,81"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="135,57,94,76,76,89,62,107,35,165,21,227,17,292,21,356,31,418,44,475,74,566,69,567,39,476,25,419,15,357,11,292,15,226,30,163,57,104,72,86,91,71,133,53"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="215,574,351,650"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="225,61,251,79,272,104,299,166,315,231,323,298,324,365,320,428,313,485,296,574,291,573,308,485,315,427,319,365,318,299,310,232,294,167,268,107,248,83,222,65"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="286,650,286,1126,281,1126,281,650"/>
+<area shape="rect" id="Node000005" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="375,144,570,1080"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="378,1051,366,1081,352,1108,334,1132,330,1129,347,1105,361,1079,373,1049"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="437,5,509,81"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="475,81,475,128,470,128,470,81"/>
+</map>

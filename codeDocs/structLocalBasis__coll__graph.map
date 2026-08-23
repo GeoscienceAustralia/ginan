@@ -1,0 +1,7 @@
+<map id="LocalBasis" name="LocalBasis">
+<area shape="rect" id="Node000001" href="$structLocalBasis.html" title=" " alt="" coords="41,617,146,733"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html" title="Object holding satellite id, and providing related functions." alt="" coords="15,159,171,555"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,555,96,601,91,601,91,555"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,181,96"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,96,96,142,91,142,91,96"/>
+</map>

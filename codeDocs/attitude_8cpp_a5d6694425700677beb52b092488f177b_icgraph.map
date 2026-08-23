@@ -1,0 +1,7 @@
+<map id="preciseAttitude" name="preciseAttitude">
+<area shape="rect" id="Node000001" href="$attitude_8cpp.html#a5d6694425700677beb52b092488f177b" title="Retrieves precise attitude (from file) &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns f..." alt="" coords="160,31,281,56"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#aa53a61f369f0b0065ee1a804f3285b41" title="Attitude of receiver." alt="" coords="28,5,89,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,34,89,25,90,20,146,29"/>
+<area shape="rect" id="Node000006" href="$attitude_8cpp.html#a7845576f2b86e02591836bb093754a44" title="Calculates satellite attitude &#45; unit vectors of satellite&#45;fixed coordinates (ECEF) Returns false if n..." alt="" coords="5,55,112,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="147,57,113,62,112,57,146,52"/>
+</map>

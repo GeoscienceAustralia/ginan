@@ -1,0 +1,13 @@
+<map id="getSnxSatMaxYawRate" name="getSnxSatMaxYawRate">
+<area shape="rect" id="Node000001" href="$sinex_8cpp.html#aa047ec8b34506643b3e286d61d819a82" title="Get yaw rate sinex entry for sat." alt="" coords="320,81,491,107"/>
+<area shape="rect" id="Node000002" href="$attitude_8cpp.html#af64a8516da71e0d4f37682b1935fdca3" title="Yaw model for GLONASS sats Returns false if no modelled yaw available Ref: https://igsac&#45;cnes...." alt="" coords="173,5,262,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="360,79,249,33,251,28,362,74"/>
+<area shape="rect" id="Node000017" href="$attitude_8cpp.html#a46cec52b21a1c337c0ca23eba28f5bca" title="Yaw model for GPS&#45;IIA sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="5,69,115,95"/>
+<area shape="poly" id="edge2_Node000001_Node000017" title=" " alt="" coords="306,93,115,87,115,81,306,88"/>
+<area shape="rect" id="Node000018" href="$attitude_8cpp.html#af06aa2920ea6c715fd8973e86ab0822f" title="Yaw model for GPS&#45;IIF sats Ref: https://www.researchgate.net/publication/306924379_Observed_features_..." alt="" coords="6,132,114,157"/>
+<area shape="poly" id="edge3_Node000001_Node000018" title=" " alt="" coords="307,111,115,139,114,134,306,106"/>
+<area shape="rect" id="Node000019" href="$attitude_8cpp.html#a43e7b17b62853da813d5289667b3284e" title="Yaw model for GPS&#45;IIR sats Ref: http://acc.igs.org/orbits/EclipseReadMe.pdf Ref: https://igsac&#45;cnes...." alt="" coords="163,157,272,183"/>
+<area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="362,114,251,160,249,155,360,109"/>
+<area shape="poly" id="edge5_Node000019_Node000017" title=" " alt="" coords="180,153,82,97,85,92,183,148"/>
+<area shape="poly" id="edge6_Node000019_Node000018" title=" " alt="" coords="149,162,114,156,115,151,149,156"/>
+</map>

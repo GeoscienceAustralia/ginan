@@ -1,0 +1,7 @@
+<map id="ilrsIdToCosparId" name="ilrsIdToCosparId">
+<area shape="rect" id="Node000001" href="$slrObs_8cpp.html#a4c3ed56472d893fdf8be7e463eaa3758" title="Converts from ILRS ID (condensed version of COSPAR ID) to COSPAR ID COSPAR ID to ILRS Satellite Ident..." alt="" coords="147,31,272,56"/>
+<area shape="rect" id="Node000002" href="$slrObs_8cpp.html#a38ee0a5d01fed7dee3c29841ca02b54a" title="Extracts observations from a given CRD (.npt) file." alt="" coords="15,5,89,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,34,88,26,89,21,133,28"/>
+<area shape="rect" id="Node000006" href="$slrObs_8cpp.html#ace930bf70906d9d523b50c373ef1115a" title="Read one obs record from tabular slr obs file." alt="" coords="5,55,99,80"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="133,58,99,63,99,58,132,52"/>
+</map>

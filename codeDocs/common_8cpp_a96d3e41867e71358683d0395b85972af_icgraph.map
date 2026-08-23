@@ -1,0 +1,7 @@
+<map id="uraToSva" name="uraToSva">
+<area shape="rect" id="Node000001" href="$common_8cpp.html#a96d3e41867e71358683d0395b85972af" title="URA value (m) to URA index." alt="" coords="155,31,236,56"/>
+<area shape="rect" id="Node000002" href="$rinex_8cpp.html#a979e29d6c67b175b1c72c8a619e2c6fa" title="Decode GPS/Galileo/QZS/BeiDou ephemeris parameters." alt="" coords="9,5,103,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,36,103,29,104,24,142,31"/>
+<area shape="rect" id="Node000007" href="$rinex_8cpp.html#ac537c5434aa7432a5dc292e882cfbc17" title="Decode SBAS/geostationary satellite ephemeris." alt="" coords="5,55,107,80"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="142,55,107,61,107,56,141,50"/>
+</map>

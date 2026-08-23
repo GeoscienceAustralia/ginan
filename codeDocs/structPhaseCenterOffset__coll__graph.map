@@ -1,0 +1,9 @@
+<map id="PhaseCenterOffset" name="PhaseCenterOffset">
+<area shape="rect" id="Node000001" href="$structPhaseCenterOffset.html" title=" " alt="" coords="17,1157,173,1233"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,574,97,650"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="57,650,94,1141,89,1141,51,650"/>
+<area shape="rect" id="Node000003" href="$structGTime.html" title="Time structure used throughout this software." alt="" coords="122,144,317,1080"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,1081,152,1134,147,1145,142,1142,148,1132,169,1079"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="183,5,255,81"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="222,81,222,128,217,128,217,81"/>
+</map>

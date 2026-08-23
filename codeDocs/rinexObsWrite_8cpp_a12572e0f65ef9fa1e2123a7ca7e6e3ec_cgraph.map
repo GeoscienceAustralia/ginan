@@ -1,0 +1,9 @@
+<map id="writeRinexObsHeader" name="writeRinexObsHeader">
+<area shape="rect" id="Node000001" href="$rinexObsWrite_8cpp.html#a12572e0f65ef9fa1e2123a7ca7e6e3ec" title=" " alt="" coords="5,55,169,80"/>
+<area shape="rect" id="Node000002" href="$gTime_8cpp.html#abc73cf336f9fa1b3622c933d5925e073" title=" " alt="" coords="268,5,343,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,52,254,27,255,32,145,57"/>
+<area shape="rect" id="Node000003" href="$structUtcTime.html#a34983414bfc1e8d103229b9aa2b03827" title=" " alt="" coords="234,55,377,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,65,220,65,220,70,169,70"/>
+<area shape="rect" id="Node000005" href="$rinexObsWrite_8cpp.html#ab1a7a3d3255b546c3cea605eb2ea87cb" title=" " alt="" coords="217,104,393,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="145,77,236,98,235,104,144,83"/>
+</map>

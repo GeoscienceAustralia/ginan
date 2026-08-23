@@ -1,0 +1,5 @@
+<map id="satComOffSphere" name="satComOffSphere">
+<area shape="rect" id="Node000001" href="$slrCom_8cpp.html#abf53241592f284ba21a5a81847d734d6" title="Center of mass to laser retroreflector array offset for spherical satellites." alt="" coords="176,5,312,31"/>
+<area shape="rect" id="Node000002" href="$ppp__slr_8cpp.html#a1fdffb9e4c2fa18a330834a9c55116ad" title="Satellite retroreflector delta from CoM." alt="" coords="5,5,128,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,21,128,21,128,15,162,15"/>
+</map>

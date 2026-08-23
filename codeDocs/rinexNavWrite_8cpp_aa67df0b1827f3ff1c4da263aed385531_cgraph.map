@@ -1,0 +1,12 @@
+<map id="outputNavRinexION" name="outputNavRinexION">
+<area shape="rect" id="Node000001" href="$rinexNavWrite_8cpp.html#aa67df0b1827f3ff1c4da263aed385531" title=" " alt="" coords="5,104,156,129"/>
+<area shape="rect" id="Node000002" href="$structSatSys.html#aec6d07b90d1e8172b8b6a6966abef4fd" title="Returns a std::string of this satellite&#39;s id." alt="" coords="236,5,323,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,102,145,71,203,40,222,32,224,37,205,44,147,76,101,106"/>
+<area shape="rect" id="Node000004" href="$structSatSys.html#abfd7e43b0d57c2718d05ca595ee360dd" title="Returns the character used as a prefix for this system." alt="" coords="216,55,343,80"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="132,101,214,81,215,86,133,107"/>
+<area shape="rect" id="Node000005" href="$gTime_8cpp.html#a210bda8e07fa8a70ce6c79948e42efe0" title=" " alt="" coords="230,104,329,129"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="156,114,216,114,216,119,156,119"/>
+<area shape="rect" id="Node000007" href="$trace_8cpp.html#a755e8144b75554c3f9f4407284f37437" title=" " alt="" coords="204,153,355,179"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="108,127,191,150,190,155,107,132"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="157,124,240,146,239,152,155,129"/>
+</map>
