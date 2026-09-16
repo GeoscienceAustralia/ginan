@@ -36,6 +36,7 @@ jobs:
               brew install cmake ninja pkg-config libomp gcc
               echo "/opt/homebrew/bin" >> $GITHUB_PATH
             preset: macos-arm64-release
+            pin-cmake: true
             
           - name: macOS x64
             os: macos-15-intel
