@@ -1,0 +1,56 @@
+# L1 SBAS
+inputs:
+  inputs_root: ./products/
+  atx_files: [igs20.atx]
+  snx_files:
+    - igs_satellite_metadata.snx
+    - tables/sat_yaw_bias_rate.snx
+    - AUS23907.SNX
+  satellite_data:
+    satellite_data_root: sbas/
+    nav_files:
+      - "*.rnx"
+    sbas_inputs:
+      ems_files:
+        - "uraL1/*.ems"
+      sbas_prn: 122
+      sbas_message_0: 2 # Expected format for message type 0, if set to -1 (default) it will block use of SBAS corrections
+      prec_aproach: true
+  gnss_observations:
+    gnss_observations_root: ../data/sbas/
+    rnx_inputs:
+      - "*.rnx"
+
+outputs:
+  metadata:
+    config_description: sbas_example_<BRANCH>
+  outputs_root: ./outputs/<CONFIG>/l1/
+  spp:
+    output: true
+    filename: <RECEIVER>-<YYYY><DDD>.SPP
+
+receiver_options:
+  HOB2:
+    antenna_type: "LEIAR25.R4      NONE"
+  NEBO:
+    antenna_type: "TRM59800.00     NONE"
+  OUS2:
+    antenna_type: "SEPCHOKE_B3E6   NONE"
+  TID1:
+    antenna_type: "AOAD/M_T        NONE"
+
+processing_options:
+  process_modes:
+    sbas: true
+  epoch_control:
+    wait_next_epoch: 3600
+  gnss_general:
+    sys_options:
+      gps:
+        process: true
+      # glo:
+      #   process: true
+      # sbs:
+      #   process: true
+  sbas:
+    mode: L1

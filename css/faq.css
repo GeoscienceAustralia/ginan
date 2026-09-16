@@ -1,0 +1,46 @@
+@charset "utf-8";
+/* CSS Document */
+
+a{
+color: #282425!important;	
+}
+ul.nav.nav-tabs > li{
+	display: inline-block;
+	line-height: 50px;
+	height: 100%;
+	text-transform:uppercase;
+}
+ul.nav.nav-tabs > li a{
+	display:block;
+	padding:15px;
+	color: #282425!important;
+	
+}
+ul.nav.nav-tabs > li a:hover, ul.nav.nav-tabs > li:hover{
+	background:	#FB282F;
+	color:#fff!important;
+	text-decoration: none!important;
+}
+ul.nav.nav-tabs > li a.active{
+	background:	#282425;
+	color:#fff!important;
+	text-decoration: none!important;
+}
+.card-header {
+    background-color: rgb(245,245,245,0.3)!important;
+	border-radius:0!important;
+}
+.card{
+border-radius:0!important;
+}
+
+.card > .card-header a::before {
+    font-family:  fontawesome;
+    content: "\f067 ";
+    color: #282425;
+    float: right;
+    margin-right: 15px;
+    font-weight: 400;
+    position: absolute;
+    right: 0;
+}

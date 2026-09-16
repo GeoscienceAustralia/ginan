@@ -1,0 +1,340 @@
+# Yaml config file for Reduced-dynamic POD of GRACE-FO C satellite; Date: 2023 12 01
+inputs:
+  inputs_root: ./products/
+  atx_files: [igs20.atx] # Antenna models for receivers and satellites in ANTEX format
+  erp_files: [tables/finals.data.iau2000.txt]
+  egm_files: [tables/EGM2008.gfc] # Earth gravity model coefficients file
+  planetary_ephemeris_files: [tables/DE436.1950.2050] # JPL planetary and lunar ephemerides file
+  hfeop_files: [tables/desai_model_jgrb51665-sup-0002-ds01.txt]
+  tides:
+    atmos_tide_potential_files: [tables/atmosTide_AOD1bRL06.potential.iers.txt]
+    ocean_tide_potential_files: [tables/fes2014b_Cnm-Snm.dat]
+    ocean_pole_tide_potential_files: [tables/oceanPoleTide_desai2004.txt]
+    atmos_ocean_dealiasing_files:
+      - LEO/AOD1B_2019-02-18_X_06.asc
+      - LEO/AOD1B_2019-02-19_X_06.asc
+      - LEO/AOD1B_2019-02-20_X_06.asc
+
+  snx_files:
+    # - "*.SNX" # use a wild card to include all files matching the description in the directory
+    - tables/igs_satellite_metadata_2203_plus.snx
+    #- tables/sat_yaw_bias_rate.snx
+    #- tables/qzss_yaw_modes.snx
+    #- tables/bds_yaw_modes.snx
+    - LEO.snx
+
+  satellite_data:
+    sp3_files: [LEO/2019_02/COD0R03FIN_20190450000_01D_05M_ORB.SP3] # satellite orbit files in SP3 format
+    clk_files: [LEO/2019_02/COD0R03FIN_20190450000_01D_05S_CLK.CLK] # satellite clock files in RNX CLK format
+    bsx_files: [LEO/2019_02/COD0R03FIN_20190450000_01D_01D_OSB.BIA] # daily signal biases files
+    obx_files: [LEO/2019_02/SCA1B_2019-02-14_C_04.OBX]
+
+  gnss_observations:
+    gnss_observations_root: LEO/2019_02/
+    rnx_inputs:
+      - L64:
+          - "GPS1B_2019-02-14_C_04.rnx"
+
+outputs:
+  outputs_root: ./outputs/<CONFIG>
+
+  trace:
+    level: 5
+    output_receivers: true
+    output_satellites: true
+    output_network: true
+    receiver_filename: <RECEIVER>_<YYYY><DDD><HH>.Reciever
+    satellite_filename: <RECEIVER>_<YYYY><DDD><HH>.Sat
+    network_filename: <RECEIVER>_<YYYY><DDD><HH>.TRACE
+    output_residuals: true
+    output_residual_chain: true
+    output_config: true
+
+  metadata:
+    config_description: dynPOD_v3_20190214_LEO1
+    analysis_agency: GAA
+    analysis_centre: Geoscience Australia -----FILE NOT FOR OPERATIONAL USE-----
+    analysis_software: Ginan v3
+    rinex_comment: AUSNETWORK1
+    #gradient_mapping_function:  Chen & Herring, 1992        # (string) Name of mapping function used for mapping horizontal troposphere gradients
+    ocean_tide_loading_model: FES2004 # (string) Ocean tide loading model applied
+    reference_system: igs20 # (string) Terrestrial Reference System Code
+    time_system: G # (string) Time system - e.g. "G", "UTC"
+
+  network_statistics:
+    output: true # (bool) Enable exporting network statistics data to file
+    directory: ./ # (string) Directory to export network statistics data
+    filename: <CONFIG>_network_statistics.json # (string) Network statistics data filename
+
+  sp3:
+    output: true # (bool) Enable exporting SP3 data to file
+    directory: ./ # (string) Directory to export SP3 data
+    # filename: <CONFIG>_<RECEIVER>.sp3 # (string) SP3 data filename
+satellite_options:
+  global:
+    antenna_boresight: [0, 0, +1]
+    antenna_azimuth: [0, +1, 0]
+  L64:
+    orbit_propagation:
+      solar_radiation_pressure: NONE
+      antenna_thrust: false
+      albedo: NONE
+      empirical: true
+      planetary_perturbations:
+        [
+          moon,
+          sun,
+          mercury,
+          venus,
+          mars,
+          jupiter,
+          saturn,
+          uranus,
+          neptune,
+          pluto,
+        ]
+
+      mass: 601.214
+      area: 0.9551567
+      srp_cr: 1.25
+
+receiver_options: # Options to configure individual stations or global configs
+  global:
+    rec_reference_system: gps
+    models:
+      eop:
+        enable: true
+  L64:
+    antenna_type: "ANTTYPE"
+    receiver_type: "TRIG"
+    models:
+      eccentricity:
+        enable: true
+        offset: [0.2602, -0.0013, -0.4862] # ENU +
+      phase_windup:
+        enable: true
+      relativity2:
+        enable: true
+      relativity:
+        enable: true
+      sagnac:
+        enable: true
+      tides:
+        enable: false
+      attitude:
+        enable: true # (bool) Enables non-nominal attitude types
+        sources: [PRECISE, MODEL, NOMINAL] # List of sourecs to use for attitudes
+      troposphere:
+        enable: false
+      pco:
+        enable: true # (bool) Enable modelling of phase center offsets
+      eop:
+        enable: true
+      ionospheric_components:
+        enable: true
+    antenna_boresight: [0, 0, -1]
+    antenna_azimuth: [+1, 0, 0]
+    sat_id: "L64"
+    rinex2:
+      rnx_code_conversions:
+        P1: l1w
+        P2: l2w
+      rnx_phase_conversions:
+        L1: l1w
+        L2: l2w
+
+    error_model: elevation_dependent # uniform, elevation_dependent
+    elevation_mask: 1
+    code_sigma: 0.2
+    phase_sigma: 0.002 # F0, F1, F2, F5, F6, F7, F8
+    clock_codes: [l1w, l2w]
+
+processing_options:
+  orbit_propagation:
+    central_force: true
+    indirect_J2: true
+    egm_field: true
+    solid_earth_tide: true
+    ocean_tide: true
+    atm_tide: true
+    aod: true
+    general_relativity: true
+    pole_tide_ocean: true
+    pole_tide_solid: true
+
+    egm_degree: 120
+    integrator_time_step: 10
+  process_modes:
+    preprocessor: true
+    spp: true
+    ppp: true
+    ionosphere: false # Compute Ionosphere models based on GNSS measurements
+    slr: false # Process SLR observations
+
+  epoch_control:
+    epoch_interval: 10 #seconds
+    wait_next_epoch: 3600 # Wait up to an hour for next data point - When processing RINEX causes PEA to wait a long as need for last epoch to be processed.
+    max_rec_latency: 10
+    #max_epochs: 50
+    #start_epoch:                2019-02-14 00:00:00
+    #end_epoch:                  2019-02-14 00:59:59
+
+  gnss_general:
+    minimise_sat_clock_offsets:
+      enable: false
+    sys_options:
+      gps:
+        process: true
+        ambiguity_resolution: true
+        reject_eclipse: false
+        code_priorities: [L1W, L2W]
+        #network_amb_pivot:      false # Constrain: set of ambiguities, to eliminate network rank deficiencies
+        #receiver_amb_pivot:     false # Constrain: set of ambiguities, to eliminate receiver rank deficiencies
+
+      leo:
+        process: true
+
+  model_error_handling:
+    meas_deweighting: # Measurements that are outside the expected confidence bounds may be deweighted so that outliers do not contaminate the filtered solution
+      deweight_factor: 1000 # Factor to downweight the variance of measurements with statistically detected errors
+      enable: true # Enable deweighting of all rejected measurement
+    state_deweighting: # Any "state" errors cause deweighting of all measurements that reference the state
+      deweight_factor: 1000 # Factor to downweight the variance of measurements with statistically detected errors
+      enable: true # Enable deweighting of all referencing measurements
+    ambiguities:
+      phase_reject_limit: 2 # Reset ambiguity after 2 large fractional residuals are found (replaces phase_reject_count:)
+      reset_on: # Reset ambiguities when slip is detected by the following
+        gf: true # GF test
+        lli: false # LLI test
+        mw: true # MW test
+        scdia: true # SCDIA test
+    exclusions:
+      gf: true # (bool) Exclude measurements that fail GF  slip test in preprocessor
+      lli: false # (bool) Exclude measurements that fail LLI slip test in preprocessor
+      mw: true # (bool) Exclude measurements that fail MW  slip test in preprocessor
+      scdia: true # (bool) Exclude measurements that fail SCDIA    test in preprocessor
+
+  preprocessor: # Configurations for the kalman filter and its sub processes
+    cycle_slips: # Cycle slips may be detected by the preprocessor and measurements rejected or ambiguities reinitialised
+      mw_process_noise: 0 # Process noise applied to filtered Melbourne-Wubenna measurements to detect cycle slips
+      slip_threshold: 0.5 # Value used to determine when a slip has occurred
+    preprocess_all_data: true
+
+  spp:
+    always_reinitialise: false # Reset SPP state to zero to avoid potential for lock-in of bad states
+    max_lsq_iterations: 12 # Maximum number of iterations of least squares allowed for convergence
+    outlier_screening:
+      raim:
+        enable: true # Enable Receiver Autonomous Integrity Monitoring
+      max_gdop: 30 # Maximum dilution of precision before error is flagged
+
+  ambiguity_resolution: # Warning: lambda_bie is NOT recommended for network processing, use bootst option instead
+    elevation_mask: 15
+    lambda_set_size: 200
+    mode: off
+    success_rate_threshold: 0.99
+    solution_ratio_threshold: 30
+    fix_and_hold: true
+    # once_per_epoch:                 false
+
+  ppp_filter:
+    outlier_screening:
+      chi_square:
+        enable: false # Enable Chi-square test
+      prefit:
+        max_iterations: 3 # Maximum number of measurements to exclude using prefit checks before attempting to filter
+        omega_test: false # Enable omega-test
+        sigma_check: true # Enable sigma check
+        state_sigma_threshold: 4 # Sigma threshold
+        meas_sigma_threshold: 4 # Sigma threshold
+      postfit:
+        max_iterations: 10 # Maximum number of measurements to exclude using postfit checks while iterating filter
+        sigma_check: true # Enable sigma check
+        state_sigma_threshold: 4 # Sigma threshold
+        meas_sigma_threshold: 4 # Sigma threshold
+    ionospheric_components: # Slant ionospheric components
+      common_ionosphere: true # Use the same ionosphere state for code and phase observations
+      use_gf_combo: false # Combine 'uncombined' measurements to simulate a geometry-free solution
+      use_if_combo: true # Combine 'uncombined' measurements to simulate an ionosphere-free solution
+      corr_mode: iono_free_linear_combo
+
+    chunking:
+      by_receiver: false # Split large filter and measurement matrices blockwise by receiver ID to improve processing speed
+      by_satellite: false # Split large filter and measurement matrices blockwise by satellite ID to improve processing speed
+      size: 0
+
+    rts: # Rauch-Tung-Striebel (RTS) backwards smoothing
+      enable: true
+      lag: -1
+      filename: <CONFIG>_<RECEIVER>.rts
+
+estimation_parameters:
+  receivers:
+    L64:
+      orbit:
+        estimated: [true]
+        sigma: [1, 1, 1, 0.1, 0.1, 0.1]
+        process_noise: [0]
+        apriori_value:
+          [
+            5618061.478891041,
+            2452804.124419954,
+            -3139258.743281315,
+            -3239.732805501764,
+            -1244.60090822831,
+            -6762.166783502897,
+          ]
+
+      emp_r_0:
+        estimated: [true]
+        sigma: [50]
+        apriori_value: [0]
+        process_noise: [20]
+
+      emp_t_0:
+        estimated: [true]
+        sigma: [50]
+        apriori_value: [0]
+        process_noise: [20]
+
+      emp_n_0:
+        estimated: [true]
+        sigma: [50]
+        apriori_value: [0]
+        process_noise: [20]
+
+      clock:
+        estimated: [true]
+        sigma: [500]
+        process_noise: [500]
+
+      ambiguities:
+        estimated: [true]
+        sigma: [60]
+        process_noise: [0]
+        outage_limit: [50]
+
+      ion_stec:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [100]
+
+mongo: # Mongo is a database used to store results and intermediate values for later analysis and inter-process communication
+  enable: primary # Enable and connect to mongo database {none,primary,secondary,both}
+  primary_uri: mongodb://localhost:27017 # Location and port of the mongo database to connect to
+  primary_database: <CONFIG>
+  primary_suffix: "" # Suffix to append to database elements to make distinctions between runs for comparison
+  # secondary_database:  <CONFIG>
+  # secondary_suffix:    ""                          # Suffix to append to database elements to make distinctions between runs for comparison
+  # secondary_uri:       mongodb://localhost:27017   # Location and port of the mongo database to connect to
+  # output_config:       NONE                        # Output config {none,primary,secondary,both}
+  output_components: primary # Output components of measurements {none,primary,secondary,both}
+  output_states: primary # Output states {none,primary,secondary,both}
+  output_measurements: primary # Output measurements and their residuals {none,primary,secondary,both}
+  output_test_stats: primary # Output test statistics {none,primary,secondary,both}
+  delete_history: primary # Drop the collection in the database at the beginning of the run to only show fresh data {none,primary,secondary,both}
+  output_trace: primary
+
+debug:
+  # output_mincon: true
+  # mincon_only:    true

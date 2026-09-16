@@ -1,0 +1,175 @@
+# Real-time PPP via SouthPAN
+inputs:
+  inputs_root: ./products/
+  atx_files: [igs20.atx]
+  snx_files:
+    - igs_satellite_metadata.snx
+    - tables/sat_yaw_bias_rate.snx
+  satellite_data:
+    rtcm_inputs:
+      rtcm_inputs:
+        - "https://<USER1>:<PASS1>@ntrip.data.gnss.ga.gov.au/BCEP00BKG0"
+    sbas_inputs:
+      sisnet_inputs:
+        - "sisnet://<USER2>:<PASS2>@sisnet.data.gnss.ga.gov.au:62005/" # Awarua L5
+        # - "sisnet://<USER2>:<PASS2>@sisnet.data.gnss.ga.gov.au:61005/" # Uralla L5
+      sbas_prn: 122
+      sbas_frequency: 5
+      sbas_message_0: 65 # prn=65 for dfmc translates into messages type (34~36)
+      use_do259: true
+      pvs_on_dfmc: true
+  gnss_observations:
+    gnss_observations_root: "https://<USER1>:<PASS1>@ntrip.data.gnss.ga.gov.au/"
+    rtcm_inputs:
+      - ALBY00AUS0
+      - ALIC00AUS0
+      - AUCK00NZL0
+      - BDVL00AUS0
+      - BRO100AUS0
+      - BUR200AUS0
+      - BURA00AUS0
+      - CEDU00AUS0
+      - CHTI00NZL0
+      - COCO00AUS0
+      - COOB00AUS0
+
+outputs:
+  output_rotation:
+    period: 10800
+  metadata:
+    config_description: sbas_example_<BRANCH>
+  outputs_root: ./outputs/<CONFIG>/pvs_rt/
+  pos:
+    output: true
+    filename: <RECEIVER>-<YYYY><DDD><HH>.POS
+  trace:
+    level: 2
+    output_receivers: true
+    output_network: true
+    receiver_filename: <RECEIVER>_<YYYY><DDD><HH>.TRACE
+    network_filename: <RECEIVER>_<YYYY><DDD><HH>.TRACE
+    output_config: true
+
+satellite_options:
+  global:
+    models:
+      clock:
+        sources: [SBAS]
+      pos:
+        sources: [SBAS]
+
+receiver_options:
+  global:
+    code_sigma: 0.5
+    phase_sigma: 0.005
+    rec_reference_system: GPS
+    models:
+      pos:
+        sources: [CONFIG]
+      troposphere:
+        enable: true
+        models: [gpt2]
+      tides:
+        otl: false
+        atl: false
+        spole: false
+        opole: false
+  ALBY:
+    antenna_type: "TWIVC6050       NONE"
+    apriori_position: [-2441715.287, 4629128.701, -3633362.508]
+  ALIC:
+    antenna_type: "TWIVC6050       NONE"
+    apriori_position: [-4052052.962, 4212835.952, -2545104.266]
+  AUCK:
+    antenna_type: "TRM115000.00    NONE"
+    apriori_position: [-5105681.679, 461563.991, -3782180.811]
+  BDVL:
+    antenna_type: "TRM59800.00     NONE"
+    apriori_position: [-4355739.870, 3740194.470, -2769171.198]
+  BRO1:
+    antenna_type: "LEIAR25.R3      NONE"
+    apriori_position: [-3234208.403, 5134028.816, -1958814.859]
+  BUR2:
+    antenna_type: "LEIAT504        SCIS"
+    apriori_position: [-3989421.151, 2699532.975, -4166619.525]
+  BURA:
+    antenna_type: "JAVRINGANT_DM   SCIS"
+    apriori_position: [-2511499.369, 4892172.270, -3220857.738]
+  CEDU:
+    antenna_type: "TWIVC6050       NONE"
+    apriori_position: [-3753473.444, 3912741.048, -3347959.400]
+  CHTI:
+    antenna_type: "TRM115000.00    NONE"
+    apriori_position: [-4607856.372, -272375.108, -4386954.026]
+  COCO:
+    antenna_type: "LEIAR25.R4      NONE"
+    apriori_position: [-741951.338, 6190961.750, -1337767.078]
+  COOB:
+    antenna_type: "LEIAR25.R3      LEIT"
+    apriori_position: [-3927331.187, 3965547.952, -3077376.513]
+
+processing_options:
+  process_modes:
+    sbas: true
+    ppp: true
+  epoch_control:
+    epoch_interval: 1
+    max_rec_latency: 2
+    max_epochs: 10800
+    wait_next_epoch: 10
+  gnss_general:
+    use_primary_signals: true
+    sys_options:
+      gps:
+        process: true
+        code_priorities: [L1C, L5Q, L5X]
+      gal:
+        process: true
+        code_priorities: [L1C, L1X, L5Q, L5X]
+        used_nav_type: FNAV
+  sbas:
+    mode: PVS
+  spp:
+    always_reinitialise: true
+  # ppp_filter:
+  #   chunking:
+  #     by_receiver: true
+  model_error_handling:
+    error_accumulation:
+      enable: true
+    ambiguities:
+      phase_reject_limit: 2
+      reset_on:
+        lli: true
+        retrack: true
+
+estimation_parameters:
+  receivers:
+    global:
+      pos:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [100]
+      clock:
+        estimated: [true]
+        sigma: [1000.0]
+        process_noise: [100.0]
+      ambiguities:
+        estimated: [true]
+        sigma: [1000]
+        process_noise: [0]
+        outage_limit: [120]
+      ion_stec:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [10]
+        outage_limit: [120]
+        sigma_limit: [1000]
+      trop:
+        estimated: [true]
+        sigma: [0.15]
+        process_noise: [0.0001]
+      code_bias:
+        estimated: [true]
+        sigma: [200]
+        process_noise: [0]
