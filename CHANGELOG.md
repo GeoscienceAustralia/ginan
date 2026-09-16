@@ -3,6 +3,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [4.1.4] 2026-09-16
+
+## Added
+
+Ginan core:
+- Added the `troposphere_as_residuals` PPP option, allowing troposphere residuals to be estimated with a Gauss-Markov process.
+
+## Fixed
+
+Ginan SouthPAN SBAS capabilities:
+- Fixed L1 and DFMC carrier-smoothing handling by interpreting smoothing windows and outages in seconds and validating them against the processing interval.
+- Fixed DFMC GPS IODE decoding and L1 slow-correction validity assignment, improving selection of valid SouthPAN corrections.
+- Fixed the PVS-on-DFMC clock-correction variance and SBAS receiver-variance calculation.
+- Prevented RAIM from running when SPP has already failed because too few valid measurements remain, and added detailed trace diagnostics for rejected pseudoranges and SBAS correction candidates.
+
 # [4.1.3] 2026-08-19
 
 ## Added

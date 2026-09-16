@@ -777,6 +777,7 @@ struct PppOptions : FilterOptions
     bool use_rtk_combo           = false;
     bool merge_correlated_states = false;
     bool use_primary_signals     = false;
+    bool troposphere_as_residuals= false;
 
     bool add_eop_component = false;
 

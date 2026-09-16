@@ -6767,6 +6767,13 @@ bool ACSConfig::parse(
                     "mode"
                 );
                 tryGetFromYaml(
+                    pppOpts.troposphere_as_residuals,
+                    general,
+                    {"@ troposphere_as_residuals"},
+                    "Estimate troposphere residuals instead of full value, useful to use gauss markov process"
+                    "mode"
+                );
+                tryGetFromYaml(
                     pppOpts.use_rtk_combo,
                     general,
                     {"@ use_rtk_combo"},
@@ -7997,7 +8004,7 @@ bool ACSConfig::parse(
                     sppOpts.smooth_window,
                     spp,
                     {"@ smoothing_window"},
-                    "Smooth pseudorange with this time window (default: -1, do not apply smoothing)"
+                    "Smooth pseudorange with this time window in seconds (default: -1, do not apply smoothing)"
                 );
                 tryGetFromYaml(
                     sppOpts.use_smooth_only,
@@ -8009,7 +8016,7 @@ bool ACSConfig::parse(
                     sppOpts.smooth_outage,
                     spp,
                     {"@ smoothing_outage"},
-                    "Outage time to reset carrier smoothing"
+                    "Outage time in seconds to reset carrier smoothing"
                 );
                 tryGetEnumOpt(sppOpts.iono_mode, spp, {"@ iono_mode"});
                 tryGetEnumVec(

@@ -405,7 +405,7 @@ void decodeL1PosBlock(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
         sbs.slowCorr[iode2].ddPos[3]  = 0.0;
         sbs.slowCorr[iode2].toe       = frameTime;
         sbs.slowCorr[iode2].trec      = frameTime;
-        sbs.slowCorr[iode1].Ivalid    = acsConfig.sbsInOpts.prec_aproach ? 240 : 360;
+        sbs.slowCorr[iode2].Ivalid    = acsConfig.sbsInOpts.prec_aproach ? 240 : 360;
         sbs.slowUpdt[iodp][frameTime] = iode2;
         tracepdeex(
             SBAS_DEBUG_TRACE_LEVEL,

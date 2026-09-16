@@ -1,4 +1,5 @@
 #include "common/sanityCheckers/SbasSanityChecker.hpp"
+#include <cmath>
 #include <boost/log/trivial.hpp>
 #include "common/acsConfig.hpp"
 
@@ -35,6 +36,9 @@ bool SbasSanityChecker::check(ACSConfig& config)
 
     config.used_nav_types = config.sbsOpts.sbas_nav_types;
 
+    int minimumSmoothingWindow    = (int) std::floor(config.epoch_interval) + 1;
+    double minimumSmoothingOutage = config.epoch_interval + 0.05;
+
     for (auto& [id, satOpts] : config.satOptsMap)
     {
         vector<E_Source> sources = {E_Source::SBAS};
@@ -70,13 +74,13 @@ bool SbasSanityChecker::check(ACSConfig& config)
             config.sppOpts.trop_models = {E_TropModel::SBAS};
             config.sppOpts.iono_mode   = E_IonoMode::SBAS;
 
-            if (config.sppOpts.smooth_window != 100)
+            if (config.sppOpts.smooth_window < 0)
             {
                 valid                        = false;
                 config.sppOpts.smooth_window = 100;
                 BOOST_LOG_TRIVIAL(warning)
-                    << "It is recommended that a 100 second smoothing window be used for L1 "
-                       "SBAS. Changing configuration";
+                    << "It is recommended that a 100 second smoothing window be used for L1 SBAS. "
+                       "No smoothing window was configured, setting smoothing_window to 100 seconds";
             }
 
             if (config.sppOpts.use_smooth_only == false)
@@ -146,9 +150,11 @@ bool SbasSanityChecker::check(ACSConfig& config)
 
             if (config.sppOpts.smooth_window < 0)
             {
+                valid                        = false;
+                config.sppOpts.smooth_window = 600;
                 BOOST_LOG_TRIVIAL(warning)
-                    << "It is recommended that a 100 second smoothing window be used for DFMC. "
-                       "Please check your configuration";
+                    << "It is recommended that a 600 second smoothing window be used for DFMC. "
+                       "No smoothing window was configured, setting smoothing_window to 600 seconds";
             }
 
             break;
@@ -210,6 +216,36 @@ bool SbasSanityChecker::check(ACSConfig& config)
 
             break;
         }
+    }
+
+    if (config.sppOpts.smooth_window > 0 && config.sppOpts.smooth_window < minimumSmoothingWindow)
+    {
+        valid                        = false;
+        config.sppOpts.smooth_window = minimumSmoothingWindow;
+        BOOST_LOG_TRIVIAL(warning)
+            << "The smoothing window should be greater than the epoch interval for SBAS. "
+               "Setting smoothing_window to "
+            << config.sppOpts.smooth_window << " seconds";
+    }
+
+    if (config.sppOpts.smooth_window > 0 && config.sppOpts.smooth_outage <= config.epoch_interval)
+    {
+        valid                       = false;
+        config.sppOpts.smooth_outage = minimumSmoothingOutage;
+        BOOST_LOG_TRIVIAL(warning)
+            << "The smoothing outage should be greater than the epoch interval for SBAS. "
+               "Setting smoothing_outage to "
+            << config.sppOpts.smooth_outage << " seconds";
+    }
+
+    if (config.sppOpts.smooth_window > 0 && config.sppOpts.smooth_outage < config.sppOpts.smooth_window)
+    {
+        valid                       = false;
+        config.sppOpts.smooth_outage = config.sppOpts.smooth_window;
+        BOOST_LOG_TRIVIAL(warning)
+            << "The smoothing outage should be at least as long as the smoothing window for SBAS. "
+               "Setting smoothing_outage to "
+            << config.sppOpts.smooth_outage << " seconds";
     }
 
     return valid;
