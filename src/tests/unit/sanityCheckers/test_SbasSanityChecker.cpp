@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(configures_l1_sbas_processing)
     BOOST_CHECK(config.process_preprocessor);
     BOOST_CHECK(config.process_spp);
     BOOST_CHECK_EQUAL(config.sbsInOpts.freq, 1);
-    BOOST_CHECK_EQUAL(config.sppOpts.smooth_window, 100);
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_window, 30);
     BOOST_CHECK(config.sppOpts.use_smooth_only);
     BOOST_CHECK(config.sbsOpts.use_sbas_rec_var);
     BOOST_CHECK(config.process_sys[E_Sys::GPS]);
@@ -63,7 +63,9 @@ BOOST_AUTO_TEST_CASE(configures_dfmc_sbas_processing)
 
     SbasSanityChecker checker;
 
-    BOOST_CHECK(checker.check(config));
+    BOOST_CHECK(!checker.check(config));
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_window, 600);
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_outage, 600);
     BOOST_CHECK_EQUAL(config.sbsInOpts.freq, 5);
     BOOST_CHECK(!config.sbsInOpts.pvs_on_dfmc);
     BOOST_CHECK(config.process_sys[E_Sys::GPS]);
@@ -106,4 +108,59 @@ BOOST_AUTO_TEST_CASE(configures_pvs_processing)
     BOOST_CHECK_EQUAL(config.ambErrors.phase_reject_limit, 2);
     BOOST_CHECK(config.ambErrors.resetOnSlip.LLI);
     BOOST_CHECK(config.ambErrors.resetOnSlip.retrack);
+}
+
+BOOST_AUTO_TEST_CASE(defaults_unspecified_l1_smoothing_to_100_seconds)
+{
+    ACSConfig config;
+    config.process_sbas = true;
+    config.sbsOpts.mode = E_SbasMode::L1;
+    config.epoch_interval = 10;
+    config.sppOpts.smooth_window = -1;
+
+    SbasSanityChecker checker;
+
+    BOOST_CHECK(!checker.check(config));
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_window, 100);
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_outage, 100);
+}
+
+BOOST_AUTO_TEST_CASE(preserves_explicit_smoothing_durations_in_seconds)
+{
+    for (auto mode : {E_SbasMode::L1, E_SbasMode::DFMC})
+    {
+        ACSConfig config;
+        config.process_sbas = true;
+        config.sbsOpts.mode = mode;
+        config.sbsInOpts.freq = mode == E_SbasMode::L1 ? 1 : 5;
+        config.sppOpts.use_smooth_only = true;
+        config.sbsOpts.use_sbas_rec_var = true;
+        config.epoch_interval = 10;
+        config.sppOpts.smooth_window = 30;
+        config.sppOpts.smooth_outage = 45;
+
+        SbasSanityChecker checker;
+
+        BOOST_CHECK(checker.check(config));
+        BOOST_CHECK_EQUAL(config.sppOpts.smooth_window, 30);
+        BOOST_CHECK_EQUAL(config.sppOpts.smooth_outage, 45);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(raises_smoothing_limits_for_longer_epoch_intervals)
+{
+    ACSConfig config;
+    config.process_sbas = true;
+    config.sbsOpts.mode = E_SbasMode::DFMC;
+    config.sbsInOpts.freq = 5;
+    config.epoch_interval = 30;
+    config.sppOpts.smooth_window = 30;
+    config.sppOpts.smooth_outage = 10;
+
+    SbasSanityChecker checker;
+
+    BOOST_CHECK(!checker.check(config));
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_window, 31);
+    BOOST_CHECK_EQUAL(config.sppOpts.smooth_outage, 31);
+    BOOST_CHECK(checker.check(config));
 }

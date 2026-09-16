@@ -6,6 +6,8 @@
 #include "common/navigation.hpp"
 #include "sbas/sbas.hpp"
 
+#include <sstream>
+
 bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation& nav)
 {
     SBASMaps& sbsMaps     = satPos.satNav_ptr->currentSBAS;
@@ -55,17 +57,31 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
     }
 
     int selIode = -1;
+    std::ostringstream slowRejectStream;
+    int           slowCandidates = 0;
     for (auto& [updtTime, iode] : sbsMaps.slowUpdt[selIODP])
     {
+        slowCandidates++;
         auto& slowCorr = sbsMaps.slowCorr[iode];
 
         if (slowCorr.iodp != selIODP)
+        {
+            slowRejectStream << " iode=" << iode << ":iodp_mismatch(" << slowCorr.iodp << ")";
             continue;
+        }
 
         if (slowCorr.Ivalid < 0)
+        {
+            slowRejectStream << " iode=" << iode << ":invalid_validity";
             continue;
+        }
         if (fabs((time - slowCorr.trec).to_double()) > slowCorr.Ivalid)
+        {
+            slowRejectStream << " iode=" << iode << ":aged(dt="
+                             << (time - slowCorr.trec).to_double()
+                             << ",limit=" << slowCorr.Ivalid << ")";
             continue;
+        }
 
         bool pass = true;
         pass &= satPosBroadcast(trace, time, teph, satPos, nav, iode);
@@ -75,10 +91,32 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
             selIode = iode;
             break;
         }
+
+        slowRejectStream << " iode=" << iode << ":broadcast_match_failed";
     }
     if (selIode < 0)
     {
-        tracepdeex(4, trace, "\nSBASEPH No Correction data for %s", Sat.id().c_str());
+        if (slowCandidates == 0)
+        {
+            tracepdeex(
+                4,
+                trace,
+                "\nSBASEPH No Correction data for %s: no slow corrections for IODP %d",
+                Sat.id().c_str(),
+                selIODP
+            );
+        }
+        else
+        {
+            tracepdeex(
+                4,
+                trace,
+                "\nSBASEPH No Correction data for %s: %d slow correction candidate(s):%s",
+                Sat.id().c_str(),
+                slowCandidates,
+                slowRejectStream.str().c_str()
+            );
+        }
         return false;
     }
 
@@ -86,7 +124,7 @@ bool satPosSBAS(Trace& trace, GTime time, GTime teph, SatPos& satPos, Navigation
     posVar = 0.0;
     if (acsConfig.sbsInOpts.pvs_on_dfmc)
     {
-        clkVar = 2.5E-4 / SQR(CLIGHT);
+        clkVar = 1E-6 / SQR(CLIGHT);
     }
     else
     {

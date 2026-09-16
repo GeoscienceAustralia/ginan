@@ -105,6 +105,7 @@ void decodeL5DFMCCorr(Trace& trace, GTime frameTime, Navigation& nav, unsigned c
     SBASSlow sbs;
 
     int iode     = getbituInc(data, i, 10);
+    if(sat.sys == E_Sys::GPS) iode &= 255;
     sbs.iode     = iode;
     sbs.iodp     = lastIODM;
     sbs.dPos[0]  = getbitsInc(data, i, 11) * 0.0625;

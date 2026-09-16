@@ -1162,6 +1162,7 @@ inline static void pppTrop(COMMON_PPP_ARGS)
     E_Source found      = E_Source::NONE;
     E_Source gradsFound = E_Source::NONE;
 
+    double filterVal = 0;
     // get the previous filter states for linearisation around this operating point
     for (int i = 0; i < recOpts.trop.estimate.size(); i++)
     {
@@ -1173,8 +1174,9 @@ inline static void pppTrop(COMMON_PPP_ARGS)
         double value = 0;
         found        = kfState.getKFValue(kfKey, value, &filterVar);
 
-        tropStates.zenith += value;
+        filterVal += value;
     }
+
 
     for (short i = 0; i < 2; i++)
     {
@@ -1185,6 +1187,11 @@ inline static void pppTrop(COMMON_PPP_ARGS)
 
         gradsFound = kfState.getKFValue(kfKey, tropStates.grads[i], &gradVars[i]);
     }
+
+    if (acsConfig.pppOpts.troposphere_as_residuals)
+        tropStates.zenith = 0;      // Always initialize the Tropospere model (the residual is kept) 
+    else
+        tropStates.zenith = filterVal;
 
     // calculate the trop values, variances, and gradients at the operating points
     troposphere_m = tropModel(
@@ -1197,8 +1204,15 @@ inline static void pppTrop(COMMON_PPP_ARGS)
         dTropDx,
         varTrop
     );
+
     obs.tropSlant    = troposphere_m;
     obs.tropSlantVar = varTrop;
+    if (acsConfig.pppOpts.troposphere_as_residuals)
+    {
+        obs.tropSlant    += dTropDx.wetMap * filterVal;
+        obs.tropSlantVar  = SQR(dTropDx.wetMap) * filterVar;
+        tropStates.zenith = filterVal;
+    }
 
     for (int i = 0; i < recOpts.trop.estimate.size(); i++)
     {
@@ -1264,7 +1278,7 @@ inline static void pppTrop(COMMON_PPP_ARGS)
     }
 
     measEntry.componentsMap[E_Component::TROPOSPHERE] = {
-        troposphere_m,
+        obs.tropSlant,
         "+ " + std::to_string(dTropDx.wetMap) + ".T",
         varTrop
     };
