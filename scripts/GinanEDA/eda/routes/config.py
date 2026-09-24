@@ -11,7 +11,7 @@ def config():
     if request.method == "POST":
         return handle_post_request()
     else:
-        return init_page(template="config.jinja")
+        return render_template("config.jinja")
 
 
 def handle_post_request():
