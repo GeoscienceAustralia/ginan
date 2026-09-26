@@ -127,8 +127,8 @@ struct SphComp
 struct SSRVTEClayer
 {
     double            height    = 0;
-    int               maxOrder  = 0;
-    int               maxDegree = 0;
+    int               maxOrder  = 0; ///< Exclusive order bound (M + 1).
+    int               maxDegree = 0; ///< Exclusive degree bound (N + 1).
     map<int, SphComp> sphHarmonic;
 };
 

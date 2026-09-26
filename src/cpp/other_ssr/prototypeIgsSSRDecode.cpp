@@ -642,48 +642,44 @@ void decodeigsSSR_type7(vector<unsigned char>& data, GTime now, E_Sys sys)
 /* Iono VTEC */
 void decodeigsSSR_type8(vector<unsigned char>& data, GTime now)
 {
+    // IGS SSR v1.00, Table 24: the complete IM201 header is 83 bits.
+    if (data.size() * 8 < 83)
+        return;
+
     SSRHeader ssrHead;
 
     int i = decodeigsSSR_header(data, now, 3, ssrHead);
 
-    if (ssrHead.ssrMeta.receivedTime > igsSSRlastTime)
-        igsSSRlastTime = ssrHead.ssrMeta.receivedTime;
-    if (now < igsSSRlastTime)
-        return;
-
     SSRAtmGlobal ssrAtmGlobal;
-    ssrAtmGlobal.numberLayers = ssrHead.numLayers;  // todo? can these be the same thing?
+    ssrAtmGlobal.numberLayers = ssrHead.numLayers; // todo? can these be the same thing?
     ssrAtmGlobal.vtecQuality  = ssrHead.vtecQuality;
     ssrAtmGlobal.time         = ssrHead.time;
+    ssrAtmGlobal.iod          = ssrHead.iod;
 
-    for (int layerNum = 0; layerNum < ssrHead.numLayers && i + 16 <= data.size() * 8; layerNum++)
+    for (int layerNum = 0; layerNum < ssrHead.numLayers; layerNum++)
     {
+        if (i + 16 > data.size() * 8)
+            return;
+
         auto& layer = ssrAtmGlobal.layers[layerNum];
 
-        layer.height    = getbituInc(data, i, 8) * 10;
-        layer.maxDegree = getbituInc(data, i, 4) + 1;
-        layer.maxOrder  = getbituInc(data, i, 4) + 1;
+        layer.height = getbituInc(data, i, 8) * 10;
+        // The wire fields contain N - 1 and M - 1; our bounds are exclusive.
+        layer.maxDegree = getbituInc(data, i, 4) + 2;
+        layer.maxOrder  = getbituInc(data, i, 4) + 2;
 
+        if (layer.maxOrder > layer.maxDegree)
+            return;
+
+        int difference = layer.maxDegree - layer.maxOrder;
+        int numCoeffs  = layer.maxDegree * layer.maxDegree - difference * (difference + 1);
+        if (i + 16 * numCoeffs > data.size() * 8)
+            return;
+
+        // IGS SSR v1.00, section 8.4.1: all cosine terms, then all sine terms.
         int nind = 0;
         for (int ord = 0; ord < layer.maxOrder; ord++)
-            for (int deg = ord; deg < layer.maxDegree && i + 16 <= data.size() * 8;
-                 deg++)  // todo? duplicate size checks redundant?
-            {
-                layer.sphHarmonic[nind].layer = layerNum;
-
-                auto& sphComp    = layer.sphHarmonic[nind];
-                sphComp.order    = ord;
-                sphComp.degree   = deg;
-                sphComp.trigType = E_TrigType::SIN;
-                sphComp.value    = getbitsInc(data, i, 16) * 0.005;
-
-                if ((i + 16) > (data.size() * 8))
-                    return;
-
-                nind++;
-            }
-        for (int ord = 1; ord < layer.maxOrder; ord++)
-            for (int deg = ord; deg < layer.maxDegree && i + 16 <= data.size() * 8; deg++)
+            for (int deg = ord; deg < layer.maxDegree; deg++)
             {
                 layer.sphHarmonic[nind].layer = layerNum;
 
@@ -693,12 +689,28 @@ void decodeigsSSR_type8(vector<unsigned char>& data, GTime now)
                 sphComp.trigType = E_TrigType::COS;
                 sphComp.value    = getbitsInc(data, i, 16) * 0.005;
 
-                if ((i + 16) > (data.size() * 8))
-                    return;
+                nind++;
+            }
+        for (int ord = 1; ord < layer.maxOrder; ord++)
+            for (int deg = ord; deg < layer.maxDegree; deg++)
+            {
+                layer.sphHarmonic[nind].layer = layerNum;
+
+                auto& sphComp    = layer.sphHarmonic[nind];
+                sphComp.order    = ord;
+                sphComp.degree   = deg;
+                sphComp.trigType = E_TrigType::SIN;
+                sphComp.value    = getbitsInc(data, i, 16) * 0.005;
 
                 nind++;
             }
     }
+
+    // Malformed messages must not advance the shared decoder time.
+    if (ssrHead.ssrMeta.receivedTime > igsSSRlastTime)
+        igsSSRlastTime = ssrHead.ssrMeta.receivedTime;
+    if (now < igsSSRlastTime)
+        return;
 
     if (ssrHead.ssrMeta.multipleMessage == 0)
         updateNavSSR();

@@ -610,8 +610,8 @@ vector<uint8_t> encodeIGS_ATM(SSRAtm& ssrAtm, bool last)
 
     vector<uint8_t> buffer;
 
-    auto it = nav.ssrAtm.atmosGlobalMap.begin();
-    if (it == nav.ssrAtm.atmosGlobalMap.end())
+    auto it = ssrAtm.atmosGlobalMap.begin();
+    if (it == ssrAtm.atmosGlobalMap.end())
         return buffer;
 
     auto& [time, ssrGlobAtm] = *it;
@@ -629,15 +629,28 @@ vector<uint8_t> encodeIGS_ATM(SSRAtm& ssrAtm, bool last)
         basisMaps;  // basis coefficients indexed by layer, degree, order and parity
 
     for (auto& [ilay, vteclay] : ssrGlobAtm.layers)
+    {
+        int degree = vteclay.maxDegree;
+        int order  = vteclay.maxOrder;
+        if (degree < 2 || degree > 17 || order < 2 || order > degree)
+            return buffer;
+        if (!std::isfinite(vteclay.height) || vteclay.height < 0 || vteclay.height > 2550)
+            return buffer;
+
+        int difference = degree - order;
+        bitLen += 16 * (degree * degree - difference * (difference + 1));
+
         for (auto& [ibas, b] : vteclay.sphHarmonic)
         {
             basisMaps[ilay][b.degree][b.order][b.trigType] = b.value;
-            bitLen += 16 * (SQR(b.degree + 1) -
-                            (b.degree - b.order) *
-                                (b.degree - b.order + 1));  // todo? check should be +1,0?
         }
+    }
 
-    int byteLen = ceil(bitLen / 8.0);
+    int byteLen = (bitLen + 7) / 8;
+    // RTCM3 has a 10-bit payload length; this encoder does not split IM201
+    // messages.
+    if (byteLen > 1023)
+        return buffer;
 
     buffer.resize(byteLen);
     unsigned char* buf = buffer.data();
@@ -668,21 +681,22 @@ vector<uint8_t> encodeIGS_ATM(SSRAtm& ssrAtm, bool last)
         int ndegre = vteclay.maxDegree;
         int norder = vteclay.maxOrder;
 
-        i = setbituInc(buf, i, 20, height);
-        i = setbituInc(buf, i, 4, ndegre - 1);
-        i = setbituInc(buf, i, 4, norder - 1);
+        // IGS SSR v1.00, Table 25: 8-bit height, then N - 1 and M - 1.
+        i = setbituInc(buf, i, 8, height);
+        i = setbituInc(buf, i, 4, ndegre - 2);
+        i = setbituInc(buf, i, 4, norder - 2);
 
         for (int m = 0; m < norder; m++)
             for (int n = m; n < ndegre; n++)
             {
-                int coefC = (int)round(basisMaps[ilay][n][m][E_TrigType::SIN] / 0.005);
+                int coefC = (int)round(basisMaps[ilay][n][m][E_TrigType::COS] / 0.005);
                 i         = setbitsInc(buf, i, 16, coefC);
             }
 
         for (int m = 1; m < norder; m++)
             for (int n = m; n < ndegre; n++)
             {
-                int coefS = (int)round(basisMaps[ilay][n][m][E_TrigType::COS] / 0.005);
+                int coefS = (int)round(basisMaps[ilay][n][m][E_TrigType::SIN] / 0.005);
                 i         = setbitsInc(buf, i, 16, coefS);
             }
     }
