@@ -67,6 +67,38 @@ add_executable(rinex_epoch_tests
     unit/test_RinexEpoch.cpp
 )
 
+add_executable(igs_ssr_ionosphere_tests
+    ../cpp/other_ssr/prototypeIgsSSRDecode.cpp
+    ../cpp/other_ssr/prototypeIgsSSREncode.cpp
+    ../cpp/common/rtcmDecoder.cpp
+    ../cpp/common/rtcmEncoder.cpp
+    ../cpp/common/gTime.cpp
+    ../cpp/common/biases.cpp
+    ../cpp/common/constants.cpp
+    ../cpp/common/satSys.cpp
+    unit/test_IgsSsrIonosphere.cpp
+)
+
+target_include_directories(igs_ssr_ionosphere_tests PRIVATE
+    ../cpp/common
+    ../Architecture
+)
+
+# Keep the real codec and bit helpers without linking unrelated stream/ephemeris paths.
+target_compile_options(igs_ssr_ionosphere_tests PRIVATE -ffunction-sections -fdata-sections)
+if(APPLE)
+    target_link_options(igs_ssr_ionosphere_tests PRIVATE -Wl,-dead_strip)
+else()
+    target_link_options(igs_ssr_ionosphere_tests PRIVATE -Wl,--gc-sections)
+endif()
+
+target_link_libraries(igs_ssr_ionosphere_tests PRIVATE
+    Boost::log
+    Boost::log_setup
+    Boost::program_options
+    Boost::unit_test_framework
+)
+
 add_sanity_checker_test(config_sanity_manager_tests
     unit/sanityCheckers/test_ConfigSanityManager.cpp
 )
@@ -94,6 +126,7 @@ add_custom_target(unit_tests
             trace_file_cache_tests
             preprocessor_frequency_tests
             rinex_epoch_tests
+            igs_ssr_ionosphere_tests
             config_sanity_manager_tests
             epoch_tolerance_checker_tests
             ephemeris_time_delay_checker_tests
@@ -132,3 +165,4 @@ configure_unit_test(receiver_metadata_tests)
 configure_unit_test(trace_file_cache_tests)
 configure_unit_test(preprocessor_frequency_tests)
 configure_unit_test(rinex_epoch_tests)
+configure_unit_test(igs_ssr_ionosphere_tests)

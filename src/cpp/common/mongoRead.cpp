@@ -987,10 +987,10 @@ SSRAtm mongoReadIGSIonosphere(GTime time, const SSRMeta& ssrMeta, int masterIod)
             laydata.sphHarmonic[maxBasis[sphComp.layer]] = sphComp;
             maxBasis[sphComp.layer]++;
 
-            if (laydata.maxDegree < sphComp.degree)
-                laydata.maxDegree = sphComp.degree;
-            if (laydata.maxOrder < sphComp.order)
-                laydata.maxOrder = sphComp.order;
+            if (laydata.maxDegree <= sphComp.degree)
+                laydata.maxDegree = sphComp.degree + 1;
+            if (laydata.maxOrder <= sphComp.order)
+                laydata.maxOrder = sphComp.order + 1;
         }
 
         atmGlob.iod = masterIod;
