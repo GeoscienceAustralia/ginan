@@ -27,7 +27,8 @@ double ionmapf(
             return 1 + 16 * pow(0.53 - azel.el / PI, 3);
     }
 
-    double rp = RE_MEAN / (RE_MEAN + hion) * sin(alpha * (PI / 2 - azel.el));
+    double re = RE_MEAN / 1000;  // km, the unit of hion
+    double rp = re / (re + hion) * sin(alpha * (PI / 2 - azel.el));
 
     return 1 / sqrt(1 - SQR(rp));
 }
