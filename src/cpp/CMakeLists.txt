@@ -86,6 +86,7 @@ add_executable(pea
 		common/gpx.cpp
 		common/pos.cpp
 		common/gTime.cpp
+		common/ionMapping.cpp
 		common/ionModels.cpp
 		common/linearCombo.cpp
 
