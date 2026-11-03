@@ -1,0 +1,6480 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Ginan UI — flat theme
+
+   Design rules, so additions stay consistent:
+     • Flat. No gradients, no shadows except the modal scrim lift.
+     • Depth comes from background steps (bg → surface → panel → control),
+       never from borders. Borders are hairlines that only separate.
+     • Controls are monochrome, always. Buttons carry no border and no accent:
+       rank is how far up the neutral ramp the fill sits, and the primary
+       action inverts the ramp rather than colouring itself in.
+     • The palette is the Ginan logo's: neutrals carry its navy (#00294A) and
+       the one accent is Ginan blue. Colour is only ever a readout on state:
+       blue healthy, amber degraded, red failed. It never appears on something
+       you press.
+     • Interactive surfaces are chips: subtle fill, rounded, lighten on hover.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Neutral ramp — each step is a flat surface, lightest is nearest the user */
+  --bg: #2c2c2c;
+  --surface: #2c2c2c;
+  --panel: #2c2c2c;
+  --panel-2: #333333;
+  --control: #383838;
+  --control-hover: #444444;
+  --control-active: #4d4d4d;
+
+  --border: #444444;
+  --border-soft: #3a3a3a;
+
+  --text: #f0f0f0;
+  --text-muted: #b3b3b3;
+  --text-dim: #8c8c8c;
+
+  /* Top of the ramp, wrapped round: the primary button and anything else that
+     has to outrank a --control chip without using colour. */
+  --invert-bg: #f0f0f0;
+  --invert-bg-hover: #ffffff;
+  --invert-text: #1e1e1e;
+
+  --focus-ring: #0d99ff;
+
+  /* Semantic accents — used as tinted chips, not saturated fills */
+  --accent: #0d99ff;
+  --accent-text: #4db8ff;
+  --accent-fill: rgba(13, 153, 255, 0.16);
+  --accent-fill-hover: rgba(13, 153, 255, 0.24);
+  --accent-line: rgba(13, 153, 255, 0.4);
+
+  --danger: #d76a61;
+  --danger-text: #ea8b83;
+  --danger-fill: rgba(215, 106, 97, 0.14);
+  --danger-fill-hover: rgba(215, 106, 97, 0.22);
+  --danger-line: rgba(215, 106, 97, 0.3);
+
+  --warning: #d9a443;
+  --warning-text: #e2b567;
+  --warning-fill: rgba(217, 164, 67, 0.13);
+  --warning-line: rgba(217, 164, 67, 0.28);
+
+  --console-bg: #1e1e1e;
+  --console-text: #e0e0e0;
+  --input-bg: #383838;
+  --input-border: #4d4d4d;
+  --ring: rgba(13, 153, 255, 0.35);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+
+  --radius: 10px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+
+  /* Window chrome (see hooks/useWindowChrome). The header is the titlebar, so
+     its height is fixed: the macOS traffic lights are positioned against it in
+     tauri.macos.conf.json. The insets are the room the window controls take
+     at either end, zero until <html data-titlebar> says there are any. */
+  --titlebar-height: 52px;
+  --titlebar-inset-left: 0px;
+  --titlebar-inset-right: 0px;
+
+  font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  /* Stream/product type colours: ink = text and icons, fill = header bar, line = borders */
+  --type-file-ink: #6AC9CE;
+  --type-file-fill: #132B2C;
+  --type-file-line: #1C5153;
+  --type-http-ink: #86BEEE;
+  --type-http-fill: #1A2834;
+  --type-http-line: #2D4B64;
+  --type-ntrip-ink: #C3CFDB;
+  --type-ntrip-fill: #1E2733;
+  --type-ntrip-line: #3A4658;
+  --type-serial-ink: #B6AEEE;
+  --type-serial-fill: #262434;
+  --type-serial-line: #474363;
+  --type-sbas-ink: #DCA2CE;
+  --type-sbas-fill: #30212C;
+  --type-sbas-line: #5A3C53;
+  --type-on-ink: #111823;
+}
+
+body {
+  background: var(--bg);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Shared icon sizing — every glyph in components/icons.tsx lands on this */
+.icon {
+  flex-shrink: 0;
+  display: block;
+  opacity: 0.85;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar + workspace occupy everything between the header and the status bar,
+   so the sidebar reads as a full-height rail rather than a floating card. */
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+}
+
+.workspace-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+}
+
+.workspace-main > * { flex: 1; min-width: 0; }
+
+/* ── Workspace tabs ───────────────────────────────────────────────────────── */
+.tabbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 10px 0;
+  flex-shrink: 0;
+}
+
+/* Controls the active tab places on the tab bar's line (see TabBarSlot). */
+.tabbar { flex-wrap: wrap; row-gap: 6px; }
+.tabbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 8px 10px 0;
+}
+.tabbar-actions:empty { display: none; }
+.tabbar-actions .viz-toolbar { flex: 1; justify-content: flex-end; gap: 6px 8px; }
+.tabbar-actions .viz-toolbar-right { margin-left: 0; }
+.tabbar-actions .viz-file select { max-width: 220px; padding: 5px 8px; text-overflow: ellipsis; }
+.tabbar-actions .viz-sat-picker .viz-file select { max-width: 150px; }
+
+.tab {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.tab:hover:not(.is-active) { background: var(--control); color: var(--text); }
+
+.tab.is-active {
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.tab-placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ── Welcome screen (no observation file loaded) ──────────────────────────── */
+/* Fills the workspace column in place of the tabs until a file is open. */
+.welcome {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.welcome-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 420px;
+}
+
+.welcome-logo {
+  width: 52px;
+  height: 52px;
+  padding: 5px;
+  border-radius: var(--radius);
+  background: #ffffff;
+  object-fit: contain;
+}
+
+.welcome-title {
+  margin-top: 18px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.welcome-text {
+  margin-top: 7px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* The one call to action. A tile rather than a chip — it is the whole point of
+   this screen — but still a flat fill with no outline, so it lightens on hover
+   like every other control instead of drawing a box around itself. */
+.welcome-add {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 26px;
+  padding: 26px 40px;
+  border-radius: var(--radius);
+  background: var(--control);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.welcome-add:hover { background: var(--control-hover); }
+
+.welcome-add .icon { margin: 0 auto; opacity: 1; }
+
+/* Secondary line inside the call to action, advertising the drop affordance
+   that is otherwise invisible until the user is already dragging. */
+.welcome-add-sub {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+/* Drag feedback. The whole screen is the drop zone — Tauri's drag-drop events
+   are window-level, so highlighting only the tile would misrepresent where the
+   user can actually let go. */
+.welcome-dragging .welcome-add {
+  border-color: var(--accent-line);
+  border-style: dashed;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.welcome-dragging .welcome-add-sub { color: var(--text-muted); }
+
+.welcome-dragging .welcome-logo {
+  transform: scale(1.04);
+  transition: transform 0.12s ease-out;
+}
+
+.welcome-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Carries what the status bar would say — it isn't rendered on this screen. */
+.welcome-note {
+  margin-top: 16px;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+
+/* ── Processing parameter controls ────────────────────────────────────────── */
+.param-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.param-control select,
+.param-text,
+.param-number input {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+}
+
+.param-control select { min-width: 150px; }
+/* Sized to the content, not to a guess: the longest template the app writes is
+   `<CONFIG>_<RECEIVER>_<YYYY><DDD><HH>.TRACE` at 41 characters, and a fixed
+   170px would show about half of one. `ch` is exact here because the field is
+   monospace. It shrinks below that on a narrow window rather than overflowing. */
+.param-text {
+  width: 44ch;
+  min-width: 0;
+  max-width: 100%;
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 12px;
+}
+
+/* Auto-detected parameters carry their dotted path as the description — set it
+   in mono so it reads as a key rather than prose. */
+.settings-row-desc code { font-family: "JetBrains Mono", "SF Mono", monospace; font-size: 11.5px; }
+
+.param-number {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.param-number input {
+  width: 88px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.param-unit {
+  font-size: 12px;
+  color: var(--text-dim);
+  min-width: 14px;
+}
+
+.param-switch { display: flex; align-items: center; cursor: pointer; }
+.param-switch input { cursor: pointer; }
+
+/* Only rendered while the value differs from the template default, so its
+   presence is itself the "this is modified" signal. */
+.param-reset { color: var(--text-dim); }
+.param-reset:hover { color: var(--text); }
+
+/* ── Config YAML inspector ────────────────────────────────────────────────── */
+/* Lives in a settings row, so it is bounded rather than flex-filling: the page
+   scrolls, and the YAML scrolls within this. Reading surface matches the
+   console panel so generated output looks the same wherever it appears. */
+.yaml-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 420px;
+  background: var(--console-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Settings rows whose control is a panel: text above, control full-width below.
+   The control column is sized for a button, which would crush a panel. */
+.settings-row.is-wide {
+  display: block;
+}
+
+.settings-row.is-wide .settings-row-control {
+  width: 100%;
+  /* The base rule caps controls at 58% and right-aligns them, which is right
+     for a button beside its label but crops a full-width panel. */
+  max-width: none;
+  justify-content: stretch;
+  margin-top: 10px;
+}
+
+.yaml-empty {
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.yaml-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.yaml-header > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.yaml-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yaml-overwrite {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.yaml-overwrite input { cursor: pointer; }
+
+/* Destination path strip: the file this preview corresponds to. */
+.yaml-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.yaml-meta code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+}
+
+.yaml-tag {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--control);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.yaml-tag-new { background: var(--accent-fill); color: var(--accent-text); }
+
+/* Shown only while overwrite is off; turns amber when the file on disk has
+   drifted from the preview, because then the preview is not what will run. */
+.yaml-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.yaml-notice.is-warn {
+  background: var(--warning-fill);
+  border-bottom-color: var(--warning-line);
+  color: var(--warning-text);
+}
+
+.yaml-output {
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 12px 14px;
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--console-text);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+/* Top of the workspace column. The macOS traffic lights sit over the sidebar
+   while it is open, so the left inset only applies once the bar carries the
+   app mark (sidebar hidden). */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--titlebar-height);
+  padding: 0 calc(14px + var(--titlebar-inset-right)) 0 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+.header.has-brand { padding-left: calc(14px + var(--titlebar-inset-left)); }
+
+/* The tabs, filling the space between the mark and the actions. */
+.header-nav {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+/* In a narrow window the tabs scroll sideways rather than run under the
+   actions, which keep their full size. */
+.header-nav .tabbar {
+  padding: 0;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.header-nav .tabbar .tab { flex-shrink: 0; }
+
+.header .header-title,
+.header .header-actions { flex-shrink: 0; }
+
+/* App mark at the top of the open sidebar, lined up with the Header beside
+   it. Cancels the panel's padding so its border meets the Header's. */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: var(--titlebar-height);
+  min-width: calc(var(--sidebar-width) - 1px);
+  margin: -10px -8px 0;
+  padding: 0 14px 0 calc(14px + var(--titlebar-inset-left));
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The mark is navy on transparent, so it needs a light tile to read against
+   the dark chrome. White works in both themes. */
+.header-logo {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  object-fit: contain;
+}
+
+.header-title h1 {
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.1px;
+}
+
+/* Muted so it reads as a label on the name, not a control. It gives way first
+   when the bar runs short of room: it shrinks and ellipsises rather than
+   wrapping or pushing the run controls off the edge. */
+.header-version {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-family: var(--mono, ui-monospace, monospace);
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Wraps the run pair so the tour can point at both as one thing. Transparent
+   otherwise — it lays the buttons out exactly as .header-actions would. */
+.header-run {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* "N to fix" beside a disabled Process, and the list it opens. The list hangs
+   below the header, right-aligned to the toggle so it stays on screen. */
+.run-blockers { position: relative; }
+
+.run-blockers-toggle {
+  color: var(--warning-text);
+  white-space: nowrap;
+}
+
+.run-blockers-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  width: min(360px, calc(100vw - 32px));
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.run-blockers-title {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.run-blockers-popover ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run-blockers-popover li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.run-blockers-fix { padding: 2px 8px; font-size: 12px; }
+
+/* Separates the config actions from the run controls */
+.header-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+/* ── Window chrome ────────────────────────────────────────────────────────── */
+/* Undecorated on Windows / Linux: three 46px caption buttons, flush top-right
+   and the full height of the header, as the OS draws them. */
+[data-titlebar="custom"] { --titlebar-inset-right: 138px; }
+
+/* macOS keeps its traffic lights (Overlay titlebar); they float over the
+   top-left, so the header content starts past them. */
+[data-titlebar="overlay"] { --titlebar-inset-left: 70px; }
+
+/* Fullscreen hides the controls on every platform. */
+[data-titlebar][data-window-fullscreen] {
+  --titlebar-inset-left: 0px;
+  --titlebar-inset-right: 0px;
+}
+
+/* Above every layer — modals, the tour, Settings and onboarding all cover the
+   header, and the window must stay closable under them, as it would be with
+   a native titlebar. */
+.window-controls {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2500;
+  display: flex;
+  height: var(--titlebar-height);
+}
+
+/* The one place the flat-button rules give way to the OS: these are the
+   window's own buttons, so they behave like Windows' — square, edge to edge,
+   and close turns red on hover. */
+.window-control {
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  padding: 0;
+  border-radius: 0;
+  color: var(--text);
+}
+
+.window-control:hover { background: var(--control-hover); }
+.window-control:active { background: var(--control-active); }
+
+.window-control--close:hover { background: #c42b1c; color: #ffffff; }
+.window-control--close:active { background: #b3261a; color: #ffffff; }
+
+/* Glyphs fade back while the window is in the background, as native ones do. */
+.window-controls.is-inactive .window-control:not(:hover) { color: var(--text-dim); }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+/* Every button is a flat, borderless, monochrome fill. Rank is carried by how
+   far up the neutral ramp the fill sits, never by colour or an outline:
+   inverted (primary) > control (secondary) > transparent (ghost). */
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+  background: transparent;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+/* Primary = the main action of whatever it sits in. Inverting the ramp is what
+   makes it the loudest thing on screen without reaching for an accent. */
+.btn-primary {
+  background: var(--invert-bg);
+  color: var(--invert-text);
+}
+.btn-primary:hover:not(:disabled) { background: var(--invert-bg-hover); }
+/* Monitor stream, the step before Process in a live run: the accent blue, so
+   it reads as part of the run but is not mistaken for Process itself. */
+.btn-monitor {
+  background: var(--accent);
+  color: #ffffff;
+  border: 0;
+}
+.btn-monitor:hover:not(:disabled) { background: var(--accent); filter: brightness(0.92); }
+.btn-monitor:disabled { background: var(--control); color: var(--text-dim); opacity: 1; }
+/* Disabled falls back to a plain chip, so becoming available is still a visible
+   step up the ramp rather than a colour change. */
+.btn-primary:disabled {
+  background: var(--control);
+  color: var(--text-dim);
+  opacity: 1;
+}
+
+.btn-secondary {
+  background: var(--control);
+  color: var(--text);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--control-hover); }
+.btn-secondary:active:not(:disabled) { background: var(--control-active); }
+
+/* Stop and other undo-style actions. Same chip as secondary — it is only ever
+   live while a run is in flight, and the primary next to it is dimmed then, so
+   the pair still reads unambiguously. */
+.btn-danger {
+  background: var(--control);
+  color: var(--text);
+}
+.btn-danger:hover:not(:disabled) { background: var(--control-hover); }
+.btn-danger:disabled {
+  background: transparent;
+  color: var(--text-dim);
+  opacity: 1;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.btn-ghost:hover:not(:disabled) { background: var(--control); color: var(--text); }
+
+/* Square chip for a lone icon (theme switch, dismiss) */
+.btn-icon {
+  padding: 7px;
+  color: var(--text-muted);
+}
+.btn-icon:hover:not(:disabled) { background: var(--control); color: var(--text); }
+
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Keyboard-only. Not an outline in the decorative sense — nothing else tells a
+   tab user where they are — so it stays, in the neutral ramp like everything
+   else. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* ── Config panel (full-height sidebar) ───────────────────────────────────── */
+.config-panel {
+  /* Overwritten inline from the store; the value here is the fallback and the
+     reference the resizer resets to. */
+  --sidebar-width: 360px;
+  position: relative;
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border-soft);
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+  transition: width 0.18s ease, padding 0.18s ease;
+}
+
+/* Collapsed: the rail slides shut and the workspace takes the width. The inner
+   column keeps its expanded size (below) so the contents clip out of view
+   rather than reflowing on the way. `visibility: hidden` is what actually
+   takes the shut rail out of the tab order and the accessibility tree — the
+   zero width alone would leave its buttons focusable. It is delayed by the
+   slide duration when closing, and applies immediately when opening, so the
+   animation still reads in both directions. */
+.config-panel.is-collapsed {
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right-width: 0;
+  visibility: hidden;
+  transition: width 0.18s ease, padding 0.18s ease, visibility 0s linear 0.18s;
+}
+
+/* The rail width less its 8px side padding. Scoped to the accordion so the
+   absolutely-positioned resizer is left out of it. */
+.config-panel > .config-accordion { min-width: calc(var(--sidebar-width) - 16px); }
+
+/* Drag handle over the panel's right border. It sits inside the panel bounds
+   (which are `overflow: hidden`) and clear of the accordion, which the 8px
+   padding holds further in. */
+.config-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+
+.config-resizer:hover,
+.config-resizer:focus-visible,
+body.is-resizing .config-resizer { background: var(--control-active); }
+
+/* Held for the length of a drag: without this the pointer selects sidebar text
+   on the way past, and the rail animates a beat behind the cursor. */
+body.is-resizing { cursor: col-resize; user-select: none; }
+body.is-resizing .config-panel { transition: none; }
+
+.config-section + .config-section { margin-top: 2px; }
+
+.config-section h3 {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.field-row label {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.field-row input,
+.field-row select {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xs);
+  color: var(--text);
+  font-family: inherit;
+  padding: 7px 10px;
+  min-height: 32px;
+  box-sizing: border-box;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.field-row input:hover:not([readonly]),
+.field-row select:hover {
+  border-color: var(--text-dim);
+}
+
+.field-row input::placeholder { color: var(--text-dim); }
+
+.field-row select { color-scheme: dark; cursor: pointer; }
+.field-row select option { background: var(--panel-2); color: var(--text); }
+
+.field-row input:focus,
+.field-row select:focus {
+  background: var(--input-bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.field-row input[readonly] { color: var(--text-muted); }
+
+.field-hint {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.field-hint code {
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  font-size: 11px;
+  background: var(--control);
+  border-radius: 4px;
+  padding: 1px 4px;
+  color: var(--text-muted);
+}
+
+/* ── Epoch picker (Time Window) ─────────────────────────────────────────────
+   A text field in PEA's own "YYYY-MM-DD HH:MM:SS" form with a GPST tag and a
+   calendar toggle tucked inside its right edge. The calendar opens inline
+   beneath it: the sidebar scrolls, so a floating popover would clip. */
+.epoch-input { position: relative; display: flex; align-items: center; }
+
+.field-row .epoch-input input {
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  padding-right: 78px;
+}
+
+.field-row .epoch-input.is-invalid input,
+.field-row .epoch-input.is-invalid input:focus { border-color: var(--danger-line); }
+
+.epoch-tag {
+  position: absolute;
+  right: 34px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  background: var(--control);
+  border-radius: 4px;
+  padding: 2px 5px;
+  cursor: help;
+}
+
+.epoch-toggle {
+  position: absolute;
+  right: 3px;
+  padding: 5px;
+  border-radius: var(--radius-sm);
+}
+.epoch-toggle[aria-expanded="true"] { background: var(--control-active); color: var(--text); }
+/* Same pointing-down chevron as an open .config-accordion-item. */
+.epoch-toggle-chevron { transform: rotate(90deg); }
+
+.epoch-readout,
+.epoch-error {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.epoch-error { color: var(--danger-text); }
+
+.epoch-calendar {
+  margin-top: 4px;
+  padding: 8px;
+  background: var(--panel-2);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.epoch-cal-head { display: flex; align-items: center; justify-content: space-between; }
+.epoch-cal-head .btn-icon { padding: 5px; }
+.epoch-cal-title { font-size: 12.5px; font-weight: 600; }
+
+.epoch-cal-grid { display: flex; flex-direction: column; gap: 2px; }
+.epoch-cal-row {
+  display: grid;
+  grid-template-columns: 34px repeat(7, 1fr);
+  gap: 2px;
+  align-items: center;
+}
+
+.epoch-cal-wk,
+.epoch-cal-dow {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.epoch-cal-dow { font-weight: 600; }
+
+.epoch-cal-day {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  height: 26px;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.epoch-cal-day:hover { background: var(--control-hover); }
+.epoch-cal-day.is-outside { color: var(--text-dim); }
+/* Days the loaded file covers: a state readout, so it may carry the accent. */
+.epoch-cal-day.in-window { background: var(--accent-fill); }
+.epoch-cal-day.in-window:hover { background: var(--accent-fill-hover); }
+.epoch-cal-day.is-selected,
+.epoch-cal-day.is-selected:hover { background: var(--invert-bg); color: var(--invert-text); }
+
+.epoch-cal-clock { display: flex; align-items: center; gap: 4px; color: var(--text-dim); }
+.epoch-cal-clock-label { font-size: 11.5px; margin-right: 4px; }
+
+.field-row input.epoch-cal-part {
+  width: 44px;
+  padding: 5px 4px;
+  text-align: center;
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  font-size: 12.5px;
+  -moz-appearance: textfield;
+}
+.epoch-cal-part::-webkit-inner-spin-button,
+.epoch-cal-part::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+.epoch-cal-done { margin-left: auto; padding: 5px 12px; font-size: 12px; }
+
+.epoch-cal-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.epoch-cal-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--accent-fill-hover);
+}
+
+.epoch-note {
+  font-size: 11.5px;
+  line-height: 1.5;
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  margin-bottom: 8px;
+}
+.epoch-note.is-warning { background: var(--warning-fill); color: var(--warning-text); }
+.epoch-note.is-error { background: var(--danger-fill); color: var(--danger-text); }
+
+.epoch-reset { padding: 4px 8px; font-size: 12px; margin: -2px 0 2px -8px; }
+.epoch-hint { margin: 0 0 10px; }
+
+/* Provider reachability line under the Provider select */
+.provider-health {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.provider-health .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* Offset H/E/N triple */
+.offset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.offset-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.offset-cell span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Checkboxes */
+.output-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease;
+}
+
+.checkbox-row:hover { background: var(--control); }
+
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Config panel accordion ───────────────────────────────────────────────── */
+/* The input sources ride at the top of the scroll area, above the sections. */
+.config-mode-source {
+  flex-shrink: 0;
+  padding: 4px 10px 8px;
+}
+
+.config-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Still scrolls by wheel, trackpad and keyboard; the bar itself only took
+     width from a rail that is already narrow. */
+  scrollbar-width: none;
+}
+.config-accordion::-webkit-scrollbar { display: none; }
+
+/* With the scrollbar hidden, these fades over the top and bottom edges are the
+   cue that more of the rail is out of view; the lower one adds a chevron. They
+   sit inside the panel padding, over the accordion, and never take a click. */
+.config-scroll-hint {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  color: var(--text-dim);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 1;
+}
+
+.config-scroll-hint.is-above {
+  top: 10px;
+  align-items: flex-start;
+  background: linear-gradient(var(--surface), transparent);
+}
+
+.config-scroll-hint.is-below {
+  bottom: 10px;
+  align-items: flex-end;
+  background: linear-gradient(transparent, var(--surface) 75%);
+}
+
+.config-scroll-hint.is-visible { opacity: 1; }
+
+.config-accordion-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.config-accordion-item.is-open { background: var(--panel); }
+
+.config-accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.config-accordion-header:hover { background: var(--control); color: var(--text); }
+
+.config-accordion-item.is-open > .config-accordion-header {
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.config-accordion-item.is-open > .config-accordion-header:hover { background: var(--control); }
+
+.config-accordion-chevron {
+  display: inline-flex;
+  color: var(--text-dim);
+  transition: transform 0.15s ease;
+  margin-left: auto;
+}
+
+.config-accordion-item.is-open > .config-accordion-header .config-accordion-chevron {
+  transform: rotate(90deg);
+  color: var(--text-muted);
+}
+
+.config-accordion-body {
+  padding: 4px 10px 12px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.config-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Constellation filter ─────────────────────────────────────────────────── */
+.constellation-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cf-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cf-description {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+  flex: 1;
+}
+
+.cf-invalid-legend {
+  color: var(--danger-text);
+  text-decoration: line-through;
+}
+
+.cf-validate-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cf-validate-btn {
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: var(--control);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cf-validate-btn:hover:not(:disabled) { background: var(--control-hover); color: var(--text); }
+.cf-validate-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.cf-error-text {
+  font-size: 11px;
+  color: var(--danger-text);
+  max-width: 160px;
+  text-align: right;
+  word-break: break-word;
+}
+
+.cf-placeholder {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 22px 0;
+}
+
+.cf-section {
+  background: var(--panel-2);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* A constellation the selected PPP product does not publish. Dimmed so that
+   switching products produces a visible change — the whole point of the
+   disabled state. */
+.cf-section--disabled { opacity: 0.55; }
+
+.cf-section--disabled .cf-section-header { color: var(--text-muted); }
+
+.cf-section--disabled .cf-checkbox { cursor: not-allowed; }
+
+.cf-unavailable-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--warning-fill);
+  border: 1px solid var(--warning-line);
+  color: var(--warning-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.cf-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 9px 10px;
+  transition: background 0.12s ease;
+}
+
+.cf-section-header:hover { background: var(--control); }
+
+.cf-section-chevron {
+  display: inline-flex;
+  color: var(--text-dim);
+  transition: transform 0.15s ease;
+}
+
+.cf-section-chevron.is-open { transform: rotate(90deg); }
+
+.cf-code-list {
+  max-height: 190px;
+  overflow-y: auto;
+  padding: 2px 6px 6px;
+}
+
+.cf-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.1s ease;
+}
+
+.cf-code-row:hover { background: var(--control); }
+
+.cf-code-row--disabled { opacity: 0.45; }
+
+.cf-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cf-code-name {
+  font-size: 12px;
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  color: var(--text);
+  flex: 1;
+}
+
+.cf-code-name--invalid {
+  text-decoration: line-through;
+  color: var(--danger-text);
+}
+
+.cf-code-name--greyed { color: var(--text-dim); }
+
+.cf-reorder-btns {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+/* Reorder controls stay out of the way until the row is actually targeted */
+.cf-code-row:hover .cf-reorder-btns,
+.cf-reorder-btns:focus-within { opacity: 1; }
+
+.cf-reorder-btn {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.cf-reorder-btn:hover:not(:disabled) { background: var(--control-active); color: var(--text); }
+.cf-reorder-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── Console log ──────────────────────────────────────────────────────────── */
+/* The Console tab sets the terminal inside the same panel box as the other tabs. */
+.console-frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 12px 12px;
+  background: var(--panel);
+  border-radius: var(--radius);
+}
+.console-frame > .console-panel { flex: 1; }
+
+.console-panel {
+  background: var(--console-bg);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.console-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #3a3a3a;
+  background: #2c2c2c;
+}
+
+.console-header span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #b3b3b3;
+  letter-spacing: 0.2px;
+}
+
+.console-header .btn-ghost { margin-left: auto; }
+.console-header .btn-ghost:hover:not(:disabled) { background: #383838; color: #f0f0f0; }
+
+.console-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--console-text);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-output .placeholder { color: #999999; }
+.console-output .err-line { color: #ea8b83; }
+
+/* ── Workflow ───────────────────────────────────────────────
+   The readable story of a run; raw process output stays in Console.
+
+   Built the same way as the settings cards: one flat --panel surface carrying
+   full-bleed rows. Rows are not boxes, so a row with a disclosure control is
+   exactly as wide as one without, and nothing is inset to make room for it.
+   Colour appears only on the status glyph and its label. */
+.wf-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.wf-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* No title and no state chip — the tab above already says "Workflow", and the
+   rows themselves are the readout on how the run is going. All this bar owes
+   the user is the size of the list and a way to empty it. */
+.wf-count {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Epoch progress for the current run, pinned under the header so it stays in
+   view however far the list scrolls. */
+.wf-epochs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.wf-epochs-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.wf-epochs-text strong { color: var(--text); font-weight: 600; }
+
+.wf-epochs-left {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.wf-epochs-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-soft);
+  overflow: hidden;
+}
+
+.wf-epochs-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease-out;
+}
+
+.wf-clear { margin-left: auto; padding: 3px 8px; font-size: 12px; }
+.wf-clear:disabled { opacity: 0.35; }
+
+.wf-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.wf-scroll.is-empty { display: grid; place-items: center; }
+
+.wf-list { list-style: none; }
+
+/* Hairlines only separate — they never draw a box round a row. */
+.wf-item + .wf-item { border-top: 1px solid var(--border-soft); }
+
+/* Every row, grouped or not, is this one grid: status glyph, text, trailing
+   meta. The meta column is `auto`, so the chevron extends the cluster to the
+   right rather than squeezing the text. */
+.wf-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+}
+
+.wf-row--toggle { cursor: pointer; }
+.wf-row--toggle:hover { background: var(--control); }
+.wf-row--toggle:focus-visible {
+  outline: 1px solid var(--focus-ring);
+  outline-offset: -1px;
+}
+
+.wf-glyph {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-dim);
+}
+
+.wf-item--active .wf-glyph,
+.wf-item--success .wf-glyph { color: var(--accent-text); }
+.wf-item--warning .wf-glyph { color: var(--warning-text); }
+.wf-item--error .wf-glyph { color: var(--danger-text); }
+
+.wf-body { min-width: 0; }
+
+.wf-title {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* The collapsed group's one-line preview of where the run got to. */
+.wf-sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wf-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.wf-meta-dim { color: var(--text-dim); }
+
+/* A finished step is the common case, so its label stays neutral and only the
+   glyph goes green — otherwise a healthy run is a wall of colour and the one
+   row that needs attention no longer stands out. */
+.wf-meta-state { color: var(--text-dim); }
+
+.wf-item--active .wf-meta-state { color: var(--accent-text); }
+.wf-item--warning .wf-meta-state { color: var(--warning-text); }
+.wf-item--error .wf-meta-state { color: var(--danger-text); }
+
+.wf-chevron {
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+  transform: rotate(-90deg);
+  transition: transform 0.14s ease;
+}
+
+.wf-item.is-open .wf-chevron { transform: rotate(0deg); }
+
+/* An open group's steps sit on the surface below the panel, so containment
+   reads as depth rather than as another border. */
+.wf-children {
+  list-style: none;
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+}
+
+.wf-children[hidden] { display: none; }
+
+/* Indented just enough to subordinate, and only from the glyph — the text
+   column still starts near the panel edge. */
+.wf-children .wf-row { padding-left: 26px; }
+
+.wf-spinner {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--accent-line);
+  border-top-color: var(--accent-text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.wf-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 330px;
+  padding: 24px;
+  color: var(--text-dim);
+}
+
+.wf-empty .icon { opacity: 0.5; }
+
+.wf-empty-title {
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.wf-empty-text {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .wf-row { padding-inline: 10px; gap: 8px; }
+  .wf-children .wf-row { padding-left: 22px; }
+  .wf-count { display: none; }
+  /* The status label carries the state; the category is the first thing to go
+     when there is no room for both. */
+  .wf-meta-dim { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wf-scroll { scroll-behavior: auto; }
+  .wf-chevron { transition: none; }
+  .wf-epochs-bar > span { transition: none; }
+  .wf-spinner { animation: none; }
+}
+
+/* ── Status bar ───────────────────────────────────────────────────────────── */
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.statusbar .spinner {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* The stream test's watch, filling over its 10 s beside the countdown. */
+.statusbar-progress {
+  width: 90px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--control);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.statusbar-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s linear;
+}
+
+/* Pea-update prompt pinned to the right of the status bar. The app never
+   auto-updates the binary, so this is a standing call to action, not a
+   transient status line. */
+.statusbar-update {
+  margin-left: auto;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--accent-fill, var(--accent));
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.statusbar-update:hover { filter: brightness(1.06); }
+/* The custom binary's full path in the notice; long, so it wraps anywhere. */
+.custom-pea-path {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+/* Settings → PEA Binary: managed vs custom as two choice cards. The active
+   one takes the accent border and a filled dot, like a selected radio. */
+/* Side by side while there is room; stacked once the settings column is
+   narrow. Keyed to the column's own width (not the window's), since the
+   settings sidebar takes a share of the window. */
+.pea-cards-wrap { container-type: inline-size; }
+.pea-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@container (max-width: 620px) {
+  .pea-cards { grid-template-columns: 1fr; }
+}
+.pea-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  min-width: 0;
+}
+.pea-card.is-active {
+  border-color: var(--accent-line);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+/* The inactive card is the switch, so it reads as clickable. */
+.pea-card:not(.is-active) { cursor: pointer; }
+.pea-card:not(.is-active):hover { border-color: var(--border); background: var(--surface); }
+.pea-card-select {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: var(--radius-sm);
+}
+.pea-card-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.pea-card-control,
+.pea-card-path { cursor: auto; }
+.pea-cards-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--warning-text);
+}
+.pea-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pea-card-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.pea-card-dot {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+}
+.pea-card.is-active .pea-card-dot {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px);
+}
+.pea-card-active {
+  margin-left: auto;
+  padding: 1px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  background: var(--accent-fill);
+  border-radius: 999px;
+}
+.pea-card-status {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+.pea-card-version {
+  font-size: 18px;
+  font-weight: 600;
+  font-family: var(--mono, ui-monospace, monospace);
+}
+.pea-card-note {
+  font-size: 12px;
+  color: var(--warning-text);
+}
+.pea-card-desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+/* Present on both cards at all times; only shown on the active one. */
+.pea-card:not(.is-active) .pea-card-active { visibility: hidden; }
+.pea-card-control .pea-version { flex-wrap: wrap; }
+/* On the card the select fills the row, so its width comes from the card, not
+   from whichever entry is selected, and the button beside it never moves. */
+.pea-card-control .pea-version-select { flex: 1 1 150px; }
+.pea-card-control .pea-version > .btn-secondary { flex: none; }
+.pea-card-path {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+
+/* Version picker (Settings → PEA Binary). Inline: dropdown + download button,
+   sitting on the same line as the binary-location override. */
+.pea-version {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* All action labels share one grid cell; the button sizes to the widest. */
+.pea-version-labels { display: inline-grid; }
+.pea-version-labels > span { grid-area: 1 / 1; text-align: center; }
+.pea-version-labels > .is-hidden { visibility: hidden; }
+.pea-version-select {
+  /* A select doesn't inherit the page font by default; the native one changed
+     its width with the selected entry and shoved the button along. */
+  font: inherit;
+  min-width: 150px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--control);
+  color: var(--text);
+  cursor: pointer;
+}
+.pea-version-select:disabled { opacity: 0.6; cursor: default; }
+
+/* Version readout in the update popup (installed vs available). */
+.pea-update-version {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 13px;
+  color: var(--text);
+}
+.pea-update-version--new { color: var(--accent); font-weight: 600; }
+
+/* Version tag shown next to a settings row title (e.g. the installed pea tag). */
+.settings-tag {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono, ui-monospace, monospace);
+  color: var(--text-muted);
+  background: var(--control);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+/* ── Banners ──────────────────────────────────────────────────────────────── */
+/* Deliberately a solid amber band rather than the low-opacity tint used for
+   inline warnings — this is the app-wide "you are degraded" notice and has to
+   be impossible to miss against the near-black chrome. */
+.connection-warning {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  background: #433b2b;
+  border-bottom: 1px solid #615030;
+  flex-shrink: 0;
+}
+
+.connection-warning-icon {
+  display: inline-flex;
+  color: var(--warning);
+  flex-shrink: 0;
+}
+
+.connection-warning-text {
+  font-size: 12.5px;
+  color: var(--warning-text);
+  flex: 1;
+}
+
+.connection-warning-dismiss {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--warning-text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.connection-warning-dismiss:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+}
+
+[data-theme="light"] .connection-warning {
+  background: #eee2cd;
+  border-bottom-color: #dfcaa3;
+}
+
+[data-theme="light"] .connection-warning-dismiss {
+  background: rgba(0, 0, 0, 0.07);
+  color: var(--warning-text);
+}
+
+[data-theme="light"] .connection-warning-dismiss:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text);
+}
+
+/* ── Activity panel (post-open fetch chain) ───────────────────────────────── */
+/* Sits below the modal layer: a credentials prompt raised mid-fetch has to be
+   reachable over this. */
+.activity-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(12, 18, 27, 0.55);
+  animation: activity-in 0.14s ease-out;
+}
+
+.activity-card {
+  width: 460px;
+  max-width: 100%;
+  padding: 20px 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+@keyframes activity-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.activity-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.activity-heading { flex: 1; min-width: 0; }
+
+.activity-heading h2 {
+  font-size: 14px;
+  font-weight: 600;
+  /* Filenames are long and uninterrupted — clip rather than widen the card. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-heading p {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.activity-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+}
+
+.activity-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+}
+
+/* Only the running step gets a surface, so the eye lands on it immediately. */
+.activity-step.is-active { background: var(--surface); }
+
+.activity-step-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 19px;
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+
+.activity-step.is-done .activity-step-mark  { color: var(--accent-text); }
+.activity-step.is-error .activity-step-mark { color: var(--danger-text); }
+
+.activity-step-mark .spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.activity-step-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  opacity: 0.6;
+}
+
+.activity-step-dash {
+  width: 9px;
+  height: 1.5px;
+  background: var(--text-dim);
+  opacity: 0.6;
+}
+
+.activity-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.activity-step-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.activity-step.is-active .activity-step-label,
+.activity-step.is-done .activity-step-label { color: var(--text); }
+.activity-step.is-pending .activity-step-label,
+.activity-step.is-skipped .activity-step-label { color: var(--text-dim); }
+
+.activity-step-detail {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.activity-step.is-error .activity-step-detail { color: var(--danger-text); }
+
+.activity-bar {
+  position: relative;
+  display: block;
+  height: 3px;
+  margin-top: 5px;
+  border-radius: 2px;
+  background: var(--control);
+  overflow: hidden;
+}
+
+.activity-bar-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.2s ease-out;
+}
+
+/* No byte count to report (a directory listing) — sweep instead of faking a
+   percentage. */
+.activity-bar.is-indeterminate .activity-bar-fill {
+  width: 35%;
+  transition: none;
+  animation: activity-sweep 1.1s ease-in-out infinite;
+}
+
+@keyframes activity-sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(300%); }
+}
+
+.activity-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 9px 11px;
+  border: 1px solid var(--danger-line);
+  border-radius: var(--radius-sm);
+  background: var(--danger-fill);
+  font-size: 12px;
+  color: var(--danger-text);
+  overflow-wrap: anywhere;
+}
+
+.activity-error .icon { margin-top: 1px; }
+
+/* ── Modal ────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 18, 27, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+.modal-card h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.modal-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* URL line — set slightly tighter than body copy and allowed to wrap mid-URL
+   so a long address can't push the modal wider. */
+.modal-links {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  margin: -8px 0 16px;
+  overflow-wrap: anywhere;
+}
+
+.modal-card a { color: var(--text); text-decoration: underline; }
+.modal-card a:hover { color: var(--text-muted); }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* Shared dialog (ModalDialog.tsx): inline validation error under the prompt
+   input, and the destructive tone for a confirm button. Both use theme tokens. */
+.modal-field-error {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--danger-text);
+}
+
+.btn-primary.modal-btn-danger {
+  background: var(--danger-fill);
+  color: var(--danger-text);
+  box-shadow: inset 0 0 0 1px var(--danger-line);
+}
+.btn-primary.modal-btn-danger:hover:not(:disabled) { background: var(--danger-fill-hover); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Settings — full-window surface: page list on the left, page body on the
+   right. Sits under the credentials modal (z 1000) so that can open over it.
+   ══════════════════════════════════════════════════════════════════════════ */
+.settings-view {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  background: var(--bg);
+}
+
+/* ── Settings: page list ──────────────────────────────────────────────────── */
+.settings-nav {
+  width: 290px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 12px;
+  border-right: 1px solid var(--border-soft);
+  overflow-y: auto;
+}
+
+/* Room for the macOS traffic lights over the top of the page list: together
+   with the nav's padding and gap, it starts the search box one titlebar down. */
+.settings-titlebar { display: none; }
+
+[data-titlebar="overlay"]:not([data-window-fullscreen]) .settings-titlebar {
+  display: block;
+  flex-shrink: 0;
+  height: calc(var(--titlebar-height) - 30px);
+}
+
+/* Back button sits to the left of the search box, at the same height. */
+.settings-search-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.settings-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+}
+
+.settings-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--control);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.settings-search:focus-within { border-color: var(--focus-ring); }
+
+.settings-search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.settings-search input::placeholder { color: var(--text-dim); }
+
+.settings-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 400;
+  text-align: left;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.settings-nav-item:hover { background: var(--control); color: var(--text); }
+
+.settings-nav-item.is-active {
+  background: var(--control);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.settings-nav-item.is-dimmed { opacity: 0.38; }
+
+/* Hairline above an item that opens a new block of pages */
+.settings-nav-item.starts-block {
+  margin-top: 15px;
+  position: relative;
+}
+
+.settings-nav-item.starts-block::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  top: -8px;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Settings: page body ──────────────────────────────────────────────────── */
+.settings-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  /* Clears the caption buttons, which stay on top of Settings. */
+  padding: 26px calc(34px + var(--titlebar-inset-right)) 16px 34px;
+  flex-shrink: 0;
+}
+
+.settings-header h1 {
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 34px 40px;
+}
+
+.settings-page-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-dim);
+  margin: 22px 0 10px 4px;
+}
+
+.settings-group + .settings-group { margin-top: 20px; }
+
+.settings-group-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 0 0 8px 4px;
+}
+
+/* A collapsible heading: the same label as a full-width button with a
+   chevron that turns down when the group is open, and a count of what is
+   folded away. */
+.settings-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 4px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-group-toggle:hover { color: var(--text); }
+
+.settings-group-toggle svg { transition: transform 0.15s ease; }
+.settings-group-toggle.is-open svg { transform: rotate(90deg); }
+
+.settings-group-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+.settings-card {
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 6px 2px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 15px 18px;
+}
+
+.settings-row-text { min-width: 0; }
+
+.settings-row-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.settings-row-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+.settings-row-control {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 58%;
+}
+
+/* The base rule caps the control column at 58% and refuses to shrink, which is
+   right for a button but crops a wide single field. A roomy row trades some of
+   the label's width for the control and lets the pair shrink together. */
+.settings-row-control.is-roomy {
+  max-width: 72%;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.settings-row-control.is-roomy .param-control {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.settings-inline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-empty {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 24px 4px;
+}
+
+/* ── About page ───────────────────────────────────────────────────────────── */
+/* Outbound links; useExternalLinks sends the click to the system browser. */
+.settings-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.settings-link:hover { text-decoration-color: currentColor; }
+.settings-link .icon { color: var(--text-muted); }
+
+.about-licenses { width: 100%; }
+
+.about-licenses > summary {
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.about-licenses > summary:hover { color: var(--text); }
+
+.about-licenses pre {
+  margin-top: 10px;
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ── Settings: controls ───────────────────────────────────────────────────── */
+.path-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Sidebar variant — no room for value and button side by side at 360px */
+.path-control--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.path-control--stacked .path-value { max-width: 100%; }
+.path-control--stacked button { justify-content: center; }
+
+.path-value {
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--control);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path-value.is-empty {
+  font-family: inherit;
+  color: var(--text-dim);
+  background: transparent;
+  padding-right: 0;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--control);
+  border-radius: var(--radius-md);
+}
+
+.segmented button {
+  padding: 5px 15px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.segmented button:hover { color: var(--text); }
+
+.segmented button.is-active {
+  background: var(--control-active);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  background: var(--control);
+  color: var(--text-muted);
+}
+
+.status-pill--ok { background: var(--accent-fill); color: var(--accent-text); }
+.status-pill--warn { background: var(--warning-fill); color: var(--warning-text); }
+.status-pill--error { background: var(--danger-fill); color: var(--danger-text); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Onboarding — first-run setup. A full-bleed surface rather than a modal over
+   the app: on a first launch there is nothing behind it worth seeing, and
+   covering the window makes it read as a step to finish, not a prompt to
+   dismiss. Sits above every other layer, the credentials modal included, since
+   it asks for those credentials itself.
+   ══════════════════════════════════════════════════════════════════════════ */
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.onboarding-card {
+  display: flex;
+  flex-direction: column;
+  width: 560px;
+  max-width: 100%;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+/* ── Onboarding: step rail ────────────────────────────────────────────────── */
+.onboarding-rail {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 22px;
+  list-style: none;
+}
+
+.onboarding-rail-step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.onboarding-rail-step.is-current {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.onboarding-rail-mark {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.onboarding-rail-step.is-current .onboarding-rail-mark {
+  border-color: transparent;
+  background: var(--invert-bg);
+  color: var(--invert-text);
+}
+
+.onboarding-rail-step.is-done .onboarding-rail-mark {
+  border-color: transparent;
+  background: var(--control-active);
+  color: var(--text);
+}
+
+.onboarding-rail-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Onboarding: step body ────────────────────────────────────────────────── */
+/* Centred by default — that suits the two steps that are pure copy. The two
+   that carry controls set `is-left`, since a form centred on its own axis is
+   harder to scan than one that shares the label column's edge. */
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.onboarding-step.is-left {
+  align-items: stretch;
+  text-align: left;
+}
+
+.onboarding-logo {
+  width: 46px;
+  height: 46px;
+  padding: 5px;
+  border-radius: var(--radius);
+  background: #ffffff;
+  object-fit: contain;
+}
+
+.onboarding-badge {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--control);
+  color: var(--text-muted);
+}
+
+.onboarding-badge.is-ok {
+  background: var(--control-active);
+  color: var(--text);
+}
+
+.onboarding-step h2 {
+  margin-top: 14px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.onboarding-lede {
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.onboarding-links {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.onboarding-card a { color: var(--text); text-decoration: underline; }
+.onboarding-card a:hover { color: var(--text-muted); }
+
+/* What the setup covers, on the welcome step */
+/* Welcome-step input choice. Two cards rather than a select — this is the one
+   decision that changes the rest of the flow, so it should look like a fork. */
+.onboarding-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin: 18px 0 4px;
+}
+
+.onboarding-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.onboarding-choice-card:hover { background: var(--panel); }
+
+.onboarding-choice-card.is-selected {
+  border-color: var(--accent-line);
+  background: var(--accent-fill);
+}
+
+.onboarding-choice-card strong { font-size: 13px; font-weight: 600; }
+.onboarding-choice-card span { font-size: 11.5px; color: var(--text-muted); }
+.onboarding-choice-card.is-selected strong { color: var(--accent-text); }
+
+/* ── NTRIP credentials form (Settings + onboarding) ───────────────────────── */
+.ntrip-creds { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+.ntrip-creds-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.ntrip-creds-field { display: flex; flex-direction: column; gap: 5px; }
+
+.ntrip-creds-field span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.ntrip-creds-field input {
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+}
+
+.ntrip-creds-field input:focus { outline: none; border-color: var(--accent-line); }
+
+.ntrip-creds-actions { display: flex; align-items: center; gap: 10px; }
+
+.ntrip-creds-msg { font-size: 12px; }
+.ntrip-creds-msg.is-ok  { color: var(--accent-text); }
+.ntrip-creds-msg.is-err { color: var(--danger-text); }
+
+.ntrip-creds-saved { display: flex; flex-direction: column; gap: 6px; }
+
+.ntrip-creds-saved-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.ntrip-creds-saved ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+
+.ntrip-creds-saved li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.ntrip-creds-saved code {
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  color: var(--text-muted);
+}
+
+/* Narrower layout inside the onboarding card. */
+.onboarding-step .ntrip-creds-fields { grid-template-columns: 1fr; }
+
+.onboarding-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin-top: 20px;
+  text-align: left;
+  list-style: none;
+}
+
+.onboarding-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.onboarding-list-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--control);
+  color: var(--text-muted);
+}
+
+.onboarding-list strong { font-size: 13px; font-weight: 500; }
+.onboarding-list p { font-size: 12px; color: var(--text-dim); }
+
+/* Inline state line — the saved-credentials check, a save failure, a set path */
+.onboarding-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.onboarding-note .icon { flex-shrink: 0; }
+
+/* `.spinner` carries no size of its own — every use scopes it (see .statusbar
+   and .activity-step-mark), so this one does too. */
+.onboarding-note .spinner {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--text-muted);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.onboarding-note.is-ok {
+  border-color: transparent;
+  background: var(--control);
+  color: var(--text);
+}
+
+.onboarding-note.is-error {
+  border-color: var(--danger-line);
+  background: var(--danger-fill);
+  color: var(--danger-text);
+}
+
+.onboarding-inline-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* Final step: what setup actually ended up with */
+.onboarding-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin-top: 18px;
+  text-align: left;
+  list-style: none;
+}
+
+.onboarding-summary li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.onboarding-summary li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-summary li.is-ok .icon { color: var(--text); }
+.onboarding-summary li.is-warn .icon { color: var(--warning-text); }
+
+.onboarding-foot {
+  margin-top: 16px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.onboarding-body { min-height: 268px; }
+
+/* Back on the left, the way forward on the right — the same shape on all four
+   steps, so the button under the pointer never changes meaning. */
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.onboarding-actions-right { display: flex; gap: 8px; }
+
+.onboarding .field-row { margin-top: 10px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Guided tour — a scrim with a hole in it. The dimming is done by one huge
+   spread shadow on the cutout rather than four panels around it, so there is a
+   single element to position and no seams between them at fractional pixels.
+   ══════════════════════════════════════════════════════════════════════════ */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+}
+
+/* Takes the clicks. The app underneath is inert while a tour is running. */
+.tour-scrim {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.tour-spot {
+  position: fixed;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  box-shadow: 0 0 0 9999px rgba(12, 18, 27, 0.62);
+  pointer-events: none;
+  transition: top 0.18s ease, left 0.18s ease, width 0.18s ease, height 0.18s ease;
+}
+
+.tour-card {
+  position: fixed;
+  padding: 15px 16px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  animation: tour-in 0.14s ease-out;
+}
+
+.tour-card:focus { outline: none; }
+
+@keyframes tour-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.tour-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.tour-count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.tour-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+}
+
+.tour-body {
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.tour-progress {
+  display: flex;
+  gap: 4px;
+  margin-top: 14px;
+}
+
+.tour-pip {
+  height: 3px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--control);
+}
+
+.tour-pip.is-done { background: var(--control-active); }
+.tour-pip.is-current { background: var(--text-muted); }
+
+.tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tour-actions-right { display: flex; gap: 4px; }
+.tour-actions button { padding: 5px 10px; font-size: 12.5px; }
+
+/* ── Visualization tab ────────────────────────────────────────────────────────
+   The one place colour carries data rather than state. The three series hues
+   are slots 1–3 of a categorical palette validated for colour-vision
+   deficiency and for 3:1 contrast against the panel it is drawn on, in both
+   themes; the surface and grid values are literal copies of --panel and
+   --border because the canvas needs a concrete colour, not a var() chain.
+   Identity is never hue alone: each panel is captioned and every plotted
+   number is also readable in the statistics table underneath.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --viz-surface: #2c2c2c;
+  --viz-grid: #444444;
+  --viz-series-1: #6fa6db;
+  --viz-series-2: #e39a55;
+  --viz-series-3: #4fbf9a;
+  /* Extra hues for charts with more than three series (a satellite's signals). */
+  --viz-series-4: #a77bdb;
+  --viz-series-5: #d6a419;
+  --viz-series-6: #d9578c;
+}
+
+.viz-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px 12px;
+  background: var(--panel);
+  border-radius: var(--radius);
+}
+
+/* .viz-panel is a column flex container, whose default stretch would pull the
+   inline-flex switch across the full width. */
+.viz-source { align-self: flex-start; }
+
+.viz-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.viz-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.viz-file select {
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  max-width: 280px;
+  cursor: pointer;
+  outline: none;
+}
+
+.viz-file select:hover { background: var(--control); }
+.viz-file select:focus { border-color: var(--focus-ring); }
+.viz-file select option { background: var(--panel-2); color: var(--text); }
+
+.viz-toggles { display: flex; gap: 2px; }
+
+.viz-toggles .checkbox-row {
+  font-size: 12.5px;
+  padding: 5px 8px;
+  color: var(--text-muted);
+}
+
+.viz-refresh {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+}
+
+/* The charts size themselves off this box, so it has to be the one that flexes */
+.viz-body { position: relative; flex: 1; min-height: 120px; }
+
+.viz-chart { position: relative; width: 100%; height: 100%; }
+.viz-canvas { display: block; touch-action: none; }
+
+.viz-tooltip {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  padding: 7px 9px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.viz-tooltip-time {
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.viz-tooltip table { border-collapse: collapse; }
+.viz-tooltip td { padding: 1px 0; white-space: nowrap; }
+.viz-tooltip td + td { padding-left: 12px; }
+
+.viz-num { text-align: right; font-variant-numeric: tabular-nums; }
+.viz-dim { color: var(--text-dim); }
+
+/* Colour key beside a label — the mark carries identity, never the text */
+.viz-key {
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  margin-right: 7px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* Reset and the drag hint are mutually exclusive, so they share the corner */
+.viz-reset,
+.viz-hint {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 11.5px;
+}
+
+.viz-reset {
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--control);
+  color: var(--text);
+}
+
+.viz-reset:hover { background: var(--control-hover); }
+.viz-hint { color: var(--text-dim); pointer-events: none; }
+
+.viz-stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.viz-stats th,
+.viz-stats td {
+  padding: 4px 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.viz-stats thead th {
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* The component column is labels, not numbers — it reads left in both rows */
+.viz-stats thead th:first-child,
+.viz-stats tbody th[scope="row"] { text-align: left; }
+
+.viz-stats tbody th[scope="row"] {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.viz-stats tbody tr + tr th,
+.viz-stats tbody tr + tr td { border-top: 1px solid var(--border-soft); }
+
+.viz-meta {
+  display: flex;
+  gap: 6px 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.viz-meta--warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--warning-text);
+}
+
+.viz-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.viz-state--error { color: var(--danger-text); }
+
+/* A second line under a state message, e.g. why a first read is slow. */
+.viz-state:has(.viz-state-hint) { flex-direction: column; }
+.viz-state-hint { max-width: 420px; font-size: 12px; opacity: 0.8; }
+
+/* The residual view's chart keeps a usable height; its statistics table
+   scrolls under a sticky header instead of pushing the chart into a strip. */
+.viz-panel > .viz-body { min-height: 260px; }
+.viz-trace-table { flex: 0 1 auto; max-height: 32%; min-height: 64px; overflow: auto; }
+.viz-trace-table .viz-stats thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+
+/* Satellite select flanked by previous / next buttons. */
+.viz-sat-picker { display: inline-flex; align-items: center; gap: 2px; }
+
+.viz-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: var(--panel);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.viz-empty-title { font-size: 14px; font-weight: 500; color: var(--text); }
+.viz-empty p { max-width: 54ch; font-size: 12.5px; color: var(--text-muted); }
+
+.viz-empty button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+
+/* -- Map visualisation ------------------------- */
+.viz-map-wrap {
+  position: relative;
+  width: 100%;
+  height: 500px; /* Or flex-1 / 100% depending on parent container */
+  display: flex;
+  flex-direction: column;
+}
+
+.viz-map {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+/* Legend Styling */
+.viz-map-legend {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000; /* Above Leaflet canvas */
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.viz-map-legend-bar {
+  width: 80px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, rgb(58, 110, 224), rgb(235, 83, 62));
+}
+
+/* ── Visualization tiling workspace ───────────────────────────────────────────
+   Panels are tiles in nested flex rows/columns. Tiles sit on --panel (the
+   same value as --viz-surface, which the canvases ring their markers in), the
+   gutters between them are the dividers. Anything that floats over a tile —
+   settings popover, drop preview — has to clear Leaflet's panes (z 400–1000).
+   ───────────────────────────────────────────────────────────────────────────── */
+.viz-panel { min-height: 0; }
+
+/* The position view inside the Visualization panel, under the Position /
+   Residuals switch: takes the rest of the height for the tiling surface. */
+.viz-pos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.viz-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  background: transparent;
+  white-space: nowrap;
+}
+.viz-tool-btn:hover { background: var(--control); color: var(--text); }
+.viz-tool-btn.is-on { background: var(--control-active); color: var(--text); }
+/* Icon-only toolbar buttons: square, the title carries the name. */
+.viz-tool-btn.viz-icon-btn { padding: 5px; }
+
+.viz-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.viz-toolbar-right .viz-refresh { margin-left: 0; }
+
+.viz-menu { position: relative; }
+
+.viz-menu-pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 1200;
+  width: 300px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.viz-menu-list { display: flex; flex-direction: column; }
+
+.viz-menu-heading {
+  padding: 6px 8px 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.viz-menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  color: var(--text);
+}
+.viz-menu-item:hover:not(:disabled) { background: var(--control); }
+.viz-menu-item:disabled { opacity: 0.5; cursor: default; }
+.viz-menu-item--draggable { cursor: grab; }
+.viz-menu-item-title { font-size: 12.5px; font-weight: 500; }
+.viz-menu-item-desc { font-size: 11.5px; color: var(--text-muted); }
+
+.viz-menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--border-soft);
+}
+
+/* The surface the tree is laid out on; the charts size off the tiles in it. */
+.viz-surface {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.viz-surface > * { flex: 1; min-width: 0; min-height: 0; }
+
+.viz-surface-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.viz-surface-empty p { font-size: 12.5px; color: var(--text-muted); }
+.viz-surface-empty-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.viz-surface-empty-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.viz-split {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+.viz-split--row { flex-direction: row; }
+.viz-split--column { flex-direction: column; }
+
+.viz-split-cell {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.viz-split-cell > * { flex: 1; min-width: 0; min-height: 0; }
+
+/* The gutter is the grab target; the visible line is drawn inside it. */
+.viz-divider {
+  position: relative;
+  flex: 0 0 8px;
+  touch-action: none;
+  outline: none;
+}
+.viz-divider--col { cursor: col-resize; }
+.viz-divider--row { cursor: row-resize; }
+.viz-divider::after {
+  content: "";
+  position: absolute;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+.viz-divider--col::after { top: 0; bottom: 0; left: 3px; width: 2px; }
+.viz-divider--row::after { left: 0; right: 0; top: 3px; height: 2px; }
+.viz-divider:hover::after,
+.viz-divider:focus-visible::after { background: var(--focus-ring); }
+.viz-divider.is-active::after { background: var(--accent); }
+
+body.viz-resizing-col, body.viz-resizing-col * { cursor: col-resize !important; user-select: none; }
+body.viz-resizing-row, body.viz-resizing-row * { cursor: row-resize !important; user-select: none; }
+body.viz-dragging, body.viz-dragging * { cursor: grabbing !important; user-select: none; }
+
+.viz-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  container: viz-tile / inline-size;
+  transition: border-color 0.12s ease, opacity 0.12s ease;
+}
+.viz-tile.is-focused { border-color: var(--border); }
+.viz-tile.is-drag-source { opacity: 0.45; }
+
+.viz-tile-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+  height: 30px;
+  padding: 0 4px 0 6px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: grab;
+  touch-action: none;
+}
+
+.viz-tile-grip { color: var(--text-dim); flex-shrink: 0; }
+
+.viz-tile-kind {
+  min-width: 0;
+  max-width: 180px;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+.viz-tile-kind:hover { background: var(--control); }
+.viz-tile-kind:focus-visible { border-color: var(--focus-ring); }
+.viz-tile-kind option { background: var(--panel-2); color: var(--text); font-weight: 400; }
+
+.viz-tile-source {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viz-tile-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.viz-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.viz-icon-btn:hover { background: var(--control); color: var(--text); }
+.viz-icon-btn.is-active { background: var(--control-active); color: var(--text); }
+.viz-icon-btn--close:hover { background: var(--danger-fill); color: var(--danger-text); }
+
+/* Narrow tiles drop the split buttons (dragging still splits) and the file
+   badge, so the figure picker and the rest stay usable. */
+@container viz-tile (max-width: 300px) {
+  .viz-icon-btn--split,
+  .viz-tile-source { display: none; }
+}
+@container viz-tile (max-width: 360px) {
+  .viz-hint { display: none; }
+}
+
+.viz-tile-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  padding: 6px 6px 4px;
+}
+.viz-tile-body > .viz-chart,
+.viz-tile-body > .viz-map-wrap { height: 100%; }
+
+/* Thin progress bar while a pinned or refreshed series reloads under a chart. */
+.viz-tile-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: viz-loading 1.1s linear infinite;
+}
+@keyframes viz-loading {
+  from { background-position: -50% 0; }
+  to { background-position: 150% 0; }
+}
+
+.viz-tile-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 4px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 260px;
+  max-width: calc(100% - 8px);
+  padding: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  cursor: default;
+}
+
+.viz-popover-title { font-size: 12.5px; font-weight: 600; }
+.viz-popover-desc { margin-top: -4px; font-size: 11.5px; color: var(--text-muted); }
+
+.viz-opt-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.viz-opt-label { font-size: 11px; color: var(--text-dim); }
+.viz-opt-toggle { font-size: 12.5px; padding: 4px 6px; margin: 0 -6px; }
+
+.viz-select {
+  width: 100%;
+  padding: 5px 7px;
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  outline: none;
+  cursor: pointer;
+}
+.viz-select:focus { border-color: var(--focus-ring); }
+.viz-select option { background: var(--panel-2); color: var(--text); }
+
+.viz-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.viz-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.viz-chip .viz-key { margin-right: 5px; }
+.viz-chip:hover:not(:disabled) { color: var(--text); }
+.viz-chip.is-on { background: var(--control-active); border-color: transparent; color: var(--text); }
+.viz-chip:disabled { cursor: default; }
+
+.viz-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--control);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Where a drop will land: the half of the tile it will take, or all of it
+   for a swap. */
+.viz-drop-preview {
+  position: absolute;
+  z-index: 1050;
+  pointer-events: none;
+  background: var(--accent-fill-hover);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+}
+.viz-drop-preview--left { top: 0; bottom: 0; left: 0; width: 50%; }
+.viz-drop-preview--right { top: 0; bottom: 0; right: 0; width: 50%; }
+.viz-drop-preview--top { left: 0; right: 0; top: 0; height: 50%; }
+.viz-drop-preview--bottom { left: 0; right: 0; bottom: 0; height: 50%; }
+.viz-drop-preview--center { inset: 0; }
+.viz-drop-preview--root { z-index: 1500; }
+
+.viz-drag-ghost {
+  position: fixed;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  pointer-events: none;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+}
+.viz-drag-ghost span { font-size: 11px; color: var(--text-muted); }
+
+/* Statistics and summary panels scroll inside their tile instead of
+   stretching it. */
+.viz-stats-panel,
+.viz-summary {
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.viz-summary-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.viz-summary-station { font-size: 14px; font-weight: 600; }
+
+.viz-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 6px;
+}
+
+.viz-kpi {
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+.viz-kpi-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.viz-kpi-value { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.viz-kpi-hint { font-size: 10.5px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.viz-summary-latest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.viz-summary-latest-vals { display: inline-flex; gap: 12px; flex-wrap: wrap; }
+
+[data-theme="light"] .viz-menu-pop,
+[data-theme="light"] .viz-tile-popover { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12); }
+[data-theme="light"] .viz-drag-ghost { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+
+/* Timeline scrubber across the top of the Visualization tab. */
+.viz-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 8px 4px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+}
+
+/* One fixed-height line: nothing in it may wrap, or the strip below would
+   jump as the readout changes. */
+.viz-timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 26px;
+  min-width: 0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.viz-timeline-speed {
+  margin: 0 8px 0 4px;
+  padding: 2px 4px;
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  outline: none;
+}
+.viz-timeline-speed:focus { border-color: var(--focus-ring); }
+.viz-timeline-speed option { background: var(--panel-2); color: var(--text); }
+
+.viz-timeline-readout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.viz-timeline-readout > span { flex-shrink: 0; }
+.viz-timeline-readout > span.viz-dim:only-child { flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
+
+.viz-timeline-zoom {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.viz-timeline-zoom .viz-icon-btn:disabled { opacity: 0.35; cursor: default; background: transparent; }
+.viz-timeline-span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.viz-timeline-time { font-weight: 600; color: var(--accent-text); }
+.viz-timeline-val { white-space: nowrap; }
+
+.viz-timeline-strip { position: relative; display: flex; flex-direction: column; gap: 3px; }
+.viz-timeline-overview { background: var(--panel-2); border-radius: var(--radius-sm); }
+.viz-timeline-strip canvas { border-radius: var(--radius-sm); outline: none; }
+.viz-timeline-strip canvas:focus-visible { box-shadow: 0 0 0 1px var(--focus-ring); }
+
+.viz-summary-latest.is-selected {
+  padding: 6px 8px;
+  margin: 0 -2px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-fill);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #444444;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #4d4d4d; background-clip: content-box; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Light theme — same flat structure, ramp inverted. The console stays dark:
+   it renders raw PEA/ANSI output and is treated as a terminal surface.
+   ══════════════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #f9f9f9;
+  --control: #f5f5f5;
+  --control-hover: #ebebeb;
+  --control-active: #e0e0e0;
+
+  --border: #e6e6e6;
+  --border-soft: #e6e6e6;
+
+  --text: #1e1e1e;
+  --text-muted: #757575;
+  --text-dim: #8c8c8c;
+
+  /* The ramp inverts, so the primary button does too — dark chip, light label. */
+  --invert-bg: #1e1e1e;
+  --invert-bg-hover: #000000;
+  --invert-text: #ffffff;
+
+  --focus-ring: #0d99ff;
+
+  --accent: #0d99ff;
+  --accent-text: #007be5;
+  --accent-fill: rgba(13, 153, 255, 0.1);
+  --accent-fill-hover: rgba(13, 153, 255, 0.16);
+  --accent-line: rgba(13, 153, 255, 0.35);
+
+  --danger: #b5463e;
+  --danger-text: #a63d35;
+  --danger-fill: rgba(181, 70, 62, 0.1);
+  --danger-fill-hover: rgba(181, 70, 62, 0.16);
+  --danger-line: rgba(181, 70, 62, 0.28);
+
+  --warning: #b07a1a;
+  --warning-text: #86560a;
+  --warning-fill: rgba(176, 122, 26, 0.13);
+  --warning-line: rgba(176, 122, 26, 0.32);
+
+  --console-bg: #1e1e1e;
+  --console-text: #e0e0e0;
+  --input-bg: #f5f5f5;
+  --input-border: #e6e6e6;
+  --ring: rgba(13, 153, 255, 0.25);
+  --shadow-xs: 0 1px 2px rgba(0, 41, 74, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 41, 74, 0.08), 0 1px 2px rgba(0, 41, 74, 0.04);
+  color-scheme: light;
+
+  /* Same three hues stepped for the light surface, not an automatic flip. The
+     aqua sits below 3:1 against this panel, which is why the captions and the
+     statistics table are not optional. */
+  --viz-surface: #ffffff;
+  --viz-grid: #e6e6e6;
+  --viz-series-1: #3f7cb8;
+  --viz-series-2: #c7782e;
+  --viz-series-3: #2e9a7a;
+  --viz-series-4: #8455c4;
+  --viz-series-5: #b88600;
+  --viz-series-6: #c93f78;
+
+  /* Stream/product type colours: ink = text and icons, fill = header bar, line = borders */
+  --type-file-ink: #007277;
+  --type-file-fill: #DCF4F5;
+  --type-file-line: #A1D6D9;
+  --type-http-ink: #255C87;
+  --type-http-fill: #E1F1FF;
+  --type-http-line: #ADCFED;
+  --type-ntrip-ink: #2C3A50;
+  --type-ntrip-fill: #E6EAF0;
+  --type-ntrip-line: #C3CCD8;
+  --type-serial-ink: #4D437A;
+  --type-serial-fill: #EEECFF;
+  --type-serial-line: #C9C5ED;
+  --type-sbas-ink: #5F2E55;
+  --type-sbas-fill: #FAE9F5;
+  --type-sbas-line: #E2BED9;
+  --type-on-ink: #FFFFFF;
+}
+
+[data-theme="light"] .field-row select { color-scheme: light; }
+[data-theme="light"] .field-row select option { background: var(--panel); color: var(--text); }
+
+[data-theme="light"] .modal-card,
+[data-theme="light"] .settings-card {
+  border: 1px solid var(--border);
+}
+
+[data-theme="light"] .config-panel { border-right-color: var(--border); }
+
+/* The neutral ramp inverts in light mode, so the selected segment has to be the
+   lightest surface rather than the darkest. Flat — the surface step is the only
+   thing marking it, no lift. */
+[data-theme="light"] .segmented button.is-active { background: var(--panel); }
+
+[data-theme="light"] .config-accordion-item.is-open { background: var(--panel); }
+
+[data-theme="light"] .modal-card,
+[data-theme="light"] .tour-card,
+[data-theme="light"] .activity-card { box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14); }
+
+/* The dark-theme scrim is too heavy over a light window. */
+[data-theme="light"] .activity-scrim { background: rgba(30, 42, 60, 0.28); }
+
+/* Same again for the tour, where the scrim is the spotlight's spread shadow.
+   The ring flips with it: a white hairline is invisible on a light window. */
+[data-theme="light"] .tour-spot {
+  border-color: rgba(30, 42, 60, 0.3);
+  box-shadow: 0 0 0 9999px rgba(30, 42, 60, 0.34);
+}
+
+[data-theme="light"] .onboarding-card { border-color: var(--border); }
+
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--control-active); background-clip: content-box; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #b4c1cc; background-clip: content-box; }
+
+/* Console keeps its dark terminal surface in both themes */
+[data-theme="light"] .console-panel { --text-muted: #b3b3b3; }
+[data-theme="light"] .console-header { background: #333333; border-bottom-color: #444444; }
+[data-theme="light"] .console-header span { color: #b3b3b3; }
+[data-theme="light"] .console-panel .btn-ghost { color: #b3b3b3; }
+[data-theme="light"] .console-panel .btn-ghost:hover:not(:disabled) { background: #444444; color: #f0f0f0; }
+[data-theme="light"] .console-panel ::-webkit-scrollbar-thumb { background: #444444; background-clip: content-box; }
+
+/* ─── Realtime panel ─────────────────────────────────────────────── */
+/* A touch of breathing room, so the streaming panel does not read as one
+   dense block of fields. Slightly larger gaps plus side padding, and the two stream
+   sections get a hairline separator so obs vs corrections is legible at a
+   glance. */
+.rt-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 0.35rem 0.15rem 0.6rem;
+}
+.rt-stream-section { gap: 0.5rem; }
+.rt-stream-section + .rt-stream-section {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+
+/* NTRIP caster block on the Settings › Live Stream page. */
+.ntrip-caster { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
+.ntrip-caster-status { font-size: 0.78rem; }
+.ntrip-caster-status.is-ok { color: var(--accent-text); }
+.ntrip-caster-status.is-warn { color: var(--text-muted); }
+/* A refused login is not a neutral state: the run will fail until it is fixed. */
+.ntrip-caster-status.is-bad { color: var(--danger, #d05252); }
+.ntrip-check {
+  margin-left: 0.5rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-text);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ntrip-caster-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.ntrip-caster-browse { display: inline-flex; gap: 0.3rem; align-items: center; }
+.rt-section { display: flex; flex-direction: column; gap: 0.35rem; }
+.rt-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.rt-input {
+  padding: 7px 9px;
+  min-height: 32px;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xs);
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.rt-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+.rt-input-warn { border-color: var(--warning); }
+.rt-warning {
+  font-size: 0.75rem;
+  color: var(--warning-text);
+  background: var(--warning-fill);
+  border: 1px solid var(--warning-line);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0.25rem;
+}
+.rt-hint { font-size: 0.72rem; color: var(--text-muted); }
+.rt-hint code { font-family: monospace; background: var(--panel-2); padding: 0 3px; border-radius: 3px; }
+.rt-field .rt-label { display: flex; flex-direction: column; gap: 6px; }
+.rt-input-mono { font-family: var(--font-mono, "JetBrains Mono", monospace); }
+.rt-row { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.35rem; }
+
+/* Field guidance that is reachable but not permanently on screen:
+   a hover/focus tooltip marker, and an expander for the longer explanation. */
+.rt-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  margin-left: 6px;
+  vertical-align: middle;
+  border: 1px solid var(--text-muted);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+.rt-info:hover, .rt-info:focus-visible { color: var(--text); border-color: var(--text); outline: none; }
+.rt-help { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem; }
+.rt-help > summary { cursor: pointer; user-select: none; width: fit-content; }
+.rt-help > summary:hover { color: var(--text); }
+.rt-help p { margin: 0.45rem 0 0; line-height: 1.5; }
+.rt-help code { font-family: monospace; background: var(--panel-2); padding: 0 3px; border-radius: 3px; }
+.rt-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.rt-checkbox { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+.rt-stream-row { display: flex; gap: 0.3rem; align-items: center; margin-bottom: 0.25rem; }
+.rt-stream-row .rt-input { flex: 1; }
+.rt-uri { display: flex; flex: 1; min-width: 0; }
+.rt-uri .rt-input { flex: 1; min-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.rt-uri-prefix {
+  padding: 0.4rem 0 0.4rem 0.55rem;
+  background: var(--input-bg);
+  color: var(--text-dim);
+  border: 1px solid var(--input-border);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  font-size: 0.85rem;
+  user-select: none;
+}
+.rt-uri .rt-input { border-left: none; padding-left: 0.15rem; }
+.rt-uri .dd { flex: 1; min-width: 0; }
+/* One collapsible card per stream, so each address and its settings read as a
+   single unit. The summary row is the title and the remove button. */
+.rt-stream-block {
+  --type-ink: var(--type-http-ink);
+  --type-fill: var(--type-http-fill);
+  --type-line: var(--type-http-line);
+  margin-bottom: 0.5rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.rt-stream-block[data-type="ntrip"] {
+  --type-ink: var(--type-ntrip-ink);
+  --type-fill: var(--type-ntrip-fill);
+  --type-line: var(--type-ntrip-line);
+}
+.rt-stream-block[data-type="file"] {
+  --type-ink: var(--type-file-ink);
+  --type-fill: var(--type-file-fill);
+  --type-line: var(--type-file-line);
+}
+.rt-stream-block[data-type="serial"] {
+  --type-ink: var(--type-serial-ink);
+  --type-fill: var(--type-serial-fill);
+  --type-line: var(--type-serial-line);
+}
+.rt-stream-block[data-type="sbas"] {
+  --type-ink: var(--type-sbas-ink);
+  --type-fill: var(--type-sbas-fill);
+  --type-line: var(--type-sbas-line);
+}
+.rt-stream-block > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin: 0;
+  padding: 0 6px 0 10px;
+  background: transparent;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8rem;
+}
+.rt-stream-block > summary::-webkit-details-marker { display: none; }
+.rt-stream-lead {
+  flex-shrink: 0;
+  height: 22px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px 0 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--type-fill);
+}
+.rt-stream-chevron { flex-shrink: 0; color: var(--type-ink); transition: transform 0.15s ease; }
+.rt-stream-block[open] .rt-stream-chevron { transform: rotate(90deg); }
+/* Passive label: the type is fixed once a stream is added, so this is text, not a control. */
+.rt-stream-type {
+  flex-shrink: 0;
+  color: var(--type-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+  user-select: none;
+  cursor: default;
+}
+.rt-stream-title {
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 12px;
+  color: var(--text);
+}
+/* Corrections groups: broadcast ephemeris, then SSR or SBAS (correctionRoles.ts). */
+.rt-corr-group { display: flex; flex-direction: column; gap: 6px; }
+.rt-corr-group + .rt-corr-group { margin-top: 10px; }
+/* A group's own heading and plus, a step below the section's. */
+.input-section-header.is-group .input-section-title { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-muted); display: flex; align-items: baseline; gap: 6px; }
+.rt-corr-need { font-weight: 400; color: var(--text-dim); }
+.rt-corr-need.is-warn { color: var(--warning-text); }
+.rt-corr-empty { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; }
+.rt-paused { flex-shrink: 0; font-size: 10.5px; color: var(--text-dim); }
+.rt-stream-block.is-paused .rt-stream-title { color: var(--text-dim); text-decoration: line-through; }
+.rt-stream-flat.is-paused .rt-stream-field { opacity: 0.5; text-decoration: line-through; }
+.rt-stream-remove {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.rt-stream-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 12px 12px;
+}
+
+/* Dropdown (components/Dropdown.tsx): a select and combobox whose option list
+   is drawn in-app on an opaque surface, where the native popups are
+   translucent on macOS. */
+.dd { position: relative; }
+.dd-button { justify-content: space-between; text-align: left; font-weight: 400; }
+.dd-button svg { flex-shrink: 0; color: var(--text-muted); }
+.dd-list {
+  /* Portalled to <body> and placed by Dropdown.tsx (left, width, top or bottom,
+     max-height), so no card or scroll area clips it. Above the modal backdrop. */
+  position: fixed;
+  z-index: 1100;
+  box-sizing: border-box;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.dd-option {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.dd-option.is-active { background: var(--control); }
+.dd-option[aria-selected="true"] { background: var(--accent-fill); color: var(--accent-text); }
+.dd-option-detail { font-size: 11px; color: var(--text-dim); }
+/* Stream rows: code in mono, location and format on a second line. */
+.dd-option-code {
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.dd-option-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-muted);
+}
+.dd-option-location {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.dd-option-format {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+.dd-option[aria-selected="true"] .dd-option-code,
+.dd-option[aria-selected="true"] .dd-option-sub { color: inherit; }
+.dd-option.is-disabled { opacity: 0.45; cursor: not-allowed; }
+.rt-input.dd-covered { color: transparent; caret-color: transparent; min-height: 40px; }
+.dd-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 0.55rem;
+  pointer-events: none;
+  border-radius: 4px;
+}
+.dd-cover svg { flex-shrink: 0; color: var(--text-muted); }
+.dd-cover-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+  font-weight: 400;
+}
+.dd-button .dd-cover-text { flex: 1; }
+.dd-button:has(.dd-cover-text) { min-height: 40px; }
+.dd-cover-text .dd-option-code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-note { padding: 6px 8px; font-size: 11.5px; color: var(--text-muted); }
+.dd-note .btn-link { font-size: inherit; }
+[data-theme="light"] .dd-list { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12); }
+.rt-hosts-list { list-style: none; padding: 0; margin: 0.2rem 0 0; font-size: 0.8rem; }
+.rt-hosts-list li { display: flex; gap: 0.5rem; align-items: center; padding: 0.15rem 0; }
+/* A real button, filled like the others, not a bare text link. */
+.rt-sign-out { padding: 2px 10px; font-size: 12px; border: 1px solid var(--border-soft); }
+.rt-modal-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(12, 18, 27, 0.45);
+  display: flex; align-items: center; justify-content: center;
+}
+.rt-modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.1rem 1.3rem;
+  width: min(420px, 90vw);
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.rt-modal h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+.rt-message { font-size: 0.78rem; margin: 0.3rem 0; color: var(--text-muted); }
+
+/* ─── Realtime telemetry panel ───────────────────────────────────── */
+.rt-telemetry { display: flex; flex-direction: column; gap: 0.4rem; padding: 0.6rem 0.8rem; }
+.rt-telemetry h4 { margin: 0; font-size: 0.85rem; font-weight: 600; }
+.rt-telemetry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.rt-telemetry-table th, .rt-telemetry-table td {
+  padding: 0.28rem 0.45rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.rt-telemetry-table th { font-weight: 500; color: var(--text-muted); }
+.rt-telemetry-table td.rt-num { text-align: right; }
+.rt-telemetry h5 { margin: 0.6rem 0 0; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+.rt-telemetry { overflow-y: auto; }
+.rt-collapsible { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.4rem 0.6rem; background: var(--panel); }
+.rt-collapsible[open] { padding-bottom: 0.6rem; }
+.rt-collapsible > summary { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; list-style: revert; }
+.rt-collapsible > summary h4 { display: inline; }
+.rt-collapsible-hint { font-size: 0.78rem; color: var(--text-muted); }
+.rt-collapsible > :not(summary) { margin-top: 0.4rem; }
+.rt-test-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.rt-test-summary { margin: 0; font-size: 0.8rem; }
+.rt-test-error { margin: 0; font-size: 0.78rem; color: var(--danger-text); }
+.rt-telemetry-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+
+/* ─── Satellite status panel ─────────────────────────────────────────
+   Sits under the stream table. Everything the "contributing" dot says is
+   also spelled out in the Last epoch column and in the row's title, so the
+   state never depends on being able to see the colour. */
+.sat-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border-soft);
+}
+.sat-status-head { display: flex; align-items: center; gap: 0.6rem; }
+.sat-status h4 { margin: 0; font-size: 0.85rem; font-weight: 600; }
+.sat-status-count { font-size: 0.75rem; color: var(--text-muted); }
+.sat-status-refresh { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; }
+.sat-status-empty { margin: 0; font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+.sat-status-meta { margin: 0; font-size: 0.72rem; color: var(--text-dim); }
+
+.sat-group { display: flex; flex-direction: column; gap: 0.25rem; }
+.sat-group h5 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.sat-group-count { font-size: 0.72rem; font-weight: 400; color: var(--text-dim); }
+
+.sat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.sat-table th, .sat-table td {
+  padding: 0.24rem 0.45rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-soft);
+}
+.sat-table thead th { font-weight: 500; color: var(--text-muted); }
+.sat-table tbody th[scope="row"] { font-weight: 500; white-space: nowrap; }
+.sat-table .sat-num { text-align: right; }
+/* A satellite the filter stopped using is dimmed, not hidden: "G07 dropped
+   out an hour ago" is the answer to the question being asked. */
+.sat-row--dropped { color: var(--text-dim); }
+
+.sat-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: var(--text-dim);
+  vertical-align: middle;
+}
+.sat-dot.is-active { background: var(--viz-series-3); }
+
+/* Time zone picker (Settings → Appearance): searchable field, UTC shortcut and
+   the use-device-zone locate button, on one line. */
+.tz-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tz-input {
+  width: 210px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+}
+
+/* ─── Input section header ───── */
+.input-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.input-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+.input-plus-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: var(--shadow-xs);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.input-plus-btn:hover {
+  background: var(--control);
+}
+
+.input-plus-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.input-plus-btn[aria-expanded="true"] {
+  background: var(--control);
+}
+
+/* ─── Plus menu ───── */
+.input-plus-wrap {
+  position: relative;
+}
+
+.input-plus-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 140px;
+  box-sizing: border-box;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.input-plus-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.input-plus-label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.input-plus-item:hover:not(:disabled),
+.input-plus-item:focus-visible {
+  background: var(--control);
+  outline: none;
+}
+
+.input-plus-item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+.input-plus-item:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.input-plus-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.input-plus-dot--file { background: var(--type-file-ink); }
+.input-plus-dot--http { background: var(--type-http-ink); }
+.input-plus-dot--ntrip { background: var(--type-ntrip-ink); }
+.input-plus-dot--serial { background: var(--type-serial-ink); }
+.input-plus-dot--sbas { background: var(--type-sbas-ink); }
+
+.input-plus-item:disabled .input-plus-dot { opacity: 0.45; }
+
+/* ─── Product context menu ───── */
+.ctx-menu {
+  position: fixed;
+  z-index: 60;
+  width: 180px;
+  box-sizing: border-box;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.ctx-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.ctx-menu-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctx-menu-item:hover:not(:disabled),
+.ctx-menu-item:focus-visible {
+  background: var(--control);
+  outline: none;
+}
+
+.ctx-menu-item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+.ctx-menu-item:disabled {
+  color: var(--text-dim);
+  cursor: default;
+}
+
+
+/* ── File-run cards (components/FileDropZone.tsx) ── */
+.file-card {
+  margin-bottom: 0.5rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.file-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin: 0;
+  padding: 0 6px 0 10px;
+  background: transparent;
+}
+.file-card-type {
+  flex-shrink: 0;
+  height: 22px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px 0 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--type-file-fill);
+  cursor: pointer;
+}
+.file-card-chevron {
+  flex-shrink: 0;
+  color: var(--type-file-ink);
+  transition: transform 0.15s ease;
+}
+.file-card-remove:hover,
+.rt-stream-remove:hover { background: var(--control); color: var(--text); }
+.file-card-chevron.is-open {
+  transform: rotate(90deg);
+}
+.file-card-type-label {
+  flex-shrink: 0;
+  color: var(--type-file-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+  user-select: none;
+  cursor: pointer;
+}
+.file-card-name {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-card-remove {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.file-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 12px 12px;
+}
+.file-card-body .field-hint {
+  margin: 0;
+}
+.file-drop-zone {
+  height: 72px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px dashed var(--input-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.file-drop-zone:hover {
+  background: var(--control);
+  border-color: var(--text-dim);
+}
+.file-drop-zone:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.file-drop-zone-title {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.file-drop-zone-hint {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* Outcome of a Refresh press in the config YAML panel. Transient: it clears
+   itself, so it reads as a reply to the press rather than as status. */
+.yaml-pressed {
+  font-size: 11.5px;
+  color: var(--ok, var(--text));
+  align-self: center;
+}
+
+.yaml-pressed.is-quiet { color: var(--text-dim); }
+
+/* ── Observation code priorities ─────────────────────────────────────────── */
+
+.codeprio {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.codeprio-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 8px 10px;
+  background: var(--input-bg);
+}
+
+.codeprio-row + .codeprio-row { border-top: 1px solid var(--border); }
+
+.codeprio-sys {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 0 0 120px;
+}
+
+.codeprio-name { font-size: 12.5px; font-weight: 500; }
+
+.codeprio-path {
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.codeprio-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The rank is the whole point of the list — priority order is what PEA reads. */
+.codeprio-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 11.5px;
+}
+
+.codeprio-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text-dim);
+  font-size: 9.5px;
+  font-family: inherit;
+}
+
+.codeprio-none { font-size: 12px; color: var(--text-dim); }
+
+.codeprio-hint {
+  margin: 0;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Dense sidebar — Figma-style inspector: flat sections split by hairlines,
+   28px controls, 11–12px type, 12px side padding throughout. Scoped to the
+   rail so Settings and the dialogs keep their roomier layout.
+   ══════════════════════════════════════════════════════════════════════════ */
+.config-panel { padding: 0; gap: 0; }
+.config-panel .sidebar-brand { margin: 0; }
+.config-panel > .config-accordion { min-width: calc(var(--sidebar-width) - 1px); gap: 0; }
+
+/* Observation / Corrections */
+.config-panel .config-mode-source { padding: 0; }
+.config-panel .rt-panel { gap: 10px; padding: 10px 12px 12px; }
+.config-panel .rt-stream-section { gap: 6px; }
+.config-panel .rt-stream-section + .rt-stream-section { padding-top: 10px; border-top-color: var(--border-soft); }
+.config-panel .input-section-title { font-size: 12px; }
+.config-panel .input-plus-btn {
+  width: 24px;
+  height: 24px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+.config-panel .input-plus-btn:hover,
+.config-panel .input-plus-btn[aria-expanded="true"] { background: var(--control); color: var(--text); }
+
+.config-panel .file-card,
+.config-panel .rt-stream-block {
+  margin-bottom: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.config-panel .file-card-header,
+.config-panel .rt-stream-block > summary { height: 30px; gap: 6px; padding: 0; }
+.config-panel .file-card-type,
+.config-panel .rt-stream-lead { height: 20px; padding: 0 6px 0 3px; }
+.config-panel .file-card-type-label,
+.config-panel .rt-stream-type { font-size: 11px; }
+.config-panel .file-card-name { font-size: 12px; }
+.config-panel .rt-stream-title { font-size: 11.5px; }
+.config-panel .file-card-remove,
+.config-panel .rt-stream-remove { width: 24px; height: 24px; }
+.config-panel .file-card-body,
+.config-panel .rt-stream-body { gap: 6px; padding: 0 0 4px; }
+.config-panel .file-drop-zone { height: 54px; }
+.config-panel .file-drop-zone-title { font-size: 12px; }
+.config-panel .file-drop-zone-hint { font-size: 11px; }
+.config-panel .rinex-files { gap: 6px; margin-top: 2px; }
+.config-panel .rinex-add,
+.config-panel .rinex-replace { height: 28px; padding: 0 8px; font-size: 12px; }
+
+/* General / Constellations / Output: flat sections, not cards */
+.config-panel .config-accordion-item,
+.config-panel .config-accordion-item.is-open {
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.config-panel .config-accordion-header {
+  height: 34px;
+  padding: 0 12px;
+  gap: 8px;
+  font-size: 12px;
+}
+.config-panel .config-accordion-item.is-open > .config-accordion-header { font-weight: 600; }
+.config-panel .config-accordion-header:hover,
+.config-panel .config-accordion-item.is-open > .config-accordion-header:hover { background: var(--control); }
+.config-panel .config-accordion-body { padding: 0 12px 12px; }
+.config-panel .config-tab-content { gap: 10px; }
+.config-panel .config-section h3 { font-size: 10.5px; margin-bottom: 6px; }
+
+/* Fields */
+.config-panel .field-row { gap: 3px; margin-bottom: 8px; }
+.config-panel .field-row label,
+.config-panel .rt-label { font-size: 11.5px; }
+.config-panel .field-row input,
+.config-panel .field-row select,
+.config-panel .rt-input {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+  box-shadow: none;
+}
+.config-panel .field-row .epoch-input input { font-size: 12px; padding-right: 70px; }
+.config-panel .epoch-tag { right: 28px; font-size: 9px; padding: 1px 4px; }
+.config-panel .epoch-toggle { right: 2px; padding: 4px; }
+.config-panel .field-hint,
+.config-panel .rt-hint { font-size: 11px; line-height: 1.4; margin-top: 4px; }
+.config-panel .rt-section { gap: 3px; }
+.config-panel .rt-grid-2 { gap: 8px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Figma-style surfaces — flat surfaces split by hairlines, filled input wells,
+   text tabs, and tab content that fills the workspace edge to edge.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Inputs: a filled well with no border until hover; focus is a 1px accent. */
+.field-row input,
+.field-row select,
+.rt-input,
+.rt-uri-prefix,
+.param-control select,
+.param-text,
+.param-number input {
+  background: var(--input-bg);
+  border-color: transparent;
+  box-shadow: none;
+}
+.field-row input:hover:not([readonly]),
+.field-row select:hover,
+.rt-input:hover { border-color: var(--input-border); }
+.field-row input:focus,
+.field-row select:focus,
+.rt-input:focus {
+  background: var(--input-bg);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+.rinex-add { background: var(--input-bg); }
+.file-drop-zone { background: transparent; border-color: var(--input-border); }
+
+/* Tabs: plain text, the active one darker with an underline on the bar edge. */
+.header-nav .tabbar { gap: 0; align-self: stretch; height: 100%; }
+.header-nav .tab {
+  position: relative;
+  height: 100%;
+  padding: 0 12px;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.header-nav .tab:hover:not(.is-active) { background: transparent; color: var(--text); }
+.header-nav .tab.is-active { background: transparent; color: var(--text); font-weight: 600; }
+.header-nav .tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+
+/* Tab content fills the workspace: no gutter, no rounded card. */
+.workspace-main { padding: 0; }
+.wf-panel,
+.console-panel,
+.viz-panel { border-radius: 0; }
+/* The console's frame would put a gutter back round the terminal. */
+.console-frame { padding: 0; border-radius: 0; background: transparent; }
+.viz-panel { padding: 10px 14px 14px; }
+.tabbar-actions { padding: 6px 14px; border-bottom: 1px solid var(--border-soft); }
+.tabbar-actions:empty { display: none; }
+
+/* Chrome shares the content surface; hairlines do the separating. */
+.config-panel { border-right-color: var(--border); }
+.header { border-bottom-color: var(--border); }
+
+/* ── Sidebar sources (Observation / Corrections) — Figma layer rows ─────────
+   Each source is a single 28px row: chevron, a quiet type tag, the name, and
+   a remove button that only shows on hover. Its fields sit indented beneath
+   it. Sections are split by full-width hairlines, like the panels below. */
+.config-panel .rt-panel { gap: 0; padding: 0; }
+.config-panel .rt-stream-section { gap: 4px; padding: 10px 12px 12px; }
+.config-panel .rt-stream-section + .rt-stream-section {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+.config-panel .input-section-header { height: 24px; }
+.config-panel .input-section-title { font-size: 11.5px; font-weight: 600; }
+
+.config-panel .file-card-header,
+.config-panel .rt-stream-block > summary {
+  height: 28px;
+  gap: 4px;
+  margin: 0 -6px;
+  padding: 0 2px 0 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.1s ease;
+}
+.config-panel .file-card-header:hover,
+.config-panel .rt-stream-block > summary:hover { background: var(--control); }
+
+.config-panel .file-card-type,
+.config-panel .rt-stream-lead {
+  height: auto;
+  padding: 0;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+}
+.config-panel .file-card-chevron,
+.config-panel .rt-stream-chevron { color: var(--text-dim); }
+.config-panel .file-card-type-label,
+.config-panel .rt-stream-type {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: var(--accent-fill);
+}
+.config-panel .file-card-name,
+.config-panel .rt-stream-title { padding: 0 2px; font-size: 12px; font-weight: 500; }
+
+.config-panel .file-card-remove,
+.config-panel .rt-stream-remove {
+  width: 22px;
+  height: 22px;
+  opacity: 0;
+}
+.config-panel .file-card-header:hover .file-card-remove,
+.config-panel .rt-stream-block > summary:hover .rt-stream-remove,
+.config-panel .file-card-remove:focus-visible,
+.config-panel .rt-stream-remove:focus-visible { opacity: 1; }
+
+/* Fields sit under the name, not under the chevron. */
+.config-panel .file-card-body,
+.config-panel .rt-stream-body { gap: 6px; padding: 2px 0 2px 18px; }
+.config-panel .file-card-body .field-hint { margin: 0; }
+
+.config-panel .rinex-add,
+.config-panel .rinex-replace {
+  justify-content: flex-start;
+  height: 24px;
+  padding: 0 6px;
+  margin-left: -6px;
+  gap: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.config-panel .rinex-add:hover:not(:disabled),
+.config-panel .rinex-replace:hover:not(:disabled) { background: var(--control); color: var(--text); }
+
+.config-panel .file-drop-zone { height: 46px; gap: 1px; border-width: 1px; }
+.config-panel .file-drop-zone-title { font-size: 11.5px; }
+.config-panel .file-drop-zone-hint { font-size: 10.5px; }
+
+/* Visualization: the source switch leads the toolbar row, the view's own
+   controls follow on the right. */
+.tabbar-actions .viz-source { order: -1; margin-right: auto; }
+
+/* ── Attached file rows (FileCard) ────────────────────────────────────────────
+   Reads like an attachment in a mail client: a file icon in a tile, the name,
+   a line saying what the file is, an expand chevron and a remove button, all
+   inside a hairline outline. The fields for the file sit under it. */
+.config-panel .file-card-header {
+  height: auto;
+  min-height: 46px;
+  margin: 0;
+  padding: 6px 4px 6px 6px;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: default;
+}
+.config-panel .file-card-header:hover { background: var(--panel-2); border-color: var(--input-border); }
+
+.file-card-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-fill);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.file-card-icon .icon { opacity: 1; }
+.file-card-icon.is-empty {
+  background: transparent;
+  color: var(--text-dim);
+  box-shadow: inset 0 0 0 1px var(--input-border);
+}
+
+.file-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.config-panel .file-card-name {
+  display: block;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.config-panel .file-card-name.is-empty { color: var(--text-muted); font-weight: 500; }
+.config-panel .file-card-type-label {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.config-panel .file-card-type {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+}
+.config-panel .file-card-type:hover { background: var(--control); }
+.config-panel .file-card-remove { opacity: 0.7; }
+.config-panel .file-card-header:hover .file-card-remove { opacity: 1; }
+
+.config-panel .file-card-body { padding: 8px 0 2px; }
+
+/* ── Attached file row: chevron | icon | name + kind | remove ────────────────
+   The disclosure chevron leads the row and the remove button sits alone at
+   the far end, so the two are never side by side. Remove is a bin, which says
+   what it does, and turns red on hover to show it is destructive. */
+.config-panel .file-card-header { gap: 8px; padding-left: 4px; }
+.config-panel .file-card-type { width: 18px; }
+.config-panel .file-card-remove {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 6px;
+  padding: 0;
+  opacity: 1;
+  color: var(--text-dim);
+}
+.config-panel .file-card-remove .icon { opacity: 1; }
+.config-panel .file-card-remove:hover { background: var(--danger-fill); color: var(--danger-text); }
+
+/* Add more files: a dashed zone that takes a click or a drop. */
+.config-panel .rinex-add {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 52px;
+  margin: 0;
+  padding: 0;
+  gap: 1px;
+  border: 1px dashed var(--input-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+.config-panel .rinex-add:hover:not(:disabled) { background: var(--control); border-color: var(--text-dim); }
+.file-drop-zone-title { display: inline-flex; align-items: center; gap: 6px; }
+.config-panel .file-drop-zone.is-over { background: var(--control); border-color: var(--text); border-style: solid; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Monochrome — Figma keeps colour for state and selection only. Icons, tabs,
+   tags and decorative marks are greyscale; the accent is left for focus,
+   selection and the healthy/failed readouts.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root { font-size: 12.5px; }
+
+.file-card-icon { background: var(--control); color: var(--text); }
+.header-nav .tab.is-active::after { background: var(--text); }
+.wf-item--success .wf-glyph { color: var(--text-muted); }
+.file-drop-zone-title { color: var(--text); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Figma UI3 properties panel — white, greys and one blue. Sections are bold
+   black titles over full-width dividers, labels are small and grey, text
+   inputs are grey fills, dropdowns are outlined, toggles are a grey track
+   with a white selected segment. 16px side padding throughout.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root { --radius-sm: 5px; --radius-md: 6px; }
+
+/* Sections */
+.config-panel .rt-stream-section { padding: 12px 16px 16px; gap: 8px; }
+.config-panel .rt-stream-section + .rt-stream-section { border-top-color: var(--border); }
+.config-panel .input-section-header { height: 24px; }
+.config-panel .input-section-title { font-size: 12px; font-weight: 600; color: var(--text); }
+.config-panel .config-accordion-item,
+.config-panel .config-accordion-item.is-open { border-top-color: var(--border); }
+.config-panel .config-accordion-header {
+  height: 44px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.config-panel .config-accordion-header:hover,
+.config-panel .config-accordion-item.is-open > .config-accordion-header:hover { background: transparent; }
+.config-panel .config-accordion-chevron { color: var(--text-muted); }
+.config-panel .config-accordion-body { padding: 0 16px 16px; }
+
+/* Labels: small, grey, sentence case */
+.config-panel .config-section h3 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.config-panel .field-row label,
+.config-panel .rt-label { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.config-panel .field-row { gap: 6px; margin-bottom: 12px; }
+.config-panel .field-hint,
+.config-panel .rt-hint,
+.config-panel .epoch-readout { font-size: 11px; color: var(--text-dim); }
+
+/* Text inputs: grey fill, no border until hover or focus */
+.config-panel .field-row input,
+.config-panel .rt-input {
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  border-color: transparent;
+  font-size: 12px;
+  color: var(--text);
+}
+.config-panel .field-row input:hover:not([readonly]),
+.config-panel .rt-input:hover { border-color: var(--border); }
+.config-panel .field-row input:focus,
+.config-panel .rt-input:focus { border-color: var(--accent); box-shadow: none; }
+
+/* Dropdowns: outlined, white */
+.config-panel .field-row select,
+.config-panel .dd-button.rt-input {
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text);
+}
+.config-panel .field-row select:hover,
+.config-panel .dd-button.rt-input:hover { border-color: var(--control-active); background: var(--panel); }
+.config-panel .field-row select:focus { border-color: var(--accent); box-shadow: none; }
+
+/* Toggles: grey track, white selected segment */
+.segmented {
+  gap: 0;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--control);
+}
+.segmented button {
+  padding: 4px 14px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.segmented button.is-active {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Attached files: a grey filled row, like the fields */
+.config-panel .file-card-header {
+  min-height: 44px;
+  padding: 6px 4px 6px 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--control);
+}
+.config-panel .file-card-header:hover { background: var(--control-hover); }
+.file-card-icon,
+.file-card-icon.is-empty {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+}
+.config-panel .file-card-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.config-panel .file-card-name.is-empty { color: var(--text-muted); }
+.config-panel .file-card-type-label { color: var(--text-muted); }
+.config-panel .file-card-remove:hover { background: var(--control-active); color: var(--danger-text); }
+.config-panel .file-drop-zone,
+.config-panel .rinex-add { border: 1px dashed var(--control-active); border-radius: var(--radius-sm); }
+.config-panel .input-plus-btn { color: var(--text); border-radius: var(--radius-sm); }
+
+/* Top bar and tabs in the same voice */
+.header-nav .tab { font-size: 12px; }
+.header-nav .tab.is-active::after { background: var(--text); }
+
+/* ── Section icons, Figma-sized ───────────────────────────────────────────── */
+.config-panel .config-accordion-header { gap: 10px; }
+.config-panel .config-accordion-header > .icon:first-child { color: var(--text); opacity: 1; }
+
+/* ── Input rows in their type colours ───────────────────────────────────────
+   Each source is a filled row in its type's tint, with the icon on a solid
+   tile of the type's ink. */
+.config-panel .file-card-header { background: var(--type-file-fill); }
+.config-panel .file-card-header:hover { background: var(--type-file-fill); filter: brightness(0.98); }
+.file-card-icon,
+.file-card-icon.is-empty {
+  border-radius: var(--radius-sm);
+  background: var(--type-file-ink);
+  color: var(--type-on-ink);
+}
+.file-card-icon.is-empty { opacity: 0.55; }
+.config-panel .file-card-type-label { color: var(--type-file-ink); }
+.config-panel .file-card-chevron { color: var(--type-file-ink); }
+.config-panel .file-drop-zone,
+.config-panel .rinex-add { border-color: var(--type-file-line); }
+.config-panel .file-drop-zone:hover,
+.config-panel .rinex-add:hover:not(:disabled),
+.config-panel .file-drop-zone.is-over { background: var(--type-file-fill); border-color: var(--type-file-ink); }
+.config-panel .file-drop-zone-title { color: var(--type-file-ink); }
+
+.config-panel .rt-stream-block > summary {
+  min-height: 44px;
+  padding: 0 4px 0 8px;
+  border-radius: var(--radius-sm);
+  background: var(--type-fill);
+}
+.config-panel .rt-stream-lead {
+  height: 22px;
+  padding: 0 7px 0 4px;
+  border-radius: 4px;
+  background: var(--type-ink);
+}
+.config-panel .rt-stream-type,
+.config-panel .rt-stream-chevron { color: var(--type-on-ink); }
+.config-panel .rt-stream-type { font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* ── Dropdowns: the native select, restyled as Figma's menu (light) ─────────
+   Customizable select (appearance: base-select) keeps the real <select>, so
+   keyboard, forms and tests are unchanged; engines without it fall back to
+   the native popup. */
+select,
+::picker(select) { appearance: base-select; }
+select { display: flex; align-items: center; justify-content: space-between; }
+select::picker-icon {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin: 0 3px 3px 8px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  rotate: 45deg;
+  transition: rotate 0.15s ease, margin 0.15s ease;
+}
+select:open::picker-icon { rotate: 225deg; margin-bottom: -3px; }
+::picker(select) {
+  margin-block: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+  max-height: 320px;
+}
+select option,
+.config-panel .field-row select option,
+.field-row select option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 12px 4px 30px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+select option::checkmark { display: none; }
+select option:checked::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 9px;
+  height: 5px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-70%) rotate(-45deg);
+}
+select option:hover,
+select option:focus-visible { background: var(--control); outline: none; }
+select option:disabled { color: var(--text-dim); cursor: default; }
+
+/* ── Date picker popup ───────────────────────────────────────────────────── */
+.epoch-popover {
+  position: fixed;
+  z-index: 1100;
+  width: 284px;
+}
+.epoch-popover .epoch-calendar {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.epoch-toggle[aria-expanded="true"] { background: var(--control); color: var(--text); }
+
+/* The popup lives on <body>, outside .field-row, so its clock fields need
+   their own field styling. */
+.epoch-popover input.epoch-cal-part {
+  width: 44px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.epoch-popover input.epoch-cal-part::-webkit-inner-spin-button,
+.epoch-popover input.epoch-cal-part::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.epoch-popover input.epoch-cal-part:focus { border-color: var(--accent); }
+
+/* ── Live-session settings under the streams ────────────────────────────────
+   The panel itself has no padding (the Observation / Corrections sections
+   carry their own), so the settings rows below them take the same 16px. */
+.config-panel .rt-panel > .rt-section:not(.rt-stream-section) {
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+.config-panel .rt-panel > .rt-section:not(.rt-stream-section):first-of-type,
+.config-panel .rt-stream-section + .rt-section:not(.rt-stream-section) {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.config-panel .rt-grid-2 { gap: 10px 8px; }
+.config-panel .rt-checkbox { gap: 8px; font-size: 12px; color: var(--text); min-height: 24px; }
+.config-panel .rt-checkbox input { accent-color: var(--text); width: 14px; height: 14px; }
+
+/* A select keeps its value on one line, like Figma's. */
+select { white-space: nowrap; min-width: 0; }
+select > button,
+select selectedcontent { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Stream rows: same shape as the attached-file rows ───────────────────── */
+.config-panel .rt-stream-block { margin-bottom: 6px; }
+.config-panel .rt-stream-block > summary.rt-stream-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 4px 0 8px;
+}
+.config-panel .rt-stream-title { flex: 1; min-width: 0; font-size: 12px; font-weight: 500; }
+.config-panel .rt-stream-remove {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 6px;
+  padding: 0;
+  opacity: 1;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+}
+.config-panel .rt-stream-remove .icon { opacity: 1; }
+.config-panel .rt-stream-remove:hover { background: var(--danger-fill); color: var(--danger-text); }
+.config-panel .rt-stream-body { padding: 8px 0 4px; }
+
+/* ── "+" menu: the same white menu as the dropdowns ──────────────────────── */
+.input-plus-menu {
+  width: 160px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.input-plus-item { min-height: 30px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; }
+.input-plus-item:hover:not(:disabled),
+.input-plus-item:focus-visible { background: var(--control); }
+
+/* Narrow windows: the tabs scroll within their own space and never run under
+   the actions; under 1000px Settings drops its label to make room. */
+.header-nav { overflow: hidden; }
+.header-nav .tabbar { flex: 1 1 0; }
+@media (max-width: 1000px) {
+  .header-actions .btn-ghost[data-tour="settings"] { font-size: 0; gap: 0; }
+  .header-actions .btn-ghost[data-tour="settings"] .icon { font-size: 13px; }
+  .header-nav .tab { padding: 0 6px; }
+  .header-nav .tab.is-active::after { left: 6px; right: 6px; }
+  .header .header-title h1 { display: none; }
+  .header { gap: 6px; padding-right: calc(8px + var(--titlebar-inset-right)); }
+  .header-actions { gap: 2px; }
+  .header-divider { display: none; }
+  .header-run .btn-primary,
+  .header-run .btn-monitor { padding-left: 10px; padding-right: 10px; }
+}
+
+/* A long value is clipped inside the select; the arrow keeps its place. */
+select {
+  display: block;
+  position: relative;
+  padding-right: 28px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The arrow sits on a box filled with the select's own background, so a
+   value too long for the field runs under it rather than through it. */
+select::picker-icon {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  height: auto;
+  margin: 0;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  rotate: 0deg;
+  background-color: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3.5 5 6.5 8 3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: rotate 0.15s ease;
+}
+select:open::picker-icon { rotate: 180deg; margin: 0; }
+
+/* Sidebar selects: room for the arrow and the text centred in the 28px box
+   (the field rules above set a symmetric padding). */
+.config-panel select,
+.config-panel .field-row select,
+.config-panel select.rt-input { padding-right: 28px; line-height: 26px; }
+
+/* The stream type badge is one solid shape: the label inside it carries no
+   fill or padding of its own (an earlier tag rule gives it both). */
+.config-panel .rt-stream-type {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Two-line pickers (stream mountpoints): the field keeps its 40px height and
+   hides its own text under the code / location cover, which the compact
+   28px field rules above would otherwise undo. */
+.config-panel .rt-input.dd-covered {
+  height: auto;
+  min-height: 40px;
+  color: transparent;
+}
+.config-panel .dd-button.rt-input:has(.dd-cover-text) {
+  height: auto;
+  min-height: 40px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.config-panel .dd-cover { padding: 0 8px; border-radius: var(--radius-sm); }
+.config-panel .dd-cover-text .dd-option-code { font-size: 12px; color: var(--text); }
+.config-panel .dd-cover-text .dd-option-location { font-size: 11px; color: var(--text-muted); }
+
+/* The in-app option list (stream pickers) in the same white menu as the
+   selects: neutral highlight, no blue fill on the chosen row. */
+.dd-list,
+[data-theme="light"] .dd-list {
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.dd-option { border-radius: 6px; padding: 6px 10px; }
+.dd-option.is-active,
+.dd-option:hover { background: var(--control); }
+.dd-option[aria-selected="true"] { background: var(--control); color: var(--text); font-weight: 500; }
+
+/* Closed, a picker is a button to open, not a field to type in; the text
+   cursor comes back once it is open for typing. */
+.dd-button,
+.rt-input.dd-covered,
+.dd-cover,
+select { cursor: pointer; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Spacing — one scale everywhere: 16px panel edges, 8px inside rows and
+   between controls, 4px between a label and its control. A control inside a
+   row sits the same distance from the row's top, bottom and side.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Source rows: 44px tall, 28px buttons, so 8px on every side of each. */
+.config-panel .file-card-header,
+.config-panel .rt-stream-block > summary.rt-stream-row {
+  min-height: 44px;
+  padding: 8px;
+  gap: 8px;
+}
+.config-panel .file-card-remove,
+.config-panel .rt-stream-remove { width: 28px; height: 28px; margin-left: 0; }
+.config-panel .file-card-type { width: 20px; height: 28px; }
+.config-panel .rt-stream-lead { height: 28px; padding: 0 8px 0 6px; gap: 4px; }
+.config-panel .rt-stream-block,
+.config-panel .file-card { margin-bottom: 8px; }
+.config-panel .rt-stream-body,
+.config-panel .file-card-body { padding: 0 0 8px; gap: 8px; }
+
+/* Sidebar sections: 16px on every edge, 8px between header and content. */
+.config-panel .rt-stream-section { padding: 16px; gap: 8px; }
+.config-panel .rt-stream-section + .rt-stream-section { padding-top: 16px; }
+.config-panel .rt-panel > .rt-section:not(.rt-stream-section) { padding: 0 16px; margin-bottom: 16px; }
+.config-panel .rt-panel > .rt-section:not(.rt-stream-section):first-of-type,
+.config-panel .rt-stream-section + .rt-section:not(.rt-stream-section) { padding-top: 16px; }
+.config-panel .input-section-header { height: 28px; }
+.config-panel .input-plus-btn { width: 28px; height: 28px; }
+.config-panel .config-accordion-header { height: 48px; padding: 0 16px; }
+.config-panel .config-accordion-body { padding: 0 16px 16px; }
+.config-panel .field-row { gap: 4px; margin-bottom: 12px; }
+.config-panel .field-row:last-child { margin-bottom: 0; }
+.config-panel .rt-section { gap: 4px; }
+.config-panel .rt-grid-2 { gap: 12px 8px; }
+.config-panel .sidebar-brand { padding-left: calc(12px + var(--titlebar-inset-left)); padding-right: 16px; }
+
+/* Top bar: the first tab's label lines up with the content's 16px edge. */
+.header { padding-left: 4px; gap: 8px; }
+.header.has-brand { padding-left: calc(12px + var(--titlebar-inset-left)); }
+.header-actions { gap: 8px; }
+.header-divider { margin: 0; }
+
+/* Workspace panels share the 16px edge. */
+.wf-header,
+.console-header { padding-left: 16px; padding-right: 16px; }
+.console-output { padding-left: 16px; padding-right: 16px; }
+.viz-panel { padding: 16px; gap: 16px; }
+.tabbar-actions { padding: 8px 16px; gap: 8px; }
+.wf-header { padding-top: 12px; padding-bottom: 12px; gap: 8px; }
+.wf-row { padding: 12px 16px; gap: 12px; }
+
+/* ── Sources, flat ──────────────────────────────────────────────────────────
+   No tinted boxes: a source is a plain row on the sidebar that greys on
+   hover like a Figma layer row, and only its badge / icon tile carries the
+   type colour. Its fields follow underneath as ordinary sidebar fields. */
+.config-panel .rt-stream-block,
+.config-panel .file-card {
+  margin-bottom: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.config-panel .rt-stream-block > summary.rt-stream-row,
+.config-panel .file-card-header {
+  min-height: 44px;
+  margin: 0 -8px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  filter: none;
+}
+.config-panel .rt-stream-block > summary.rt-stream-row:hover,
+.config-panel .file-card-header:hover { background: var(--control); filter: none; }
+.config-panel .rt-stream-body,
+.config-panel .file-card-body { padding: 4px 0 8px; gap: 8px; }
+
+/* Text beside the tile reads in the UI's greys, not the type colour. */
+.config-panel .file-card-type-label { color: var(--text-muted); }
+.config-panel .file-card-chevron { color: var(--text-muted); }
+
+/* The station picker matches the other dropdowns: white, outlined. */
+.config-panel .rt-stream-body .rt-input,
+.config-panel .rt-stream-body .dd-button.rt-input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+.config-panel .rt-stream-body .rt-input:hover { border-color: var(--control-active); }
+.config-panel .rt-stream-body .rt-input:focus { border-color: var(--accent); }
+
+/* Every dropdown in the sidebar is the outlined white field; text inputs
+   stay grey wells. */
+.config-panel select.rt-input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+.config-panel select.rt-input:hover { border-color: var(--control-active); }
+
+/* Stream rows read as a disclosure: a plain grey chevron leads the row (as on
+   the file rows and Figma's layers), and the type colour is on the badge
+   alone rather than wrapping the chevron with it. */
+.config-panel .rt-stream-lead {
+  height: 28px;
+  padding: 0;
+  gap: 6px;
+  border-radius: 0;
+  background: transparent;
+}
+.config-panel .rt-stream-chevron {
+  width: 20px;
+  color: var(--text-muted);
+}
+.config-panel .rt-stream-type {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: var(--type-ink);
+  color: var(--type-on-ink);
+}
+
+/* The row itself carries the type's tint; the fields under
+   it stay ordinary white sidebar fields, outside the tint. */
+.config-panel .rt-stream-block > summary.rt-stream-row,
+.config-panel .file-card-header {
+  margin: 0;
+  border-radius: var(--radius-md);
+}
+.config-panel .rt-stream-block > summary.rt-stream-row { background: var(--type-fill); }
+.config-panel .file-card-header { background: var(--type-file-fill); }
+.config-panel .rt-stream-block > summary.rt-stream-row:hover,
+.config-panel .file-card-header:hover { background: var(--type-fill, var(--type-file-fill)); filter: brightness(0.97); }
+.config-panel .file-card-header:hover { background: var(--type-file-fill); }
+.config-panel .rt-stream-chevron,
+.config-panel .file-card-chevron { color: var(--type-ink, var(--type-file-ink)); }
+.config-panel .file-card-type-label { color: var(--type-file-ink); }
+.config-panel .rt-stream-body,
+.config-panel .file-card-body { padding-top: 8px; }
+
+/* Remove sits at the foot of an open source, right-aligned and quiet, red
+   only on hover. */
+.source-actions { display: flex; justify-content: flex-end; }
+.config-panel .source-remove {
+  height: 24px;
+  padding: 0 8px;
+  margin-right: -8px;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.config-panel .source-remove:hover:not(:disabled) { background: var(--danger-fill); color: var(--danger-text); }
+
+/* The header row is chevron, badge and name only. */
+.config-panel .rt-stream-block > summary.rt-stream-row,
+.config-panel .file-card-header { padding-right: 12px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Sources as an accordion list — the bordered list pattern of shadcn/Radix
+   Accordion, Vercel's settings lists and GitHub's connected accounts. One
+   white box with a hairline border; each source is a row in it, split by
+   hairlines; the chevron sits on the right and turns when the row opens; the
+   row's fields open inside the same box. Colour is kept to a soft type badge.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* The box: streams share one; a file card is a box of one. */
+.config-panel .rt-stream-list,
+.config-panel .file-card {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+  overflow: hidden;
+}
+.config-panel .rt-stream-list:empty { display: none; }
+.config-panel .rt-stream-list > .rt-stream-block {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.config-panel .rt-stream-list > .rt-stream-block + .rt-stream-block { border-top: 1px solid var(--border); }
+.config-panel .file-card + .file-card { margin-top: 8px; }
+
+/* Row: badge, name, chevron at the far right. */
+.config-panel .rt-stream-list > .rt-stream-block > summary.rt-stream-row,
+.config-panel .file-card > .file-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  filter: none;
+  cursor: pointer;
+}
+.config-panel .rt-stream-list > .rt-stream-block > summary.rt-stream-row:hover,
+.config-panel .file-card > .file-card-header:hover { background: var(--panel-2); filter: none; }
+.config-panel .rt-stream-list > .rt-stream-block[open] > summary.rt-stream-row,
+.config-panel .file-card > .file-card-header:has([aria-expanded="true"]) { background: var(--panel-2); }
+
+/* Streams: lift the chevron out of the lead so it can go last. */
+.config-panel .rt-stream-list .rt-stream-lead { display: contents; }
+.config-panel .rt-stream-list .rt-stream-chevron,
+.config-panel .file-card .file-card-type {
+  order: 9;
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  background: transparent;
+}
+.config-panel .rt-stream-list .rt-stream-chevron { transform: rotate(90deg); }
+.config-panel .rt-stream-list .rt-stream-block[open] .rt-stream-chevron { transform: rotate(-90deg); }
+.config-panel .file-card .file-card-chevron { color: var(--text-muted); transform: rotate(90deg); }
+.config-panel .file-card .file-card-chevron.is-open { transform: rotate(-90deg); }
+
+/* Soft type badge: the type's tint and ink, a hairline in its line colour. */
+.config-panel .rt-stream-list .rt-stream-type {
+  flex-shrink: 0;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--type-line);
+  border-radius: 4px;
+  background: var(--type-fill);
+  color: var(--type-ink);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.config-panel .rt-stream-list .rt-stream-title {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* File rows: a soft icon tile instead of the badge. */
+.config-panel .file-card .file-card-icon,
+.config-panel .file-card .file-card-icon.is-empty {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--type-file-line);
+  border-radius: var(--radius-sm);
+  background: var(--type-file-fill);
+  color: var(--type-file-ink);
+  opacity: 1;
+}
+.config-panel .file-card .file-card-icon.is-empty {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-dim);
+}
+.config-panel .file-card .file-card-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.config-panel .file-card .file-card-name.is-empty { color: var(--text-muted); }
+.config-panel .file-card .file-card-type-label { font-size: 11px; color: var(--text-muted); }
+
+/* Open: the fields sit inside the box, under a hairline. */
+.config-panel .rt-stream-list .rt-stream-body,
+.config-panel .file-card > .file-card-body {
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+}
+.config-panel .rt-stream-list .rt-stream-body .rt-input,
+.config-panel .rt-stream-list .rt-stream-body .dd-button.rt-input { background: var(--panel); border: 1px solid var(--border); }
+.config-panel .file-card .file-card-body .field-hint,
+.config-panel .file-card .file-card-body .field-row label { color: var(--text-muted); }
+.config-panel .file-card .file-card-body .file-drop-zone,
+.config-panel .file-card .file-card-body .rinex-add { background: transparent; }
+
+/* Remove, at the foot of an open source. */
+.config-panel .source-actions {
+  margin: 4px -12px -12px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Details — tighter, quieter, more even.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Smaller, steadier corner radii throughout. */
+:root { --radius: 8px; --radius-md: 6px; --radius-sm: 4px; }
+.settings-card { border-radius: var(--radius); }
+
+/* Remove sits beside an open source's field as an icon button. Every other
+   child of the body takes the first column. */
+.config-panel .rt-stream-list .rt-stream-body,
+.config-panel .file-card > .file-card-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 8px;
+  align-items: start;
+}
+.config-panel .rt-stream-body > *,
+.config-panel .file-card-body > * { grid-column: 1; min-width: 0; }
+.config-panel .rt-stream-body > .source-remove,
+.config-panel .file-card-body > .source-remove {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 4px 0 0;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+.config-panel .source-remove .icon { opacity: 1; }
+.config-panel .source-remove:hover:not(:disabled) { background: var(--danger-fill); color: var(--danger-text); }
+
+/* Flat buttons: no outlines. Destructive confirm and Stop are solid red. */
+.btn-primary.modal-btn-danger,
+.header-run .btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+  box-shadow: none;
+  border: 0;
+}
+.btn-primary.modal-btn-danger:hover:not(:disabled),
+.header-run .btn-danger:hover:not(:disabled) { background: var(--danger); filter: brightness(0.92); }
+
+/* Constellations: a single short line, and a quiet placeholder. */
+.config-panel .cf-description { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+.config-panel .cf-placeholder {
+  padding: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Wells, not outlines — fields, dropdowns and source rows are all the same
+   grey fill with no border at rest (a hairline appears on hover, the accent
+   on focus). Dropdowns differ from text fields only by their chevron.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Dropdowns: the native selects and the in-app pickers. */
+select,
+.config-panel select,
+.config-panel .field-row select,
+.config-panel select.rt-input,
+.config-panel .dd-button.rt-input,
+.config-panel .rt-stream-list .rt-stream-body .rt-input,
+.config-panel .rt-stream-list .rt-stream-body .dd-button.rt-input {
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+select:hover,
+.config-panel select:hover,
+.config-panel .field-row select:hover,
+.config-panel select.rt-input:hover,
+.config-panel .dd-button.rt-input:hover,
+.config-panel .rt-stream-list .rt-stream-body .rt-input:hover { background: var(--input-bg); border-color: var(--border); }
+select:focus,
+.config-panel select:focus,
+.config-panel .rt-stream-list .rt-stream-body .rt-input:focus { border-color: var(--accent); }
+
+/* Sources: grey rows with no box around them, 8px apart. */
+.config-panel .rt-stream-list,
+.config-panel .file-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.config-panel .rt-stream-list > .rt-stream-block + .rt-stream-block { border-top: 0; }
+.config-panel .rt-stream-list > .rt-stream-block > summary.rt-stream-row,
+.config-panel .file-card > .file-card-header,
+.config-panel .rt-stream-list > .rt-stream-block[open] > summary.rt-stream-row,
+.config-panel .file-card > .file-card-header:has([aria-expanded="true"]) {
+  border-radius: var(--radius-md);
+  background: var(--control);
+}
+.config-panel .rt-stream-list > .rt-stream-block > summary.rt-stream-row:hover,
+.config-panel .file-card > .file-card-header:hover { background: var(--control-hover); }
+
+/* Badge and icon tile sit flat on the row. */
+.config-panel .rt-stream-list .rt-stream-type { border: 0; }
+.config-panel .file-card .file-card-icon { border: 0; }
+.config-panel .file-card .file-card-icon.is-empty { border: 1px dashed var(--input-border); }
+
+/* Open: the fields follow under the row, on the sidebar itself. */
+.config-panel .rt-stream-list .rt-stream-body,
+.config-panel .file-card > .file-card-body {
+  padding: 0 0 4px;
+  border-top: 0;
+  background: transparent;
+}
+
+/* Remove: centred on the field beside it. */
+.config-panel .rt-stream-body > .source-remove,
+.config-panel .file-card-body > .source-remove {
+  align-self: center;
+  margin: 0;
+}
+.config-panel .rt-stream-list .rt-stream-body,
+.config-panel .file-card > .file-card-body { padding-top: 8px; }
+
+/* An editable picker with nothing chosen yet is still a dropdown: it gets
+   the same chevron as the selects. */
+.dd > input.rt-input[role="combobox"],
+.config-panel .rt-stream-list .rt-stream-body .dd > input.rt-input[role="combobox"] {
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%238c8c8c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3.5 5 6.5 8 3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+.dd > input.rt-input[role="combobox"]:focus { cursor: text; }
+.dd > input.rt-input.dd-covered,
+.config-panel .rt-stream-list .rt-stream-body .dd > input.rt-input.dd-covered { background-image: none; }
+
+/* Remove matches the 28px field it sits beside; next to a two-line picker
+   (40px) it stays 28px and centres on it. */
+.config-panel .rt-stream-body > .source-remove,
+.config-panel .file-card-body > .source-remove { width: 28px; height: 28px; }
+
+/* Rows take their type's tint again (NTRIP's blue-grey, File's teal) and the
+   badge is the solid type ink with light text, as before. */
+.config-panel .rt-stream-list > .rt-stream-block > summary.rt-stream-row,
+.config-panel .rt-stream-list > .rt-stream-block[open] > summary.rt-stream-row { background: var(--type-fill); }
+.config-panel .file-card > .file-card-header,
+.config-panel .file-card > .file-card-header:has([aria-expanded="true"]) { background: var(--type-file-fill); }
+.config-panel .rt-stream-list > .rt-stream-block > summary.rt-stream-row:hover { background: var(--type-fill); filter: brightness(0.97); }
+.config-panel .file-card > .file-card-header:hover { background: var(--type-file-fill); filter: brightness(0.97); }
+.config-panel .rt-stream-list .rt-stream-type {
+  height: 22px;
+  padding: 0 8px;
+  background: var(--type-ink);
+  color: var(--type-on-ink);
+}
+.config-panel .rt-stream-list .rt-stream-chevron { color: var(--type-ink); }
+.config-panel .file-card .file-card-icon { background: var(--type-file-ink); color: var(--type-on-ink); }
+.config-panel .file-card .file-card-chevron { color: var(--type-file-ink); }
+
+/* The base styles set a 32px minimum on fields for the roomier surfaces
+   (Settings, dialogs); the dense sidebar keeps its 28px fields. */
+.config-panel .field-row input,
+.config-panel .field-row select,
+.config-panel .rt-input { min-height: 28px; }
+
+/* File runs: Observation and Corrections are the same one-line row as a live
+   stream (type badge, name, chevron on the right), and the browse box is the
+   plain dashed box rather than a teal one. */
+.config-panel .file-card > .file-card-header {
+  min-height: 44px;
+  gap: 10px;
+  padding: 8px 12px;
+}
+.config-panel .file-card .file-card-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: var(--type-file-ink);
+  color: var(--type-on-ink);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.config-panel .file-card > .file-card-header > .file-card-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+}
+.config-panel .file-card .file-card-type { order: 9; margin-left: auto; }
+.config-panel .file-drop-zone,
+.config-panel .rinex-add { border: 1px dashed var(--control-active); background: transparent; }
+.config-panel .file-drop-zone:hover,
+.config-panel .rinex-add:hover:not(:disabled),
+.config-panel .file-drop-zone.is-over { background: var(--control); border-color: var(--text-muted); }
+.config-panel .file-drop-zone-title { color: var(--text); }
+
+/* File-run rows keep the file type's teal, so a file run never looks like an
+   NTRIP (blue-grey) one. */
+.config-panel .file-card > .file-card-header,
+.config-panel .file-card > .file-card-header:has([aria-expanded="true"]),
+.config-panel .file-card > .file-card-header:hover { background: var(--type-file-fill); }
+.config-panel .file-card .file-card-badge { background: var(--type-file-ink); }
+.config-panel .file-card .file-card-chevron { color: var(--type-file-ink); }
+
+/* The empty live section's add box sits where the first stream will. */
+.config-panel .rt-stream-section > .file-drop-zone { width: 100%; }
+
+/* Narrow windows keep the app's name; the version and the words after the
+   blocker count go first, which leaves the tabs room for Visualisation. */
+@media (max-width: 1000px) {
+  .header .header-title h1 { display: block; }
+  .header .header-version { display: none; }
+  .run-blockers-toggle-label { display: none; }
+  .header-nav .tab { padding: 0 3px; }
+  .header-nav .tab.is-active::after { left: 3px; right: 3px; }
+  .header-actions { gap: 0; }
+}
+
+/* The time-zone tag stays one pill rather than breaking across lines. */
+.settings-tag { white-space: nowrap; }
+
+/* Dark theme: NTRIP rows are a muted blue-grey that sits with the dark greys,
+   not the navy fill and pale badge of the type tokens; the badge is a mid
+   steel blue with white text, like light mode's darker badge. File rows do
+   the same in a muted teal, so the two run kinds stay apart. */
+[data-theme="dark"] .config-panel .rt-stream-list > .rt-stream-block[data-type="ntrip"] > summary.rt-stream-row {
+  background: #343a43;
+}
+[data-theme="dark"] .config-panel .rt-stream-list > .rt-stream-block[data-type="ntrip"] > summary.rt-stream-row:hover { background: #3b424c; filter: none; }
+[data-theme="dark"] .config-panel .rt-stream-list .rt-stream-block[data-type="ntrip"] .rt-stream-type {
+  background: #4a5d78;
+  color: #ffffff;
+}
+[data-theme="dark"] .config-panel .rt-stream-list .rt-stream-block[data-type="ntrip"] .rt-stream-chevron { color: #a9b4c3; }
+[data-theme="dark"] .config-panel .file-card > .file-card-header,
+[data-theme="dark"] .config-panel .file-card > .file-card-header:has([aria-expanded="true"]),
+[data-theme="dark"] .config-panel .rt-stream-list > .rt-stream-flat[data-type="file"] { background: #2d3c3d; }
+[data-theme="dark"] .config-panel .file-card > .file-card-header:hover { background: #344546; filter: none; }
+[data-theme="dark"] .config-panel .file-card .file-card-badge,
+[data-theme="dark"] .config-panel .rt-stream-flat[data-type="file"] .rt-stream-type { background: #3b7477; color: #ffffff; }
+[data-theme="dark"] .config-panel .file-card .file-card-chevron { color: #8fc3c5; }
+
+/* ── One-row sources ─────────────────────────────────────────────────────────
+   A file, an NTRIP or HTTP stream is a single row: the type badge, its field
+   (or name) and a remove button, with nothing to open. Serial and Corrections,
+   which carry settings of their own, keep their collapsible cards. */
+.config-panel .rt-stream-list > .rt-stream-flat,
+.config-panel .file-card.is-static > .file-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 8px 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--type-fill);
+  cursor: default;
+}
+.config-panel .file-card.is-static > .file-card-header,
+.config-panel .file-card.is-static > .file-card-header:hover { background: var(--type-file-fill); filter: none; }
+.config-panel .rt-stream-flat .rt-stream-type {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--type-ink);
+  color: var(--type-on-ink);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.config-panel .rt-stream-flat .rt-stream-field { flex: 1; min-width: 0; }
+.config-panel .rt-stream-flat .rt-stream-field .rt-input,
+.config-panel .rt-stream-flat .rt-stream-field .dd-button.rt-input,
+.config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input { background-color: transparent; border-color: transparent; }
+.config-panel .rt-stream-flat .rt-stream-field .rt-input:hover,
+.config-panel .rt-stream-flat .rt-stream-field .dd-button.rt-input:hover,
+.config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input:hover { background-color: transparent; border-color: var(--border); }
+.config-panel .rt-stream-flat .rt-stream-field .rt-input:focus,
+.config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input:focus { background-color: transparent; border-color: var(--accent); }
+.config-panel .rt-stream-flat .rt-stream-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.config-panel .rt-stream-flat .rt-field { gap: 4px; }
+.config-panel .rt-stream-flat .rt-label { display: block; }
+.config-panel .rt-stream-flat .rt-label-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.config-panel .rt-stream-flat > .source-remove,
+.config-panel .file-card.is-static > .file-card-header > .source-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+}
+.config-panel .file-card.is-static > .file-card-header > .file-card-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+}
+/* Serial and SBAS: the same box as a one-row source, with their other
+   settings under the row, inside the box, below a hairline in the type's
+   colour. Nothing opens or closes. */
+.config-panel .rt-stream-list > .rt-stream-flat.rt-stream-box { flex-wrap: wrap; row-gap: 8px; }
+.config-panel .rt-stream-box > .rt-stream-box-body {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--type-line);
+  font-size: 12px;
+}
+.config-panel .rt-stream-box-body .rt-input,
+.config-panel .rt-stream-box-body .dd-button.rt-input { background: var(--panel); border: 1px solid var(--border); }
+.config-panel .rt-stream-box-body .rt-label { color: var(--text-muted); }
+/* SISNet login on Settings › Credentials, while it is being entered. */
+.sisnet-login { display: flex; flex-direction: column; gap: 6px; max-width: 320px; }
+
+/* A file source is one box, like a serial one: the row (badge, name, remove)
+   on top, and what goes with it (the browse box, the file's summary and list,
+   Add more files) inside the same box, under a hairline in the file colour,
+   full width since there is no remove column beside it. */
+.config-panel .file-card.is-static {
+  gap: 0;
+  background: var(--type-file-fill);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.config-panel .file-card.is-static > .file-card-header,
+.config-panel .file-card.is-static > .file-card-header:hover { background: transparent; }
+.config-panel .file-card.is-static > .file-card-body {
+  display: flex;
+  flex-direction: column;
+  /* Every child at the box's full width, like the General fields (a grid
+     rule would otherwise pin them to their own width). */
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--type-file-line);
+}
+.config-panel .file-card.is-static > .file-card-body:empty { display: none; }
+/* No file yet: the card is the drop box, edge to edge, with remove in its
+   corner (a sibling, as a button cannot hold another). */
+.config-panel .file-card.is-static.is-empty { position: relative; background: transparent; }
+.config-panel .file-card.is-static.is-empty > .file-card-drop {
+  width: 100%;
+  min-height: 72px;
+  margin: 0;
+  border-radius: var(--radius-md);
+  background: var(--type-file-fill);
+  border-color: var(--type-file-line);
+}
+.config-panel .file-card.is-static.is-empty > .source-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+}
+.config-panel .file-card.is-static .rinex-add { width: 100%; }
+/* Settings in the box (the Corrections pick) read as fields on the teal, as
+   in a serial box. */
+.config-panel .file-card.is-static > .file-card-body select,
+.config-panel .file-card.is-static > .file-card-body .dd-button { background-color: var(--panel); border: 1px solid var(--border); }
+.config-panel .file-card.is-static > .file-card-body > *,
+.config-panel .file-card.is-static .rinex-add { width: 100%; }
+/* Provider, Series and Project: one size, one row each. */
+.config-panel .file-card.is-static > .file-card-body .field-row { margin-bottom: 0; }
+.config-panel .file-card.is-static > .file-card-body .field-row select { width: 100%; height: 28px; min-height: 28px; }
+.field-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.field-row-head .provider-health { margin-top: 0; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+[data-theme="dark"] .config-panel .rt-stream-list > .rt-stream-flat[data-type="ntrip"] { background: #343a43; }
+[data-theme="dark"] .config-panel .file-card.is-static { background: #2d3c3d; }
+[data-theme="dark"] .config-panel .file-card.is-static.is-empty { background: transparent; }
+[data-theme="dark"] .config-panel .file-card.is-static.is-empty > .file-card-drop { background: #2d3c3d; }
+[data-theme="dark"] .config-panel .file-card.is-static > .file-card-header,
+[data-theme="dark"] .config-panel .file-card.is-static > .file-card-header:hover { background: transparent; }
+[data-theme="dark"] .config-panel .rt-stream-flat[data-type="ntrip"] .rt-stream-type { background: #4a5d78; color: #ffffff; }
+
+/* Serial: the bin sits beside the device field; the line settings under it
+   take the full width. */
+.config-panel .rt-stream-body > :not(.source-remove):not(:first-child) { grid-column: 1 / -1; }
+
+/* The field in a one-row source is a shade off the row, not the row colour
+   and not a separate box: lighter in light mode, darker in dark mode. */
+.config-panel .rt-stream-flat .rt-stream-field .rt-input,
+.config-panel .rt-stream-flat .rt-stream-field .dd-button.rt-input,
+.config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input,
+.config-panel .rt-stream-flat .rt-stream-field .rt-input:focus,
+.config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input:focus { background-color: rgba(255, 255, 255, 0.55); }
+.config-panel .rt-stream-flat .rt-stream-field .rt-input:hover,
+.config-panel .rt-stream-flat .rt-stream-field .dd-button.rt-input:hover,
+.config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input:hover { background-color: rgba(255, 255, 255, 0.75); }
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .rt-input,
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .dd-button.rt-input,
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input,
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .rt-input:focus,
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input:focus { background-color: rgba(0, 0, 0, 0.18); }
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .rt-input:hover,
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .dd-button.rt-input:hover,
+[data-theme="dark"] .config-panel .rt-stream-flat .rt-stream-field .dd > input.rt-input:hover { background-color: rgba(0, 0, 0, 0.26); }
+
+/* Form controls draw their native parts (number spin arrows, scrollbars) in
+   the theme's scheme, not Windows' light grey on a dark field. */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea { color-scheme: dark; }
+
+/* Sidebar sections: room above each bold subtitle (Time Window, RINEX
+   Metadata, ...) so the groups read apart. */
+.config-panel .config-section + .config-section { margin-top: 20px; }

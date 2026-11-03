@@ -18,6 +18,7 @@ McClusky, Simon; Hammond, Aaron; Maj, Ronald; Allgeyer, Sébastien; Harima, Ken;
 
 ## Table of Contents
 
+- [Ginan Desktop App](#ginan-desktop-app)
 - [Quick Start](#quick-start)
 - [Overview](#overview)
    - [How to cite](#how-to-cite)
@@ -49,6 +50,58 @@ McClusky, Simon; Hammond, Aaron; Maj, Ronald; Allgeyer, Sébastien; Harima, Ken;
 - [License](#license)
    - [Third-Party Components](#third-party-components)
 - [Acknowledgements](#acknowledgements)
+
+## Ginan Desktop App
+
+`scripts/GinanTauri/` contains a cross-platform desktop app (built with Tauri)
+for configuring and running PEA on RINEX files or real-time NTRIP and serial
+streams, and for plotting the results. See
+[scripts/GinanTauri/README.md](scripts/GinanTauri/README.md) to build and run it.
+
+### GinanTauri builds and releases
+
+`.github/workflows/release.yml` builds the GinanTauri desktop app
+(`scripts/GinanTauri`) for Windows x64, macOS (Apple silicon and Intel) and
+Linux x64, via the reusable `.github/workflows/tauri-build.yml`.
+
+- **Release:** push a `vX.Y.Z` tag on a commit on `main` (`just release v1.2.0`),
+  or run the *Build and Release* workflow by hand on `main` with a
+  `release_tag`. A draft GitHub release is created for the tag, the installers
+  are attached to it, and it is published once every platform has built. The
+  tag's `X.Y.Z` becomes the app version.
+- **Build only:** a manual run with no tag, from any branch, builds every
+  platform and keeps the installers as workflow artifacts (14 days) without
+  releasing. Branch pushes and pull requests never start a build.
+- **Release assets:** `.msi` and NSIS `-setup.exe` (Windows), `.dmg` for
+  `aarch64` and `x64` (macOS), `.deb`, `.rpm` and `.AppImage` (Linux).
+- The app does not bundle `pea`; it downloads the right Ginan binary from the
+  GeoscienceAustralia/ginan releases on first run.
+- **Signing (optional repository secrets):** `APPLE_CERTIFICATE`,
+  `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`,
+  `APPLE_PASSWORD`, `APPLE_TEAM_ID` for macOS signing and notarisation;
+  `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` for the
+  Tauri updater. Without them the builds are unsigned (macOS bundles are
+  ad-hoc signed), so Windows SmartScreen and macOS Gatekeeper will warn on
+  first launch.
+- Build locally with `just build-tauri`.
+
+### GinanTauri tests
+
+The Tauri app in `scripts/GinanTauri` has a Vitest suite and Rust unit tests
+that run on every pull request touching the app
+(`.github/workflows/frontend-tests.yml`). To run the frontend suite locally:
+
+```bash
+cd scripts/GinanTauri
+npm ci
+npm test               # the whole suite, once
+npm run test:watch     # re-run affected tests while editing
+npm run test:coverage  # writes coverage/ (git-ignored)
+npm run typecheck      # tsc --noEmit, test files included
+```
+
+See [`scripts/GinanTauri/TESTING.md`](scripts/GinanTauri/TESTING.md) for the
+test harness and conventions.
 
 ## Quick Start
 

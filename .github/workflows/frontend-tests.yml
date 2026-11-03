@@ -1,0 +1,126 @@
+name: Ginan UI tests
+
+# Runs the Tauri app's test suite on every pull request that touches the app,
+# and on pushes to the main branches so the baseline PRs are compared against
+# is known-green too.
+on:
+  pull_request:
+    branches: [main, develop, develop-weekly]
+    paths:
+      - "scripts/GinanTauri/**"
+      - ".github/workflows/frontend-tests.yml"
+  push:
+    branches: [main, develop, develop-weekly]
+    paths:
+      - "scripts/GinanTauri/**"
+      - ".github/workflows/frontend-tests.yml"
+  workflow_dispatch:
+
+# A new push to a PR supersedes the run already in flight for it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: scripts/GinanTauri
+
+jobs:
+  frontend:
+    name: Frontend (typecheck, vitest, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # `defaults.run` only applies to `run:` steps, so the lockfile path is
+      # spelled out for the cache.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: scripts/GinanTauri/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e '
+              const t = require("./coverage/coverage-summary.json").total;
+              const row = (k) => `| ${k} | ${t[k].pct}% | ${t[k].covered}/${t[k].total} |`;
+              console.log(["### Frontend coverage", "", "| Metric | % | Covered |", "|---|---|---|",
+                ...["lines", "statements", "functions", "branches"].map(row)].join("\n"));
+            ' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Kept even when the tests fail: that is when the report is most useful.
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: scripts/GinanTauri/coverage
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # The same `tsc && vite build` that `tauri build` runs, so a PR that
+      # breaks the production bundle fails here rather than at release time.
+      - name: Build
+        run: npm run build
+
+  # Compiles the Rust backend and runs its unit tests. Tauri links against the
+  # system WebKitGTK stack even for `cargo test`, hence the apt packages.
+  rust:
+    name: Rust backend (cargo check + test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: scripts/GinanTauri/src-tauri
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libsoup-3.0-dev \
+            libjavascriptcoregtk-4.1-dev \
+            patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: scripts/GinanTauri/src-tauri
+
+      # `generate_context!()` embeds `frontendDist` (../dist) at compile time,
+      # so the crate does not compile until that directory exists. A
+      # placeholder page is enough for check/test; the frontend job does the
+      # real build.
+      - name: Stub the frontend bundle
+        run: |
+          mkdir -p ../dist
+          echo '<!doctype html><title>placeholder</title>' > ../dist/index.html
+
+      - name: cargo check
+        run: cargo check --locked --all-targets
+
+      - name: cargo test
+        run: cargo test --locked

@@ -1,0 +1,185 @@
+# Build & release flow for the GinanTauri desktop app.
+#
+#   Push a tag  v*  (e.g. `just release v1.2.0`)
+#     -> create-release : creates a *draft* GitHub release for the tag
+#                         (reuses it if a release for the tag already exists)
+#     -> tauri          : builds GinanTauri on Windows / macOS arm64 + x64 /
+#                         Linux and uploads the installers to that release
+#     -> publish        : un-drafts the release once every build succeeded
+#                         (a release that was already published is left alone)
+#
+#   Manual run (Actions > Build and Release > Run workflow)
+#     - leave "release_tag" empty: build only, bundles are workflow artifacts
+#     - set "release_tag": same as pushing that tag (the tag is created at the
+#       selected commit if it does not exist yet)
+#
+#   Builds never start on their own from branch pushes or pull requests (a
+#   four-platform Rust release build takes ~15-25 min per platform). Start one
+#   from the Actions page when you want it. The check-main job stops the run
+#   before anything is built or released unless:
+#     - manual build only (no release_tag): any branch, picked in the
+#                    "Use workflow from" dropdown
+#     - manual release (release_tag set): started on the main branch
+#     - tag push   : the tagged commit is on main (main itself, or an
+#                    ancestor of it), checked with the GitHub compare API
+#   So tag the release on main after merging, e.g. `just release v1.2.0`.
+#   GitHub only shows the "Run workflow" button once this file is on the
+#   default branch (main).
+#
+# Release assets (names come from productName/version in tauri.conf.json):
+#   Windows : GinanTauri_<ver>_x64_en-US.msi, GinanTauri_<ver>_x64-setup.exe
+#   macOS   : GinanTauri_<ver>_aarch64.dmg, GinanTauri_<ver>_x64.dmg
+#             (+ GinanTauri_<arch>.app.tar.gz)
+#   Linux   : GinanTauri_<ver>_amd64.deb, GinanTauri_<ver>_amd64.AppImage,
+#             GinanTauri-<ver>-1.x86_64.rpm
+#
+# The Ginan C++ binaries are built by build.yaml. To attach them to the same
+# release, add their jobs here with `needs: create-release`, upload to the same
+# release id, and list them in publish.needs.
+#
+# Signing secrets are all optional; see tauri-build.yml for the list.
+
+name: Build and Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Tag to release (e.g. v1.2.0). Leave empty to build without releasing.
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  check-main:
+    name: Check run is allowed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the trigger
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            # A build-only run can come from any branch; a release cannot.
+            if [ -n "$RELEASE_TAG" ] && [ "$REF" != "refs/heads/main" ]; then
+              echo "::error::Releases only run on main; this run was started on $REF. Re-run it from main, or leave release_tag empty to build only."
+              exit 1
+            fi
+          else
+            # "identical" or "behind" means the tagged commit is on main.
+            status=$(gh api "repos/$GH_REPO/compare/main...$SHA" --jq .status)
+            if [ "$status" != "identical" ] && [ "$status" != "behind" ]; then
+              echo "::error::Tag $REF points at $SHA, which is not on main (compare status: $status). Tag a commit on main."
+              exit 1
+            fi
+          fi
+          echo "OK: $EVENT on $REF ($SHA)."
+
+  create-release:
+    name: Create draft release
+    needs: check-main
+    if: github.ref_type == 'tag' || inputs.release_tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+      app_version: ${{ steps.release.outputs.app_version }}
+      is_draft: ${{ steps.release.outputs.is_draft }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Create or reuse release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.release_tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Bundlers (MSI in particular) need a plain numeric X.Y.Z version.
+          version=$(echo "$TAG" | sed -E 's/^v//; s/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Tag '$TAG' is not of the form vX.Y.Z"
+            exit 1
+          fi
+
+          # The list endpoint includes drafts (the by-tag endpoint does not), so
+          # a re-run reuses the draft it made last time instead of adding another.
+          find_id() {
+            gh api "repos/$GH_REPO/releases?per_page=100" \
+              --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -n1
+          }
+          id=$(find_id)
+          if [ -n "$id" ]; then
+            echo "Release for $TAG already exists ($id); uploading into it."
+            # A draft left by an earlier failed run of this workflow still
+            # needs publishing at the end.
+            if [ "$(gh api "repos/$GH_REPO/releases/$id" --jq .draft)" = "true" ]; then
+              is_draft=true
+            else
+              is_draft=false
+            fi
+          else
+            # Take the id from the create response: the list endpoint can lag
+            # behind a just-created draft, so looking it up again may miss it.
+            id=$(gh api "repos/$GH_REPO/releases" \
+              -f tag_name="$TAG" -f target_commitish="$GITHUB_SHA" \
+              -f name="$TAG" -F draft=true -F generate_release_notes=true \
+              --jq .id)
+            is_draft=true
+          fi
+          if [ -z "$id" ]; then
+            echo "::error::Could not resolve release id for $TAG"
+            exit 1
+          fi
+          {
+            echo "release_id=$id"
+            echo "app_version=$version"
+            echo "is_draft=$is_draft"
+            echo "tag=$TAG"
+          } >> "$GITHUB_OUTPUT"
+
+  tauri:
+    name: GinanTauri
+    needs: [check-main, create-release]
+    # Run when a release was created, and also on build-only runs (where
+    # create-release is skipped), but never when check-main failed.
+    if: ${{ !cancelled() && needs.check-main.result == 'success' && (needs.create-release.result == 'success' || needs.create-release.result == 'skipped') }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/tauri-build.yml
+    with:
+      release_id: ${{ needs.create-release.outputs.release_id }}
+      app_version: ${{ needs.create-release.outputs.app_version }}
+    secrets: inherit
+
+  publish:
+    name: Publish release
+    needs: [create-release, tauri]
+    # Only touches drafts (made by this run or an earlier failed one); an
+    # already-published release is left as it is.
+    if: needs.create-release.outputs.is_draft == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Un-draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_ID: ${{ needs.create-release.outputs.release_id }}
+        run: gh api -X PATCH "repos/$GH_REPO/releases/$RELEASE_ID" -F draft=false
