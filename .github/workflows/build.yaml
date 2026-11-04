@@ -18,6 +18,7 @@ jobs:
             triplet: x64-linux
             artifact-name: ginan-linux-x64
             build-dir: linux-Release
+            pin-cmake: true
             install-root: vcpkg_installed/linux
             cache-key: vcpkg-linux-v5
             install-deps: |
@@ -69,6 +70,7 @@ jobs:
             triplet: x64-mingw-static
             artifact-name: ginan-windows-x64
             build-dir: windows-cross-Release
+            pin-cmake: true
             install-root: vcpkg_installed/mingw
             cache-key: vcpkg-windows-cross-v5
             install-deps: |
@@ -89,7 +91,9 @@ jobs:
     - name: Install system dependencies
       run: ${{ matrix.install-deps }}
 
-    - name: Pin CMake for macOS x64 vcpkg
+    # Runners whose image ships CMake 4 (macos-15-intel, and ubuntu-latest since it became Ubuntu 26.04
+    # on 2026-10-19) cannot configure the mongo-c-driver 1.30.6 vcpkg port; use CMake 3.31 for vcpkg there.
+    - name: Pin CMake for vcpkg (runners shipping CMake 4)
       if: matrix.pin-cmake == true
       run: |
         python3 -m venv "$RUNNER_TEMP/cmake-venv"
