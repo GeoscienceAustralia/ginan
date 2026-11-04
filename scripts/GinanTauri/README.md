@@ -219,10 +219,6 @@ A typical file-mode run:
 Real-time runs follow the same shape, using `resources/rt_ppp_config.yaml`,
 `start_pea_realtime`, and the *Streams* tab for live telemetry.
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ## License
 
 Apache License 2.0. See [LICENSE.md](../../LICENSE.md) at the repository root.

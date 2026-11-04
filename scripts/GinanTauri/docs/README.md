@@ -21,7 +21,6 @@ kind of run you want to do.
 | Page | Read it to |
 | --- | --- |
 | [README](../README.md) | See the prerequisites, run the app from source, and find your way around the code. |
-| [CONTRIBUTING](../CONTRIBUTING.md) | Check your change before a pull request and follow the code guidelines. |
 | [TESTING](../TESTING.md) | Run and write the frontend tests. |
 
 ## Conventions in these pages

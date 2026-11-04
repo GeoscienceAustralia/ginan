@@ -305,7 +305,8 @@ could not be built from the current settings.
 
 ## Reporting a problem
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md#reporting-bugs). Include your OS, the
+Open an issue on the
+[Ginan repository](https://github.com/GeoscienceAustralia/ginan/issues). Include your OS, the
 app version (Settings > About), the PEA version (Settings > PEA Binary) and the
 steps. Remove usernames and passwords from anything you attach. A real-time
 `rt_ppp_config.yaml` can contain your NTRIP login, so do not attach one without
