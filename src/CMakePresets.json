@@ -31,6 +31,20 @@
       }
     },
     {
+      "name": "linux-arm64-base",
+      "hidden": true,
+      "inherits": "vcpkg-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-linux",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../vcpkg_installed/linux-arm64"
+      }
+    },
+    {
       "name": "windows-base",
       "hidden": true,
       "inherits": "vcpkg-base",
@@ -152,6 +166,26 @@
       }
     },
     {
+      "name": "linux-arm64-release",
+      "displayName": "Linux ARM64 Release",
+      "description": "Release build on a native AArch64 Linux host (Raspberry Pi 5, Ampere, Graviton...) using vcpkg",
+      "binaryDir": "${sourceDir}/build/linux-arm64-Release",
+      "inherits": ["linux-arm64-base"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-arm64-debug",
+      "displayName": "Linux ARM64 Debug",
+      "description": "Debug build on a native AArch64 Linux host using vcpkg",
+      "binaryDir": "${sourceDir}/build/linux-arm64-Debug",
+      "inherits": ["linux-arm64-base"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
       "name": "windows-release",
       "displayName": "Windows Release",
       "description": "Release build for Windows",
@@ -269,6 +303,16 @@
       "name": "relwithdebinfo",
       "configurePreset": "relwithdebinfo",
       "displayName": "RelWithDebInfo Build"
+    },
+    {
+      "name": "linux-arm64-release",
+      "configurePreset": "linux-arm64-release",
+      "displayName": "Linux ARM64 Release Build"
+    },
+    {
+      "name": "linux-arm64-debug",
+      "configurePreset": "linux-arm64-debug",
+      "displayName": "Linux ARM64 Debug Build"
     },
     {
       "name": "windows-release",

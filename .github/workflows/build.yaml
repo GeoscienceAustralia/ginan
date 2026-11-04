@@ -25,6 +25,19 @@ jobs:
               sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config git gfortran
             preset: release
             
+          - name: Linux ARM64
+            os: ubuntu-24.04-arm
+            triplet: arm64-linux
+            artifact-name: ginan-linux-arm64
+            build-dir: linux-arm64-Release
+            install-root: vcpkg_installed/linux-arm64
+            cache-key: vcpkg-linux-arm64-v1
+            install-deps: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake ninja-build curl zip unzip tar pkg-config git gfortran
+            preset: linux-arm64-release
+            vcpkg-extra-flags: --allow-unsupported
+
           - name: macOS ARM64
             os: macos-14
             triplet: arm64-osx
@@ -198,6 +211,13 @@ jobs:
             pyinstaller-args: --windowed
             extra-steps: ""
             
+          - name: Linux ARM64
+            os: ubuntu-24.04-arm
+            binary-artifact: ginan-linux-arm64
+            gui-artifact: ginan-gui-linux-arm64
+            pyinstaller-args: --windowed
+            extra-steps: ""
+
           - name: macOS ARM64
             os: macos-15
             binary-artifact: ginan-macos-arm64
