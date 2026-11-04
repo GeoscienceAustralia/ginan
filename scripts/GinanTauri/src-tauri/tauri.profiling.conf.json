@@ -1,0 +1,20 @@
+{
+  "build": {
+    "features": ["profiling"],
+    "beforeDevCommand": "npm run dev -- --mode profiling",
+    "beforeBuildCommand": "npm run build -- --mode profiling"
+  },
+  "app": {
+    "security": {
+      "capabilities": [
+        "default",
+        {
+          "identifier": "profiling",
+          "description": "Tracing and CPU profiling commands, profiling builds only",
+          "windows": ["main"],
+          "permissions": ["tracing:default", "profiling:default"]
+        }
+      ]
+    }
+  }
+}
