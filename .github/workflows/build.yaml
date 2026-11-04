@@ -1,8 +1,10 @@
 name: Build and Package
 
-# Run by hand from the Actions page (Build and Package > Run workflow); pushes
-# and pull requests do not start it.
 on:
+  push:
+    branches: [ main, develop, develop-weekly ]
+  pull_request:
+    branches: [ main, develop, develop-weekly ]
   workflow_dispatch:
 
 jobs:
