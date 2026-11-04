@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+# [Unreleased]
+
+## Added
+
+Build and packaging:
+- Linux arm64 (AArch64) as a supported platform: CMake presets `linux-arm64-release` / `linux-arm64-debug` (vcpkg triplet `arm64-linux`), native `ubuntu-24.04-arm` jobs in the GitHub Actions build matrix producing the `ginan-linux-arm64` and `ginan-gui-linux-arm64` artifacts (all GinanUI dependencies ship AArch64 wheels), and README notes for Raspberry Pi 5 and other AArch64 hosts. No source change was needed: the code has no x86-specific intrinsics and every dependency is available for AArch64.
+
 # [4.1.4] 2026-09-16
 
 ## Added

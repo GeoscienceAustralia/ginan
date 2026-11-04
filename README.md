@@ -148,7 +148,7 @@ Precompiled binaries for **Ginan** and **GinanUI** are available on the project'
 
 We publish builds for the following platforms:
 
-- Linux (x86_64)
+- Linux (x86_64 and arm64/AArch64)
 - macOS (arm64 and x86_64)
 - Windows (x86_64)
 
@@ -164,7 +164,8 @@ Note about Windows binaries: We have observed an output file-size limitation on 
 
 | Platform | Tested Versions | Notes |
 |----------|-----------------|-------|
-| **Linux** | Ubuntu 22.04, 24.04 | Primary development platform |
+| **Linux x86_64** | Ubuntu 22.04, 24.04 | Primary development platform |
+| **Linux arm64 (AArch64)** | Ubuntu 24.04 (CI), Debian 12 | Native builds on AArch64 hosts (Raspberry Pi 5, Ampere, AWS Graviton...); the `ginan-env` Docker image is multi-arch |
 | **macOS** | 10.15+ (x86) | Limited testing |
 | **Windows** | 10+ |  Limited testing|
 
@@ -218,6 +219,7 @@ Common release presets:
 | Platform | Configure/build preset |
 |----------|------------------------|
 | Linux x86_64 | `release` |
+| Linux arm64 (AArch64, native) | `linux-arm64-release` |
 | macOS Apple silicon | `macos-arm64-release` |
 | macOS Intel | `macos-x64-release` |
 | Windows native | `windows-release` |
@@ -240,6 +242,8 @@ Verify the build:
 ```
 
 The CMake presets use platform-specific dependency install roots under `./vcpkg_installed/`. If a configure step fails after changing triplets or branches, remove the relevant preset build directory under `src/build/` and configure again.
+
+**Linux arm64 (AArch64):** build natively on the AArch64 host with the `linux-arm64-release` preset (vcpkg triplet `arm64-linux`; some ports are only "community"-supported on that triplet, so pass `--allow-unsupported` to `vcpkg install` as the CI does). The same `docker/ginan-env.Dockerfile` recipe works unchanged on arm64 (`ubuntu:24.04` is multi-arch), so `docker buildx build --platform linux/arm64` also produces a native image. On small boards such as a Raspberry Pi 5, build with `--parallel 2` (about 2 GB of RAM per compilation job) and leave `ENABLE_ARCHITECTURE_OPTIMISATION` off if the binary must run on another AArch64 machine.
 
 **OpenBLAS threading:** Ginan can use OpenMP while OpenBLAS may also use worker threads. If you see warnings such as `OpenBLAS Warning : Detect OpenMP Loop and this application may hang`, set `OPENBLAS_NUM_THREADS=1` so BLAS/LAPACK calls run single-threaded inside Ginan's OpenMP regions.
 
